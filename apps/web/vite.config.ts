@@ -5,7 +5,7 @@ import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const port = Number(env.VITE_PORT || 5174)
+  const port = Number(env.VITE_PORT || 95513)
   const apiTarget = env.VITE_API_TARGET || 'http://localhost:8788'
   const allowedHosts = (env.VITE_ALLOWED_HOSTS || '')
     .split(',')

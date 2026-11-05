@@ -51,8 +51,8 @@ function headers(scope?: AiScopeContext): Record<string, string> {
     Authorization: `Bearer ${env.OPENVIKING_API_KEY}`,
   }
   if (scope) {
-    h['X-OpenViking-Account'] = scope.openvikingAccount || 'yon'
-    h['X-OpenViking-User'] = scope.openvikingUser || `yon_${scope.userId}`
+    h['X-OpenViking-Account'] = scope.openvikingAccount || 'leyova'
+    h['X-OpenViking-User'] = scope.openvikingUser || `leyova_${scope.userId}`
   }
   return h
 }
@@ -133,7 +133,7 @@ export async function writeMemory(
   category = 'events'
 ): Promise<void> {
   const today = new Date().toISOString().slice(0, 10)
-  const user = scope.openvikingUser || `yon_${scope.userId}`
+  const user = scope.openvikingUser || `leyova_${scope.userId}`
   const uri = `viking://user/${user}/memories/${category}/${today}/${Date.now()}.md`
 
   await ovFetch(
@@ -158,7 +158,7 @@ export async function createSession(
   const result = await ovFetch<OvSession>(
     '/api/v1/sessions',
     {
-      title: title || `yon-conv-${scope.userId}`,
+      title: title || `leyova-conv-${scope.userId}`,
       config: {},
     },
     scope

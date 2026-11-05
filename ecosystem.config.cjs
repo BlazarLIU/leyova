@@ -50,7 +50,7 @@ module.exports = {
       name: 'leyova-web',
       cwd: join(ROOT, 'apps', 'web'),
       script: 'node_modules/.bin/vite',
-      args: '--host 0.0.0.0 --port 5174',
+      args: '--host 0.0.0.0 --port 95513',
       env: {
         NODE_ENV: 'production',
       },

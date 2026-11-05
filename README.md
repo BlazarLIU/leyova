@@ -7,7 +7,7 @@ AI 直播运营管理系统 —— 面向直播电商团队的经营数据、复
 | 子系统 | 技术栈 | 默认端口 |
 |---|---|---|
 | `apps/api` | Node.js + Fastify 5 + PostgreSQL + Zod | 8788 |
-| `apps/web` | React 19 + TypeScript + Vite + Tailwind CSS v4 | 5174 |
+| `apps/web` | React 19 + TypeScript + Vite + Tailwind CSS v4 | 95513 |
 | `apps/mcp-server` | Node.js + MCP 工具服务（21 个工具） | 9101 |
 
 ## 特性
@@ -31,7 +31,7 @@ AI 直播运营管理系统 —— 面向直播电商团队的经营数据、复
 
 ```mermaid
 flowchart LR
-  U[浏览器] -->|5174 : Vite| W[apps/web<br/>React 19]
+  U[浏览器] -->|95513 : Vite| W[apps/web<br/>React 19]
   W -->|/api 代理| A[apps/api<br/>Fastify 5]
   A --> DB[(PostgreSQL)]
   A -->|OpenAI 兼容| OC[OpenClaw Gateway<br/>可选]
@@ -111,11 +111,11 @@ pnpm dev
 
 ```bash
 pnpm dev:api   # http://localhost:8788
-pnpm dev:web   # http://localhost:5174
+pnpm dev:web   # http://localhost:95513
 pnpm dev:mcp   # http://localhost:9101
 ```
 
-打开 `http://localhost:5174` 即可。
+打开 `http://localhost:95513` 即可。
 
 ### 6. 生产构建
 
@@ -130,16 +130,16 @@ pm2 start ecosystem.config.cjs
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `NODE_ENV` | development | 运行环境；production 时强制校验 `SESSION_SECRET` / `YON_MCP_TOKEN` |
+| `NODE_ENV` | development | 运行环境；production 时强制校验 `SESSION_SECRET` / `LEYOVA_MCP_TOKEN` |
 | `PORT` | 8788 | 后端监听端口 |
-| `WEB_ORIGIN` | http://localhost:5174 | CORS 允许源 |
+| `WEB_ORIGIN` | http://localhost:95513 | CORS 允许源 |
 | `SESSION_SECRET` | dev 默认值 | 会话密钥，生产必须设置 |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | localhost / 5432 / leyova / postgres / 空 | 数据库连接 |
 | `DATABASE_URL` | — | 连接串，存在时优先 |
 | `DEFAULT_USER_PASSWORD` | 空 | 创建账号未填密码时的默认密码；留空则必须显式指定 |
 | `AI_ENABLED` | false | AI 总开关 |
 | `OPENCLAW_HOME` | 空 | OpenClaw 安装目录；未配置则 AI 配置写入/重启能力关闭 |
-| `YON_MCP_TOKEN` | dev 默认值 | 调用 MCP Server 的 Bearer token，生产必须设置 |
+| `LEYOVA_MCP_TOKEN` | dev 默认值 | 调用 MCP Server 的 Bearer token，生产必须设置 |
 | `MCP_PORT` | 9101 | MCP Server 端口 |
 | `LOG_LEVEL` / `LOG_ROOT` | info / 空 | 日志级别与目录（留空为 `./logs`） |
 
@@ -147,7 +147,7 @@ pm2 start ecosystem.config.cjs
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `VITE_PORT` | 5174 | 开发服务器端口 |
+| `VITE_PORT` | 95513 | 开发服务器端口 |
 | `VITE_API_TARGET` | http://localhost:8788 | `/api` 代理目标 |
 | `VITE_ALLOWED_HOSTS` | 空（允许全部） | 允许访问的 Host，逗号分隔 |
 
@@ -165,7 +165,7 @@ pm2 start ecosystem.config.cjs
 ## 与既有系统并行运行
 
 各子系统端口集中在 `apps/api/.env`、`apps/mcp-server/.env`、`apps/web/.env` 与
-`ecosystem.config.cjs`，如需与另一套实例并存，改这几处即可（默认已是 8788 / 5174 / 9101）。
+`ecosystem.config.cjs`，如需与另一套实例并存，改这几处即可（默认已是 8788 / 95513 / 9101）。
 
 自检：
 
@@ -183,7 +183,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:9101/health
 3. `apps/api/src/qm/` 模块尚未接入主流程。
 4. 前端部分组件与 `src/data/` 中的示例数据未被引用。
 5. `apps/api/prisma/schema.prisma` 与实际数据库结构不完全一致，仅作参考。
-6. 开发默认值（`SESSION_SECRET`、`YON_MCP_TOKEN`）仅供本地调试，生产启动会强制要求覆盖。
+6. 开发默认值（`SESSION_SECRET`、`LEYOVA_MCP_TOKEN`）仅供本地调试，生产启动会强制要求覆盖。
 
 ## 贡献
 

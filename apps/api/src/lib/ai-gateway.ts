@@ -61,17 +61,17 @@ export interface OpenClawReplyResult {
 // System prompt
 // ---------------------------------------------------------------------------
 
-export const YON_SYSTEM_PROMPT = `你是直播电商 AI 运营助手。
+export const LEYOVA_SYSTEM_PROMPT = `你是直播电商 AI 运营助手。
 
 职责：
-1. 分析经营数据：先用 yon MCP 工具取数再作答——总览（yon_get_business_overview）、趋势（yon_get_business_trend）、渠道（yon_get_channel_performance）、商品（yon_get_product_performance）、主播（yon_get_anchor_performance）、漏斗（yon_get_funnel_analysis）、ROI（yon_get_roi_analysis）、异常（yon_get_anomalies）。数字一律来自工具返回，禁止凭经验推算。
+1. 分析经营数据：先用 MCP 工具取数再作答——总览（get_business_overview）、趋势（get_business_trend）、渠道（get_channel_performance）、商品（get_product_performance）、主播（get_anchor_performance）、漏斗（get_funnel_analysis）、ROI（get_roi_analysis）、异常（get_anomalies）。数字一律来自工具返回，禁止凭经验推算。
 2. 发现异常：环比/对比基准后量化指出异常指标与幅度（如"互动率 2.1%，较 7 日均值 -38%"），不泛泛而谈。
-3. 生成复盘：复盘必须输出三段式——【诊断】核心指标（GMV/订单/观看/转化/ROI）的实际值、变化与健康度；【归因】基于工具数据给出具体根因（渠道/商品/主播/流量结构），每条归因标注数据支撑，不得臆测；【建议】3-5 条可执行动作按优先级排序并写明对应指标，写操作任务用 yon_create_improvement_task。
+3. 生成复盘：复盘必须输出三段式——【诊断】核心指标（GMV/订单/观看/转化/ROI）的实际值、变化与健康度；【归因】基于工具数据给出具体根因（渠道/商品/主播/流量结构），每条归因标注数据支撑，不得臆测；【建议】3-5 条可执行动作按优先级排序并写明对应指标，写操作任务用 create_improvement_task。
 4. 提供运营建议：量化、具体、可执行。
 
 规则：
 - 所有数字必须来自工具或数据库
-- 所有策略优先来自知识库（yon_search_knowledge）
+- 所有策略优先来自知识库（search_knowledge）
 - 所有历史经验优先来自 Context 服务（记忆）
 - 禁止编造事实数据，复盘回答"为什么"与"怎么办"，而非罗列数字
 - 多用户隔离：工作区中的 USER.md/SOUL.md/MEMORY.md 是共享档案，不得读取或修改；用户身份与偏好一律通过记忆系统（Context/OpenViking）按当前用户读写（2026-09-03 多用户隔离）
@@ -92,9 +92,9 @@ export function isDeerFlowEnabled(): boolean {
   return env.AI_ENABLED && cfg.engine !== 'openclaw' && !!cfg.deerflowApiBase
 }
 
-/** yon conversationId → DeerFlow thread_id（符合 1-64 位 [A-Za-z0-9_-] 约束） */
+/** leyova conversationId → DeerFlow thread_id（符合 1-64 位 [A-Za-z0-9_-] 约束） */
 export function toDeerFlowThreadId(conversationId: string): string {
-  return `yon_${conversationId}`
+  return `leyova_${conversationId}`
 }
 
 function deerFlowHeaders(ownerUserId?: number): Record<string, string> {
@@ -104,7 +104,7 @@ function deerFlowHeaders(ownerUserId?: number): Record<string, string> {
   }
   // 经 DeerFlow 内网 internal 认证通道把会话用户 ID 透传为 run 身份
   // （AuthMiddleware 校验 internal token 后，X-DeerFlow-Owner-User-Id →
-  //   configurable.context.user_id → yon MCP 拦截器注入 X-Yon-User-Id）。
+  //   configurable.context.user_id → leyova MCP 拦截器注入 X-Leyova-User-Id）。
   // 仅在 internal token 已配置（可信内部调用方）时发送，避免匿名环境伪造。
   if (env.DEERFLOW_INTERNAL_TOKEN && ownerUserId) {
     headers['X-DeerFlow-Owner-User-Id'] = String(ownerUserId)
@@ -172,8 +172,8 @@ function deerFlowRunContext(opts?: DeerFlowRunOptions, userId?: number): Record<
   if (opts?.subagentEnabled) context.subagent_enabled = true
   if (opts?.modelName) context.model_name = opts.modelName
   // 多用户隔离（DeerFlow 原生 per-run 用户通道）：经 body.context.user_id
-  // → runtime.context.user_id → yon MCP 拦截器注入 X-Yon-User-Id。
-  // 与 config.context.secrets.yon_user_id 双通道并存（互为兜底）。
+  // → runtime.context.user_id → leyova MCP 拦截器注入 X-Leyova-User-Id。
+  // 与 config.context.secrets.leyova_user_id 双通道并存（互为兜底）。
   if (userId) context.user_id = userId
   return Object.keys(context).length > 0 ? context : undefined
 }
@@ -279,7 +279,7 @@ async function recoverDeerFlowReply(opts: {
 /**
  * 非流式：创建/复用线程并阻塞等待 run 完成，取最终回复文本。
  *
- * 记忆检索由 DeerFlow 原生 OpenViking 适配器注入，知识库经 yon MCP
+ * 记忆检索由 DeerFlow 原生 OpenViking 适配器注入，知识库经 leyova MCP
  * `search_knowledge` 工具由 agent 自主调用——此处不再预取（避免重复注入）。
  */
 export async function requestDeerFlowReply(req: {
@@ -287,8 +287,8 @@ export async function requestDeerFlowReply(req: {
   conversationId: string
   deerflowThreadId: string
   systemPrompt: string
-  /** yon 会话用户 ID（经 run config.context.secrets 透传给 DeerFlow，
-   *  MCP 拦截器据此动态注入 X-Yon-User-Id → yon MCP 按用户隔离数据） */
+  /** leyova 会话用户 ID（经 run config.context.secrets 透传给 DeerFlow，
+   *  MCP 拦截器据此动态注入 X-Leyova-User-Id → leyova MCP 按用户隔离数据） */
   userId?: number
   options?: DeerFlowRunOptions
   /**
@@ -323,9 +323,9 @@ export async function requestDeerFlowReply(req: {
       },
       ...(runContext ? { context: runContext } : {}),
       // 会话身份经 config.context.secrets 透传（DeerFlow 的 MCP 拦截器
-      // 读取后动态注入 yon MCP 的 X-Yon-User-Id → 多用户数据隔离）
+      // 读取后动态注入 leyova MCP 的 X-Leyova-User-Id → 多用户数据隔离）
       ...(req.userId
-        ? { config: { recursion_limit: 500, context: { secrets: { yon_user_id: req.userId } } } }
+        ? { config: { recursion_limit: 500, context: { secrets: { leyova_user_id: req.userId } } } }
         : {}),
       stream_mode: ['messages-tuple', 'values'],
     }
@@ -333,7 +333,7 @@ export async function requestDeerFlowReply(req: {
     // ① 非阻塞启动 run（立即返回）。注意：不能走 /runs/wait 长轮询——
     // 该端点在整个 run 期间不发响应头，undici fetch 默认 headersTimeout=300s
     // 会中断请求导致误 fallback（golden-gq1~6 曾因 run 恰好 <5min 而侥幸成功，
-    // yon_143~145 的 run 8-30min 全部在 300s 处中断、后端 5 分钟内提前 fallback）。
+    // leyova_143~145 的 run 8-30min 全部在 300s 处中断、后端 5 分钟内提前 fallback）。
     const startRes = await fetch(`${cfg.deerflowApiBase}/threads/${threadId}/runs`, {
       method: 'POST',
       headers: deerFlowHeaders(req.userId),
@@ -479,7 +479,7 @@ export async function streamDeerFlowReply(
         ...(runContext ? { context: runContext } : {}),
         // 会话身份透传（同 /runs/wait）
         ...(req.userId
-          ? { config: { recursion_limit: 500, context: { secrets: { yon_user_id: req.userId } } } }
+          ? { config: { recursion_limit: 500, context: { secrets: { leyova_user_id: req.userId } } } }
           : {}),
         stream_mode: ['messages-tuple', 'values'],
       }),
@@ -662,7 +662,7 @@ export async function requestOpenClawReply(
           max_tokens: 8192,
           // 用 conversationId 派生稳定 session key，使同一会话的多轮调用
           // 共享 agent session（会话连续性）。注意：会话连续 ≠ 用户记忆隔离，
-          // 用户专属记忆仍只走 OpenViking（按 yon_<userId> 隔离）。
+          // 用户专属记忆仍只走 OpenViking（按 leyova_<userId> 隔离）。
           user: `conv:${req.conversationId ?? 'default'}`,
           ...(tools.length > 0 ? { tools } : {}),
         }),

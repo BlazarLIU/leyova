@@ -1,15 +1,15 @@
 /**
- * yon MCP Server — Streamable HTTP MCP Server（供 DeerFlow 调用）
+ * leyova MCP Server — Streamable HTTP MCP Server（供 DeerFlow 调用）
  *
- * 将 yon 的业务工具（tool-registry 已注册）与共享上下文工具
+ * 将 leyova 的业务工具（tool-registry 已注册）与共享上下文工具
  * （search_memory / write_memory / search_knowledge）暴露为 MCP 工具。
  *
  * - 业务工具：复用 executeTool()，风险分级 / ai_tool_logs 审计 / 写审批流不变
  * - 共享上下文工具：仅在本 MCP Server 注册，不进入主 registry
  *   （保证 OpenClaw 兜底路径不变，仍由 ai-gateway 请求前检索注入）
- * - 身份映射：Bearer token 鉴权（YON_MCP_TOKEN），按 X-Yon-User-Id 头
- *   映射 yon 用户（DeerFlow 不转发每请求用户身份，headers 为静态配置），
- *   缺省走 YON_MCP_DEFAULT_USER_ID
+ * - 身份映射：Bearer token 鉴权（LEYOVA_MCP_TOKEN），按 X-Leyova-User-Id 头
+ *   映射 leyova 用户（DeerFlow 不转发每请求用户身份，headers 为静态配置），
+ *   缺省走 LEYOVA_MCP_DEFAULT_USER_ID
  *
  * 路由：POST /mcp（JSON-RPC）、GET /mcp（SSE standalone）
  * 模式：无状态（每个 HTTP 请求创建独立 McpServer+transport，DeerFlow
@@ -88,10 +88,10 @@ const SHARED_TOOLS: SharedToolDef[] = [
   },
 ]
 
-// Per-session identity: sessionId -> yon userId (set at request time)
+// Per-session identity: sessionId -> leyova userId (set at request time)
 const sessionUserIds = new Map<string, number>()
 
-// 无状态模式下的请求级身份：每个 HTTP 请求从 X-Yon-User-Id 头解析出
+// 无状态模式下的请求级身份：每个 HTTP 请求从 X-Leyova-User-Id 头解析出
 // userId 后用 AsyncLocalStorage 沿请求链路传给工具回调（DeerFlow 无
 // mcp-session-id 时 sessionUserIds 永远为空，静态头此前根本不生效）。
 const requestUserIdStore = new AsyncLocalStorage<number>()
@@ -107,12 +107,12 @@ interface ToolExtra {
 
 async function mcpAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const auth = request.headers.authorization || ''
-  if (!auth.startsWith('Bearer ') || auth.slice(7).trim() !== env.YON_MCP_TOKEN) {
+  if (!auth.startsWith('Bearer ') || auth.slice(7).trim() !== env.LEYOVA_MCP_TOKEN) {
     sendError(reply, 401, 'Unauthorized')
     return
   }
-  const rawId = request.headers['x-yon-user-id']
-  const userId = rawId ? Number(rawId) : env.YON_MCP_DEFAULT_USER_ID
+  const rawId = request.headers['x-leyova-user-id']
+  const userId = rawId ? Number(rawId) : env.LEYOVA_MCP_DEFAULT_USER_ID
   if (Number.isInteger(userId) && userId > 0) {
     const sessionId = request.headers['mcp-session-id']
     if (sessionId) sessionUserIds.set(String(sessionId), userId)
@@ -120,7 +120,7 @@ async function mcpAuth(request: FastifyRequest, reply: FastifyReply): Promise<vo
 }
 
 function resolveUserId(extra?: ToolExtra): number {
-  // 无状态模式下请求级身份优先（每个 HTTP 请求从 X-Yon-User-Id 头解析，
+  // 无状态模式下请求级身份优先（每个 HTTP 请求从 X-Leyova-User-Id 头解析，
   // 经 AsyncLocalStorage 沿请求链路传入——这是 DeerFlow 动态身份的主路径）
   const requestUserId = requestUserIdStore.getStore()
   if (requestUserId) return requestUserId
@@ -129,7 +129,7 @@ function resolveUserId(extra?: ToolExtra): number {
     const mapped = sessionUserIds.get(sessionId)
     if (mapped) return mapped
   }
-  return env.YON_MCP_DEFAULT_USER_ID
+  return env.LEYOVA_MCP_DEFAULT_USER_ID
 }
 
 async function buildToolContext(userId: number): Promise<ToolContext> {
@@ -142,7 +142,7 @@ async function buildToolContext(userId: number): Promise<ToolContext> {
     [userId]
   )
   const user = userRows[0]
-  if (!user) throw new Error(`未知的 yon 用户: ${userId}`)
+  if (!user) throw new Error(`未知的 leyova 用户: ${userId}`)
 
   const { rows: bindings } = (await pool
     .query<Record<string, string | null>>(
@@ -162,9 +162,9 @@ async function buildToolContext(userId: number): Promise<ToolContext> {
     scopeType: 'user',
     scopeId: `user:${userId}`,
     roomScope: [],
-    openvikingAccount: bindings[0]?.openviking_account || 'yon',
-    openvikingUser: bindings[0]?.openviking_user || `yon_${userId}`,
-    anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'yon-knowledge',
+    openvikingAccount: bindings[0]?.openviking_account || 'leyova',
+    openvikingUser: bindings[0]?.openviking_user || `leyova_${userId}`,
+    anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'leyova-knowledge',
     knowledgeRoleWorkspace: bindings[0]?.knowledge_role_workspace || undefined,
     knowledgePublicWorkspace: bindings[0]?.knowledge_public_workspace || undefined,
   }
@@ -270,9 +270,9 @@ async function logSharedToolCall(
 // DeerFlow 每次工具发现/会话都会重新 POST initialize，若复用单例
 // McpServer/transport，Protocol 层的初始化状态只允许一次，后续请求会
 // 500/400。无状态下每个 HTTP 请求独立地 initialize→list→call，
-// 身份仍由静态头 X-Yon-User-Id 映射（缺省 YON_MCP_DEFAULT_USER_ID）。
+// 身份仍由静态头 X-Leyova-User-Id 映射（缺省 LEYOVA_MCP_DEFAULT_USER_ID）。
 function createMcpServer(): McpServer {
-  const mcpServer = new McpServer({ name: 'yon-mcp', version: '1.0.0' })
+  const mcpServer = new McpServer({ name: 'leyova-mcp', version: '1.0.0' })
 
   for (const tool of listTools().filter((t) => t.riskLevel !== 'forbidden')) {
     mcpServer.registerTool(
@@ -303,12 +303,12 @@ export async function registerMcpRoutes(app: FastifyInstance): Promise<void> {
     preHandler: mcpAuth,
     handler: async (request, reply) => {
       reply.hijack()
-      // 无状态模式下直接从请求头解析 yon 用户（缺省 DEFAULT），
+      // 无状态模式下直接从请求头解析 leyova 用户（缺省 DEFAULT），
       // 经 AsyncLocalStorage 沿本请求链路传给工具回调 → 动态身份生效
-      const rawId = request.headers['x-yon-user-id']
+      const rawId = request.headers['x-leyova-user-id']
       const headerUserId =
-        rawId !== undefined && rawId !== '' ? Number(rawId) : env.YON_MCP_DEFAULT_USER_ID
-      const requestUserId = Number.isInteger(headerUserId) && headerUserId > 0 ? headerUserId : env.YON_MCP_DEFAULT_USER_ID
+        rawId !== undefined && rawId !== '' ? Number(rawId) : env.LEYOVA_MCP_DEFAULT_USER_ID
+      const requestUserId = Number.isInteger(headerUserId) && headerUserId > 0 ? headerUserId : env.LEYOVA_MCP_DEFAULT_USER_ID
       try {
         const mcpServer = createMcpServer()
         const transport = new StreamableHTTPServerTransport({

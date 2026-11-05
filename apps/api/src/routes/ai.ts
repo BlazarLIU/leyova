@@ -9,7 +9,7 @@ import {
   requestOpenClawReply,
   streamOpenClawReply,
   toDeerFlowThreadId,
-  YON_SYSTEM_PROMPT,
+  LEYOVA_SYSTEM_PROMPT,
   type AiScopeContext,
 } from '../lib/ai-gateway.js'
 import { refreshAiRuntimeConfig } from '../lib/ai-config.js'
@@ -95,7 +95,7 @@ export async function aiRoutes(app: FastifyInstance) {
       )
 
       const lines: string[] = []
-      lines.push(`# 📊 yon 数据日报 · ${today}`)
+      lines.push(`# 📊 leyova 数据日报 · ${today}`)
       lines.push('')
       lines.push(`## 今日概览`)
       lines.push(`- 直播场次：${ts.session_count} 场`)
@@ -230,7 +230,7 @@ export async function aiRoutes(app: FastifyInstance) {
         if (!convId) {
           return sendError(reply, 500, '创建会话失败')
         }
-        // 记录 DeerFlow 线程 ID（yon_<convId>，符合 DeerFlow 1-64 位命名约束）
+        // 记录 DeerFlow 线程 ID（leyova_<convId>，符合 DeerFlow 1-64 位命名约束）
         await pool.query(
           `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
           [convId, toDeerFlowThreadId(convId)]
@@ -274,9 +274,9 @@ export async function aiRoutes(app: FastifyInstance) {
         scopeType: 'user',
         scopeId: `user:${user.id}`,
         roomScope: [],
-        openvikingAccount: bindings[0]?.openviking_account || 'yon',
-        openvikingUser: bindings[0]?.openviking_user || `yon_${user.id}`,
-        anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'yon-knowledge',
+        openvikingAccount: bindings[0]?.openviking_account || 'leyova',
+        openvikingUser: bindings[0]?.openviking_user || `leyova_${user.id}`,
+        anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'leyova-knowledge',
         knowledgeRoleWorkspace: bindings[0]?.knowledge_role_workspace,
         knowledgePublicWorkspace: bindings[0]?.knowledge_public_workspace,
       }
@@ -293,7 +293,7 @@ export async function aiRoutes(app: FastifyInstance) {
         conversationId: convId,
         modelName: env.OPENCLAW_MODEL,
         context: scope,
-        systemPrompt: YON_SYSTEM_PROMPT,
+        systemPrompt: LEYOVA_SYSTEM_PROMPT,
         history,
       })
 
@@ -313,10 +313,10 @@ export async function aiRoutes(app: FastifyInstance) {
           message,
           conversationId: convId,
           deerflowThreadId: toDeerFlowThreadId(convId),
-          systemPrompt: YON_SYSTEM_PROMPT,
+          systemPrompt: LEYOVA_SYSTEM_PROMPT,
           options: runOptions,
-          // 多用户隔离：当前会话用户 → DeerFlow config.context.secrets.yon_user_id
-          // → MCP 拦截器注入 X-Yon-User-Id → yon MCP 按用户隔离数据
+          // 多用户隔离：当前会话用户 → DeerFlow config.context.secrets.leyova_user_id
+          // → MCP 拦截器注入 X-Leyova-User-Id → leyova MCP 按用户隔离数据
           userId: user.id,
           onLateReply: async (lateRes) => {
             // 仅替换刚写入的 fallback 一行（按内容精确匹配，避免误覆盖后续新回复）
@@ -436,7 +436,7 @@ export async function aiRoutes(app: FastifyInstance) {
         if (!convId) {
           return sendError(reply, 500, '创建会话失败')
         }
-        // 记录 DeerFlow 线程 ID（yon_<convId>，符合 DeerFlow 1-64 位命名约束）
+        // 记录 DeerFlow 线程 ID（leyova_<convId>，符合 DeerFlow 1-64 位命名约束）
         await pool.query(
           `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
           [convId, toDeerFlowThreadId(convId)]
@@ -478,9 +478,9 @@ export async function aiRoutes(app: FastifyInstance) {
         scopeType: 'user',
         scopeId: `user:${user.id}`,
         roomScope: [],
-        openvikingAccount: bindings[0]?.openviking_account || 'yon',
-        openvikingUser: bindings[0]?.openviking_user || `yon_${user.id}`,
-        anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'yon-knowledge',
+        openvikingAccount: bindings[0]?.openviking_account || 'leyova',
+        openvikingUser: bindings[0]?.openviking_user || `leyova_${user.id}`,
+        anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'leyova-knowledge',
         knowledgeRoleWorkspace: bindings[0]?.knowledge_role_workspace,
         knowledgePublicWorkspace: bindings[0]?.knowledge_public_workspace,
       }
@@ -505,7 +505,7 @@ export async function aiRoutes(app: FastifyInstance) {
           conversationId: convId,
           modelName: env.OPENCLAW_MODEL,
           context: scope,
-          systemPrompt: YON_SYSTEM_PROMPT,
+          systemPrompt: LEYOVA_SYSTEM_PROMPT,
           history,
         },
         (token) => {
@@ -523,8 +523,8 @@ export async function aiRoutes(app: FastifyInstance) {
             message,
             conversationId: convId,
             deerflowThreadId: toDeerFlowThreadId(convId),
-            systemPrompt: YON_SYSTEM_PROMPT,
-            // 多用户隔离：会话用户 → config.context.secrets.yon_user_id → X-Yon-User-Id
+            systemPrompt: LEYOVA_SYSTEM_PROMPT,
+            // 多用户隔离：会话用户 → config.context.secrets.leyova_user_id → X-Leyova-User-Id
             userId: user.id,
             options: runOptions,
           },
@@ -864,9 +864,9 @@ export async function aiRoutes(app: FastifyInstance) {
 
       const scopeType = body.scopeType || 'user'
       const scopeId = body.scopeId || `user:${user.id}`
-      const openvikingAccount = body.openvikingAccount || 'yon'
-      const openvikingUser = body.openvikingUser || `yon_${user.id}`
-      const anythingllmWorkspace = body.anythingllmWorkspace || 'yon-knowledge'
+      const openvikingAccount = body.openvikingAccount || 'leyova'
+      const openvikingUser = body.openvikingUser || `leyova_${user.id}`
+      const anythingllmWorkspace = body.anythingllmWorkspace || 'leyova-knowledge'
       const knowledgeRoleWorkspace = body.knowledgeRoleWorkspace || null
       const knowledgePublicWorkspace = body.knowledgePublicWorkspace || null
       const visibility = body.visibility || 'private'

@@ -6,7 +6,7 @@ import { detectAnomalies } from './detect-anomalies.js'
 import { archiveOldData } from './archive-old-data.js'
 import { searchMemory } from '../lib/openviking-client.js'
 import { searchKnowledge } from '../lib/anythingllm-client.js'
-import { requestOpenClawReply, YON_SYSTEM_PROMPT, type AiScopeContext } from '../lib/ai-gateway.js'
+import { requestOpenClawReply, LEYOVA_SYSTEM_PROMPT, type AiScopeContext } from '../lib/ai-gateway.js'
 
 /**
  * Registers all recurring cron jobs.
@@ -78,7 +78,7 @@ async function runDailyAiBriefing(): Promise<void> {
     username: 'system',
     role: 'system',
     scopeType: 'org',
-    scopeId: 'org:yon',
+    scopeId: 'org:leyova',
     roomScope: [],
   }
 
@@ -96,7 +96,7 @@ async function runDailyAiBriefing(): Promise<void> {
     conversationId: `daily-${today}`,
     modelName: process.env.OPENCLAW_MODEL || 'claude-opus-4.6',
     context: scope,
-    systemPrompt: YON_SYSTEM_PROMPT,
+    systemPrompt: LEYOVA_SYSTEM_PROMPT,
     history: [],
   })
 
@@ -123,7 +123,7 @@ async function runAnomalyPatrol(): Promise<void> {
     username: 'system',
     role: 'system',
     scopeType: 'org',
-    scopeId: 'org:yon',
+    scopeId: 'org:leyova',
     roomScope: [],
   }
 
@@ -156,7 +156,7 @@ async function runAnomalyPatrol(): Promise<void> {
     conversationId: `patrol-${Date.now()}`,
     modelName: process.env.OPENCLAW_MODEL || 'claude-opus-4.6',
     context: scope,
-    systemPrompt: YON_SYSTEM_PROMPT,
+    systemPrompt: LEYOVA_SYSTEM_PROMPT,
     history: [],
   })
 
@@ -183,7 +183,7 @@ async function runReviewDrafts(): Promise<void> {
     username: 'system',
     role: 'system',
     scopeType: 'org',
-    scopeId: 'org:yon',
+    scopeId: 'org:leyova',
     roomScope: [],
   }
 
@@ -249,7 +249,7 @@ async function runReviewDrafts(): Promise<void> {
       conversationId: reviewTitle,
       modelName: process.env.OPENCLAW_MODEL || 'claude-opus-4.6',
       context: scope,
-      systemPrompt: YON_SYSTEM_PROMPT,
+      systemPrompt: LEYOVA_SYSTEM_PROMPT,
       history: [],
     })
 

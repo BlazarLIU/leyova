@@ -26,18 +26,18 @@
 
 | 类型 | 处理 |
 | --- | --- |
-| 品牌名（YONSOBO / 欧度男装） | 全量替换为 `leyova`，含前端页面文案、后端 AI 系统提示词、OpenAPI 文档、架构文档 |
+| 原品牌名 | 全量替换为 `leyova`，含前端页面文案、后端 AI 系统提示词、OpenAPI 文档、架构文档 |
 | 企业自定义 Logo | 删除 `apps/web/public/logo.jpg`，统一使用 `orbit-icon.svg` |
 | 法律警示文案 | 登录页「刑事责任」中英警示替换为 Apache-2.0 通用说明 |
 | 内网穿透域名 | `vite.config.ts` 中 `newy.vip.cpolar.cn` 改为 `VITE_ALLOWED_HOSTS` 环境变量 |
-| 本机绝对路径 | `/home/yon/...`、`/home/odlive/...` 改为环境变量或相对路径 |
+| 本机绝对路径 | `/home/<user>/...`、`/home/odlive/...` 改为环境变量或相对路径 |
 | 数据库名 / Cookie 名 | 示例值改为 `leyova` / `leyova_session` |
 
 ## 4. 可运行性调整
 
 - 补充缺失依赖声明：`dotenv`、`node-cron`、`pino`、`@types/node-cron`。
 - `pino` 导入方式修正为具名导入（`import { pino } from 'pino'`）。
-- 端口错开，避免与既有部署冲突：后端 `8788`、前端 `5174`、MCP `9101`。
+- 端口错开，避免与既有部署冲突：后端 `8788`、前端 `95513`、MCP `9101`。
 - OpenClaw 集成改为可选：未设置 `OPENCLAW_HOME` 时相关接口返回 `{ enabled: false }`。
 - 前端依赖锁定为与已验证版本一致的 `~` 版本号，避免次版本漂移导致构建失败。
 
@@ -50,7 +50,7 @@
 | `pnpm build`（三端） | 通过 |
 | `GET /api/v1/health`（8788） | `{"ok":true,"db":"connected"}` |
 | `GET /api/v1/ready`（8788） | `{"ok":true,"db":"connected"}` |
-| 前端 `http://localhost:5174/` | HTTP 200 |
+| 前端 `http://localhost:95513/` | HTTP 200 |
 | MCP `GET /health`（9101） | `{"status":"ok","tools":21}` |
 | 与既有部署并存（8787） | 无冲突 |
 | 敏感串扫描（`.env` 除外） | 无残留 |

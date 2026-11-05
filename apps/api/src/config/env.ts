@@ -5,7 +5,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(8788),
   HOST: z.string().default('0.0.0.0'),
-  WEB_ORIGIN: z.string().url().default('http://localhost:5174'),
+  WEB_ORIGIN: z.string().url().default('http://localhost:95513'),
   SESSION_COOKIE_NAME: z.string().default('leyova_session'),
   SESSION_SECRET: z.string().min(16).default('dev-session-secret-please-change'),
   DB_HOST: z.string().default('localhost'),
@@ -50,9 +50,9 @@ const envSchema = z.object({
   OPENVIKING_API_KEY: z.string().default(''),
   // ── MCP Server（供 DeerFlow 兜底链路调用）──
   // Bearer token：DeerFlow extensions_config 中 headers 引用同值
-  YON_MCP_TOKEN: z.string().default('dev-yon-mcp-token'),
-  // 默认映射的用户（X-Yon-User-Id 头缺省时使用）
-  YON_MCP_DEFAULT_USER_ID: z.coerce.number().int().positive().default(1),
+  LEYOVA_MCP_TOKEN: z.string().default('dev-leyova-mcp-token'),
+  // 默认映射的用户（X-Leyova-User-Id 头缺省时使用）
+  LEYOVA_MCP_DEFAULT_USER_ID: z.coerce.number().int().positive().default(1),
   // MCP Server 监听端口
   MCP_PORT: z.coerce.number().int().positive().default(9101),
 
@@ -69,13 +69,13 @@ if (parsed.NODE_ENV === 'production') {
   const checkEnv = envSchema
     .extend({
       SESSION_SECRET: z.string().min(16),
-      YON_MCP_TOKEN: z.string().min(1),
+      LEYOVA_MCP_TOKEN: z.string().min(1),
     })
     .refine((v) => v.SESSION_SECRET !== 'dev-session-secret-please-change', {
       message: '生产环境必须设置 SESSION_SECRET（不能使用开发默认值）',
     })
-    .refine((v) => v.YON_MCP_TOKEN !== 'dev-yon-mcp-token', {
-      message: '生产环境必须设置 YON_MCP_TOKEN（不能使用开发默认值）',
+    .refine((v) => v.LEYOVA_MCP_TOKEN !== 'dev-leyova-mcp-token', {
+      message: '生产环境必须设置 LEYOVA_MCP_TOKEN（不能使用开发默认值）',
     })
   checkEnv.parse(parsed)
 }

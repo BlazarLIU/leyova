@@ -62,7 +62,7 @@ async function findWorkspace(workspaceName?: string): Promise<AnythingLLMWorkspa
  */
 export async function searchKnowledge(
   query: string,
-  workspaceName = 'yon-knowledge'
+  workspaceName = 'leyova-knowledge'
 ): Promise<string | null> {
   const workspace = await findWorkspace(workspaceName)
   if (!workspace) return null

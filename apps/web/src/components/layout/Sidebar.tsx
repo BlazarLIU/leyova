@@ -8,7 +8,7 @@ import { useSidebar } from '@/hooks/useSidebar'
 import { api } from '@/services/api'
 import type { NavItem, RoleInfo } from '@/types'
 
-function YonsoboLogo({ collapsed }: { collapsed: boolean }) {
+function LeyovaLogo({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate()
   return (
     <div
@@ -286,7 +286,7 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
       transition={{ duration: 0.25, ease: 'easeInOut' }}
       className="fixed left-0 top-0 h-screen bg-orbit-surface border-r border-orbit-border flex flex-col z-40 overflow-hidden"
     >
-      <YonsoboLogo collapsed={collapsed && !isMobile} />
+      <LeyovaLogo collapsed={collapsed && !isMobile} />
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-6">
         {getVisibleNavigation(userRole).map(section => (

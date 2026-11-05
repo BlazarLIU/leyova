@@ -30,10 +30,10 @@ function readBody(req: IncomingMessage): Promise<string> {
 }
 
 function parseAuth(req: IncomingMessage): { userId: number; role: string; scopeType: string; scopeId: string } | null {
-  const userId = parseInt(req.headers['x-yon-user-id'] as string, 10)
-  const role = (req.headers['x-yon-role'] as string) || 'viewer'
-  const scopeType = (req.headers['x-yon-scope-type'] as string) || 'user'
-  const scopeId = (req.headers['x-yon-scope-id'] as string) || `user:${userId}`
+  const userId = parseInt(req.headers['x-leyova-user-id'] as string, 10)
+  const role = (req.headers['x-leyova-role'] as string) || 'viewer'
+  const scopeType = (req.headers['x-leyova-scope-type'] as string) || 'user'
+  const scopeId = (req.headers['x-leyova-scope-id'] as string) || `user:${userId}`
   if (!userId) return null
   return { userId, role, scopeType, scopeId }
 }
@@ -52,7 +52,7 @@ const server = createServer(async (req, res) => {
 
   if (req.method === 'POST' && path === '/tools/call') {
     const auth = parseAuth(req)
-    if (!auth) return sendJSON(res, 401, { error: 'Missing X-Yon-User-Id header' })
+    if (!auth) return sendJSON(res, 401, { error: 'Missing X-Leyova-User-Id header' })
 
     const raw = await readBody(req)
     let body: { tool?: string; params?: unknown }
@@ -81,6 +81,6 @@ const server = createServer(async (req, res) => {
 })
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[yon-mcp-server] listening on http://127.0.0.1:${PORT}`)
-  console.log(`[yon-mcp-server] ${listTools().length} tools registered`)
+  console.log(`[leyova-mcp-server] listening on http://127.0.0.1:${PORT}`)
+  console.log(`[leyova-mcp-server] ${listTools().length} tools registered`)
 })
