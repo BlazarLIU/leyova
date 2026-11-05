@@ -1,0 +1,266 @@
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Plus, Edit, Trash2 } from 'lucide-react'
+import { Card, CardHeader, CardBody } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { api, ApiError } from '@/services/api'
+import type { UserAccount, RoleInfo, ModuleInfo } from '@/types'
+
+const roleLabels: Record<string, string> = {
+  super_admin: '系统管理员',
+  ops_director: '运营总监',
+  ops_staff: '运营',
+  controller: '中控',
+}
+
+const moduleNameMap: Record<string, string> = {
+  overview: '总览',
+  session: '场次管理',
+  anchor: '主播赋能',
+  data: '数据管理',
+  bi: '商业智能',
+  ops: '运营提效',
+  ai: 'AI 分析助手',
+  personal_achievement: '个人达成',
+  live_registration: '直播登记',
+  live_data: '登记数据管理',
+  session_products: '场次排品',
+  system_users: '账号管理',
+  system_personnel_ops: '运营管理',
+  system_ai: 'AI 配置',
+  system_dict: '字典管理',
+  system_rooms: '直播间管理',
+  system_config: '系统配置',
+  system_alerts: '异常中心',
+  system_tasks: '改进任务',
+  system_promotions: '大促管理',
+  system_inventory: '库存风险',
+  system_competitors: '竞品观察',
+  system_multiroom: '多直播间总览',
+}
+
+interface Props {
+  users: UserAccount[]
+  roles: RoleInfo[]
+  allModules: ModuleInfo[]
+  onUsersChange: (users: UserAccount[]) => void
+}
+
+export function AccountsSection({ users, roles, allModules, onUsersChange }: Props) {
+  const [showModal, setShowModal] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserAccount | null>(null)
+  const [form, setForm] = useState<{
+    username: string; password: string; realName: string; role: string; status: number; modules: string[]
+  }>({ username: '', password: '', realName: '', role: 'ops_staff', status: 1, modules: [] })
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [saveError, setSaveError] = useState('')
+
+  const refreshUsers = async () => {
+    const list = await api.get<UserAccount[]>('/system/users')
+    onUsersChange(list)
+  }
+
+  const handleRoleChange = (newRole: string) => {
+    const found = roles.find(r => r.code === newRole)
+    setForm(p => ({ ...p, role: newRole, modules: found ? [...found.modules] : [] }))
+  }
+
+  const toggleModule = (code: string) => {
+    setForm(p => ({
+      ...p,
+      modules: p.modules.includes(code) ? p.modules.filter(m => m !== code) : [...p.modules, code],
+    }))
+  }
+
+  const handleSave = async () => {
+    setSaveError('')
+    try {
+      const body = { realName: form.realName, role: form.role, status: form.status, modules: form.modules }
+      if (editingUser) {
+        await api.put(`/system/users/${editingUser.id}`, body)
+      } else {
+        await api.post('/system/users', { ...body, username: form.username, password: form.password })
+      }
+      await refreshUsers()
+      setShowModal(false)
+      setEditingUser(null)
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : '操作失败，请重试')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (deletingId === null) return
+    try {
+      await api.delete(`/system/users/${deletingId}`)
+      await refreshUsers()
+      setDeletingId(null)
+    } catch { /* ignore */ }
+  }
+
+  const openNew = () => {
+    setEditingUser(null)
+    const defaultRole = 'ops_staff'
+    const found = roles.find(r => r.code === defaultRole)
+    setForm({ username: '', password: '', realName: '', role: defaultRole, status: 1, modules: found ? [...found.modules] : [] })
+    setShowModal(true)
+  }
+
+  const openEdit = (u: UserAccount) => {
+    setEditingUser(u)
+    setSaveError('')
+    const found = roles.find(r => r.code === u.role)
+    setForm({
+      username: u.username, password: '', realName: u.realName, role: u.role, status: u.status,
+      modules: u.modules?.length ? u.modules : (found ? [...found.modules] : []),
+    })
+    setShowModal(true)
+  }
+
+  const roleBadgeVariant = (role: string): 'danger' | 'warning' | 'info' | 'neutral' =>
+    role === 'super_admin' ? 'danger' : role === 'ops_director' ? 'warning' : role === 'ops_staff' ? 'info' : 'neutral'
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
+      <Card>
+        <CardHeader
+          title="账号管理"
+          subtitle="管理系统用户账号与权限"
+          actions={<Button size="sm" variant="primary" onClick={openNew}><Plus className="w-3.5 h-3.5" />新增账号</Button>}
+        />
+        <CardBody className="px-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-orbit-border">
+                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">用户名</th>
+                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">姓名</th>
+                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">角色</th>
+                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">状态</th>
+                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">最后登录</th>
+                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length === 0 ? (
+                  <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-500">暂无账号数据</td></tr>
+                ) : users.map((u) => (
+                  <tr key={u.id} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                    <td className="px-5 py-3.5 text-slate-200 font-medium">{u.username}</td>
+                    <td className="px-5 py-3.5 text-slate-300">{u.realName}</td>
+                    <td className="px-5 py-3.5"><Badge variant={roleBadgeVariant(u.role)}>{roleLabels[u.role] || u.role}</Badge></td>
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${u.status === 1 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-500'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${u.status === 1 ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                        {u.status === 1 ? '启用' : '禁用'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-500 text-xs">{u.lastLogin || '-'}</td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors" onClick={() => openEdit(u)}>
+                          <Edit className="w-3.5 h-3.5 inline mr-0.5" />编辑
+                        </button>
+                        <button className="text-xs text-slate-500 hover:text-orbit-danger transition-colors" onClick={() => setDeletingId(u.id)}>
+                          <Trash2 className="w-3.5 h-3.5 inline mr-0.5" />删除
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardBody>
+      </Card>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowModal(false)}>
+          <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-2xl mx-4" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-orbit-border">
+              <h3 className="text-base font-semibold text-slate-200">{editingUser ? '编辑账号' : '新增账号'}</h3>
+            </div>
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">用户名</label>
+                  <input value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} disabled={!!editingUser}
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 disabled:opacity-50" placeholder="输入用户名" />
+                </div>
+                {!editingUser && (
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">密码</label>
+                    <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="默认 123456" />
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">姓名</label>
+                  <input value={form.realName} onChange={e => setForm(p => ({ ...p, realName: e.target.value }))}
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入姓名" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">角色</label>
+                  <select value={form.role} onChange={e => handleRoleChange(e.target.value)}
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                    <option value="super_admin">系统管理员</option>
+                    <option value="ops_director">运营总监</option>
+                    <option value="ops_staff">运营</option>
+                    <option value="controller">中控</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">状态</label>
+                <select value={form.status} onChange={e => setForm(p => ({ ...p, status: parseInt(e.target.value) }))}
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                  <option value={1}>启用</option>
+                  <option value={0}>禁用</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-2">
+                  模块权限 <span className="text-slate-500 font-normal">（勾选该账号可见的系统模块）</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-orbit-surface2 border border-orbit-border">
+                  {allModules.map((mod) => (
+                    <label key={mod.code} className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${form.modules.includes(mod.code) ? 'bg-orbit-primary/10 text-slate-200' : 'text-slate-400 hover:bg-white/5'}`}>
+                      <input type="checkbox" checked={form.modules.includes(mod.code)} onChange={() => toggleModule(mod.code)}
+                        className="w-3.5 h-3.5 rounded border-orbit-border bg-orbit-surface3 accent-orbit-primary" />
+                      <span className="text-xs">{moduleNameMap[mod.code] || mod.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-orbit-border">
+              {saveError && (
+                <p className="text-xs text-orbit-danger mb-3">{saveError}</p>
+              )}
+              <div className="flex items-center justify-end gap-3">
+                <Button variant="ghost" onClick={() => { setSaveError(''); setShowModal(false) }}>取消</Button>
+                <Button variant="primary" onClick={handleSave}>保存</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deletingId !== null && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setDeletingId(null)}>
+          <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-slate-200 mb-2">确认删除</h3>
+            <p className="text-sm text-slate-400 mb-6">确定要删除该账号吗？此操作不可撤销。</p>
+            <div className="flex items-center justify-end gap-3">
+              <Button variant="ghost" onClick={() => setDeletingId(null)}>取消</Button>
+              <Button variant="destructive" onClick={handleDelete}>确认删除</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  )
+}

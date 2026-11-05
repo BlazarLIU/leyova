@@ -1,0 +1,948 @@
+/**
+ * data.ts -- 数据管理路由
+ *
+ * 功能：
+ *   - 数据表列表 / 刷新
+ *   - 文件上传（CSV + XLSX）：预览 -> 确认导入
+ *   - 上传历史查询
+ *   - 登记数据管理（CRUD）
+ *   - 数据质量概览
+ */
+
+import type { FastifyInstance } from 'fastify'
+import * as XLSX from 'xlsx'
+import { sendOk, sendError } from '../lib/http.js'
+import { getPool } from '../lib/db.js'
+import { requireAuth } from '../lib/guard.js'
+import { findDuplicateSession, buildDuplicateMessage } from '../lib/livereg-dedupe.js'
+import {
+  text,
+  detectDouyinTemplate,
+  detectFullSessionTemplate,
+  inferBusinessDate,
+  buildPreview,
+  importAnchorAnalysis,
+  importChannelAnalysis,
+  importFullSession,
+  parseCsv,
+  importLiveSessionCsv,
+  validateAnchorRows,
+  validateChannelRows,
+  validateCsvRows,
+  makeColumnGetter,
+  TEMPLATES,
+} from '../lib/importer.js'
+
+import type { XlsxWorkbook, NameCache } from '../lib/importer.js'
+
+// ── Helper: XLSX workbook parsing ──
+
+type WorksheetRow = Record<string, unknown>
+
+function parseXlsxWorkbook(buffer: Buffer): { template: string | null; rows: WorksheetRow[]; workbook?: any } {
+  const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true })
+  const sheet = workbook.Sheets[workbook.SheetNames[0]]
+  const rows = sheet ? XLSX.utils.sheet_to_json<WorksheetRow>(sheet, { defval: '' }) : []
+  const headers = Object.keys(rows[0] ?? {})
+  const template = detectDouyinTemplate(headers)
+  return { template, rows, workbook }
+}
+
+// ── Helper: find session for a given date ──
+
+async function findSessionForDate(pool: any, date: string): Promise<number | null> {
+  const r = await pool.query(
+    'SELECT id FROM live_sessions WHERE date = $1::date ORDER BY start_time ASC LIMIT 1',
+    [date],
+  )
+  return r.rows.length > 0 ? r.rows[0].id : null
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Routes
+// ═══════════════════════════════════════════════════════════════
+
+export async function dataRoutes(app: FastifyInstance) {
+  // ── GET /api/v1/data/tables ──
+  app.get('/api/v1/data/tables', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { rows } = await pool.query(
+        `SELECT tablename AS name,
+                COALESCE((SELECT SUM(n_live_tup)::int FROM pg_stat_user_tables WHERE relname = t.tablename), 0) AS row_count
+         FROM pg_catalog.pg_tables t
+         WHERE schemaname = 'public' AND tablename NOT LIKE 'pg\\\\_%'
+         ORDER BY tablename`,
+      )
+      return sendOk(
+        reply,
+        rows.map((r: any) => ({
+          id: r.name,
+          name: r.name,
+          rowCount: r.row_count,
+          status: 'synced',
+        })),
+      )
+    } catch (err) {
+      request.log.warn({ err }, 'data/tables query failed')
+      return sendOk(reply, [])
+    }
+  })
+
+  // ── POST /api/v1/data/tables/:id/refresh ──
+  app.post('/api/v1/data/tables/:id/refresh', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      const safeTable = id.replace(/[^a-z0-9_]/gi, '')
+      if (safeTable) await pool.query(`ANALYZE "${safeTable}"`)
+      return sendOk(reply, { refreshed: true })
+    } catch (err) {
+      request.log.warn({ err }, 'data/tables refresh failed')
+      return sendOk(reply, { refreshed: false })
+    }
+  })
+
+  // ── GET /api/v1/data/uploads ──
+  app.get('/api/v1/data/uploads', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, file_name, file_type, file_size, upload_time, status,
+                row_count, data_type, business_date::text, error_message
+         FROM data_uploads ORDER BY upload_time DESC`,
+      )
+      return sendOk(reply, rows)
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploads query failed')
+      return sendOk(reply, [])
+    }
+  })
+
+  // ── GET /api/v1/data/uploads/:id/download ── 下载上传的文件
+  app.get('/api/v1/data/uploads/:id/download', async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const pool = getPool()
+    try {
+      const fs = await import('node:fs')
+      const path = await import('node:path')
+      const { rows } = await pool.query(
+        'SELECT file_name, source_path FROM data_uploads WHERE id = $1',
+        [parseInt(id)],
+      )
+      if (rows.length === 0) return reply.code(404).send({ success: false, message: '文件不存在' })
+      const { file_name, source_path } = rows[0]
+      const filePath = path.resolve('./uploads', source_path)
+      if (!fs.existsSync(filePath)) return reply.code(404).send({ success: false, message: '文件已丢失' })
+      return reply.type('application/octet-stream').header('Content-Disposition', `attachment; filename="${encodeURIComponent(file_name)}"`).send(fs.readFileSync(filePath))
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploads/:id/download failed')
+      return reply.code(500).send({ success: false, message: '下载失败' })
+    }
+  })
+
+  // ── DELETE /api/v1/data/uploads/:id ── 删除上传记录和文件
+  app.delete('/api/v1/data/uploads/:id', async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const pool = getPool()
+    try {
+      const fs = await import('node:fs')
+      const path = await import('node:path')
+      const { rows } = await pool.query(
+        'SELECT source_path FROM data_uploads WHERE id = $1',
+        [parseInt(id)],
+      )
+      if (rows.length === 0) return reply.code(404).send({ success: false, message: '记录不存在' })
+      const sourcePath = rows[0].source_path
+      if (sourcePath) {
+        const filePath = path.resolve('./uploads', sourcePath)
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+      }
+      await pool.query('DELETE FROM data_uploads WHERE id = $1', [parseInt(id)])
+      return sendOk(reply, { message: '删除成功' })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploads/:id delete failed')
+      return reply.code(500).send({ success: false, message: '删除失败' })
+    }
+  })
+
+  // ── POST /api/v1/data/upload-preview ──
+  app.post('/api/v1/data/upload-preview', async (request, reply) => {
+    if (!(await requireAuth(request, reply))) return
+    const pool = getPool()
+    try {
+      const parts = request.parts()
+      let fileBuffer: Buffer | null = null
+      let fileName = 'unknown'
+      let fileType = 'bin'
+      let targetTable = ''
+
+      for await (const part of parts) {
+        if (part.type === 'file') {
+          const chunks: Buffer[] = []
+          for await (const chunk of part.file) chunks.push(chunk)
+          fileBuffer = Buffer.concat(chunks)
+          fileName = part.filename || 'unknown'
+          fileType = fileName.split('.').pop()?.toLowerCase() || 'bin'
+        } else if (part.fieldname === 'target_table') {
+          targetTable = text(part.value)
+        }
+      }
+
+      if (!fileBuffer) return reply.code(400).send({ success: false, message: '\u672A\u9009\u62E9\u6587\u4EF6' })
+
+      if (fileType === 'xlsx' || fileType === 'xls') {
+        let { template, rows, workbook: parsedWorkbook } = parseXlsxWorkbook(fileBuffer)
+        const businessDate = inferBusinessDate(fileName)
+        const preview = buildPreview(template, rows, businessDate)
+
+        let sessionsForDate: { id: number; title: string; anchor_name: string }[] = []
+        let availableRooms: { id: number; name: string }[] = []
+        let anchorsMissingRooms: string[] = []
+
+        if (template === TEMPLATES.CHANNEL && businessDate) {
+          const s = await pool.query(
+            `SELECT s.id, s.title, COALESCE(a.name, '') AS anchor_name
+             FROM live_sessions s
+             LEFT JOIN anchors a ON a.id = s.anchor_id
+             WHERE s.date = $1::date ORDER BY s.start_time`,
+            [businessDate],
+          )
+          sessionsForDate = s.rows
+        }
+
+        if (template === TEMPLATES.ANCHOR) {
+          // 查询所有可用直播间
+          const roomsRes = await pool.query('SELECT id, name FROM live_rooms WHERE status = $1 ORDER BY name', ['active'])
+          availableRooms = roomsRes.rows
+
+          // 查询所有已有主播（供手动匹配用）
+          const allAnchorsRes = await pool.query('SELECT id, name FROM anchors WHERE status = 1 ORDER BY name')
+          preview.allAnchors = allAnchorsRes.rows
+
+          // 提取唯一主播名，检查匹配情况
+          const anchorNames = [...new Set(rows.map(r => text(r['主播名称'])).filter(Boolean))]
+            .filter(n => !['整体', '较上周期', '同行同级优秀值'].includes(n))
+
+          preview.unmatchedAnchors = []
+          for (const name of anchorNames) {
+            const anchorRes = await pool.query('SELECT id FROM anchors WHERE name = $1 AND status = 1 LIMIT 1', [name])
+            if (anchorRes.rows.length === 0) {
+              preview.unmatchedAnchors.push(name)
+              // 未匹配的主播也需要分配直播间，加入锚点缺失列表
+              anchorsMissingRooms.push(name)
+              continue
+            }
+            const aid = anchorRes.rows[0].id
+            const roomRes = await pool.query(
+              'SELECT room_id FROM live_sessions WHERE anchor_id = $1 AND room_id IS NOT NULL LIMIT 1',
+              [aid],
+            )
+            if (roomRes.rows.length === 0) {
+              anchorsMissingRooms.push(name)
+            }
+          }
+        }
+
+        // ── 整场数据模板检测 ──
+        let isFullSession = false
+        let sheetNames: string[] = []
+        if (!template && detectFullSessionTemplate(fileName)) {
+          isFullSession = true
+          template = TEMPLATES.FULL_SESSION
+          sheetNames = parsedWorkbook?.SheetNames ?? []
+          // 返回所有直播间列表供选择
+          const roomsRes = await pool.query('SELECT id, name FROM live_rooms ORDER BY name')
+          availableRooms = roomsRes.rows
+        }
+
+        return sendOk(reply, { ...preview, sessionsForDate, availableRooms, anchorsMissingRooms, fileType, fileName, isFullSession, sheetNames, allAnchors: (preview as any).allAnchors ?? [], unmatchedAnchors: (preview as any).unmatchedAnchors ?? [] })
+      }
+
+      if (fileType === 'csv') {
+        const content = fileBuffer.toString('utf-8')
+        const { headers, rows } = parseCsv(content)
+        const get = makeColumnGetter(headers)
+        const issues = validateCsvRows(rows, get)
+        const previewRows = rows.slice(0, 10).map((vals) => {
+          const obj: Record<string, string> = {}
+          headers.forEach((h, i) => { obj[h] = vals[i] ?? '' })
+          return obj
+        })
+        return sendOk(reply, {
+          detectedType: 'csv_live_sessions',
+          businessDate: null,
+          totalRows: rows.length,
+          validRows: rows.length - issues.filter((i) => i.severity === 'error').length,
+          issues,
+          previewRows,
+          sessionsForDate: [],
+          fileType,
+          fileName,
+        })
+      }
+
+      return reply.code(400).send({ success: false, message: '\u4E0D\u652F\u6301\u7684\u6587\u4EF6\u683C\u5F0F\uFF0C\u8BF7\u4E0A\u4F20 CSV \u6216 XLSX' })
+    } catch (err) {
+      request.log.warn({ err }, 'data/upload-preview failed')
+      return reply.code(500).send({ success: false, message: '\u6587\u4EF6\u9884\u89C8\u5931\u8D25' })
+    }
+  })
+
+  // ── POST /api/v1/data/uploads ──
+  app.post('/api/v1/data/uploads', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    const pool = getPool()
+    try {
+      const parts = request.parts()
+      let fileBuffer: Buffer | null = null
+      let fileName = 'unknown'
+      let fileType = 'bin'
+      let targetTable = ''
+      let sessionIdOverride: number | null = null
+      let roomAssignments: Record<string, number> = {}
+      let uploadBusinessDate = ''
+      let selectedRoomId: number | null = null
+      let anchorMappings: Record<string, number | 'create'> = {}
+
+      for await (const part of parts) {
+        if (part.type === 'file') {
+          const chunks: Buffer[] = []
+          for await (const chunk of part.file) chunks.push(chunk)
+          fileBuffer = Buffer.concat(chunks)
+          fileName = part.filename || 'unknown'
+          fileType = fileName.split('.').pop()?.toLowerCase() || 'bin'
+        } else if (part.fieldname === 'target_table') {
+          targetTable = text(part.value)
+        } else if (part.fieldname === 'session_id') {
+          sessionIdOverride = parseInt(text(part.value)) || null
+        } else if (part.fieldname === 'room_assignments') {
+          try { roomAssignments = JSON.parse(text(part.value)) } catch { roomAssignments = {} }
+        } else if (part.fieldname === 'business_date') {
+          uploadBusinessDate = text(part.value)
+        } else if (part.fieldname === 'room_id') {
+          const rid = parseInt(text(part.value))
+          selectedRoomId = Number.isFinite(rid) ? rid : null
+        } else if (part.fieldname === 'anchor_mappings') {
+          try { anchorMappings = JSON.parse(text(part.value)) } catch { anchorMappings = {} }
+        }
+      }
+
+      if (!fileBuffer) return reply.code(400).send({ success: false, message: '\u672A\u9009\u62E9\u6587\u4EF6' })
+      const fileSize = fileBuffer.length
+
+      // Save file to disk
+      const fs = await import('node:fs')
+      const path = await import('node:path')
+      const uploadDir = path.resolve('./uploads')
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
+      const safeName = `${Date.now()}-${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+      fs.writeFileSync(path.join(uploadDir, safeName), fileBuffer)
+
+      let importedRows = 0
+      let detectedType: string | null = null
+      let businessDate: string | null = null
+      let errorsList: string[] = []
+      let uploadId: number | null = null
+
+      // ── XLSX ──
+      if (fileType === 'xlsx' || fileType === 'xls') {
+        const { template, rows } = parseXlsxWorkbook(fileBuffer)
+        detectedType = template
+        businessDate = inferBusinessDate(fileName)
+
+        // Anchor analysis
+        if (detectedType === TEMPLATES.ANCHOR || targetTable === 'anchor_analysis') {
+          if (!businessDate) {
+            return reply.code(400).send({ success: false, message: '\u65E0\u6CD5\u4ECE\u6587\u4EF6\u540D\u8BC6\u522B\u4E1A\u52A1\u65E5\u671F\uFF0C\u8BF7\u4F7F\u7528\u6807\u51C6\u6296\u97F3\u540E\u53F0\u5BFC\u51FA\u6587\u4EF6\u540D' })
+          }
+
+          // 处理主播映射：创建新主播 或 预填充名称缓存
+          const anchorNameCache: NameCache = {}
+          for (const [excelName, mapping] of Object.entries(anchorMappings)) {
+            if (mapping === 'create') {
+              // 创建新主播
+              const insertRes = await pool.query(
+                'INSERT INTO anchors (name, level, status) VALUES ($1, $2, $3) RETURNING id',
+                [excelName, 'B', 1],
+              )
+              anchorNameCache[excelName] = { id: insertRes.rows[0].id }
+            } else if (typeof mapping === 'number') {
+              // 映射到已有主播
+              anchorNameCache[excelName] = { id: mapping }
+            }
+          }
+
+          const uploadResult = await pool.query(
+            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
+             VALUES ($1, $2, $3, 'processing', 0, 'anchor_analysis', $4::date, $5) RETURNING id`,
+            [fileName, fileType, String(fileSize), businessDate, safeName],
+          )
+          uploadId = uploadResult.rows[0].id
+
+          const result = await importAnchorAnalysis(pool, rows, businessDate, roomAssignments, anchorNameCache, uploadId)
+          importedRows = result.imported
+          errorsList = result.errors
+
+          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
+          await pool.query(
+            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
+          )
+
+          return sendOk(reply, {
+            upload: { id: uploadId, file_name: fileName, data_type: 'anchor_analysis', business_date: businessDate },
+            imported_rows: importedRows,
+            errors: errorsList,
+            message: errorsList.length > 0
+              ? `\u5BFC\u5165\u5B8C\u6210\uFF0C${errorsList.length} \u6761\u8B66\u544A`
+              : '\u4E3B\u64AD\u5206\u6790\u6570\u636E\u5BFC\u5165\u6210\u529F',
+          })
+        }
+
+        // Channel analysis
+        if (detectedType === TEMPLATES.CHANNEL || targetTable === 'channel_analysis') {
+          if (!businessDate) {
+            businessDate = uploadBusinessDate || null
+          }
+          if (!businessDate) {
+            return reply.code(400).send({ success: false, message: '\u65E0\u6CD5\u4ECE\u6587\u4EF6\u540D\u8BC6\u522B\u4E1A\u52A1\u65E5\u671F\uFF0C\u8BF7\u4F7F\u7528\u6807\u51C6\u6296\u97F3\u540E\u53F0\u5BFC\u51FA\u6587\u4EF6\u540D' })
+          }
+
+          let sessionId = sessionIdOverride
+          if (!sessionId) {
+            sessionId = await findSessionForDate(pool, businessDate) || null
+          }
+
+          const uploadResult = await pool.query(
+            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
+             VALUES ($1, $2, $3, 'processing', 0, 'channel_analysis', $4::date, $5) RETURNING id`,
+            [fileName, fileType, String(fileSize), businessDate, safeName],
+          )
+          uploadId = uploadResult.rows[0].id
+
+          const result = await importChannelAnalysis(pool, rows, businessDate, sessionId, uploadId)
+          importedRows = result.imported
+          errorsList = result.errors
+
+          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
+          await pool.query(
+            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
+          )
+
+          return sendOk(reply, {
+            upload: {
+              id: uploadId, file_name: fileName, data_type: 'channel_analysis',
+              business_date: businessDate, session_id: sessionId,
+            },
+            imported_rows: importedRows,
+            errors: errorsList,
+            message: errorsList.length > 0
+              ? `\u5BFC\u5165\u5B8C\u6210\uFF0C${errorsList.length} \u6761\u8B66\u544A`
+              : '\u6E20\u9053\u5206\u6790\u6570\u636E\u5BFC\u5165\u6210\u529F',
+          })
+        }
+
+        // ── Full session ──
+        if (detectedType === TEMPLATES.FULL_SESSION || detectFullSessionTemplate(fileName)) {
+          detectedType = TEMPLATES.FULL_SESSION
+          if (!selectedRoomId) {
+            return reply.code(400).send({ success: false, message: '\u8BF7\u9009\u62E9\u76F4\u64AD\u95F4' })
+          }
+          if (!uploadBusinessDate) {
+            return reply.code(400).send({ success: false, message: '\u8BF7\u9009\u62E9\u4E1A\u52A1\u65E5\u671F' })
+          }
+
+          const workbook = XLSX.read(fileBuffer, { type: 'buffer', cellDates: true })
+          const uploadResult = await pool.query(
+            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
+             VALUES ($1, $2, $3, 'processing', 0, 'full_session', $4::date, $5) RETURNING id`,
+            [fileName, fileType, String(fileSize), uploadBusinessDate, safeName],
+          )
+          uploadId = uploadResult.rows[0].id
+
+          const result = await importFullSession(pool, workbook, uploadBusinessDate, selectedRoomId, uploadId!)
+          importedRows = result.imported
+          errorsList = result.errors
+
+          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
+          await pool.query(
+            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
+          )
+
+          return sendOk(reply, {
+            upload: { id: uploadId, file_name: fileName, data_type: 'full_session', business_date: uploadBusinessDate, room_id: selectedRoomId },
+            imported_rows: importedRows,
+            errors: errorsList,
+            message: '\u6574\u573A\u6570\u636E\u5BFC\u5165\u6210\u529F',
+          })
+        }
+
+        return reply.code(400).send({ success: false, message: '\u65E0\u6CD5\u8BC6\u522B\u8BE5 Excel \u6A21\u677F\uFF0C\u8BF7\u4E0A\u4F20\u6296\u97F3\u6E20\u9053\u5206\u6790\u6216\u4E3B\u64AD\u5206\u6790\u65E5\u62A5' })
+      }
+
+      // ── CSV ──
+      if (fileType === 'csv' && (targetTable === 'live_sessions' || targetTable === '')) {
+        const content = fileBuffer.toString('utf-8')
+        const { headers, rows } = parseCsv(content)
+
+        if (rows.length > 0) {
+          const uploadResult = await pool.query(
+            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, source_path)
+             VALUES ($1, $2, $3, 'processing', 0, 'live_sessions_csv', $4) RETURNING id`,
+            [fileName, fileType, String(fileSize), safeName],
+          )
+          uploadId = uploadResult.rows[0].id
+
+          const result = await importLiveSessionCsv(pool, headers, rows)
+          importedRows = result.imported
+          errorsList = result.errors
+
+          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
+          await pool.query(
+            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
+          )
+        } else {
+          const uploadResult = await pool.query(
+            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, source_path)
+             VALUES ($1, $2, $3, 'completed', 0, 'live_sessions_csv', $4) RETURNING id`,
+            [fileName, fileType, String(fileSize), safeName],
+          )
+          uploadId = uploadResult.rows[0].id
+        }
+
+        return sendOk(reply, {
+          upload: { id: uploadId, file_name: fileName, data_type: 'live_sessions_csv', row_count: importedRows },
+          imported_rows: importedRows,
+          errors: errorsList,
+          message: errorsList.length > 0
+            ? `\u5BFC\u5165\u5B8C\u6210\uFF0C${errorsList.length} \u6761\u8B66\u544A`
+            : 'CSV \u6570\u636E\u5BFC\u5165\u6210\u529F',
+        })
+      }
+
+      return reply.code(400).send({ success: false, message: '\u4E0D\u652F\u6301\u7684\u6587\u4EF6\u7C7B\u578B\u6216\u76EE\u6807\u8868' })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploads upload failed')
+      return reply.code(500).send({ success: false, message: '\u6587\u4EF6\u4E0A\u4F20\u5931\u8D25' })
+    }
+  })
+
+  // ── GET /api/v1/data/exports ──
+  app.get('/api/v1/data/exports', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { rows } = await pool.query(
+        'SELECT * FROM data_exports ORDER BY requested_at DESC LIMIT 20',
+      )
+      return sendOk(reply, rows)
+    } catch (err) {
+      request.log.warn({ err }, 'data/exports query failed')
+      return sendOk(reply, [])
+    }
+  })
+
+  // ── POST /api/v1/data/exports ──
+  app.post('/api/v1/data/exports', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const body = request.body as { exportName?: string; format?: string }
+      const { rows } = await pool.query(
+        `INSERT INTO data_exports (export_name, format, status) VALUES ($1, $2, 'completed') RETURNING *`,
+        [body.exportName || '\u6570\u636E\u5BFC\u51FA', body.format || 'xlsx'],
+      )
+      if (rows.length === 0) return sendOk(reply, { error: '\u5BFC\u51FA\u5931\u8D25' })
+      return sendOk(reply, rows[0])
+    } catch (err) {
+      request.log.warn({ err }, 'data/exports create failed')
+      return sendOk(reply, { error: '\u5BFC\u51FA\u5931\u8D25' })
+    }
+  })
+
+  // ── GET /api/v1/data/live ──
+  app.get('/api/v1/data/live', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { rows } = await pool.query(
+        `SELECT s.id, s.date::text,
+                s.anchor_id, s.room_id, s.operator_id,
+                a.name AS anchor_name,
+                r.name AS room_name,
+                o.name AS operator_name,
+                s.start_time::text, s.end_time::text,
+                s.duration_min AS duration,
+                s.title, s.gmv, s.gsv, s.status,
+                s.return_amount, s.remark,
+                s.ad_platform, s.ad_type, s.ad_cost, s.ad_gsv, s.ad_status,
+                s.uv_value, s.interaction_rate, s.retention_rate,
+                s.new_fans, s.gpm, s.avg_online, s.buyer_count,
+                s.exposure_view_rate, s.view_follow_rate, s.views,
+                s.gmv_per_hour, s.avg_item_price, s.online_peak,
+                s.new_group_members
+         FROM live_sessions s
+         LEFT JOIN anchors a ON a.id = s.anchor_id
+         LEFT JOIN live_rooms r ON r.id = s.room_id
+         LEFT JOIN operators o ON o.id = s.operator_id
+         ORDER BY s.date DESC, s.start_time DESC
+         LIMIT 500`,
+      )
+      return sendOk(reply, rows)
+    } catch (err) {
+      request.log.warn({ err }, 'data/live query failed')
+      return sendOk(reply, [])
+    }
+  })
+
+  // ── GET /api/v1/data/live/:id ──
+  app.get('/api/v1/data/live/:id', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      const { rows } = await pool.query(
+        `SELECT s.*, a.name AS anchor_name, r.name AS room_name, o.name AS operator_name
+         FROM live_sessions s
+         LEFT JOIN anchors a ON a.id = s.anchor_id
+         LEFT JOIN live_rooms r ON r.id = s.room_id
+         LEFT JOIN operators o ON o.id = s.operator_id
+         WHERE s.id = $1`,
+        [parseInt(id)],
+      )
+      return sendOk(reply, rows[0] ?? null)
+    } catch (err) {
+      request.log.warn({ err }, 'data/live/:id query failed')
+      return sendOk(reply, null)
+    }
+  })
+
+  // ── DELETE /api/v1/data/live/:id ──
+  app.delete('/api/v1/data/live/:id', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      const result = await pool.query('DELETE FROM live_sessions WHERE id = $1 RETURNING id', [parseInt(id)])
+      return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0, id: parseInt(id) })
+    } catch (err) {
+      request.log.warn({ err }, 'data/live delete failed')
+      return sendOk(reply, { deleted: false })
+    }
+  })
+
+  // ── PUT /api/v1/data/live/:id ──
+  app.put('/api/v1/data/live/:id', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      const body = request.body as Record<string, any>
+      const sessionId = parseInt(id)
+
+      // 读取当前记录，用于计算合并后的有效字段（避免编辑改出重复登记）
+      const { rows: current } = await pool.query(
+        `SELECT room_id, anchor_id, date, start_time FROM live_sessions WHERE id = $1`,
+        [sessionId]
+      )
+      if (current[0]) {
+        const effective = {
+          room_id: body.roomId ?? current[0].room_id,
+          anchor_id: body.anchorId ?? current[0].anchor_id,
+          date: body.date ?? current[0].date,
+          start_time: body.startTime ?? current[0].start_time,
+        }
+        // 去重校验：同主播、同直播间、同一天、且开始时间相同，视为重复登记（排除自身）。
+        // startTime 为空时跳过，status='cancelled' 的作废记录不计重复。
+        if (effective.start_time) {
+          const dup = await findDuplicateSession(pool, {
+            date: effective.date,
+            roomId: effective.room_id,
+            anchorId: effective.anchor_id,
+            startTime: effective.start_time,
+            excludeId: sessionId,
+          })
+          if (dup) {
+            return sendError(reply, 409, buildDuplicateMessage(dup, effective.date, effective.start_time))
+          }
+        }
+      }
+
+      const result = await pool.query(
+        `UPDATE live_sessions SET
+           room_id = COALESCE($1, room_id),
+           anchor_id = COALESCE($2, anchor_id),
+           operator_id = $3,
+           date = COALESCE($4::date, date),
+           start_time = $5::time,
+           end_time = $6::time,
+           duration_min = COALESCE($7, duration_min),
+           title = COALESCE($8, title),
+           gmv = COALESCE($9, gmv),
+           return_amount = COALESCE($10, return_amount),
+           gsv = COALESCE($11, gsv),
+           remark = COALESCE($12, remark),
+           ad_platform = COALESCE($13, ad_platform),
+           ad_type = COALESCE($14, ad_type),
+           ad_cost = COALESCE($15, ad_cost),
+           ad_gsv = COALESCE($16, ad_gsv),
+           ad_status = COALESCE($17, ad_status),
+           uv_value = COALESCE($18, uv_value),
+           interaction_rate = COALESCE($19, interaction_rate),
+           retention_rate = COALESCE($20, retention_rate),
+           new_fans = COALESCE($21, new_fans),
+           gpm = COALESCE($22, gpm),
+           avg_online = COALESCE($23, avg_online),
+           buyer_count = COALESCE($24, buyer_count),
+           exposure_view_rate = COALESCE($25, exposure_view_rate),
+           view_follow_rate = COALESCE($26, view_follow_rate),
+           views = COALESCE($27, views),
+           gmv_per_hour = COALESCE($28, gmv_per_hour),
+           avg_item_price = COALESCE($29, avg_item_price),
+           online_peak = COALESCE($30, online_peak),
+           new_group_members = COALESCE($31, new_group_members),
+           audience_profile = COALESCE($32, audience_profile),
+           updated_at = NOW()
+         WHERE id = $33`,
+        [
+          body.roomId, body.anchorId, body.operatorId ?? null,
+          body.date, body.startTime ?? null, body.endTime ?? null,
+          body.duration ?? 0, body.title ?? '',
+          body.gmv ?? 0, body.returnAmount ?? 0, body.gsv ?? 0, body.remark ?? '',
+          body.adPlatform ?? '', body.adType ?? '', body.adCost ?? 0, body.adGsv ?? 0,
+          body.adStatus ?? 1,
+          body.uvValue ?? null, body.interactionRate ?? null, body.retentionRate ?? null,
+          body.newFans ?? 0, body.gpm ?? null, body.avgOnline ?? 0, body.buyerCount ?? 0,
+          body.exposureViewRate ?? null, body.viewFollowRate ?? null, body.views ?? 0,
+          body.gmvPerHour ?? null, body.avgItemPrice ?? null, body.onlinePeak ?? 0,
+          body.newGroupMembers ?? 0, body.audienceProfile ?? null,
+          parseInt(id),
+        ],
+      )
+      return sendOk(reply, { updated: (result.rowCount ?? 0) > 0, id: parseInt(id) })
+    } catch (err) {
+      request.log.warn({ err }, 'data/live update failed')
+      return sendOk(reply, { updated: false })
+    }
+  })
+
+  // ── GET /api/v1/data/quality ──
+  app.get('/api/v1/data/quality', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { rows } = await pool.query(
+        `SELECT COUNT(*)::int AS total,
+                SUM(CASE WHEN gmv IS NULL OR gmv = 0 THEN 1 ELSE 0 END)::int AS null_count,
+                SUM(CASE WHEN anchor_id IS NULL THEN 1 ELSE 0 END)::int AS missing_anchor,
+                SUM(CASE WHEN room_id IS NULL THEN 1 ELSE 0 END)::int AS missing_room,
+                ROUND(100.0 * SUM(CASE WHEN gmv IS NULL OR gmv = 0 THEN 1 ELSE 0 END) / GREATEST(COUNT(*), 1), 1) AS null_rate
+         FROM live_sessions`,
+      )
+      const q = rows[0] || { total: 0, null_count: 0, null_rate: 0, missing_anchor: 0, missing_room: 0 }
+
+      // Check if today's two reports are uploaded
+      const today = new Date().toISOString().slice(0, 10)
+      const uploadsToday = await pool.query(
+        `SELECT data_type, COUNT(*)::int AS cnt
+         FROM data_uploads
+         WHERE business_date = $1::date AND status = 'completed'
+         GROUP BY data_type`,
+        [today],
+      )
+      const uploadedTypes = new Set(uploadsToday.rows.map((r: any) => r.data_type))
+      const alerts: string[] = []
+      if (!uploadedTypes.has('anchor_analysis')) alerts.push('\u4E3B\u64AD\u5206\u6790\u65E5\u62A5\u672A\u4E0A\u4F20')
+      if (!uploadedTypes.has('channel_analysis')) alerts.push('\u6E20\u9053\u5206\u6790\u65E5\u62A5\u672A\u4E0A\u4F20')
+
+      return sendOk(reply, {
+        tables: [
+          {
+            id: 'live_sessions',
+            name: '\u573A\u6B21\u6570\u636E',
+            total: q.total,
+            nullCount: q.null_count,
+            nullRate: `${q.null_rate}%`,
+            missingAnchor: q.missing_anchor,
+            missingRoom: q.missing_room,
+            status: q.null_rate > 10 ? 'warning' : 'good',
+          },
+        ],
+        alerts,
+      })
+    } catch (err) {
+      request.log.warn({ err }, 'data/quality query failed')
+      return sendOk(reply, { tables: [], alerts: [] })
+    }
+  })
+
+  // ═══════════════════════════════════════════════════════════════
+  // 上传数据管理 — 主播分析数据
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── GET /api/v1/data/uploaded-data/anchor ──
+  app.get('/api/v1/data/uploaded-data/anchor', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const query = request.query as Record<string, string>
+      const page = Math.max(1, parseInt(query.page) || 1)
+      const pageSize = Math.min(100, Math.max(1, parseInt(query.pageSize) || 15))
+      const offset = (page - 1) * pageSize
+
+      const conditions: string[] = []
+      const params: any[] = []
+      let idx = 1
+
+      if (query.startDate) {
+        conditions.push(`a.business_date >= $${idx++}::date`)
+        params.push(query.startDate)
+      }
+      if (query.endDate) {
+        conditions.push(`a.business_date <= $${idx++}::date`)
+        params.push(query.endDate)
+      }
+      if (query.keyword) {
+        conditions.push(`a.anchor_name ILIKE $${idx++}`)
+        params.push(`%${query.keyword}%`)
+      }
+
+      const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''
+
+      const countResult = await pool.query(
+        `SELECT COUNT(*)::int AS total FROM douyin_anchor_daily_metrics a ${whereClause}`,
+        params,
+      )
+      const total = countResult.rows[0]?.total ?? 0
+
+      const { rows } = await pool.query(
+        `SELECT a.*, u.file_name AS upload_file_name
+         FROM douyin_anchor_daily_metrics a
+         LEFT JOIN data_uploads u ON u.id = a.upload_id
+         ${whereClause}
+         ORDER BY a.business_date DESC, a.anchor_name ASC
+         LIMIT $${idx++} OFFSET $${idx++}`,
+        [...params, pageSize, offset],
+      )
+
+      return sendOk(reply, { items: rows, total, page, pageSize })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploaded-data/anchor query failed')
+      return sendOk(reply, { items: [], total: 0, page: 1, pageSize: 15 })
+    }
+  })
+
+  // ── DELETE /api/v1/data/uploaded-data/anchor/:id ──
+  app.delete('/api/v1/data/uploaded-data/anchor/:id', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      await pool.query('DELETE FROM douyin_anchor_daily_metrics WHERE id = $1', [parseInt(id)])
+      return sendOk(reply, { deleted: true })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploaded-data/anchor/:id delete failed')
+      return reply.code(500).send({ success: false, message: '删除失败' })
+    }
+  })
+
+  // ── POST /api/v1/data/uploaded-data/anchor/batch-delete ──
+  app.post('/api/v1/data/uploaded-data/anchor/batch-delete', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const body = request.body as { ids: number[] }
+      const ids = Array.isArray(body?.ids) ? body.ids : []
+      if (ids.length === 0) return sendOk(reply, { deleted: false, count: 0 })
+      const result = await pool.query(
+        `DELETE FROM douyin_anchor_daily_metrics WHERE id = ANY($1::int[])`,
+        [ids],
+      )
+      return sendOk(reply, { deleted: true, count: result.rowCount })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploaded-data/anchor/batch-delete failed')
+      return reply.code(500).send({ success: false, message: '批量删除失败' })
+    }
+  })
+
+  // ═══════════════════════════════════════════════════════════════
+  // 上传数据管理 — 渠道分析数据
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── GET /api/v1/data/uploaded-data/channel ──
+  app.get('/api/v1/data/uploaded-data/channel', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const query = request.query as Record<string, string>
+      const page = Math.max(1, parseInt(query.page) || 1)
+      const pageSize = Math.min(100, Math.max(1, parseInt(query.pageSize) || 15))
+      const offset = (page - 1) * pageSize
+
+      const conditions: string[] = []
+      const params: any[] = []
+      let idx = 1
+
+      if (query.startDate) {
+        conditions.push(`c.business_date >= $${idx++}::date`)
+        params.push(query.startDate)
+      }
+      if (query.endDate) {
+        conditions.push(`c.business_date <= $${idx++}::date`)
+        params.push(query.endDate)
+      }
+      if (query.keyword) {
+        conditions.push(`c.channel_name ILIKE $${idx++}`)
+        params.push(`%${query.keyword}%`)
+      }
+
+      const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''
+
+      const countResult = await pool.query(
+        `SELECT COUNT(*)::int AS total FROM douyin_channel_daily_metrics c ${whereClause}`,
+        params,
+      )
+      const total = countResult.rows[0]?.total ?? 0
+
+      const { rows } = await pool.query(
+        `SELECT c.*, u.file_name AS upload_file_name
+         FROM douyin_channel_daily_metrics c
+         LEFT JOIN data_uploads u ON u.id = c.upload_id
+         ${whereClause}
+         ORDER BY c.business_date DESC, c.channel_name ASC
+         LIMIT $${idx++} OFFSET $${idx++}`,
+        [...params, pageSize, offset],
+      )
+
+      return sendOk(reply, { items: rows, total, page, pageSize })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploaded-data/channel query failed')
+      return sendOk(reply, { items: [], total: 0, page: 1, pageSize: 15 })
+    }
+  })
+
+  // ── DELETE /api/v1/data/uploaded-data/channel/:id ──
+  app.delete('/api/v1/data/uploaded-data/channel/:id', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      await pool.query('DELETE FROM douyin_channel_daily_metrics WHERE id = $1', [parseInt(id)])
+      return sendOk(reply, { deleted: true })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploaded-data/channel/:id delete failed')
+      return reply.code(500).send({ success: false, message: '删除失败' })
+    }
+  })
+
+  // ── POST /api/v1/data/uploaded-data/channel/batch-delete ──
+  app.post('/api/v1/data/uploaded-data/channel/batch-delete', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const body = request.body as { ids: number[] }
+      const ids = Array.isArray(body?.ids) ? body.ids : []
+      if (ids.length === 0) return sendOk(reply, { deleted: false, count: 0 })
+      const result = await pool.query(
+        `DELETE FROM douyin_channel_daily_metrics WHERE id = ANY($1::int[])`,
+        [ids],
+      )
+      return sendOk(reply, { deleted: true, count: result.rowCount })
+    } catch (err) {
+      request.log.warn({ err }, 'data/uploaded-data/channel/batch-delete failed')
+      return reply.code(500).send({ success: false, message: '批量删除失败' })
+    }
+  })
+}

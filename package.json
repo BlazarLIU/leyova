@@ -1,0 +1,21 @@
+{
+  "name": "leyova",
+  "version": "0.1.0",
+  "description": "leyova — AI 直播运营管理系统（后端 API + Web 控制台 + MCP Server）",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm -F @leyova/api dev",
+    "dev:web": "pnpm -F @leyova/web dev",
+    "dev:mcp": "pnpm -F @leyova/mcp-server dev",
+    "build": "pnpm -F @leyova/api build && pnpm -F @leyova/web build && pnpm -F @leyova/mcp-server build",
+    "start:api": "pnpm -F @leyova/api start",
+    "start:mcp": "pnpm -F @leyova/mcp-server start",
+    "test": "pnpm -F @leyova/api test"
+  }
+}
