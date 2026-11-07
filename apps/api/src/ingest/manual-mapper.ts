@@ -107,6 +107,8 @@ export function normalizeDate(v: any): string | null {
 export interface MappedRow {
   bizDate: string
   channelName: string
+  /** 通用渠道编码（来自 platform_source_mapping 映射） */
+  sourceCode: string | null
   values: Record<string, number>
 }
 
@@ -157,7 +159,7 @@ export function mapRowsToStandard(
     if (dateHit) mapping.biz_date = dateHit.key
     mapping.channel_name = channelHit?.key ?? null
 
-    rows.push({ bizDate, channelName, values })
+    rows.push({ bizDate, channelName, sourceCode: null, values })
   })
 
   return { rows, rejected, mapping }
@@ -198,8 +200,50 @@ export async function ingestManualFacts(
   )
   const jobId: number = jobIns.rows[0].id
 
+  // 读取该平台的默认成交口径（京东含COD、快手含间接成交等）
+  let amountType = 'gross_paid'
+  try {
+    const calRes = await pool.query(
+      `SELECT amount_type FROM platform_caliber_config
+        WHERE platform_code = $1 AND metric_code = 'gmv'
+        ORDER BY is_default DESC LIMIT 1`,
+      [platformCode],
+    )
+    if (calRes.rows.length > 0) amountType = calRes.rows[0].amount_type
+  } catch {
+    // 表不存在时用默认值
+  }
+
   try {
     const mapped = mapRowsToStandard(rows, dataType, defaultBizDate)
+
+    // 渠道名 → 通用渠道编码映射（来自 platform_source_mapping）
+    try {
+      const { rows: mapRows } = await pool.query(
+        `SELECT raw_source, source_code, match_type
+           FROM platform_source_mapping
+          WHERE platform_code = ANY($1::text[])
+          ORDER BY priority DESC`,
+        [[platformCode, platformCode === 'tmall' ? 'taobao' : platformCode]],
+      )
+      const exact = new Map<string, string>()
+      const contains: Array<{ raw: string; code: string }> = []
+      for (const m of mapRows) {
+        if (m.match_type === 'exact') exact.set(m.raw_source, m.source_code)
+        else contains.push({ raw: m.raw_source, code: m.source_code })
+      }
+      for (const row of mapped.rows) {
+        const ch = row.channelName
+        if (exact.has(ch)) {
+          row.sourceCode = exact.get(ch)!
+        } else {
+          const hit = contains.find((c) => ch.includes(c.raw) || c.raw.includes(ch))
+          if (hit) row.sourceCode = hit.code
+        }
+      }
+    } catch {
+      // 映射表不存在时忽略，sourceCode 保持 null
+    }
 
     const bizDates = mapped.rows.map((r) => r.bizDate).sort()
     const watermarkFrom = bizDates[0] ?? null
@@ -208,14 +252,16 @@ export async function ingestManualFacts(
     let inserted = 0
     for (const r of mapped.rows) {
       if (dataType === 'trade') {
+        // amount_type 取该平台的默认口径（如京东 offline_cod_included、快手 indirect_included）
         await pool.query(
           `INSERT INTO fact_trade_daily
-             (biz_date, platform_code, shop_id, channel_name,
+             (biz_date, platform_code, shop_id, channel_name, source_code,
               gmv, pay_amount, paid_order_count, paid_buyer_count,
-              refund_amount, refund_count, source, upload_id, extra)
-           VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'manual', $11, $12)
-           ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
+              refund_amount, refund_count, source, upload_id, extra, amount_type)
+           VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'manual', $12, $13, $14)
+           ON CONFLICT (biz_date, platform_code, shop_id, channel_name, amount_type)
            DO UPDATE SET
+             source_code       = EXCLUDED.source_code,
              gmv               = EXCLUDED.gmv,
              pay_amount        = EXCLUDED.pay_amount,
              paid_order_count  = EXCLUDED.paid_order_count,
@@ -226,23 +272,28 @@ export async function ingestManualFacts(
              upload_id         = EXCLUDED.upload_id,
              extra             = EXCLUDED.extra`,
           [
-            r.bizDate, platformCode, shopId, r.channelName,
-            r.values.gmv ?? 0,
-            r.values.pay_amount ?? 0,
-            Math.round(r.values.paid_order_count ?? 0),
-            Math.round(r.values.paid_buyer_count ?? 0),
-            r.values.refund_amount ?? 0,
-            Math.round(r.values.refund_count ?? 0),
-            uploadId ?? null,
-            JSON.stringify({ mapping: mapped.mapping, ingest_job_id: jobId }),
+            r.bizDate,                       // $1
+            platformCode,                    // $2
+            shopId,                          // $3
+            r.channelName,                   // $4
+            r.sourceCode ?? null,            // $5
+            r.values.gmv ?? 0,               // $6
+            r.values.pay_amount ?? 0,        // $7
+            Math.round(r.values.paid_order_count ?? 0),  // $8
+            Math.round(r.values.paid_buyer_count ?? 0),  // $9
+            r.values.refund_amount ?? 0,     // $10
+            Math.round(r.values.refund_count ?? 0),      // $11
+            uploadId ?? null,                // $12
+            JSON.stringify({ mapping: mapped.mapping, ingest_job_id: jobId }), // $13
+            amountType,                      // $14
           ],
         )
       } else {
         await pool.query(
           `INSERT INTO fact_traffic_daily
-             (biz_date, platform_code, shop_id, channel_name,
+             (biz_date, platform_code, shop_id, channel_name, source_code,
               impressions, clicks, visitors, avg_stay_seconds, source, upload_id, extra)
-           VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, 'manual', $9, $10)
+           VALUES ($1::date, $2, $3, $4, $11, $5, $6, $7, $8, 'manual', $9, $10)
            ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
            DO UPDATE SET
              impressions       = EXCLUDED.impressions,
@@ -260,6 +311,7 @@ export async function ingestManualFacts(
             Math.round(r.values.avg_stay_seconds ?? 0),
             uploadId ?? null,
             JSON.stringify({ mapping: mapped.mapping, ingest_job_id: jobId }),
+            r.sourceCode ?? null,  // $11
           ],
         )
       }
