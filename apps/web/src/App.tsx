@@ -23,6 +23,7 @@ import { DataUploadPage } from '@/pages/data/DataUploadPage'
 import { UploadedDataPage } from '@/pages/data/UploadedDataPage'
 import { DataQualityPage } from '@/pages/data/DataQualityPage'
 import { IngestWizardPage } from '@/pages/data/IngestWizardPage'
+import { OmniDashboardPage } from '@/pages/omnichannel/OmniDashboardPage'
 
 // 内容中心
 import { VideoCreatePage } from '@/pages/content/VideoCreatePage'
@@ -98,6 +99,7 @@ export default function App() {
         <Route path="/data/uploaded-data" element={<UploadedDataPage />} />
         <Route path="/data/quality" element={<DataQualityPage />} />
         <Route path="/data/ingest" element={<IngestWizardPage />} />
+        <Route path="/omnichannel/dashboard" element={<OmniDashboardPage />} />
 
         {/* ===== 内容中心 ===== */}
         <Route path="/content/video-create" element={<VideoCreatePage />} />

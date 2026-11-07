@@ -5,6 +5,7 @@ import {
   CalendarDays,             // 个人达成
   ClipboardPlus,            // 直播登记
   TrendingUp,               // 数据分析
+  Globe,                    // 全渠道大盘
   Table,                    // 直播数据管理
   Monitor,                  // 多直播间总览
   // ---- 应用 ----
@@ -33,6 +34,7 @@ export const navigation: NavSection[] = [
       { label: '多直播间总览', icon: Monitor, href: '/system/multi-room', module: 'overview' },
       { label: '实时监控', icon: Radio, href: '/overview/live-monitor', module: 'overview' },
       { label: '数据分析', icon: TrendingUp, href: '/overview/analytics', module: 'overview' },
+      { label: '全渠道大盘', icon: Globe, href: '/omnichannel/dashboard', module: 'overview' },
     ],
   },
 

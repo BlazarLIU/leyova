@@ -23,34 +23,77 @@ import { executeCleaningPipeline } from '../ingest/cleaner/engine.js'
  * CSV 处理要点：电商后台导出的 CSV 常把金额写成 `￥12,345.60` 且不带引号，
  * 直接交给通用 CSV 解析器会把一列拆成两列，导致后面整行错位。
  *
- * 采用「按列数对齐」的结构化修复：先按逗号无脑切分，若切出的字段数多于表头列数，
- * 则尝试把相邻两个字段重新合并（中间补回逗号），使字段数恰好等于表头列数。
- * 只有在合并后的两个片段都像同一个数字（$/数字 结尾 + 数字开头）时才合并，
- * 避免把两个真正独立的列误并。
+ * 采用「按列数对齐」的结构化修复：先按逗号切分，若字段数多于表头列数，
+ * 则尝试把相邻字段重新合并（补回逗号），使字段数恰好等于表头列数。
+ * 合并判据基于千分位的数学语义：被拆开的后半段必须以恰好 3 位数字开头。
+ * 例：`12,345.60` 会被合并回一列，而 `80,70`（两个独立数字）不会被误并。
  */
-const NUMERIC_BOUNDARY = /[￥¥$]?\s*[\d,]+\.?\d*$/
-const NUMERIC_START = /^\d{1,3}(?:[,.]\d+)*$/
+const THOUSAND_TAIL = /^\d{3}(?:[.,]\d+)?(?:[^\d]|$)/
 
-function mergeNumericFragments(fields: string[], expected: number): string[] {
+/** 金额类列名关键词：只有这些列可能出现 "12,345.60" 这种被拆开的千分位 */
+/** 计数器类列名：这些列是整数，绝不可能有千分位小数 */
+const COUNT_HEADER_HINT = /数$|量$|笔$|个数|单数|次数|件数|人数|率$|占比|比例|count|qty|quantity|rate|ratio/i
+
+/** 金额类列名关键词：只有这些列可能出现 "12,345.60" 这种被拆开的千分位 */
+const MONEY_HEADER_HINT = /金额|GMV|gmv|实付|成交额|交易额|收款|售价|单价|费用|成本|收入|支出|余额|amount|price|cost|revenue/i
+
+/** 判断某列表头是否为金额列（计数器列一律排除） */
+function isMoneyColumn(header: string): boolean {
+  const h = (header || '').trim()
+  if (!h) return false
+  if (COUNT_HEADER_HINT.test(h)) return false
+  return MONEY_HEADER_HINT.test(h)
+}
+
+/**
+ * 判断 a、b 是否本属同一个数字（被千分位逗号拆开）。
+ * 前提：该列必须是金额类列（由调用方保证），因为整数列（订单数/买家数）
+ * 不存在千分位小数，绝不应被合并。
+ */
+function looksLikeThousandSplit(a: string | undefined, b: string | undefined): boolean {
+  if (a === undefined || b === undefined) return false
+  const left = String(a).trim()
+  const right = String(b).trim()
+  if (!left || !right) return false
+  if (!/\d$/.test(left)) return false
+  // 前半段若已带完整小数部分，该数字已结束，不可能再接千分位
+  if (/\.\d+$/.test(left)) return false
+  return THOUSAND_TAIL.test(right)
+}
+
+/**
+ * 按列数对齐修复被逗号拆开的金额列。
+ * headers 用于判断每一列是否为金额类，只有金额列允许合并。
+ */
+function mergeNumericFragments(fields: string[], headers: string[]): string[] {
+  const expected = headers.length
   if (fields.length <= expected) return fields
   const out: string[] = []
   let i = 0
   while (i < fields.length) {
     const remainingSlots = expected - out.length
     const remainingFields = fields.length - i
-    // 剩余字段多于剩余槽位 → 说明有金额被逗号拆开，尝试合并相邻两段
-    if (remainingFields > remainingSlots) {
+    if (remainingSlots > 0 && remainingFields > remainingSlots && i + 1 < fields.length) {
+      // 当前要填充的目标列
+      const targetHeader = headers[out.length] || ''
+      const moneyColumn = isMoneyColumn(targetHeader)
       const a = fields[i]
       const b = fields[i + 1]
-      const combined = `${a},${b}`
-      const looksSplittable =
-        NUMERIC_BOUNDARY.test(a.trim()) &&
-        NUMERIC_START.test(b.trim()) &&
-        /^[￥¥$]?[\d,]/.test(combined)
-      if (looksSplittable) {
-        out.push(combined)
-        i += 2
-        continue
+      if (moneyColumn) {
+        // 优先三段合并（如 1,234,567）
+        if (i + 2 < fields.length && remainingFields - 2 > remainingSlots - 1) {
+          const ab = `${a},${b}`
+          if (looksLikeThousandSplit(a, b) && looksLikeThousandSplit(ab, fields[i + 2])) {
+            out.push(`${ab},${fields[i + 2]}`)
+            i += 3
+            continue
+          }
+        }
+        if (looksLikeThousandSplit(a, b)) {
+          out.push(`${a},${b}`)
+          i += 2
+          continue
+        }
       }
     }
     out.push(fields[i])
@@ -98,7 +141,14 @@ function parseFileToRows(
 
     for (let i = 1; i < lines.length; i++) {
       let fields = splitCsvLine(lines[i], delimiter)
-      if (fields.length > expected) fields = mergeNumericFragments(fields, expected)
+      // 一行可能有多个金额列同时被拆开，需反复合并直到列数对齐
+      let guard = 0
+      while (fields.length > expected && guard < 20) {
+        const merged = mergeNumericFragments(fields, headers)
+        if (merged.length === fields.length) break // 无进展，停止避免死循环
+        fields = merged
+        guard++
+      }
       // 仍不匹配则记录为错位行，交由上层统计，不静默丢弃
       const obj: Record<string, any> = {}
       headers.forEach((h, idx) => { obj[h] = fields[idx] !== undefined ? fields[idx].trim() : '' })
