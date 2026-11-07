@@ -3,11 +3,11 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronRight, LogOut } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { navigation } from '@/data/navigation'
+import { buildNavigation } from '@/data/platform-navigation'
 import { useSidebar } from '@/hooks/useSidebar'
 import { usePlatform } from '@/hooks/usePlatform'
 import { api } from '@/services/api'
-import type { NavItem, RoleInfo } from '@/types'
+import type { NavItem, NavSection, RoleInfo } from '@/types'
 
 function LeyovaLogo({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate()
@@ -247,13 +247,12 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     // 有该模块权限 → 可见
     userModules.includes(m))
 
-  const getVisibleNavigation = (role: string) => {
-    let sections = navigation
-
-    // 平台能力动态过滤：若当前平台不支持直播，隐藏「直播管理」与「直播复盘」一级分组
-    if (currentPlatform && !currentPlatform.capabilities?.supportsLive) {
-      sections = sections.filter(section => section.title !== '直播管理' && section.title !== '直播复盘')
-    }
+  const getVisibleNavigation = (role: string): NavSection[] => {
+    // 按当前平台的实际业态构建菜单：
+    //   直播电商 → 场次/主播/复盘链路
+    //   货架电商 → 店铺/商品/投放链路
+    //   内容种草 → 笔记/达人/种草链路
+    let sections = buildNavigation(currentPlatform?.capabilities)
 
     // controller → 不显示「系统」分组
     if (role === 'controller') {
