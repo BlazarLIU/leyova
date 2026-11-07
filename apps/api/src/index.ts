@@ -25,6 +25,8 @@ import { liveregRoutes } from './routes/livereg.js'
 import { platformRoutes } from './routes/platforms.js'
 import { ingestRoutes } from './routes/ingest.js'
 import { omnichannelRoutes } from './routes/omnichannel.js'
+import { contentRoutes } from './routes/content.js'
+import { knowledgeBaseRoutes } from './routes/knowledge-base.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
 import { backfillDailyStats } from './cron/aggregate-stats.js'
@@ -89,6 +91,8 @@ async function main() {
   await app.register(platformRoutes)  // platforms: multi-platform management, permissions & shops
   await app.register(ingestRoutes)    // ingest: dual-track data access, cleaning pipeline & sync jobs
   await app.register(omnichannelRoutes) // omnichannel: cross-platform dashboard & shelf shop analytics
+  await app.register(contentRoutes)      // content: providers, projects, tasks, assets, video metrics
+  await app.register(knowledgeBaseRoutes) // kb: external RAGFlow/MaxKB client config & search
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {

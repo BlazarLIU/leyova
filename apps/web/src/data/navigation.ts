@@ -74,6 +74,7 @@ export const navigation: NavSection[] = [
           { label: '视频创作', href: '/content/video-create', module: 'content_video_create' },
           { label: '视频数据', href: '/content/video-data', module: 'content_video_data' },
           { label: '中心配置', href: '/content/config', module: 'content_config' },
+          { label: '中心配置(生成服务/知识库)', href: '/content/center-config', module: 'content_config' },
         ],
       },
 
