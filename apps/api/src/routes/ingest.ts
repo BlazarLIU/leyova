@@ -16,6 +16,13 @@ import { getPool } from '../lib/db.js'
 import { runSyncJob, runPlatformSync, type SyncDataType } from '../ingest/sync-job.js'
 import { ingestManualFacts, mapRowsToStandard, TRADE_COLUMN_ALIASES, TRAFFIC_COLUMN_ALIASES } from '../ingest/manual-mapper.js'
 import { executeCleaningPipeline } from '../ingest/cleaner/engine.js'
+import {
+  getTemplatesByPlatform,
+  getTemplate,
+  detectTemplate,
+  suggestMapping,
+  summarizeTemplate,
+} from '../ingest/platform-templates.js'
 
 /**
  * 读取上传的文件为行对象数组。
@@ -552,6 +559,81 @@ export async function ingestRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.error({ err }, 'ingest/manual-upload failed')
       return sendError(reply, 500, '手动上传导入失败')
+    }
+  })
+
+  // ═══════════════════════════════════════════════════════════════
+  // 平台模板（阶段 C）
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── GET /api/v1/ingest/platform-templates ── 平台可用模板
+  app.get('/api/v1/ingest/platform-templates', async (request: FastifyRequest<{
+    Querystring: { platform?: string }
+  }>, reply: FastifyReply) => {
+    try {
+      const platform = request.query.platform
+      const templates = platform
+        ? getTemplatesByPlatform(platform)
+        : []
+      return sendOk(reply, {
+        platform: platform || null,
+        templates: templates.map(summarizeTemplate),
+        count: templates.length,
+      })
+    } catch (err) {
+      return sendError(reply, 500, '获取平台模板失败')
+    }
+  })
+
+  // ── GET /api/v1/ingest/platform-templates/:code ── 模板详情（含字段定义）
+  app.get('/api/v1/ingest/platform-templates/:code', async (request: FastifyRequest<{
+    Params: { code: string }
+  }>, reply: FastifyReply) => {
+    try {
+      const t = getTemplate(request.params.code)
+      if (!t) return sendError(reply, 404, '模板不存在')
+      return sendOk(reply, t)
+    } catch (err) {
+      return sendError(reply, 500, '获取模板详情失败')
+    }
+  })
+
+  // ── POST /api/v1/ingest/detect-template ── 根据表头识别模板 + 映射建议
+  app.post('/api/v1/ingest/detect-template', async (request: FastifyRequest<{
+    Body: { headers: string[]; platformCode?: string }
+  }>, reply: FastifyReply) => {
+    try {
+      const { headers, platformCode } = request.body || ({} as any)
+      if (!Array.isArray(headers) || headers.length === 0) {
+        return sendError(reply, 400, '缺少 headers')
+      }
+
+      const detected = detectTemplate(headers, platformCode)
+      if (!detected) {
+        return sendOk(reply, {
+          detected: null,
+          message: '未能识别出匹配的平台模板，请手动选择模板或自定义字段映射',
+          headers,
+        })
+      }
+
+      const { mapping, missing } = suggestMapping(detected.template, headers)
+
+      return sendOk(reply, {
+        detected: {
+          code: detected.template.code,
+          reportName: detected.template.reportName,
+          platformName: detected.template.platformName,
+          dataType: detected.template.dataType,
+          confidence: detected.score,
+        },
+        mapping,
+        missingRequired: missing,
+        transformNote: detected.template.transformNote || null,
+        headers,
+      })
+    } catch (err) {
+      return sendError(reply, 500, '识别模板失败')
     }
   })
 

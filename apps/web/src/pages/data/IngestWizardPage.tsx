@@ -141,6 +141,14 @@ export function IngestWizardPage() {
   const [mapping, setMapping] = useState<Record<string, string | null>>({})
   const [ruleSetId, setRuleSetId] = useState<number | null>(null)
 
+  const [detectedTemplate, setDetectedTemplate] = useState<{
+    code: string
+    reportName: string
+    platformName: string
+    dataType: string
+    confidence: number
+  } | null>(null)
+  const [templateNote, setTemplateNote] = useState<string | null>(null)
   const [preview, setPreview] = useState<PreviewResponse | null>(null)
   const [result, setResult] = useState<UploadResult | null>(null)
 
@@ -219,10 +227,33 @@ export function IngestWizardPage() {
       const json = await res.json()
       if (!json.success) throw new Error(json.message || '预演失败')
       setPreview(json.data)
-      // 只在用户还没手动调整过映射时，才采用后端建议
-      setMapping((prev) =>
-        Object.values(prev).some((v) => v) ? prev : (json.data.suggestedMapping || {}),
-      )
+
+      // 平台模板识别：优先用平台模板的映射（比通用别名更准确）
+      let finalMapping = json.data.suggestedMapping || {}
+      try {
+        const det = await fetch('/api/v1/ingest/detect-template', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ headers: json.data.headers, platformCode }),
+        })
+        const detJson = await det.json()
+        if (detJson.success && detJson.data?.detected) {
+          setDetectedTemplate(detJson.data.detected)
+          setTemplateNote(detJson.data.transformNote || null)
+          if (detJson.data.mapping && Object.keys(detJson.data.mapping).length > 0) {
+            finalMapping = detJson.data.mapping
+          }
+        } else {
+          setDetectedTemplate(null)
+          setTemplateNote(null)
+        }
+      } catch {
+        setDetectedTemplate(null)
+      }
+
+      // 只在用户还没手动调整过映射时，才覆盖
+      setMapping((prev) => (Object.values(prev).some((v) => v) ? prev : finalMapping))
       if (jumpToStep) setStep(4)
     } catch (e: any) {
       setError(e?.message || '预演失败')
@@ -540,6 +571,33 @@ export function IngestWizardPage() {
       {/* Step 4: 预演对照 */}
       {step === 4 && preview && (
         <motion.div {...fadeIn} className="space-y-4">
+          {/* 模板识别结果 */}
+          {detectedTemplate && (
+            <div className="flex items-start gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 text-xs text-emerald-300/90">
+              <CheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">已识别报表：{detectedTemplate.reportName}</span>
+                  <Badge variant={detectedTemplate.confidence >= 0.6 ? 'success' : 'warning'}>
+                    置信度 {detectedTemplate.confidence}
+                  </Badge>
+                  <span className="text-emerald-500/70">{detectedTemplate.platformName}</span>
+                </div>
+                {templateNote && (
+                  <p className="mt-1 text-[11px] leading-relaxed text-emerald-400/70">{templateNote}</p>
+                )}
+              </div>
+            </div>
+          )}
+          {!detectedTemplate && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3 text-xs text-amber-300/90">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <div>
+                未能识别出匹配的平台报表模板，已使用通用字段映射。请在「字段映射」步骤手动确认。
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-3 sm:grid-cols-4">
             <StatCard label="文件总行数" value={preview.totalRows} />
             <StatCard label="清洗后可入库" value={preview.cleanReport?.successRowsCount ?? preview.totalRows} tone="ok" />
