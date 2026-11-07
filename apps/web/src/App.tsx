@@ -35,6 +35,8 @@ import { PddCaliberComparePage } from '@/pages/shop/pdd/PddCaliberComparePage'
 import { KsTrafficSplitPage } from '@/pages/shop/kuaishou/KsTrafficSplitPage'
 import { KsIndirectGmvPage } from '@/pages/shop/kuaishou/KsIndirectGmvPage'
 import { KsFansTeamPage } from '@/pages/shop/kuaishou/KsFansTeamPage'
+import { JdBusinessBoardPage } from '@/pages/shop/jd/JdBusinessBoardPage'
+import { JdFulfillmentPage } from '@/pages/shop/jd/JdFulfillmentPage'
 import { PlatformManagementPage } from '@/pages/system/PlatformManagementPage'
 import { UsersPage } from '@/pages/system/UsersPage'
 import { DictPage } from '@/pages/system/DictPage'
@@ -126,6 +128,8 @@ export default function App() {
         <Route path="/shop/kuaishou/traffic-split" element={<KsTrafficSplitPage />} />
         <Route path="/shop/kuaishou/indirect-gmv" element={<KsIndirectGmvPage />} />
         <Route path="/shop/kuaishou/fans-team" element={<KsFansTeamPage />} />
+        <Route path="/shop/jd/board" element={<JdBusinessBoardPage />} />
+        <Route path="/shop/jd/fulfillment" element={<JdFulfillmentPage />} />
         <Route path="/system/platforms" element={<PlatformManagementPage />} />
         <Route path="/system/users" element={<UsersPage />} />
         <Route path="/system/dict" element={<DictPage />} />

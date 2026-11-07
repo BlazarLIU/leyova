@@ -28,7 +28,7 @@ import {
   LayoutDashboard, BarChart3, Monitor, Radio, TrendingUp, Globe, Bot,
   CalendarDays, ClipboardPlus, Table, Clapperboard, LineChart, Mic, Zap,
   BarChart4, Database, Settings, AlertTriangle, Store, Package,
-  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Layers, Home,
+  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Layers, Home, Clock,
 } from 'lucide-react'
 import type { NavSection, NavSubItem } from '@/types'
 
@@ -244,16 +244,22 @@ function buildShelfSections(platformCode?: string): NavSection[] {
   // 淘宝/天猫走专属经营看板（含父子订单、支付转化率、万相台对账）
   const isTaobaoFamily = platformCode === 'taobao' || platformCode === 'tmall'
   const isPdd = platformCode === 'pdd'
-  const shopBoardHref = isTaobaoFamily ? '/shop/taobao/board' : '/shop/overview'
+  const isJd = platformCode === 'jd'
+  const shopBoardHref = isTaobaoFamily
+    ? '/shop/taobao/board'
+    : isJd ? '/shop/jd/board' : '/shop/overview'
 
   return [
     {
       title: '店铺经营',
       items: [
-        { label: isTaobaoFamily ? '店铺经营看板（淘系）' : '店铺经营看板', icon: Store, href: shopBoardHref, module: 'overview' },
+        { label: isTaobaoFamily ? '店铺经营看板（淘系）' : isJd ? '京东经营看板（自营/POP）' : '店铺经营看板', icon: Store, href: shopBoardHref, module: 'overview' },
         ...(isPdd ? [
           { label: '成团转化分析', icon: Users, href: '/shop/pdd/group-funnel' },
           { label: '三口径对账', icon: Layers, href: '/shop/pdd/caliber-compare' },
+        ] : []),
+        ...(isJd ? [
+          { label: '履约时效监控', icon: Clock, href: '/shop/jd/fulfillment' },
         ] : []),
         { label: '商品结构分析', icon: Package, href: '/shop/products', module: 'product_center' },
         {

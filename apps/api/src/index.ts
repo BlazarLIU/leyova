@@ -35,6 +35,7 @@ import { caliberRoutes } from './routes/caliber.js'
 import { taobaoRoutes } from './routes/taobao.js'
 import { pddRoutes } from './routes/pdd.js'
 import { kuaishouRoutes } from './routes/kuaishou.js'
+import { jdRoutes } from './routes/jd.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
@@ -113,6 +114,7 @@ async function main() {
   await app.register(taobaoRoutes)   // taobao: 淘宝/天猫专属分析
   await app.register(pddRoutes)      // pdd: 拼多多专属分析
   await app.register(kuaishouRoutes) // kuaishou: 快手专属分析
+  await app.register(jdRoutes)       // jd: 京东专属分析（自营/POP/履约）
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {
