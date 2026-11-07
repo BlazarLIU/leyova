@@ -321,6 +321,64 @@ export async function uploadToKnowledgeBase(
   }
 }
 
+export interface UploadResult {
+  ok: boolean
+  /** 未配置知识库 */
+  notConfigured: boolean
+  documentId: string | null
+  error?: string
+}
+
+/**
+ * 严格版文档沉淀：区分三种情况
+ *   - 未配置 → notConfigured=true
+ *   - 配置了但请求失败 → notConfigured=false, error 有值
+ *   - 成功 ��� ok=true
+ * 供需要「如实告知用户」的场景（如复盘报告沉淀）使用。
+ */
+export async function uploadToKnowledgeBaseStrict(
+  title: string,
+  content: string,
+  metadata: Record<string, any> = {},
+): Promise<UploadResult> {
+  const cfg = await getKbConfig()
+  if (cfg.provider === 'none' || !cfg.baseUrl || !cfg.apiKey) {
+    return { ok: false, notConfigured: true, documentId: null }
+  }
+
+  try {
+    if (cfg.provider === 'ragflow') {
+      const datasetId = cfg.datasetIds[0]
+      if (!datasetId) {
+        return { ok: false, notConfigured: false, documentId: null, error: '已配置 RAGFlow 但未指定 datasetIds' }
+      }
+      const res = await fetch(`${cfg.baseUrl}/api/v1/datasets/${datasetId}/documents`, {
+        method: 'POST',
+        headers: authHeaders(cfg),
+        body: JSON.stringify({ name: title, content, meta_fields: metadata }),
+        signal: AbortSignal.timeout(20_000),
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        return {
+          ok: false, notConfigured: false, documentId: null,
+          error: `RAGFlow 返回 HTTP ${res.status}：${text.slice(0, 200)}`,
+        }
+      }
+      const json = (await res.json()) as any
+      const docId = json?.data?.id || json?.data?.[0]?.id || ''
+      return { ok: true, notConfigured: false, documentId: String(docId) || null }
+    }
+    // MaxKB 暂未实现写入
+    return { ok: false, notConfigured: false, documentId: null, error: `当前 provider=${cfg.provider} 暂不支持文档写入` }
+  } catch (err: any) {
+    return {
+      ok: false, notConfigured: false, documentId: null,
+      error: `请求知识库失败：${err?.message || err}`,
+    }
+  }
+}
+
 /** 连通性测试（供前端配置页使用） */
 export async function testKnowledgeBaseConnection(): Promise<{
   ok: boolean

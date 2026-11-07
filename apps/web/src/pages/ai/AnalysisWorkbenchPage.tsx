@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Sparkles, Play, ChevronDown, ChevronRight, CheckCircle, AlertTriangle,
-  Database, Target, Lightbulb, History,
+  Database, Target, Lightbulb, History, ListPlus, Download, BookOpen,
 } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -106,6 +106,9 @@ export function AnalysisWorkbenchPage() {
   const [history, setHistory] = useState<RunRecord[]>([])
   const [expandedStep, setExpandedStep] = useState<number | null>(null)
   const [showEvidence, setShowEvidence] = useState(false)
+  const [converting, setConverting] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const [archiveMsg, setArchiveMsg] = useState<string | null>(null)
 
   const loadHistory = async () => {
     try {
@@ -133,6 +136,47 @@ export function AnalysisWorkbenchPage() {
       setError(e?.message || '分析失败')
     } finally {
       setLoading(false)
+    }
+  }
+
+  /** 一键把所有行动建议转为改进任务 */
+  const convertActions = async () => {
+    if (!result || result.conclusion.actions.length === 0) return
+    setConverting(true)
+    setArchiveMsg(null)
+    try {
+      const r = await api.post<{ count: number; created: any[] }>('/analysis/tasks/convert', {
+        runId: result.runId,
+        sourceQuestion: result.question,
+        priority: 'high',
+        actions: result.conclusion.actions,
+      })
+      setToast('已创建 ' + r.count + ' 个改进任务，可在「改进任务」页面查看')
+    } catch (e: any) {
+      setToast(e?.message || '创建任务失败')
+    } finally {
+      setConverting(false)
+    }
+  }
+
+  /** 导出复盘报告 Markdown */
+  const exportReport = async () => {
+    if (!result) return
+    setArchiveMsg(null)
+    try {
+      const r = await api.post<{ title: string; markdown: string }>('/analysis/report', {
+        timeRange: range,
+      })
+      const blob = new Blob([r.markdown], { type: 'text/markdown;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = r.title + '.md'
+      a.click()
+      URL.revokeObjectURL(url)
+      setToast('复盘报告已导出')
+    } catch (e: any) {
+      setToast(e?.message || '导出失败')
     }
   }
 
@@ -197,6 +241,13 @@ export function AnalysisWorkbenchPage() {
 
       {error && (
         <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</div>
+      )}
+
+      {toast && (
+        <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+          <span>{toast}</span>
+          <button onClick={() => setToast(null)} className="text-xs text-emerald-500 hover:text-emerald-300">关闭</button>
+        </div>
       )}
 
       {result && (
@@ -278,6 +329,36 @@ export function AnalysisWorkbenchPage() {
                     ))}
                   </div>
                 )}
+                {/* 闭环操作 */}
+                <div className="flex flex-wrap items-center gap-2 border-t border-slate-700/50 pt-3">
+                  {result.conclusion.actions.length > 0 && (
+                    <Button onClick={convertActions} disabled={converting}>
+                      <ListPlus className="mr-1 h-4 w-4" />
+                      {converting ? '创建中…' : `一键转改进任务 (${result.conclusion.actions.length})`}
+                    </Button>
+                  )}
+                  <Button variant="ghost" onClick={exportReport}>
+                    <Download className="mr-1 h-4 w-4" /> 导出复盘报告
+                  </Button>
+                  <Button variant="ghost" onClick={async () => {
+                    setArchiveMsg(null)
+                    try {
+                      const r = await api.post<{ title: string; markdown: string; archive: any }>('/analysis/report', {
+                        timeRange: range, archiveToKb: true,
+                      })
+                      setArchiveMsg(r.archive?.archived
+                        ? '报告已沉淀到企业知识库'
+                        : (r.archive?.reason || '报告未沉淀'))
+                    } catch (e: any) {
+                      setArchiveMsg(e?.message || '沉淀失败')
+                    }
+                  }}>
+                    <BookOpen className="mr-1 h-4 w-4" /> 沉淀到知识库
+                  </Button>
+                  {archiveMsg && (
+                    <span className="text-xs text-slate-400">{archiveMsg}</span>
+                  )}
+                </div>
               </CardBody>
             </Card>
           </motion.div>

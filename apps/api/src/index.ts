@@ -28,6 +28,7 @@ import { omnichannelRoutes } from './routes/omnichannel.js'
 import { contentRoutes } from './routes/content.js'
 import { knowledgeBaseRoutes } from './routes/knowledge-base.js'
 import { analysisRoutes } from './routes/analysis.js'
+import { closureRoutes } from './routes/closure.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
 import { backfillDailyStats } from './cron/aggregate-stats.js'
@@ -95,6 +96,7 @@ async function main() {
   await app.register(contentRoutes)      // content: providers, projects, tasks, assets, video metrics
   await app.register(knowledgeBaseRoutes) // kb: external RAGFlow/MaxKB client config & search
   await app.register(analysisRoutes)     // analysis: semantic-layer driven AI analyst (P4)
+  await app.register(closureRoutes)      // closure: analysis → tasks → knowledge base (P5)
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {
