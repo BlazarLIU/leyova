@@ -35,6 +35,7 @@ export const navigation: NavSection[] = [
       { label: '实时监控', icon: Radio, href: '/overview/live-monitor', module: 'overview' },
       { label: '数据分析', icon: TrendingUp, href: '/overview/analytics', module: 'overview' },
       { label: '全渠道大盘', icon: Globe, href: '/omnichannel/dashboard', module: 'overview' },
+      { label: '经营分析工作台', icon: Bot, href: '/ai/workbench', module: 'overview' },
     ],
   },
 

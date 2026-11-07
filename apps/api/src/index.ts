@@ -27,6 +27,7 @@ import { ingestRoutes } from './routes/ingest.js'
 import { omnichannelRoutes } from './routes/omnichannel.js'
 import { contentRoutes } from './routes/content.js'
 import { knowledgeBaseRoutes } from './routes/knowledge-base.js'
+import { analysisRoutes } from './routes/analysis.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
 import { backfillDailyStats } from './cron/aggregate-stats.js'
@@ -93,6 +94,7 @@ async function main() {
   await app.register(omnichannelRoutes) // omnichannel: cross-platform dashboard & shelf shop analytics
   await app.register(contentRoutes)      // content: providers, projects, tasks, assets, video metrics
   await app.register(knowledgeBaseRoutes) // kb: external RAGFlow/MaxKB client config & search
+  await app.register(analysisRoutes)     // analysis: semantic-layer driven AI analyst (P4)
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {

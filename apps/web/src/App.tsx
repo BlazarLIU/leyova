@@ -25,6 +25,7 @@ import { DataQualityPage } from '@/pages/data/DataQualityPage'
 import { IngestWizardPage } from '@/pages/data/IngestWizardPage'
 import { OmniDashboardPage } from '@/pages/omnichannel/OmniDashboardPage'
 import { ContentCenterConfigPage } from '@/pages/content/ContentCenterConfigPage'
+import { AnalysisWorkbenchPage } from '@/pages/ai/AnalysisWorkbenchPage'
 
 // 内容中心
 import { VideoCreatePage } from '@/pages/content/VideoCreatePage'
@@ -102,6 +103,7 @@ export default function App() {
         <Route path="/data/ingest" element={<IngestWizardPage />} />
         <Route path="/omnichannel/dashboard" element={<OmniDashboardPage />} />
         <Route path="/content/center-config" element={<ContentCenterConfigPage />} />
+        <Route path="/ai/workbench" element={<AnalysisWorkbenchPage />} />
 
         {/* ===== 内容中心 ===== */}
         <Route path="/content/video-create" element={<VideoCreatePage />} />
