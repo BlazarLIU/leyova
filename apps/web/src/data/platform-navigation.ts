@@ -28,7 +28,7 @@ import {
   LayoutDashboard, BarChart3, Monitor, Radio, TrendingUp, Globe, Bot,
   CalendarDays, ClipboardPlus, Table, Clapperboard, LineChart, Mic, Zap,
   BarChart4, Database, Settings, AlertTriangle, Store, Package,
-  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Layers,
+  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Layers, Home,
 } from 'lucide-react'
 import type { NavSection, NavSubItem } from '@/types'
 
@@ -147,7 +147,9 @@ function buildAiSection(mode: PlatformMode): NavSection {
 // 直播电商专属：抖音 / 快手
 // ═══════════════════════════════════════════════════════════════
 
-function buildLiveSections(): NavSection[] {
+function buildLiveSections(platformCode?: string): NavSection[] {
+  const isKuaishou = platformCode === 'kuaishou'
+
   return [
     {
       title: '直播运营',
@@ -176,6 +178,14 @@ function buildLiveSections(): NavSection[] {
         },
       ],
     },
+    ...(isKuaishou ? [{
+      title: '快手私域经营',
+      items: [
+        { label: '公私域流量分析', icon: Home, href: '/shop/kuaishou/traffic-split' },
+        { label: '间接成交分析', icon: Zap, href: '/shop/kuaishou/indirect-gmv' },
+        { label: '粉丝团运营', icon: Users, href: '/shop/kuaishou/fans-team' },
+      ],
+    } as NavSection] : []),
     {
       title: '直播复盘',
       items: [
@@ -408,7 +418,7 @@ export function buildNavigation(capability?: PlatformCapability | null): NavSect
   const sections: NavSection[] = [buildOverviewSection(mode)]
 
   if (mode === 'live') {
-    sections.push(...buildLiveSections())
+    sections.push(...buildLiveSections(capability?.platformCode))
   } else if (mode === 'shelf') {
     sections.push(...buildShelfSections(capability?.platformCode))
   } else {

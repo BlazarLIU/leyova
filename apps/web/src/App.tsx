@@ -32,6 +32,9 @@ import { TaobaoShopBoardPage } from '@/pages/shop/taobao/TaobaoShopBoardPage'
 import { TaobaoAdReconciliationPage } from '@/pages/shop/taobao/TaobaoAdReconciliationPage'
 import { PddGroupFunnelPage } from '@/pages/shop/pdd/PddGroupFunnelPage'
 import { PddCaliberComparePage } from '@/pages/shop/pdd/PddCaliberComparePage'
+import { KsTrafficSplitPage } from '@/pages/shop/kuaishou/KsTrafficSplitPage'
+import { KsIndirectGmvPage } from '@/pages/shop/kuaishou/KsIndirectGmvPage'
+import { KsFansTeamPage } from '@/pages/shop/kuaishou/KsFansTeamPage'
 import { PlatformManagementPage } from '@/pages/system/PlatformManagementPage'
 import { UsersPage } from '@/pages/system/UsersPage'
 import { DictPage } from '@/pages/system/DictPage'
@@ -120,6 +123,9 @@ export default function App() {
         <Route path="/shop/taobao/ad-reconciliation" element={<TaobaoAdReconciliationPage />} />
         <Route path="/shop/pdd/group-funnel" element={<PddGroupFunnelPage />} />
         <Route path="/shop/pdd/caliber-compare" element={<PddCaliberComparePage />} />
+        <Route path="/shop/kuaishou/traffic-split" element={<KsTrafficSplitPage />} />
+        <Route path="/shop/kuaishou/indirect-gmv" element={<KsIndirectGmvPage />} />
+        <Route path="/shop/kuaishou/fans-team" element={<KsFansTeamPage />} />
         <Route path="/system/platforms" element={<PlatformManagementPage />} />
         <Route path="/system/users" element={<UsersPage />} />
         <Route path="/system/dict" element={<DictPage />} />
