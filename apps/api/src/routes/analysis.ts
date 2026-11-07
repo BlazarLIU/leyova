@@ -14,6 +14,7 @@ import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
 import { runAnalysis, type AnalysisMode } from '../ai/orchestrator.js'
 import { resolveScope, listMetrics, listDimensions } from '../ai/semantic-layer.js'
+import { listPlatformMetrics } from '../ai/platform-metrics.js'
 
 export async function analysisRoutes(app: FastifyInstance) {
   const pool = getPool()
@@ -31,6 +32,8 @@ export async function analysisRoutes(app: FastifyInstance) {
       timeRange?: { from: string; to: string }
       filters?: { platform?: string; shopId?: number; channel?: string }
       conversationId?: number
+      /** 当前选中的平台，启用平台专属分析 */
+      platformCode?: string
     }
   }>, reply: FastifyReply) => {
     try {
@@ -50,6 +53,7 @@ export async function analysisRoutes(app: FastifyInstance) {
           userId: user?.id,
           conversationId: body.conversationId,
           role: user?.role,
+          platformCode: body.platformCode || body.filters?.platform,
         },
         scope,
         pool,
@@ -84,6 +88,18 @@ export async function analysisRoutes(app: FastifyInstance) {
     } catch (err: any) {
       request.log.error({ err }, 'analysis run failed')
       return sendError(reply, 500, `分析失败：${err?.message || err}`)
+    }
+  })
+
+  // ── GET /api/v1/analysis/platform-metrics/:platform ── 平台专属指标清单
+  app.get('/api/v1/analysis/platform-metrics/:platform', async (request: FastifyRequest<{
+    Params: { platform: string }
+  }>, reply) => {
+    try {
+      const metrics = listPlatformMetrics(request.params.platform)
+      return sendOk(reply, { platformCode: request.params.platform, metrics })
+    } catch (err) {
+      return sendError(reply, 500, '获取平台指标失败')
     }
   })
 

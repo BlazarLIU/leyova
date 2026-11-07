@@ -19,6 +19,11 @@ import {
   METRIC_REGISTRY, listMetrics, listDimensions,
 } from './semantic-layer.js'
 import { searchKnowledgeBase } from '../lib/kb-client.js'
+import {
+  queryPlatformMetrics,
+  listPlatformMetrics,
+  PLATFORM_METRIC_REGISTRY,
+} from './platform-metrics.js'
 
 // ---------------------------------------------------------------------------
 // 类型
@@ -31,6 +36,8 @@ export interface AnalysisRequest {
   mode?: AnalysisMode
   timeRange?: { from: string; to: string }
   filters?: { platform?: string; shopId?: number; channel?: string }
+  /** 当前选中的平台，决定是否启用平台专属分析 */
+  platformCode?: string
   role?: string
   userId?: number
   conversationId?: number
@@ -115,6 +122,10 @@ async function runTool(
       const r = await forecastTrend(input, scope, pool)
       return { output: r, rowCount: r.forecast.length }
     }
+    case 'query_platform_metric': {
+      const r = await queryPlatformMetrics(input, pool)
+      return { output: r, rowCount: r.rows.length }
+    }
     default:
       throw new Error(`未知工具: ${toolName}`)
   }
@@ -180,6 +191,46 @@ function extractEvidence(steps: AnalysisStep[]): EvidenceItem[] {
     if (step.toolName === 'detect_anomalies' && Array.isArray(out.anomalies)) {
       for (const a of out.anomalies.slice(0, 5)) {
         push(out.metric, a.value, `日期:${a.date}`, a.date)
+      }
+    }
+    if (step.toolName === 'query_platform_metric' && Array.isArray(out.rows)) {
+      for (const row of out.rows) {
+        for (const [k, v] of Object.entries(row)) {
+          if (typeof v === 'number' && k in PLATFORM_METRIC_REGISTRY) {
+            const def = PLATFORM_METRIC_REGISTRY[k]
+            evidence.push({
+              id: `e${++n}`, metric: k, label: def.label,
+              value: v, unit: def.unit, scope: out.platformCode || step.input?.platformCode || '平台专属',
+              timeRange: step.input?.timeRange ? `${step.input.timeRange.from}~${step.input.timeRange.to}` : '',
+            })
+            // 互补占比：ratio 类指标会出现 100-ratio 的派生值
+            if (def.unit === '%' && v > 0 && v < 100) {
+              const complement = Number((100 - v).toFixed(2))
+              evidence.push({
+                id: `e${++n}`, metric: `${k}_complement`, label: `${def.label}(互补)`,
+                value: complement, unit: '%', scope: '派生',
+                timeRange: step.input?.timeRange ? `${step.input.timeRange.from}~${step.input.timeRange.to}` : '',
+              })
+            }
+            // 占比类指标的绝对金额派生（如 站外占比 = offsite/(onsite+offsite)）
+            if (k.endsWith('_gmv') && v > 0) {
+              // 同一次查询里若有另一张 gmv，登记其占比
+              for (const [k2, v2] of Object.entries(row)) {
+                if (k2 !== k && k2.endsWith('_gmv') && typeof v2 === 'number') {
+                  const total = v + v2
+                  if (total > 0) {
+                    evidence.push({
+                      id: `e${++n}`, metric: `${k}_share`, label: `${k}占比`,
+                      value: Number(((v / total) * 100).toFixed(2)), unit: '%', scope: '派生',
+                      timeRange: '',
+                    })
+                    break
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
     if (step.toolName === 'forecast_trend' && Array.isArray(out.forecast)) {
@@ -320,6 +371,7 @@ function buildRulePlan(req: AnalysisRequest): { mode: AnalysisMode; calls: Plann
   const range = req.timeRange || defaultRange()
   const filters = req.filters || {}
   const prev = previousRange(range)
+  const platform = req.platformCode || filters.platform
 
   // 简单意图识别
   const q = req.question
@@ -415,7 +467,15 @@ function buildRulePlan(req: AnalysisRequest): { mode: AnalysisMode; calls: Plann
       })
       break
 
-    default: // S1_query
+    default: {
+      // ── 平台专属分析（覆盖 S1 默认剧本）──
+      const platformBranch = buildPlatformBranch(platform, range, filters, req.question)
+      if (platformBranch) {
+        calls.push(...platformBranch)
+        break
+      }
+
+      // S1_query 通用问数
       calls.push({
         tool: 'query_metric',
         input: {
@@ -431,9 +491,168 @@ function buildRulePlan(req: AnalysisRequest): { mode: AnalysisMode; calls: Plann
         purpose: '拉取日趋势',
       })
       break
+    }
   }
 
   return { mode, calls }
+}
+
+/**
+ * 按平台生成专属分析调用。
+ * 这是让 AI 能回答「快手私域健康度」「拼多多成团率」这类问题的关键。
+ */
+function buildPlatformBranch(
+  platform: string | undefined,
+  range: { from: string; to: string },
+  filters: any,
+  question: string,
+): PlannedCall[] | null {
+  if (!platform) return null
+  const q = question
+
+  // 快手：私域 / 间接成交 / 粉丝团
+  if (platform === 'kuaishou') {
+    if (/私域|公域|关注页|发现页|复购/.test(q)) {
+      return [
+        {
+          tool: 'query_platform_metric',
+          input: {
+            platformCode: 'kuaishou',
+            metrics: ['ks_private_gmv', 'ks_public_gmv', 'ks_private_ratio'],
+            timeRange: range,
+            shopId: filters.shopId,
+          },
+          purpose: '分析快手公私域成交结构',
+        },
+      ]
+    }
+    if (/间接|广告.*转化|私域承接/.test(q)) {
+      return [
+        {
+          tool: 'query_platform_metric',
+          input: {
+            platformCode: 'kuaishou',
+            metrics: ['ks_indirect_gmv', 'ks_indirect_ratio'],
+            timeRange: range,
+            shopId: filters.shopId,
+          },
+          purpose: '分析快手的间接成交（广告触达后二次触达转化）',
+        },
+      ]
+    }
+    if (/粉丝|入团|购物团/.test(q)) {
+      return [
+        {
+          tool: 'query_platform_metric',
+          input: {
+            platformCode: 'kuaishou',
+            metrics: ['ks_fans_team_joiners', 'ks_fans_join_rate'],
+            timeRange: range,
+            shopId: filters.shopId,
+          },
+          purpose: '分析粉丝团入团转化',
+        },
+      ]
+    }
+  }
+
+  // 拼多多：成团 / 三口径
+  if (platform === 'pdd') {
+    if (/成团|拼团|团/.test(q)) {
+      return [
+        {
+          tool: 'query_platform_metric',
+          input: {
+            platformCode: 'pdd',
+            metrics: ['group_success_rate', 'group_expired_amount', 'group_avg_size'],
+            timeRange: range,
+            shopId: filters.shopId,
+          },
+          purpose: '分析拼团成团漏斗',
+        },
+      ]
+    }
+  }
+
+  // 小红书：笔记 / 搜索 / 种草
+  if (platform === 'xiaohongshu') {
+    if (/笔记|种草|阅读|互动/.test(q)) {
+      return [
+        {
+          tool: 'query_platform_metric',
+          input: {
+            platformCode: 'xiaohongshu',
+            metrics: ['note_reads', 'note_read_rate', 'note_engagement_rate', 'note_collects'],
+            timeRange: range,
+            shopId: filters.shopId,
+          },
+          purpose: '分析笔记表现',
+        },
+      ]
+    }
+    if (/搜索/.test(q)) {
+      return [
+        {
+          tool: 'query_platform_metric',
+          input: {
+            platformCode: 'xiaohongshu',
+            metrics: ['note_search_share', 'note_reads'],
+            timeRange: range,
+            shopId: filters.shopId,
+          },
+          purpose: '分析搜索流量占比',
+        },
+      ]
+    }
+    if (/站外|站内|红猫|红京/.test(q)) {
+      return [
+        {
+          tool: 'query_platform_metric',
+          input: {
+            platformCode: 'xiaohongshu',
+            metrics: ['note_onsite_gmv', 'note_offsite_gmv'],
+            timeRange: range,
+            shopId: filters.shopId,
+          },
+          purpose: '分析站内外成交拆分',
+        },
+      ]
+    }
+  }
+
+  // 京东：自营采销 / 毛利
+  if (platform === 'jd' && /自营|采销|供货|毛利|账期/.test(q)) {
+    return [
+      {
+        tool: 'query_platform_metric',
+        input: {
+          platformCode: 'jd',
+          metrics: ['jd_supply_amount', 'jd_gross_margin', 'jd_margin_rate'],
+          timeRange: range,
+          shopId: filters.shopId,
+        },
+        purpose: '分析京东自营采销的供货额与毛利',
+      },
+    ]
+  }
+
+  // 淘宝/天猫：SKU / 父子订单
+  if ((platform === 'taobao' || platform === 'tmall') && /sku|商品|动销|父子订单/.test(q)) {
+    return [
+      {
+        tool: 'query_platform_metric',
+        input: {
+          platformCode: platform,
+          metrics: ['taobao_sku_count', 'taobao_avg_sku_price', 'taobao_parent_orders'],
+          timeRange: range,
+          shopId: filters.shopId,
+        },
+        purpose: '分析淘系的商品与订单结构',
+      },
+    ]
+  }
+
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -454,6 +673,98 @@ function synthesizeConclusion(
   const findings: string[] = []
   const risks: string[] = []
   const actions: string[] = []
+
+  // ── 平台专属指标优先（若存在则直接生成结论）──
+  const platformStep = steps.find(
+    (s) => s.toolName === 'query_platform_metric' && s.status === 'ok',
+  )
+  if (platformStep && platformStep.outputRef?.rows?.length > 0) {
+    const row = platformStep.outputRef.rows[0]
+    const platform = platformStep.outputRef.platformCode
+
+    // 快手
+    if ('ks_private_ratio' in row) {
+      const ratio = Number(row.ks_private_ratio)
+      findings.push(`私域（关注页）成交 ${fmt(Number(row.ks_private_gmv), '元')}，占比 ${ratio}%`)
+      findings.push(`公域（发现页）成交 ${fmt(Number(row.ks_public_gmv), '元')}，占比 ${(100 - ratio).toFixed(2)}%`)
+      if (ratio >= 50) findings.push(`私域经营健康：超过半数成交来自关注页，复购基础扎实`)
+      else if (ratio >= 30) { findings.push(`私域经营一般：公域依赖偏高`); risks.push('私域占比不足 50%，获客成本将持续走高') }
+      else { findings.push(`私域经营薄弱：过度依赖公域拉新`); risks.push('私域占比低于 30%，粉丝沉淀能力不足') }
+      actions.push('加强关注页内容运营与粉丝团引导，提升复购占比')
+    }
+    if ('ks_indirect_ratio' in row) {
+      const ratio = Number(row.ks_indirect_ratio)
+      findings.push(`间接成交 ${fmt(Number(row.ks_indirect_gmv), '元')}，占比 ${ratio}%`)
+      if (ratio >= 30) findings.push('间接成交占比高，说明广告触达后私域承接能力强')
+      else if (ratio >= 15) findings.push('间接成交占比正常，广告与私域衔接良好')
+      else { findings.push('间接成交占比偏低，私域沉淀较弱'); risks.push('过度依赖即点即买，粉丝资产积累不足') }
+      actions.push('优化广告落地页到关注页的引导路径')
+    }
+    if ('ks_fans_join_rate' in row) {
+      const rate = Number(row.ks_fans_join_rate)
+      findings.push(`粉丝团新增 ${row.ks_fans_team_joiners} 人，入团率 ${rate}%`)
+      if (rate >= 40) findings.push('粉丝团转化优秀：近半数新粉丝加入购物团')
+      else if (rate >= 20) findings.push('粉丝团转化正常')
+      else { findings.push('粉丝团转化偏低'); risks.push('新粉丝沉淀为购物团成员的比例不足') }
+      actions.push('在直播间设置入团引导与专属权益')
+    }
+
+    // 拼多多
+    if ('group_success_rate' in row) {
+      const rate = Number(row.group_success_rate)
+      findings.push(`成团成功率 ${rate}%`)
+      findings.push(`成团损耗 ${fmt(Number(row.group_expired_amount), '元')}`)
+      if (rate < 85) risks.push('成团成功率偏低于健康水位，存在明显的拼团流失')
+      actions.push('优化拼团时效提示与成团激励')
+    }
+
+    // 小红书
+    if ('note_read_rate' in row) {
+      findings.push(`笔记阅读量 ${fmt(Number(row.note_reads), '次')}，阅读率 ${row.note_read_rate}%`)
+      findings.push(`互动率 ${row.note_engagement_rate}%，收藏 ${fmt(Number(row.note_collects), '次')}`)
+      if (Number(row.note_read_rate) < 20) risks.push('笔记阅读率偏低，封面与标题吸引力不足')
+      actions.push('优化笔记封面与标题，提升首屏点击率')
+    }
+    if ('note_search_share' in row) {
+      const share = Number(row.note_search_share)
+      findings.push(`搜索曝光占比 ${share}%`)
+      if (share >= 30) findings.push('搜索流量质量高，用户主动搜索意向强烈')
+      else if (share < 15) { findings.push('搜索流量占比偏低'); risks.push('过度依赖推荐分发，建议优化关键词布局') }
+      actions.push('在笔记标题与正文中布局搜索关键词')
+    }
+    if ('note_onsite_gmv' in row) {
+      const onsite = Number(row.note_onsite_gmv)
+      const offsite = Number(row.note_offsite_gmv)
+      const total = onsite + offsite
+      findings.push(`站内成交 ${fmt(onsite, '元')}，站外成交 ${fmt(offsite, '元')}`)
+      if (total > 0) findings.push(`站外占比 ${((offsite / total) * 100).toFixed(2)}%`)
+    }
+
+    // 京东
+    if ('jd_supply_amount' in row) {
+      findings.push(`供货金额（采销额）${fmt(Number(row.jd_supply_amount), '元')}`)
+      findings.push(`毛利额 ${fmt(Number(row.jd_gross_margin), '元')}，毛利率 ${row.jd_margin_rate}%`)
+      risks.push('自营供货金额与 POP 成交金额含义不同，不可相加计算总 GMV')
+      actions.push('自营与 POP 分开核算，避免口径混淆')
+    }
+
+    // 淘系
+    if ('taobao_sku_count' in row) {
+      findings.push(`动销 SKU ${row.taobao_sku_count} 个，父订单 ${row.taobao_parent_orders} 单`)
+      findings.push(`SKU 平均单价 ${fmt(Number(row.taobao_avg_sku_price), '元')}`)
+      actions.push('关注低动销 SKU，优化商品结构')
+    }
+
+    if (findings.length > 0) {
+      return {
+        headline: findings[0],
+        findings,
+        evidenceRefs: evidence.slice(0, 20).map((e) => e.id),
+        risks,
+        actions,
+      }
+    }
+  }
   const refMap = new Map<string, string>()
   for (const e of evidence) refMap.set(`${e.metric}:${e.scope}:${e.value}`, e.id)
 
