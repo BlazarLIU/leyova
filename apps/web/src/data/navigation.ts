@@ -142,6 +142,7 @@ export const navigation: NavSection[] = [
         children: [
           { label: '数据管理', href: '/data/management' },
           { label: '数据上传', href: '/data/upload' },
+          { label: '多平台接入', href: '/data/ingest' },
           { label: '上传数据管理', href: '/data/uploaded-data' },
           { label: '数据质量', href: '/data/quality' },
         ],

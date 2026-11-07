@@ -23,6 +23,7 @@ import { dataRoutes } from './routes/data.js'
 import { reviewRoutes } from './routes/review.js'
 import { liveregRoutes } from './routes/livereg.js'
 import { platformRoutes } from './routes/platforms.js'
+import { ingestRoutes } from './routes/ingest.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
 import { backfillDailyStats } from './cron/aggregate-stats.js'
@@ -85,6 +86,7 @@ async function main() {
   await app.register(registerMcpRoutes) // MCP Server（Streamable HTTP, 供 DeerFlow 调用）
   await app.register(liveregRoutes)   // livereg: form-data, submit
   await app.register(platformRoutes)  // platforms: multi-platform management, permissions & shops
+  await app.register(ingestRoutes)    // ingest: dual-track data access, cleaning pipeline & sync jobs
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {

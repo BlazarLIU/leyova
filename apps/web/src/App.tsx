@@ -22,6 +22,7 @@ import { DataManagementPage } from '@/pages/data/DataManagementPage'
 import { DataUploadPage } from '@/pages/data/DataUploadPage'
 import { UploadedDataPage } from '@/pages/data/UploadedDataPage'
 import { DataQualityPage } from '@/pages/data/DataQualityPage'
+import { IngestWizardPage } from '@/pages/data/IngestWizardPage'
 
 // 内容中心
 import { VideoCreatePage } from '@/pages/content/VideoCreatePage'
@@ -96,6 +97,7 @@ export default function App() {
         <Route path="/data/upload" element={<DataUploadPage />} />
         <Route path="/data/uploaded-data" element={<UploadedDataPage />} />
         <Route path="/data/quality" element={<DataQualityPage />} />
+        <Route path="/data/ingest" element={<IngestWizardPage />} />
 
         {/* ===== 内容中心 ===== */}
         <Route path="/content/video-create" element={<VideoCreatePage />} />

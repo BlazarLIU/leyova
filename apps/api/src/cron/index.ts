@@ -4,6 +4,8 @@ import { getPool } from '../lib/db.js'
 import { aggregateDailyStats } from './aggregate-stats.js'
 import { detectAnomalies } from './detect-anomalies.js'
 import { archiveOldData } from './archive-old-data.js'
+import { ensureAllPartitions } from './manage-partitions.js'
+import { runAllPlatformsSync } from '../ingest/sync-job.js'
 import { searchMemory } from '../lib/openviking-client.js'
 import { searchKnowledge } from '../lib/anythingllm-client.js'
 import { requestOpenClawReply, LEYOVA_SYSTEM_PROMPT, type AiScopeContext } from '../lib/ai-gateway.js'
@@ -31,6 +33,29 @@ export function registerCronJobs(): void {
   cron.schedule('0 3 * * *', async () => {
     logger.info('[cron] Running archiveOldData')
     await archiveOldData()
+  })
+
+  // ── Partition maintenance: daily at 04:00，提前创建未来 3 个月分区 ──
+  cron.schedule('0 4 * * *', async () => {
+    logger.info('[cron] Running ensureAllPartitions')
+    try {
+      const r = await ensureAllPartitions(3)
+      logger.info({ created: r.created, errors: r.errors.length }, '[cron] partition maintenance done')
+    } catch (err) {
+      logger.error({ err }, '[cron] ensureAllPartitions failed')
+    }
+  })
+
+  // ── Multi-platform API sync: daily at 05:00（仅已授权店铺实际拉数，未授权自动跳过）──
+  cron.schedule('0 5 * * *', async () => {
+    logger.info('[cron] Running multi-platform trade sync')
+    try {
+      const results = await runAllPlatformsSync(getPool(), 'trade')
+      const done = results.filter((r) => r.status === 'completed').length
+      logger.info({ total: results.length, completed: done }, '[cron] multi-platform sync done')
+    } catch (err) {
+      logger.error({ err }, '[cron] multi-platform sync failed')
+    }
   })
 
   // ── AI automation jobs ──
