@@ -63,7 +63,7 @@ function Growth({ value }: { value: number | null | undefined }) {
 }
 
 export function OmniDashboardPage() {
-  const { currentPlatform } = usePlatform()
+  const { currentPlatform, currentShop } = usePlatform()
   const [overview, setOverview] = useState<OverviewResp | null>(null)
   const [platforms, setPlatforms] = useState<PlatformRow[]>([])
   const [shops, setShops] = useState<ShopRow[]>([])
@@ -81,11 +81,17 @@ export function OmniDashboardPage() {
       fromD.setDate(fromD.getDate() - days + 1)
       const from = fromD.toISOString().slice(0, 10)
 
+      // 按当前选择的平台过滤；「全部平台」时不传 platform
+      const pfCode = currentPlatform && currentPlatform.platform_code !== '__all__'
+        ? currentPlatform.platform_code
+        : undefined
+      const shopId = currentShop?.id
+
       const [ov, pf, sh, tr] = await Promise.all([
-        api.get<OverviewResp>('/omnichannel/overview', { from, to }),
+        api.get<OverviewResp>('/omnichannel/overview', { from, to, platform: pfCode, shopId }),
         api.get<{ platforms: PlatformRow[] }>('/omnichannel/platforms', { from, to }),
-        api.get<ShopRow[]>('/omnichannel/shops', { from, to, limit: 10 }),
-        api.get<TrendRow[]>('/omnichannel/trend', { from, to }),
+        api.get<ShopRow[]>('/omnichannel/shops', { from, to, platform: pfCode, limit: 10 }),
+        api.get<TrendRow[]>('/omnichannel/trend', { from, to, platform: pfCode, shopId }),
       ])
       setOverview(ov)
       setPlatforms(pf.platforms || [])
@@ -96,7 +102,7 @@ export function OmniDashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [days])
+  }, [days, currentPlatform?.platform_code, currentShop?.id])
 
   useEffect(() => { load() }, [load])
 
@@ -190,7 +196,7 @@ export function OmniDashboardPage() {
           {/* 平台对比 */}
           <motion.div {...fadeIn}>
             <Card>
-              <CardHeader>平台经营对比</CardHeader>
+              <CardHeader>平台经营对比 <span className="text-xs font-normal text-slate-500">（始终展示全部已启用平台，用于横向对比）</span></CardHeader>
               <CardBody>
                 {platforms.length === 0 ? (
                   <EmptyHint />

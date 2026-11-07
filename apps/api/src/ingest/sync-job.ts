@@ -70,7 +70,7 @@ export async function getWatermark(
   return rows.length > 0 ? rows[0].watermark_to : null
 }
 
-/** 写入交易事实行（幂等：同 shop + biz_date + channel 覆盖） */
+/** 写入交易事实行（幂等：ON CONFLICT 覆盖同 shop + biz_date + channel） */
 async function upsertTradeRows(
   pool: Pool,
   records: StandardTradeRecord[],
@@ -83,7 +83,17 @@ async function upsertTradeRows(
          (biz_date, platform_code, shop_id, channel_name,
           gmv, pay_amount, paid_order_count, paid_buyer_count,
           refund_amount, refund_count, source, extra)
-       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'api', $11)`,
+       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'api', $11)
+       ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
+       DO UPDATE SET
+         gmv              = EXCLUDED.gmv,
+         pay_amount       = EXCLUDED.pay_amount,
+         paid_order_count = EXCLUDED.paid_order_count,
+         paid_buyer_count = EXCLUDED.paid_buyer_count,
+         refund_amount    = EXCLUDED.refund_amount,
+         refund_count     = EXCLUDED.refund_count,
+         source           = EXCLUDED.source,
+         extra            = EXCLUDED.extra`,
       [
         r.bizDate,
         r.platformCode,
@@ -115,7 +125,15 @@ async function upsertTrafficRows(
       `INSERT INTO fact_traffic_daily
          (biz_date, platform_code, shop_id, channel_name,
           impressions, clicks, visitors, avg_stay_seconds, source, extra)
-       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, 'api', $9)`,
+       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, 'api', $9)
+       ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
+       DO UPDATE SET
+         impressions      = EXCLUDED.impressions,
+         clicks           = EXCLUDED.clicks,
+         visitors         = EXCLUDED.visitors,
+         avg_stay_seconds = EXCLUDED.avg_stay_seconds,
+         source           = EXCLUDED.source,
+         extra            = EXCLUDED.extra`,
       [
         r.bizDate,
         r.platformCode,

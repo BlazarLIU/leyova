@@ -213,7 +213,18 @@ export async function ingestManualFacts(
              (biz_date, platform_code, shop_id, channel_name,
               gmv, pay_amount, paid_order_count, paid_buyer_count,
               refund_amount, refund_count, source, upload_id, extra)
-           VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'manual', $11, $12)`,
+           VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'manual', $11, $12)
+           ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
+           DO UPDATE SET
+             gmv               = EXCLUDED.gmv,
+             pay_amount        = EXCLUDED.pay_amount,
+             paid_order_count  = EXCLUDED.paid_order_count,
+             paid_buyer_count  = EXCLUDED.paid_buyer_count,
+             refund_amount     = EXCLUDED.refund_amount,
+             refund_count      = EXCLUDED.refund_count,
+             source            = EXCLUDED.source,
+             upload_id         = EXCLUDED.upload_id,
+             extra             = EXCLUDED.extra`,
           [
             r.bizDate, platformCode, shopId, r.channelName,
             r.values.gmv ?? 0,
@@ -231,7 +242,16 @@ export async function ingestManualFacts(
           `INSERT INTO fact_traffic_daily
              (biz_date, platform_code, shop_id, channel_name,
               impressions, clicks, visitors, avg_stay_seconds, source, upload_id, extra)
-           VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, 'manual', $9, $10)`,
+           VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, 'manual', $9, $10)
+           ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
+           DO UPDATE SET
+             impressions       = EXCLUDED.impressions,
+             clicks            = EXCLUDED.clicks,
+             visitors          = EXCLUDED.visitors,
+             avg_stay_seconds  = EXCLUDED.avg_stay_seconds,
+             source            = EXCLUDED.source,
+             upload_id         = EXCLUDED.upload_id,
+             extra             = EXCLUDED.extra`,
           [
             r.bizDate, platformCode, shopId, r.channelName,
             Math.round(r.values.impressions ?? 0),

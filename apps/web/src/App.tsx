@@ -26,6 +26,11 @@ import { IngestWizardPage } from '@/pages/data/IngestWizardPage'
 import { OmniDashboardPage } from '@/pages/omnichannel/OmniDashboardPage'
 import { ContentCenterConfigPage } from '@/pages/content/ContentCenterConfigPage'
 import { AnalysisWorkbenchPage } from '@/pages/ai/AnalysisWorkbenchPage'
+import { ShopOverviewPage } from '@/pages/shop/ShopOverviewPage'
+import { ShopProductsPage } from '@/pages/shop/ShopProductsPage'
+import { PlatformManagementPage } from '@/pages/system/PlatformManagementPage'
+import { UsersPage } from '@/pages/system/UsersPage'
+import { DictPage } from '@/pages/system/DictPage'
 
 // 内容中心
 import { VideoCreatePage } from '@/pages/content/VideoCreatePage'
@@ -33,6 +38,7 @@ import { VideoDataPage } from '@/pages/content/VideoDataPage'
 import { ContentConfigPage } from '@/pages/content/ContentConfigPage'
 
 // 商业智能
+import { RefundAnalysisPage } from '@/pages/bi/RefundAnalysisPage'
 import { BiDashboardPage } from '@/pages/bi/BiDashboardPage'
 import { RoiDashboardPage } from '@/pages/bi/RoiDashboardPage'
 import { AnomalyDetectionPage } from '@/pages/bi/AnomalyDetectionPage'
@@ -104,6 +110,11 @@ export default function App() {
         <Route path="/omnichannel/dashboard" element={<OmniDashboardPage />} />
         <Route path="/content/center-config" element={<ContentCenterConfigPage />} />
         <Route path="/ai/workbench" element={<AnalysisWorkbenchPage />} />
+        <Route path="/shop/overview" element={<ShopOverviewPage />} />
+        <Route path="/shop/products" element={<ShopProductsPage />} />
+        <Route path="/system/platforms" element={<PlatformManagementPage />} />
+        <Route path="/system/users" element={<UsersPage />} />
+        <Route path="/system/dict" element={<DictPage />} />
 
         {/* ===== 内容中心 ===== */}
         <Route path="/content/video-create" element={<VideoCreatePage />} />
@@ -113,6 +124,7 @@ export default function App() {
         {/* ===== 商业智能 ===== */}
         <Route path="/bi/dashboard" element={<BiDashboardPage />} />
         <Route path="/bi/roi" element={<RoiDashboardPage />} />
+        <Route path="/bi/refund-analysis" element={<RefundAnalysisPage />} />
         <Route path="/bi/anomaly-detection" element={<AnomalyDetectionPage />} />
 
         {/* ===== 主播赋能 ===== */}

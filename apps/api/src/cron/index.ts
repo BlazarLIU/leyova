@@ -5,6 +5,7 @@ import { aggregateDailyStats } from './aggregate-stats.js'
 import { detectAnomalies } from './detect-anomalies.js'
 import { archiveOldData } from './archive-old-data.js'
 import { ensureAllPartitions } from './manage-partitions.js'
+import { runFactAggregation } from './aggregate-facts.js'
 import { runAllPlatformsSync } from '../ingest/sync-job.js'
 import { searchMemory } from '../lib/openviking-client.js'
 import { searchKnowledge } from '../lib/anythingllm-client.js'
@@ -43,6 +44,17 @@ export function registerCronJobs(): void {
       logger.info({ created: r.created, errors: r.errors.length }, '[cron] partition maintenance done')
     } catch (err) {
       logger.error({ err }, '[cron] ensureAllPartitions failed')
+    }
+  })
+
+  // ── 多平台事实表聚合：每天 01:30（在 01:00 旧链路聚合之后）──
+  cron.schedule('30 1 * * *', async () => {
+    logger.info('[cron] Running fact aggregation (agg_shop_daily / agg_platform_monthly)')
+    try {
+      const r = await runFactAggregation()
+      logger.info({ days: r.dates.length, months: r.months.length }, '[cron] fact aggregation done')
+    } catch (err) {
+      logger.error({ err }, '[cron] fact aggregation failed')
     }
   })
 

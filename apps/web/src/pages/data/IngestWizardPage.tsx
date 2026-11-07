@@ -169,6 +169,14 @@ export function IngestWizardPage() {
     if (platformCode) loadTemplate(platformCode, dataType)
   }, [platformCode, dataType, loadTemplate])
 
+  // 进入「字段映射」步骤时，若还没有列名信息，自动预演一次取 headers
+  useEffect(() => {
+    if (step === 2 && !preview && file && platformCode && !loading) {
+      doPreview(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step])
+
   const currentPlatformObj = platforms.find((p) => p.platform_code === platformCode)
   const shops = currentPlatformObj?.shops || []
 
@@ -187,8 +195,8 @@ export function IngestWizardPage() {
     if (f) handleFile(f)
   }
 
-  // ── 预演 ──
-  const runPreview = async () => {
+  /** 调用预演接口；jumpToStep 为 true 时才跳转到第 4 步 */
+  const doPreview = async (jumpToStep: boolean) => {
     if (!file || !platformCode) return
     setLoading(true)
     setError(null)
@@ -211,14 +219,20 @@ export function IngestWizardPage() {
       const json = await res.json()
       if (!json.success) throw new Error(json.message || '预演失败')
       setPreview(json.data)
-      if (json.data.suggestedMapping) setMapping(json.data.suggestedMapping)
-      setStep(4)
+      // 只在用户还没手动调整过映射时，才采用后端建议
+      setMapping((prev) =>
+        Object.values(prev).some((v) => v) ? prev : (json.data.suggestedMapping || {}),
+      )
+      if (jumpToStep) setStep(4)
     } catch (e: any) {
       setError(e?.message || '预演失败')
     } finally {
       setLoading(false)
     }
   }
+
+  /** 预演并跳转到对照步骤 */
+  const runPreview = () => doPreview(true)
 
   // ── 正式导入 ──
   const runImport = async () => {
@@ -267,7 +281,8 @@ export function IngestWizardPage() {
   const canNext = () => {
     if (step === 0) return false
     if (step === 1) return !!platformCode && !!shopId
-    if (step === 2) return Object.values(mapping).some((v) => v)
+    // 步骤2：只要识别出列名就允许继续（映射可留空，走自动建议）
+    if (step === 2) return !!preview && preview.headers.length > 0
     if (step === 3) return true
     return false
   }
@@ -383,7 +398,7 @@ export function IngestWizardPage() {
                     className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
                   >
                     <option value="">请选择平台</option>
-                    {platforms.filter((p) => p.is_enabled).map((p) => (
+                    {platforms.filter((p) => p.is_enabled && p.isPermitted !== false).map((p) => (
                       <option key={p.platform_code} value={p.platform_code}>{p.platform_name}</option>
                     ))}
                   </select>
@@ -466,9 +481,12 @@ export function IngestWizardPage() {
                   ))}
                 </div>
               )}
-              {!preview && (
+              {!preview && loading && (
+                <p className="mt-3 text-xs text-slate-500">正在解析文件列名…</p>
+              )}
+              {preview && (
                 <p className="mt-3 text-xs text-slate-500">
-                  提示：进入「预演对照」后系统会自动给出映射建议，可回此步微调。
+                  已识别 {preview.headers.length} 个列，系统已给出映射建议。留空表示不映射该字段。
                 </p>
               )}
             </CardBody>

@@ -20,6 +20,9 @@ import { getPool } from '../lib/db.js'
 // 注册表
 // ---------------------------------------------------------------------------
 
+/** 指标所属事实表 */
+export type FactSource = 'trade' | 'traffic' | 'ad' | 'content'
+
 /** 可用指标：code → 表达式（仅限已注册，禁止外部传入） */
 export interface MetricDef {
   code: string
@@ -27,58 +30,146 @@ export interface MetricDef {
   unit: string
   /** SQL 聚合表达式，基于别名 f（事实表） */
   expr: string
-  /** 是否需要 ad 表参与 */
+  /** 指标分类 */
   category: string
   /** 是否可加总（比率类不可） */
   additive: boolean
+  /** 该指标来自哪张事实表，决定查询时 FROM 哪张表 */
+  source: FactSource
 }
 
 export const METRIC_REGISTRY: Record<string, MetricDef> = {
   gmv: {
     code: 'gmv', label: '成交总额', unit: '元',
-    expr: 'COALESCE(SUM(f.gmv), 0)::numeric', category: 'trade', additive: true,
+    expr: 'COALESCE(SUM(f.gmv), 0)::numeric', category: 'trade', additive: true, source: 'trade',
   },
   pay_amount: {
     code: 'pay_amount', label: '买家实付金额', unit: '元',
-    expr: 'COALESCE(SUM(f.pay_amount), 0)::numeric', category: 'trade', additive: true,
+    expr: 'COALESCE(SUM(f.pay_amount), 0)::numeric', category: 'trade', additive: true, source: 'trade',
   },
   paid_order_count: {
     code: 'paid_order_count', label: '支付订单数', unit: '单',
-    expr: 'COALESCE(SUM(f.paid_order_count), 0)::int', category: 'trade', additive: true,
+    expr: 'COALESCE(SUM(f.paid_order_count), 0)::int', category: 'trade', additive: true, source: 'trade',
   },
   paid_buyer_count: {
     code: 'paid_buyer_count', label: '支付买家数', unit: '人',
-    expr: 'COALESCE(SUM(f.paid_buyer_count), 0)::int', category: 'trade', additive: true,
+    expr: 'COALESCE(SUM(f.paid_buyer_count), 0)::int', category: 'trade', additive: true, source: 'trade',
   },
   refund_amount: {
     code: 'refund_amount', label: '退款金额', unit: '元',
-    expr: 'COALESCE(SUM(f.refund_amount), 0)::numeric', category: 'aftersale', additive: true,
+    expr: 'COALESCE(SUM(f.refund_amount), 0)::numeric', category: 'aftersale', additive: true, source: 'trade',
   },
   refund_count: {
     code: 'refund_count', label: '退款订单数', unit: '单',
-    expr: 'COALESCE(SUM(f.refund_count), 0)::int', category: 'aftersale', additive: true,
+    expr: 'COALESCE(SUM(f.refund_count), 0)::int', category: 'aftersale', additive: true, source: 'trade',
   },
   net_sales: {
     code: 'net_sales', label: '净销售额', unit: '元',
     expr: '(COALESCE(SUM(f.gmv), 0) - COALESCE(SUM(f.refund_amount), 0))::numeric',
-    category: 'trade', additive: true,
+    category: 'trade', additive: true, source: 'trade',
   },
   refund_rate: {
     code: 'refund_rate', label: '退款率', unit: '%',
     expr: 'CASE WHEN SUM(f.gmv) > 0 THEN ROUND(SUM(f.refund_amount) / SUM(f.gmv) * 100, 2) ELSE 0 END',
     category: 'aftersale', additive: false,
+    source: 'trade',
   },
   avg_order_value: {
     code: 'avg_order_value', label: '客单价', unit: '元',
     expr: 'CASE WHEN SUM(f.paid_order_count) > 0 THEN ROUND(SUM(f.gmv) / SUM(f.paid_order_count), 2) ELSE 0 END',
     category: 'trade', additive: false,
+    source: 'trade',
   },
   buyer_order_ratio: {
     code: 'buyer_order_ratio', label: '人均订单数', unit: '单/人',
     expr: 'CASE WHEN SUM(f.paid_buyer_count) > 0 THEN ROUND(SUM(f.paid_order_count)::numeric / SUM(f.paid_buyer_count), 2) ELSE 0 END',
     category: 'trade', additive: false,
+    source: 'trade',
+  },
+  // ── 流量指标（fact_traffic_daily）──
+  impressions: {
+    code: 'impressions', label: '展现量', unit: '次',
+    expr: 'COALESCE(SUM(f.impressions), 0)::bigint', category: 'traffic', additive: true, source: 'traffic',
+  },
+  clicks: {
+    code: 'clicks', label: '点击量', unit: '次',
+    expr: 'COALESCE(SUM(f.clicks), 0)::bigint', category: 'traffic', additive: true, source: 'traffic',
+  },
+  visitors: {
+    code: 'visitors', label: '访客数', unit: '人',
+    expr: 'COALESCE(SUM(f.visitors), 0)::bigint', category: 'traffic', additive: true, source: 'traffic',
+  },
+  ctr: {
+    code: 'ctr', label: '点击率', unit: '%',
+    expr: 'CASE WHEN SUM(f.impressions) > 0 THEN ROUND(SUM(f.clicks)::numeric / SUM(f.impressions) * 100, 2) ELSE 0 END',
+    category: 'traffic', additive: false, source: 'traffic',
+  },
+  avg_stay: {
+    code: 'avg_stay', label: '平均停留时长', unit: '秒',
+    expr: 'CASE WHEN COUNT(*) > 0 THEN ROUND(AVG(f.avg_stay_seconds), 0) ELSE 0 END',
+    category: 'traffic', additive: false, source: 'traffic',
+  },
+  gpm: {
+    code: 'gpm', label: '千次展现成交', unit: '元',
+    expr: '0::numeric',
+    category: 'traffic', additive: false, source: 'traffic',
+  },
+
+  // ── 投放指标（fact_ad_daily）──
+  ad_spend: {
+    code: 'ad_spend', label: '投放花费', unit: '元',
+    expr: 'COALESCE(SUM(f.ad_spend), 0)::numeric', category: 'ad', additive: true, source: 'ad',
+  },
+  ad_gmv: {
+    code: 'ad_gmv', label: '投放成交额', unit: '元',
+    expr: 'COALESCE(SUM(f.ad_gmv), 0)::numeric', category: 'ad', additive: true, source: 'ad',
+  },
+  ad_roi: {
+    code: 'ad_roi', label: '投放 ROI', unit: '',
+    expr: 'CASE WHEN SUM(f.ad_spend) > 0 THEN ROUND(SUM(f.ad_gmv) / SUM(f.ad_spend), 2) ELSE 0 END',
+    category: 'ad', additive: false, source: 'ad',
+  },
+  ad_impressions: {
+    code: 'ad_impressions', label: '投放展现', unit: '次',
+    expr: 'COALESCE(SUM(f.impressions), 0)::bigint', category: 'ad', additive: true, source: 'ad',
+  },
+  ad_clicks: {
+    code: 'ad_clicks', label: '投放点击', unit: '次',
+    expr: 'COALESCE(SUM(f.clicks), 0)::bigint', category: 'ad', additive: true, source: 'ad',
+  },
+  ad_cvr: {
+    code: 'ad_cvr', label: '投放转化数', unit: '次',
+    expr: 'COALESCE(SUM(f.conversions), 0)::int', category: 'ad', additive: true, source: 'ad',
+  },
+
+  // ── 内容指标（fact_content_daily）──
+  content_views: {
+    code: 'content_views', label: '内容播放量', unit: '次',
+    expr: 'COALESCE(SUM(f.views), 0)::bigint', category: 'content', additive: true, source: 'content',
+  },
+  content_likes: {
+    code: 'content_likes', label: '内容点赞数', unit: '个',
+    expr: 'COALESCE(SUM(f.likes), 0)::bigint', category: 'content', additive: true, source: 'content',
+  },
+  content_comments: {
+    code: 'content_comments', label: '内容评论数', unit: '条',
+    expr: 'COALESCE(SUM(f.comments), 0)::int', category: 'content', additive: true, source: 'content',
+  },
+  content_shares: {
+    code: 'content_shares', label: '内容分享数', unit: '次',
+    expr: 'COALESCE(SUM(f.shares), 0)::int', category: 'content', additive: true, source: 'content',
+  },
+  content_collects: {
+    code: 'content_collects', label: '内容收藏数', unit: '个',
+    expr: 'COALESCE(SUM(f.collects), 0)::int', category: 'content', additive: true, source: 'content',
+  },
+  content_attributed_gmv: {
+    code: 'content_attributed_gmv', label: '内容引流成交', unit: '元',
+    expr: 'COALESCE(SUM(f.attributed_gmv), 0)::numeric', category: 'content', additive: true, source: 'content',
   },
 }
+
+/** 可用维度：code → { 列名, 连接要求 } */
 
 /** 可用维度：code → { 列名, 连接要求 } */
 export interface DimensionDef {
@@ -173,10 +264,38 @@ export interface QueryMetricInput {
 
 export interface QueryMetricResult {
   columns: string[]
+  sourceTable?: string
+  crossTableNotice?: string
   rows: Array<Record<string, any>>
   sql_snapshot: string
   params_snapshot: any[]
   rowCount: number
+}
+
+/** 事实表名映射 */
+const FACT_TABLE: Record<FactSource, string> = {
+  trade: 'fact_trade_daily',
+  traffic: 'fact_traffic_daily',
+  ad: 'fact_ad_daily',
+  content: 'fact_content_daily',
+}
+
+/**
+ * 根据所选指标推断应查询的事实表。
+ * 若指标来自多张表，选「主表」：优先 trade > traffic > ad > content，
+ * 跨表指标组合会在下方单独处理（返回跨表提示）。
+ */
+function resolveSourceTable(metrics: string[]): FactSource {
+  const sources = new Set<FactSource>()
+  for (const m of metrics) {
+    const def = METRIC_REGISTRY[m]
+    if (def) sources.add(def.source)
+  }
+  const priority: FactSource[] = ['trade', 'traffic', 'ad', 'content']
+  for (const p of priority) {
+    if (sources.has(p)) return p
+  }
+  return 'trade'
 }
 
 /** 校验并构建查询；所有标识符来自白名单，值全部参数化 */
@@ -275,9 +394,33 @@ export function buildMetricQuery(
 
   const limit = Math.min(Math.max(input.limit || 500, 1), 2000)
 
+  // 按指标来源选择事实表
+  const sourceFacts = new Set(metrics.map((m) => METRIC_REGISTRY[m].source))
+  const crossTable = sourceFacts.size > 1
+  const primarySource = resolveSourceTable(metrics)
+  const fromTable = FACT_TABLE[primarySource]
+
+  // 跨表查询：只保留主表指标，避免不存在的列导致 SQL 报错
+  let finalSelectParts = selectParts
+  if (crossTable) {
+    finalSelectParts = []
+    for (const d of dims) {
+      finalSelectParts.push(`${DIMENSION_REGISTRY[d].expr} AS ${d}`)
+    }
+    if (dims.includes('date') || granularity !== 'total') {
+      const g = GRANULARITY_SQL[granularity]
+      if (!dims.includes('date')) finalSelectParts.unshift(`${g} AS period`)
+    }
+    for (const m of metrics) {
+      if (METRIC_REGISTRY[m].source === primarySource) {
+        finalSelectParts.push(`${METRIC_REGISTRY[m].expr} AS ${m}`)
+      }
+    }
+  }
+
   const sql = `
-    SELECT ${selectParts.join(',\n           ')}
-      FROM fact_trade_daily f
+    SELECT ${finalSelectParts.join(',\n           ')}
+      FROM ${fromTable} f
       ${Array.from(joins).join('\n      ')}
      WHERE ${conds.join('\n       AND ')}
      ${groupParts.length ? `GROUP BY ${groupParts.join(', ')}` : ''}
@@ -318,12 +461,20 @@ export async function queryMetric(
   const { sql, params } = buildMetricQuery(input, scope)
   const { rows } = await p.query(sql, params)
   const dims = (input.dimensions || []).filter((d) => d in DIMENSION_REGISTRY)
-  const columns = [
-    ...dims,
-    ...(input.metrics || []).filter((m) => m in METRIC_REGISTRY),
-  ]
+  const validMetrics = (input.metrics || []).filter((m) => m in METRIC_REGISTRY)
+  const columns = [...dims, ...validMetrics]
+
+  // 来源表信息（供调用方判断本次实际落在哪张事实表）
+  const sourceFacts = new Set(validMetrics.map((m) => METRIC_REGISTRY[m].source))
+  const crossTable = sourceFacts.size > 1
+  const primarySource = resolveSourceTable(validMetrics)
+  const fromTable = FACT_TABLE[primarySource]
   return {
     columns,
+    sourceTable: fromTable,
+    crossTableNotice: crossTable
+      ? `所选指标跨多张事实表（${Array.from(sourceFacts).join(', ')}），本次仅查询 ${primarySource} 表。如需跨表分析，请分多次调用。`
+      : undefined,
     rows: rows.map((r: any) => {
       const out: Record<string, any> = {}
       for (const k of Object.keys(r)) {

@@ -29,6 +29,9 @@ import { contentRoutes } from './routes/content.js'
 import { knowledgeBaseRoutes } from './routes/knowledge-base.js'
 import { analysisRoutes } from './routes/analysis.js'
 import { closureRoutes } from './routes/closure.js'
+import { dictRoutes } from './routes/dict.js'
+import { maintenanceRoutes } from './routes/maintenance.js'
+import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
 import { backfillDailyStats } from './cron/aggregate-stats.js'
@@ -57,6 +60,9 @@ async function main() {
   await app.register(cookie)
   await app.register(multipart, { limits: { fileSize: 100 * 1024 * 1024, files: 1 } })
   await app.register(dbPlugin)
+
+  // 全局鉴权钩子：注入 request.user，使二维权限矩阵在运行时生效
+  registerAuthHook(app)
 
   // ── Swagger ──
   await app.register(fastifySwagger, {
@@ -97,6 +103,8 @@ async function main() {
   await app.register(knowledgeBaseRoutes) // kb: external RAGFlow/MaxKB client config & search
   await app.register(analysisRoutes)     // analysis: semantic-layer driven AI analyst (P4)
   await app.register(closureRoutes)      // closure: analysis → tasks → knowledge base (P5)
+  await app.register(dictRoutes)        // dict: dictionary items management
+  await app.register(maintenanceRoutes) // maintenance: aggregation backfill & partition management
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {
