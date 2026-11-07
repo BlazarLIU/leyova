@@ -37,6 +37,8 @@ import { KsIndirectGmvPage } from '@/pages/shop/kuaishou/KsIndirectGmvPage'
 import { KsFansTeamPage } from '@/pages/shop/kuaishou/KsFansTeamPage'
 import { JdBusinessBoardPage } from '@/pages/shop/jd/JdBusinessBoardPage'
 import { JdFulfillmentPage } from '@/pages/shop/jd/JdFulfillmentPage'
+import { XhsNoteBoardPage } from '@/pages/shop/xiaohongshu/XhsNoteBoardPage'
+import { XhsConversionPage } from '@/pages/shop/xiaohongshu/XhsConversionPage'
 import { PlatformManagementPage } from '@/pages/system/PlatformManagementPage'
 import { UsersPage } from '@/pages/system/UsersPage'
 import { DictPage } from '@/pages/system/DictPage'
@@ -130,6 +132,8 @@ export default function App() {
         <Route path="/shop/kuaishou/fans-team" element={<KsFansTeamPage />} />
         <Route path="/shop/jd/board" element={<JdBusinessBoardPage />} />
         <Route path="/shop/jd/fulfillment" element={<JdFulfillmentPage />} />
+        <Route path="/shop/xiaohongshu/notes" element={<XhsNoteBoardPage />} />
+        <Route path="/shop/xiaohongshu/conversion" element={<XhsConversionPage />} />
         <Route path="/system/platforms" element={<PlatformManagementPage />} />
         <Route path="/system/users" element={<UsersPage />} />
         <Route path="/system/dict" element={<DictPage />} />

@@ -330,14 +330,15 @@ function buildContentSections(): NavSection[] {
     {
       title: '内容经营',
       items: [
-        { label: '笔记经营看板', icon: FileText, href: '/shop/overview', module: 'overview' },
+        { label: '笔记经营看板', icon: FileText, href: '/shop/xiaohongshu/notes', module: 'overview' },
         {
           label: '内容分析',
           icon: Film,
           module: 'content_video_data',
           children: [
+            { label: '种草转化链路', href: '/shop/xiaohongshu/conversion' },
             { label: '笔记数据', href: '/content/video-data', module: 'content_video_data' },
-            { label: '种草转化分析', href: '/review/funnel', module: 'review_funnel' },
+            { label: '搜索分析', href: '/shop/xiaohongshu/conversion' },
           ],
         },
         {
