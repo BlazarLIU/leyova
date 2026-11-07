@@ -12,6 +12,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { checkComparability } from '../platform/caliber.js'
 
 /** 解析时间范围，默认最近 30 天 */
 function resolveRange(from?: string, to?: string): { from: string; to: string } {
@@ -202,9 +203,21 @@ export async function omnichannelRoutes(app: FastifyInstance) {
 
       const totalGmv = rows.reduce((s: number, x: any) => s + Number(x.gmv), 0)
 
+      // 口径可比性校验：跨平台 GMV 加总在口径不同时是错的
+      let caliberCheck: any = null
+      try {
+        const codes = rows.map((x: any) => x.platform_code).filter(Boolean)
+        if (codes.length > 1) {
+          caliberCheck = await checkComparability(codes, 'gmv', pool)
+        }
+      } catch {
+        caliberCheck = null
+      }
+
       return sendOk(reply, {
         range: r,
         totalGmv,
+        caliberCheck,
         platforms: rows.map((x: any) => ({
           ...x,
           gmv: Number(x.gmv),

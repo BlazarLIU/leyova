@@ -77,6 +77,68 @@ export async function ensureFuturePartitions(
   return result
 }
 
+/**
+ * 补齐过去某个月的分区。
+ * 用于历史数据回溯导入（如抖音数据从 2026-08 开始）。
+ */
+export async function ensurePartitionForMonth(
+  pool: Pool,
+  parentTable: string,
+  year: number,
+  month: number,
+): Promise<{ name: string; created: boolean; error?: string }> {
+  const start = new Date(year, month - 1, 1)
+  const end = new Date(year, month, 1)
+  const name = `${parentTable}_y${start.getFullYear()}${String(start.getMonth() + 1).padStart(2, '0')}`
+
+  const exists = await pool.query(
+    `SELECT 1 FROM pg_class WHERE relname = $1 AND relkind = 'r'`,
+    [name],
+  )
+  if (exists.rows.length > 0) return { name, created: false }
+
+  try {
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS public.${name} PARTITION OF public.${parentTable}
+         FOR VALUES FROM ('${firstDay(start)}') TO ('${firstDay(end)}')`,
+    )
+    logger.info({ partition: name }, '[partition] created (backfill)')
+    return { name, created: true }
+  } catch (err: any) {
+    if (err?.code === '42P07') return { name, created: false }
+    return { name, created: false, error: String(err?.message || err) }
+  }
+}
+
+/** 为指定日期范围确保分区存在（回溯 + 前瞻） */
+export async function ensurePartitionsForRange(
+  from: string,
+  to: string,
+  pool?: Pool,
+): Promise<PartitionResult> {
+  const p = pool || getPool()
+  const result: PartitionResult = { created: [], existing: [], errors: [] }
+
+  const fromDate = new Date(from)
+  const toDate = new Date(to)
+  const cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1)
+  const endLimit = new Date(toDate.getFullYear(), toDate.getMonth(), 1)
+
+  while (cursor <= endLimit) {
+    for (const table of PARTITIONED_TABLES) {
+      const r = await ensurePartitionForMonth(
+        p, table, cursor.getFullYear(), cursor.getMonth() + 1,
+      )
+      if (r.error) result.errors.push({ table, partition: r.name, error: r.error })
+      else if (r.created) result.created.push(r.name)
+      else result.existing.push(r.name)
+    }
+    cursor.setMonth(cursor.getMonth() + 1)
+  }
+
+  return result
+}
+
 /** 为所有分区表补齐分区 */
 export async function ensureAllPartitions(monthsAhead = 3): Promise<PartitionResult> {
   const pool = getPool()
