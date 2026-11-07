@@ -31,6 +31,7 @@ import { analysisRoutes } from './routes/analysis.js'
 import { closureRoutes } from './routes/closure.js'
 import { dictRoutes } from './routes/dict.js'
 import { maintenanceRoutes } from './routes/maintenance.js'
+import { caliberRoutes } from './routes/caliber.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
@@ -105,6 +106,7 @@ async function main() {
   await app.register(closureRoutes)      // closure: analysis → tasks → knowledge base (P5)
   await app.register(dictRoutes)        // dict: dictionary items management
   await app.register(maintenanceRoutes) // maintenance: aggregation backfill & partition management
+  await app.register(caliberRoutes) // caliber: platform amount_type model & cross-platform comparability
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {
