@@ -40,6 +40,8 @@ export interface PlatformCapability {
   supportsShelf: boolean
   supportsContent: boolean
   supportsAds: boolean
+  /** 平台标识，用于按平台分流专属页面 */
+  platformCode?: string
 }
 
 /** 判断平台应使用哪种信息架构 */
@@ -228,21 +230,31 @@ function buildLiveSections(): NavSection[] {
 // 货架电商专属：淘宝 / 天猫 / 京东 / 拼多多
 // ═══════════════════════════════════════════════════════════════
 
-function buildShelfSections(): NavSection[] {
+function buildShelfSections(platformCode?: string): NavSection[] {
+  // 淘宝/天猫走专属经营看板（含父子订单、支付转化率、万相台对账）
+  const isTaobaoFamily = platformCode === 'taobao' || platformCode === 'tmall'
+  const shopBoardHref = isTaobaoFamily ? '/shop/taobao/board' : '/shop/overview'
+
   return [
     {
       title: '店铺经营',
       items: [
-        { label: '店铺经营看板', icon: Store, href: '/shop/overview', module: 'overview' },
+        { label: isTaobaoFamily ? '店铺经营看板（淘系）' : '店铺经营看板', icon: Store, href: shopBoardHref, module: 'overview' },
         { label: '商品结构分析', icon: Package, href: '/shop/products', module: 'product_center' },
         {
           label: '流量与投放',
           icon: Megaphone,
           module: 'ops',
-          children: [
-            { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
-            { label: '投放 ROI 分析', href: '/bi/roi' },
-          ],
+          children: isTaobaoFamily
+            ? [
+                { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
+                { label: '万相台投放对账', href: '/shop/taobao/ad-reconciliation' },
+                { label: '投放 ROI 分析', href: '/bi/roi' },
+              ]
+            : [
+                { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
+                { label: '投放 ROI 分析', href: '/bi/roi' },
+              ],
         },
         {
           label: '售后与退款',
@@ -393,7 +405,7 @@ export function buildNavigation(capability?: PlatformCapability | null): NavSect
   if (mode === 'live') {
     sections.push(...buildLiveSections())
   } else if (mode === 'shelf') {
-    sections.push(...buildShelfSections())
+    sections.push(...buildShelfSections(capability?.platformCode))
   } else {
     sections.push(...buildContentSections())
   }

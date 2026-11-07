@@ -28,6 +28,8 @@ import { ContentCenterConfigPage } from '@/pages/content/ContentCenterConfigPage
 import { AnalysisWorkbenchPage } from '@/pages/ai/AnalysisWorkbenchPage'
 import { ShopOverviewPage } from '@/pages/shop/ShopOverviewPage'
 import { ShopProductsPage } from '@/pages/shop/ShopProductsPage'
+import { TaobaoShopBoardPage } from '@/pages/shop/taobao/TaobaoShopBoardPage'
+import { TaobaoAdReconciliationPage } from '@/pages/shop/taobao/TaobaoAdReconciliationPage'
 import { PlatformManagementPage } from '@/pages/system/PlatformManagementPage'
 import { UsersPage } from '@/pages/system/UsersPage'
 import { DictPage } from '@/pages/system/DictPage'
@@ -112,6 +114,8 @@ export default function App() {
         <Route path="/ai/workbench" element={<AnalysisWorkbenchPage />} />
         <Route path="/shop/overview" element={<ShopOverviewPage />} />
         <Route path="/shop/products" element={<ShopProductsPage />} />
+        <Route path="/shop/taobao/board" element={<TaobaoShopBoardPage />} />
+        <Route path="/shop/taobao/ad-reconciliation" element={<TaobaoAdReconciliationPage />} />
         <Route path="/system/platforms" element={<PlatformManagementPage />} />
         <Route path="/system/users" element={<UsersPage />} />
         <Route path="/system/dict" element={<DictPage />} />

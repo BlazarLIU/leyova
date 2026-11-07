@@ -32,6 +32,7 @@ import { closureRoutes } from './routes/closure.js'
 import { dictRoutes } from './routes/dict.js'
 import { maintenanceRoutes } from './routes/maintenance.js'
 import { caliberRoutes } from './routes/caliber.js'
+import { taobaoRoutes } from './routes/taobao.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
@@ -107,6 +108,7 @@ async function main() {
   await app.register(dictRoutes)        // dict: dictionary items management
   await app.register(maintenanceRoutes) // maintenance: aggregation backfill & partition management
   await app.register(caliberRoutes) // caliber: platform amount_type model & cross-platform comparability
+  await app.register(taobaoRoutes)   // taobao: 淘宝/天猫专属分析
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {

@@ -252,7 +252,11 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     //   直播电商 → 场次/主播/复盘链路
     //   货架电商 → 店铺/商品/投放链路
     //   内容种草 → 笔记/达人/种草链路
-    let sections = buildNavigation(currentPlatform?.capabilities)
+    // 把 platformCode 合并进 capability，供导航按平台分流专属页面
+    const cap = currentPlatform?.capabilities
+      ? { ...currentPlatform.capabilities, platformCode: currentPlatform.platform_code }
+      : null
+    let sections = buildNavigation(cap)
 
     // controller → 不显示「系统」分组
     if (role === 'controller') {
