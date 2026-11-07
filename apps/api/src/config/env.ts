@@ -5,7 +5,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(8788),
   HOST: z.string().default('0.0.0.0'),
-  WEB_ORIGIN: z.string().url().default('http://localhost:95513'),
+  WEB_ORIGIN: z.string().url().default('http://localhost:5513'),
   SESSION_COOKIE_NAME: z.string().default('leyova_session'),
   SESSION_SECRET: z.string().min(16).default('dev-session-secret-please-change'),
   DB_HOST: z.string().default('localhost'),

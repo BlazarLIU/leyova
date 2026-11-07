@@ -19,6 +19,8 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: '8788',
         HOST: '0.0.0.0',
+        SESSION_SECRET: process.env.SESSION_SECRET || 'leyova-local-session-secret-change-in-prod',
+        LEYOVA_MCP_TOKEN: process.env.LEYOVA_MCP_TOKEN || 'leyova-local-mcp-token-change-in-prod',
       },
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       error_file: join(LOG_DIR, 'api-error.log'),
@@ -49,8 +51,8 @@ module.exports = {
     {
       name: 'leyova-web',
       cwd: join(ROOT, 'apps', 'web'),
-      script: 'node_modules/.bin/vite',
-      args: '--host 0.0.0.0 --port 95513',
+      script: 'node_modules/vite/bin/vite.js',
+      args: '--host 0.0.0.0 --port 5513',
       env: {
         NODE_ENV: 'production',
       },

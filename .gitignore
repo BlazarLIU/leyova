@@ -21,9 +21,14 @@ logs/
 *.csv
 uploads/
 sessions/
-database/
 .migration/
 .backup/
+.pgdata/
+
+# 仓库自带的数据库实例必须入库（覆盖上面的 *.sql / database/ 忽略）
+!database/
+!database/**
+!*.sql
 
 .agents/
 .claude/

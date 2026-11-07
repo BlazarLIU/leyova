@@ -6,6 +6,7 @@ import { cn } from '@/utils/cn'
 import { useSidebar } from '@/hooks/useSidebar'
 import { useTheme } from '@/hooks/useTheme'
 import { api } from '@/services/api'
+import { PlatformShopSelector } from '@/components/common/PlatformShopSelector'
 
 const routeLabels: Record<string, string> = {
   '/overview/home': '首页',
@@ -112,6 +113,11 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
         <img src="/orbit-icon.svg" alt="logo" className="h-4 w-auto object-contain dark:invert dark:brightness-[0.85]" />
         <span className="text-slate-600">/</span>
         <span className="text-slate-200 font-medium">{pageTitle}</span>
+      </div>
+
+      {/* Platform & Shop Quick Selector */}
+      <div className="ml-2 hidden sm:block">
+        <PlatformShopSelector />
       </div>
 
       {/* Right: actions */}

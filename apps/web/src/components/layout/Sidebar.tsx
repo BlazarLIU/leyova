@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, LogOut } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { navigation } from '@/data/navigation'
 import { useSidebar } from '@/hooks/useSidebar'
+import { usePlatform } from '@/hooks/usePlatform'
 import { api } from '@/services/api'
 import type { NavItem, RoleInfo } from '@/types'
 
@@ -234,16 +235,26 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     navigate('/sign-in')
   }
 
+  const { currentPlatform, isModuleSupported } = usePlatform()
+
   const canSee = (m?: string) =>
+    // 平台能力过滤：当前平台若不支持该模块，直接隐藏
+    isModuleSupported(m) &&
     // 未标注模块 → 默认可见（向后兼容）
-    !m ||
+    (!m ||
     // 模块列表为空（数据未加载完） → 默认可见
     userModules.length === 0 ||
     // 有该模块权限 → 可见
-    userModules.includes(m)
+    userModules.includes(m))
 
   const getVisibleNavigation = (role: string) => {
     let sections = navigation
+
+    // 平台能力动态过滤：若当前平台不支持直播，隐藏「直播管理」与「直播复盘」一级分组
+    if (currentPlatform && !currentPlatform.capabilities?.supportsLive) {
+      sections = sections.filter(section => section.title !== '直播管理' && section.title !== '直播复盘')
+    }
+
     // controller → 不显示「系统」分组
     if (role === 'controller') {
       sections = sections.filter(section => section.title !== '系统')

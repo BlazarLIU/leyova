@@ -15,6 +15,7 @@ import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
 import { requireAuth } from '../lib/guard.js'
 import { findDuplicateSession, buildDuplicateMessage } from '../lib/livereg-dedupe.js'
+import { executeCleaningPipeline } from '../ingest/cleaner/engine.js'
 import {
   text,
   detectDouyinTemplate,
@@ -943,6 +944,141 @@ export async function dataRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'data/uploaded-data/channel/batch-delete failed')
       return reply.code(500).send({ success: false, message: '批量删除失败' })
+    }
+  })
+
+  // ═══════════════════════════════════════════════════════════════
+  // 自定义数据清洗引擎端点 (Custom Data Cleaning Engine)
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── GET /api/v1/data/clean-rules ── 获取清洗规则集列表
+  app.get('/api/v1/data/clean-rules', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { platform } = request.query as { platform?: string }
+      let query = `SELECT id, name, platform_code, description, is_system, rules, created_at, updated_at FROM clean_rule_sets`
+      const params: any[] = []
+      if (platform) {
+        query += ` WHERE platform_code = $1`
+        params.push(platform)
+      }
+      query += ` ORDER BY is_system DESC, id ASC`
+      const { rows } = await pool.query(query, params)
+      return sendOk(reply, rows)
+    } catch (err) {
+      request.log.error({ err }, 'Failed to fetch clean rules')
+      return sendError(reply, 500, '获取清洗规则列表失败')
+    }
+  })
+
+  // ── POST /api/v1/data/clean-rules ── 创建自定义清洗规则集
+  app.post('/api/v1/data/clean-rules', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const body = request.body as {
+        name: string
+        platform_code: string
+        description?: string
+        rules: any[]
+      }
+      if (!body.name || !body.platform_code || !Array.isArray(body.rules)) {
+        return sendError(reply, 400, '缺少必要参数 (name, platform_code, rules)')
+      }
+
+      const { rows } = await pool.query(
+        `INSERT INTO clean_rule_sets (name, platform_code, description, is_system, rules)
+         VALUES ($1, $2, $3, false, $4)
+         RETURNING *`,
+        [body.name, body.platform_code, body.description || '', JSON.stringify(body.rules)]
+      )
+      return sendOk(reply, rows[0], '清洗规则集创建成功')
+    } catch (err) {
+      request.log.error({ err }, 'Failed to create clean rule set')
+      return sendError(reply, 500, '创建清洗规则集失败')
+    }
+  })
+
+  // ── PUT /api/v1/data/clean-rules/:id ── 更新自定义清洗规则集
+  app.put('/api/v1/data/clean-rules/:id', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      const body = request.body as {
+        name?: string
+        description?: string
+        rules?: any[]
+      }
+
+      const updates: string[] = []
+      const values: any[] = [parseInt(id)]
+      let idx = 2
+
+      if (body.name) {
+        updates.push(`name = $${idx++}`)
+        values.push(body.name)
+      }
+      if (body.description !== undefined) {
+        updates.push(`description = $${idx++}`)
+        values.push(body.description)
+      }
+      if (Array.isArray(body.rules)) {
+        updates.push(`rules = $${idx++}`)
+        values.push(JSON.stringify(body.rules))
+      }
+
+      updates.push(`updated_at = now()`)
+
+      const { rows } = await pool.query(
+        `UPDATE clean_rule_sets SET ${updates.join(', ')} WHERE id = $1 RETURNING *`,
+        values
+      )
+      if (rows.length === 0) return sendError(reply, 404, '清洗规则集不存在')
+      return sendOk(reply, rows[0], '清洗规则集更新成功')
+    } catch (err) {
+      request.log.error({ err }, 'Failed to update clean rule set')
+      return sendError(reply, 500, '更新清洗规则集失败')
+    }
+  })
+
+  // ── DELETE /api/v1/data/clean-rules/:id ── 删除自定义清洗规则集 (系统内置不可删)
+  app.delete('/api/v1/data/clean-rules/:id', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { id } = request.params as { id: string }
+      const { rows } = await pool.query(`SELECT is_system FROM clean_rule_sets WHERE id = $1`, [parseInt(id)])
+      if (rows.length === 0) return sendError(reply, 404, '清洗规则集不存在')
+      if (rows[0].is_system) return sendError(reply, 403, '系统官方清洗规则不可删除')
+
+      await pool.query(`DELETE FROM clean_rule_sets WHERE id = $1`, [parseInt(id)])
+      return sendOk(reply, { deleted: true }, '清洗规则集已删除')
+    } catch (err) {
+      request.log.error({ err }, 'Failed to delete clean rule set')
+      return sendError(reply, 500, '删除清洗规则集失败')
+    }
+  })
+
+  // ── POST /api/v1/data/clean-rules/test ── 预演测试清洗规则（返回前后 Diff 对照与清洗报告）
+  app.post('/api/v1/data/clean-rules/test', async (request, reply) => {
+    try {
+      const body = request.body as {
+        rows: Record<string, any>[]
+        rules: any[]
+      }
+      const rawRows = Array.isArray(body?.rows) ? body.rows : []
+      const rules = Array.isArray(body?.rules) ? body.rules : []
+
+      if (rawRows.length === 0) {
+        return sendError(reply, 400, '缺少测试样本行数据 (rows)')
+      }
+
+      const { cleanedRows, report } = executeCleaningPipeline(rawRows, rules)
+      return sendOk(reply, {
+        report,
+        previewCleanedRows: cleanedRows.slice(0, 50),
+      })
+    } catch (err) {
+      request.log.error({ err }, 'Failed to test clean rules')
+      return sendError(reply, 500, '清洗规则预演测试失败')
     }
   })
 }

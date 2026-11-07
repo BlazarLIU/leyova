@@ -721,7 +721,7 @@
 | `NODE_ENV` | development/test/production | 运行环境 |
 | `PORT` | 8788 | 后端端口 |
 | `HOST` | 0.0.0.0 | 监听地址 |
-| `WEB_ORIGIN` | http://localhost:95513 | CORS 源 |
+| `WEB_ORIGIN` | http://localhost:5513 | CORS 源 |
 | `DATABASE_URL` | postgresql://postgres:change-me@localhost:5432/leyova | 数据库连接串 |
 | `SESSION_COOKIE_NAME` | leyova_session | Session Cookie 名称 |
 | `SESSION_SECRET` | (32字符随机串) | 会话密钥 |
@@ -732,7 +732,7 @@
 |--------|------|------|
 | `leyova-api` | `apps/api/` | 8788 |
 | `leyova-mcp` | `apps/mcp-server/` | 9101 |
-| `leyova-web` | `apps/web/` | 95513 |
+| `leyova-web` | `apps/web/` | 5513 |
 
 ### 10.3 开发运行
 

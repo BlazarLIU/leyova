@@ -31,9 +31,14 @@ function resolveDbTarget(): DbTarget {
   const url = process.env.DATABASE_URL
   if (url) {
     const u = new URL(url)
+    // libpq 风格的 unix socket 写法：postgresql://user@/db?host=/var/run/postgresql
+    const socketHost = u.searchParams.get('host')
+    const host = socketHost
+      ? decodeURIComponent(socketHost)
+      : decodeURIComponent(u.hostname) || 'localhost'
     return {
-      host: decodeURIComponent(u.hostname),
-      port: u.port || '5432',
+      host,
+      port: u.port || u.searchParams.get('port') || '5432',
       user: decodeURIComponent(u.username || 'postgres'),
       database: decodeURIComponent(u.pathname.replace(/^\//, '')),
       password: decodeURIComponent(u.password || ''),

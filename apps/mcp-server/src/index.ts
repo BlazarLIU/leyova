@@ -80,7 +80,9 @@ const server = createServer(async (req, res) => {
   return sendJSON(res, 404, { error: 'Not found' })
 })
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[leyova-mcp-server] listening on http://127.0.0.1:${PORT}`)
+const HOST = process.env.MCP_HOST || '127.0.0.1'
+
+server.listen(PORT, HOST, () => {
+  console.log(`[leyova-mcp-server] listening on http://${HOST}:${PORT}`)
   console.log(`[leyova-mcp-server] ${listTools().length} tools registered`)
 })

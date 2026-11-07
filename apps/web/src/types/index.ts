@@ -243,3 +243,36 @@ export interface PersonnelItem {
   createdAt: string
 }
 
+// ─── 多平台与店铺 ───
+export interface ShopInfo {
+  id: number
+  name: string
+  status: string
+  authStatus: string
+}
+
+export interface PlatformCapabilities {
+  supportsLive: boolean
+  supportsShelf: boolean
+  supportsContent: boolean
+  supportsAds: boolean
+  supportsAutoSync: boolean
+  supportsManualUpload: boolean
+  availableMetrics: string[]
+  supportedModules: string[]
+}
+
+export interface PlatformInfo {
+  platform_code: string
+  platform_name: string
+  category: 'live' | 'shelf' | 'content'
+  is_enabled: boolean
+  sort_order: number
+  icon?: string
+  api_config?: Record<string, any>
+  shops: ShopInfo[]
+  isPermitted: boolean
+  capabilities: PlatformCapabilities | null
+}
+
+

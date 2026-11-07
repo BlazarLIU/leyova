@@ -7,7 +7,7 @@ AI 直播运营管理系统 —— 面向直播电商团队的经营数据、复
 | 子系统 | 技术栈 | 默认端口 |
 |---|---|---|
 | `apps/api` | Node.js + Fastify 5 + PostgreSQL + Zod | 8788 |
-| `apps/web` | React 19 + TypeScript + Vite + Tailwind CSS v4 | 95513 |
+| `apps/web` | React 19 + TypeScript + Vite + Tailwind CSS v4 | 5513 |
 | `apps/mcp-server` | Node.js + MCP 工具服务（21 个工具） | 9101 |
 
 ## 特性
@@ -31,7 +31,7 @@ AI 直播运营管理系统 —— 面向直播电商团队的经营数据、复
 
 ```mermaid
 flowchart LR
-  U[浏览器] -->|95513 : Vite| W[apps/web<br/>React 19]
+  U[浏览器] -->|5513 : Vite| W[apps/web<br/>React 19]
   W -->|/api 代理| A[apps/api<br/>Fastify 5]
   A --> DB[(PostgreSQL)]
   A -->|OpenAI 兼容| OC[OpenClaw Gateway<br/>可选]
@@ -50,6 +50,11 @@ leyova/
 │  ├─ api/           Fastify 后端（routes / lib / ai / qm / cron / cli / prisma）
 │  ├─ web/           React 前端（39 条路由、11 个业务域、components/ui 组件库）
 │  └─ mcp-server/    MCP 工具服务（21 个工具 + 风险分级/审批/审计）
+├─ database/         自带数据库实例（建表 + 基础数据 + 演示数据）
+│  ├─ 01_schema.sql      完整表结构（59 张表）
+│  ├─ 02_seed.sql        角色/权限/模块/管理员账号/系统配置
+│  ├─ 03_demo_data.sql   合成演示数据（可选）
+│  └─ README.md          使用说明
 ├─ docs/
 │  ├─ architecture.md   系统架构说明
 │  └─ design.md         前端设计说明
@@ -97,8 +102,26 @@ SESSION_SECRET=<64 位随机串>
 
 ### 4. 初始化数据库
 
-仓库不包含任何 SQL 数据文件（原始库中含真实经营数据）。请用自己的迁移/初始化脚本建表，
-或先启动服务后通过系统管理页初始化基础数据。
+仓库自带一套完整的数据库实例定义，位于 `database/`，**不依赖任何外部库或历史备份**：
+
+```bash
+createdb -h localhost -p 5432 -U postgres leyova
+
+psql -h localhost -p 5432 -U postgres -d leyova -v ON_ERROR_STOP=1 -f database/01_schema.sql
+psql -h localhost -p 5432 -U postgres -d leyova -v ON_ERROR_STOP=1 -f database/02_seed.sql
+psql -h localhost -p 5432 -U postgres -d leyova -v ON_ERROR_STOP=1 -f database/03_demo_data.sql
+```
+
+| 脚本 | 内容 | 必需 |
+|---|---|---|
+| `database/01_schema.sql` | 完整表结构（59 张表 / 129 约束 / 55 索引） | 是 |
+| `database/02_seed.sql` | 角色、权限、模块、管理员账号、系统配置、告警规则、目标模板、字典 | 是 |
+| `database/03_demo_data.sql` | 合成演示数据（10 运营 / 20 主播 / 12 直播间 / 144 场次 / 90 天指标等） | 否 |
+
+默认管理员：`admin` / `Admin@123456`（首次登录后请修改）。
+
+`02`、`03` 可重复执行（幂等），`01` 只在空库执行一次。演示数据全部由脚本确定性生成，
+不含任何真实经营数据。详细说明与数据规模见 [database/README.md](database/README.md)。
 
 ### 5. 启动
 
@@ -111,11 +134,11 @@ pnpm dev
 
 ```bash
 pnpm dev:api   # http://localhost:8788
-pnpm dev:web   # http://localhost:95513
+pnpm dev:web   # http://localhost:5513
 pnpm dev:mcp   # http://localhost:9101
 ```
 
-打开 `http://localhost:95513` 即可。
+打开 `http://localhost:5513` 即可。
 
 ### 6. 生产构建
 
@@ -132,7 +155,7 @@ pm2 start ecosystem.config.cjs
 |---|---|---|
 | `NODE_ENV` | development | 运行环境；production 时强制校验 `SESSION_SECRET` / `LEYOVA_MCP_TOKEN` |
 | `PORT` | 8788 | 后端监听端口 |
-| `WEB_ORIGIN` | http://localhost:95513 | CORS 允许源 |
+| `WEB_ORIGIN` | http://localhost:5513 | CORS 允许源 |
 | `SESSION_SECRET` | dev 默认值 | 会话密钥，生产必须设置 |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | localhost / 5432 / leyova / postgres / 空 | 数据库连接 |
 | `DATABASE_URL` | — | 连接串，存在时优先 |
@@ -141,13 +164,14 @@ pm2 start ecosystem.config.cjs
 | `OPENCLAW_HOME` | 空 | OpenClaw 安装目录；未配置则 AI 配置写入/重启能力关闭 |
 | `LEYOVA_MCP_TOKEN` | dev 默认值 | 调用 MCP Server 的 Bearer token，生产必须设置 |
 | `MCP_PORT` | 9101 | MCP Server 端口 |
+| `MCP_HOST` | 127.0.0.1 | MCP Server 监听地址，需外部访问时设为 `0.0.0.0` |
 | `LOG_LEVEL` / `LOG_ROOT` | info / 空 | 日志级别与目录（留空为 `./logs`） |
 
 前端变量（`apps/web/.env`，可选）：
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `VITE_PORT` | 95513 | 开发服务器端口 |
+| `VITE_PORT` | 5513 | 开发服务器端口 |
 | `VITE_API_TARGET` | http://localhost:8788 | `/api` 代理目标 |
 | `VITE_ALLOWED_HOSTS` | 空（允许全部） | 允许访问的 Host，逗号分隔 |
 
@@ -165,7 +189,10 @@ pm2 start ecosystem.config.cjs
 ## 与既有系统并行运行
 
 各子系统端口集中在 `apps/api/.env`、`apps/mcp-server/.env`、`apps/web/.env` 与
-`ecosystem.config.cjs`，如需与另一套实例并存，改这几处即可（默认已是 8788 / 95513 / 9101）。
+`ecosystem.config.cjs`，如需与另一套实例并存，改这几处即可（默认已是 8788 / 5513 / 9101）。
+
+本仓库与任何其他目录下的系统**没有任何运行期依赖**：数据库通过 `DATABASE_URL` 连接，
+源码、配置、`ecosystem.config.cjs` 与 `.env.example` 中均不含硬编码的外部路径或内网地址。
 
 自检：
 
@@ -182,7 +209,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:9101/health
 2. 会话 Cookie 在非 HTTPS 环境使用 `secure: false`，生产部署请置于 HTTPS 反代之后并开启。
 3. `apps/api/src/qm/` 模块尚未接入主流程。
 4. 前端部分组件与 `src/data/` 中的示例数据未被引用。
-5. `apps/api/prisma/schema.prisma` 与实际数据库结构不完全一致，仅作参考。
+5. `apps/api/prisma/schema.prisma` 与实际数据库结构不完全一致，仅作参考；建表请以 `database/01_schema.sql` 为准，不要用 `prisma migrate` 初始化。
 6. 开发默认值（`SESSION_SECRET`、`LEYOVA_MCP_TOKEN`）仅供本地调试，生产启动会强制要求覆盖。
 
 ## 贡献
