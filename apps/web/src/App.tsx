@@ -3,7 +3,7 @@ import { Layout } from '@/components/layout/Layout'
 import { SignInPage } from '@/pages/auth/SignInPage'
 
 // 总览
-import { HomePage } from '@/pages/overview/HomePage'
+import { PlatformAwareHomePage } from '@/pages/overview/PlatformAwareHomePage'
 import { CockpitPage } from '@/pages/overview/CockpitPage'
 import { LiveMonitorPage } from '@/pages/overview/LiveMonitorPage'
 // import { SessionsPage } from '@/pages/overview/SessionsPage' // 已冻结
@@ -98,7 +98,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/overview/home" replace />} />
 
         {/* ===== 总览 ===== */}
-        <Route path="/overview/home" element={<HomePage />} />
+        <Route path="/overview/home" element={<PlatformAwareHomePage />} />
         <Route path="/overview/cockpit" element={<CockpitPage />} />
         <Route path="/overview/live-monitor" element={<LiveMonitorPage />} />
         {/* <Route path="/overview/sessions" element={<SessionsPage />} />  已冻结 */}
