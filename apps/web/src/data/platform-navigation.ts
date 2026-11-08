@@ -155,10 +155,17 @@ function buildLiveSections(platformCode?: string): NavSection[] {
       title: '直播运营',
       items: [
         { label: '多直播间总览', icon: Monitor, href: '/system/multi-room', module: 'overview' },
+        { label: '场次排品', href: '/ops/session-products', module: 'session_products' },
+      ],
+    },
+    {
+      // 人工登记分组：纯手工录入，独立模块，不参与任何分析计算
+      // 复盘/驾驶舱用的场次数据来自官方 API 或手动上传（走「数据管理」）
+      title: '人工登记',
+      items: [
         { label: '个人达成', icon: CalendarDays, href: '/live/attendance', module: 'personal_achievement' },
         { label: '直播登记', icon: ClipboardPlus, href: '/live/registration', module: 'live_registration' },
         { label: '登记数据管理', icon: Table, href: '/live/data', module: 'live_data' },
-        { label: '场次排品', href: '/ops/session-products', module: 'session_products' },
       ],
     },
     {

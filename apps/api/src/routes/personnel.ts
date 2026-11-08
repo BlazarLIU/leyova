@@ -214,12 +214,17 @@ export async function personnelRoutes(app: FastifyInstance) {
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`
       const endDate = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`
 
+      // 个人达成数据来源：人工登记表（独立模块）
+      // 字段映射：biz_date → date, return_amount → return_amount,
+      //           gsv 无对应（人工登记不记 gsv），用 0 占位保持下游逻辑不变
       const sessionsRes = await pool.query(
-        `SELECT s.id, s.anchor_id, s.operator_id, s.date::text,
-                s.duration_min, s.start_time::text, s.gmv, s.gsv, s.return_amount
-         FROM live_sessions s
-         WHERE s.date >= $1::date AND s.date <= $2::date
-         ORDER BY s.date`,
+        `SELECT s.id, s.anchor_id, s.operator_id, s.biz_date::text AS date,
+                s.duration_min, s.start_time::text, s.gmv,
+                0::numeric AS gsv, s.return_amount
+         FROM live_registrations s
+         WHERE s.biz_date >= $1::date AND s.biz_date <= $2::date
+           AND s.status <> 'cancelled'
+         ORDER BY s.biz_date`,
         [startDate, endDate]
       )
 

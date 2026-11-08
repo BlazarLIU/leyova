@@ -568,27 +568,22 @@ export async function dataRoutes(app: FastifyInstance) {
   app.get('/api/v1/data/live', async (request, reply) => {
     const pool = getPool()
     try {
+      // 登记数据管理：只读人工登记表（独立模块，不混入系统场次数据）
       const { rows } = await pool.query(
-        `SELECT s.id, s.date::text,
+        `SELECT s.id, s.biz_date::text AS date,
                 s.anchor_id, s.room_id, s.operator_id,
                 a.name AS anchor_name,
                 r.name AS room_name,
                 o.name AS operator_name,
                 s.start_time::text, s.end_time::text,
                 s.duration_min AS duration,
-                s.title, s.gmv, s.gsv, s.status,
-                s.return_amount, s.remark,
-                s.ad_platform, s.ad_type, s.ad_cost, s.ad_gsv, s.ad_status,
-                s.uv_value, s.interaction_rate, s.retention_rate,
-                s.new_fans, s.gpm, s.avg_online, s.buyer_count,
-                s.exposure_view_rate, s.view_follow_rate, s.views,
-                s.gmv_per_hour, s.avg_item_price, s.online_peak,
-                s.new_group_members
-         FROM live_sessions s
+                s.title, s.gmv, s.return_amount AS refund_amount, s.status,
+                s.remark, s.entry_source, s.registered_at::text
+         FROM live_registrations s
          LEFT JOIN anchors a ON a.id = s.anchor_id
          LEFT JOIN live_rooms r ON r.id = s.room_id
          LEFT JOIN operators o ON o.id = s.operator_id
-         ORDER BY s.date DESC, s.start_time DESC
+         ORDER BY s.biz_date DESC, s.start_time DESC
          LIMIT 500`,
       )
       return sendOk(reply, rows)
@@ -605,7 +600,7 @@ export async function dataRoutes(app: FastifyInstance) {
       const { id } = request.params as { id: string }
       const { rows } = await pool.query(
         `SELECT s.*, a.name AS anchor_name, r.name AS room_name, o.name AS operator_name
-         FROM live_sessions s
+         FROM live_registrations s
          LEFT JOIN anchors a ON a.id = s.anchor_id
          LEFT JOIN live_rooms r ON r.id = s.room_id
          LEFT JOIN operators o ON o.id = s.operator_id
@@ -624,7 +619,7 @@ export async function dataRoutes(app: FastifyInstance) {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      const result = await pool.query('DELETE FROM live_sessions WHERE id = $1 RETURNING id', [parseInt(id)])
+      const result = await pool.query('DELETE FROM live_registrations WHERE id = $1 RETURNING id', [parseInt(id)])
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0, id: parseInt(id) })
     } catch (err) {
       request.log.warn({ err }, 'data/live delete failed')
@@ -640,11 +635,14 @@ export async function dataRoutes(app: FastifyInstance) {
       const body = request.body as Record<string, any>
       const sessionId = parseInt(id)
 
-      // 读取当前记录，用于计算合并后的有效字段（避免编辑改出重复登记）
+      // 读取当前登记记录（独立表 live_registrations）
       const { rows: current } = await pool.query(
-        `SELECT room_id, anchor_id, date, start_time FROM live_sessions WHERE id = $1`,
-        [sessionId]
+        `SELECT room_id, anchor_id, biz_date::text AS date, start_time::text
+           FROM live_registrations WHERE id = $1`,
+        [sessionId],
       )
+
+      // 去重校验：同主播 + 同直播间 + 同日期 + 同开始时间（排除自身）
       if (current[0]) {
         const effective = {
           room_id: body.roomId ?? current[0].room_id,
@@ -652,81 +650,70 @@ export async function dataRoutes(app: FastifyInstance) {
           date: body.date ?? current[0].date,
           start_time: body.startTime ?? current[0].start_time,
         }
-        // 去重校验：同主播、同直播间、同一天、且开始时间相同，视为重复登记（排除自身）。
-        // startTime 为空时跳过，status='cancelled' 的作废记录不计重复。
-        if (effective.start_time) {
-          const dup = await findDuplicateSession(pool, {
-            date: effective.date,
-            roomId: effective.room_id,
-            anchorId: effective.anchor_id,
-            startTime: effective.start_time,
-            excludeId: sessionId,
-          })
-          if (dup) {
-            return sendError(reply, 409, buildDuplicateMessage(dup, effective.date, effective.start_time))
+        if (effective.date && effective.start_time) {
+          const dupRes = await pool.query(
+            `SELECT id FROM live_registrations
+              WHERE biz_date = $1::date
+                AND COALESCE(anchor_id, 0) = COALESCE($2, 0)
+                AND COALESCE(room_id, 0) = COALESCE($3, 0)
+                AND start_time = $4::time
+                AND status <> 'cancelled'
+                AND id <> $5
+              LIMIT 1`,
+            [effective.date, effective.anchor_id, effective.room_id, effective.start_time, sessionId],
+          )
+          if (dupRes.rows.length > 0) {
+            return sendError(reply, 409, `该主播在 ${effective.date} ${effective.start_time} 已有登记记录（ID: ${dupRes.rows[0].id}）`)
           }
         }
       }
 
+      // 更新人工登记表（字段与其结构对齐）
       const result = await pool.query(
-        `UPDATE live_sessions SET
-           room_id = COALESCE($1, room_id),
-           anchor_id = COALESCE($2, anchor_id),
-           operator_id = $3,
-           date = COALESCE($4::date, date),
-           start_time = $5::time,
-           end_time = $6::time,
-           duration_min = COALESCE($7, duration_min),
-           title = COALESCE($8, title),
-           gmv = COALESCE($9, gmv),
-           return_amount = COALESCE($10, return_amount),
-           gsv = COALESCE($11, gsv),
-           remark = COALESCE($12, remark),
-           ad_platform = COALESCE($13, ad_platform),
-           ad_type = COALESCE($14, ad_type),
-           ad_cost = COALESCE($15, ad_cost),
-           ad_gsv = COALESCE($16, ad_gsv),
-           ad_status = COALESCE($17, ad_status),
-           uv_value = COALESCE($18, uv_value),
-           interaction_rate = COALESCE($19, interaction_rate),
-           retention_rate = COALESCE($20, retention_rate),
-           new_fans = COALESCE($21, new_fans),
-           gpm = COALESCE($22, gpm),
-           avg_online = COALESCE($23, avg_online),
-           buyer_count = COALESCE($24, buyer_count),
-           exposure_view_rate = COALESCE($25, exposure_view_rate),
-           view_follow_rate = COALESCE($26, view_follow_rate),
-           views = COALESCE($27, views),
-           gmv_per_hour = COALESCE($28, gmv_per_hour),
-           avg_item_price = COALESCE($29, avg_item_price),
-           online_peak = COALESCE($30, online_peak),
-           new_group_members = COALESCE($31, new_group_members),
-           audience_profile = COALESCE($32, audience_profile),
-           updated_at = NOW()
-         WHERE id = $33`,
+        `UPDATE live_registrations SET
+           room_id       = COALESCE($1, room_id),
+           anchor_id     = COALESCE($2, anchor_id),
+           operator_id   = COALESCE($3, operator_id),
+           biz_date      = COALESCE($4::date, biz_date),
+           start_time    = COALESCE($5::time, start_time),
+           end_time      = COALESCE($6::time, end_time),
+           duration_min  = COALESCE($7, duration_min),
+           title         = COALESCE($8, title),
+           gmv           = COALESCE($9, gmv),
+           orders        = COALESCE($10, orders),
+           buyer_count   = COALESCE($11, buyer_count),
+           return_amount = COALESCE($12, return_amount),
+           remark        = COALESCE($13, remark),
+           status        = COALESCE($14, status),
+           updated_at    = NOW()
+         WHERE id = $15
+         RETURNING *`,
         [
-          body.roomId, body.anchorId, body.operatorId ?? null,
-          body.date, body.startTime ?? null, body.endTime ?? null,
-          body.duration ?? 0, body.title ?? '',
-          body.gmv ?? 0, body.returnAmount ?? 0, body.gsv ?? 0, body.remark ?? '',
-          body.adPlatform ?? '', body.adType ?? '', body.adCost ?? 0, body.adGsv ?? 0,
-          body.adStatus ?? 1,
-          body.uvValue ?? null, body.interactionRate ?? null, body.retentionRate ?? null,
-          body.newFans ?? 0, body.gpm ?? null, body.avgOnline ?? 0, body.buyerCount ?? 0,
-          body.exposureViewRate ?? null, body.viewFollowRate ?? null, body.views ?? 0,
-          body.gmvPerHour ?? null, body.avgItemPrice ?? null, body.onlinePeak ?? 0,
-          body.newGroupMembers ?? 0, body.audienceProfile ?? null,
-          parseInt(id),
+          body.roomId ?? null,
+          body.anchorId ?? null,
+          body.operatorId ?? null,
+          body.date ?? null,
+          body.startTime ?? null,
+          body.endTime ?? null,
+          body.duration ?? null,
+          body.title ?? null,
+          body.gmv ?? null,
+          body.orders ?? null,
+          body.buyerCount ?? null,
+          body.returnAmount ?? null,
+          body.remark ?? null,
+          body.status ?? null,
+          sessionId,
         ],
       )
-      return sendOk(reply, { updated: (result.rowCount ?? 0) > 0, id: parseInt(id) })
+      if (result.rows.length === 0) return sendError(reply, 404, '登记记录不存在')
+      return sendOk(reply, result.rows[0], '登记信息已更新')
     } catch (err) {
       request.log.warn({ err }, 'data/live update failed')
-      return sendOk(reply, { updated: false })
+      return sendError(reply, 500, '更新登记信息失败')
     }
   })
 
-  // ── GET /api/v1/data/quality ──
   app.get('/api/v1/data/quality', async (request, reply) => {
     const pool = getPool()
     try {
