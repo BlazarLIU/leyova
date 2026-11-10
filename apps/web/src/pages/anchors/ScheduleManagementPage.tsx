@@ -255,11 +255,10 @@ export const ScheduleManagementPage: React.FC = () => {
 
       {messageNotice && (
         <div
-          className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
-            messageNotice.type === 'success'
-              ? 'bg-emerald-950/40 border-emerald-700/50 text-emerald-300'
-              : 'bg-rose-950/40 border-rose-700/50 text-rose-300'
-          }`}
+          className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${messageNotice.type === 'success'
+            ? 'bg-emerald-950/40 border-emerald-700/50 text-emerald-300'
+            : 'bg-rose-950/40 border-rose-700/50 text-rose-300'
+            }`}
         >
           <span>{messageNotice.text}</span>
           <button onClick={() => setMessageNotice(null)} className="hover:opacity-80">
@@ -317,17 +316,15 @@ export const ScheduleManagementPage: React.FC = () => {
         <div className="flex items-center gap-1 bg-gray-800/80 p-1 rounded-lg border border-gray-700">
           <button
             onClick={() => setViewMode('calendar')}
-            className={`px-3 py-1 rounded text-xs transition-colors ${
-              viewMode === 'calendar' ? 'bg-indigo-600 text-white font-medium' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-3 py-1 rounded text-xs transition-colors ${viewMode === 'calendar' ? 'bg-indigo-600 text-white font-medium' : 'text-gray-400 hover:text-white'
+              }`}
           >
             时段日历看板
           </button>
           <button
             onClick={() => setViewMode('table')}
-            className={`px-3 py-1 rounded text-xs transition-colors ${
-              viewMode === 'table' ? 'bg-indigo-600 text-white font-medium' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-3 py-1 rounded text-xs transition-colors ${viewMode === 'table' ? 'bg-indigo-600 text-white font-medium' : 'text-gray-400 hover:text-white'
+              }`}
           >
             排班数据表
           </button>
