@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug: Fastify API (Backend)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Debug: React Web (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5513",
+      "webRoot": "${workspaceFolder}/apps/web"
+    }
+  ]
+}
