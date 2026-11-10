@@ -29,13 +29,13 @@
 
 ```mermaid
 graph TD
-  A[Leyova 数字化运营中枢] --> M1[🏢 纯代运营展示模式: MCN 机构中枢 / 签约项目 / 排班中心 / 月结对账单]
-  A --> M2[🏷️ 纯品牌自播展示模式: 7 大平台全渠道货架 / 真实净利算法 / 投放对账]
-  A --> M3[🌐 全功能总览展示模式: 代运营 + 品牌自播双轨融合全局决策]
+  A["Leyova 数字化运营中枢"] --> M1["🏢 纯代运营展示模式: MCN机构中枢 / 签约项目 / 排班中心 / 月结对账单"]
+  A --> M2["🏷️ 纯品牌自播展示模式: 7大平台全渠道货架 / 真实净利算法 / 投放对账"]
+  A --> M3["🌐 全功能总览展示模式: 代运营 + 品牌自播双轨融合全局决策"]
 
-  A --> RBAC[6 级账号身份权限: 系统管理员 / 管理员 / 运营 / 财务 / HRBP / 员工]
-  A --> PF[7 大实战阵地专属打法: 抖音 · 快手 · 淘宝 · 天猫 · 京东 · 拼多多 · 小红书]
-  A --> AI[受控 AI 赋能: AI 助手 · 天气穿搭选品 · AI 智能排班 · 异动归因]
+  A --> RBAC["6级账号身份权限: 系统管理员 / 管理员 / 运营 / 财务 / HRBP / 员工"]
+  A --> PF["7大实战阵地专属打法: 抖音 · 快手 · 淘宝 · 天猫 · 京东 · 拼多多 · 小红书"]
+  A --> AI["受控 AI 赋能: AI助手 · 天气穿搭选品 · AI智能排班 · 异动归因"]
 ```
 
 ---
@@ -71,14 +71,14 @@ graph TD
 
 ```mermaid
 flowchart LR
-  L1[👑 系统管理员 super_admin] --> L2[🏢 管理员 admin<br/>业务总监 / 机构负责人]
-  L2 --> L3[🚀 运营 operator<br/>操盘手 / 场控 / 投放]
-  L2 --> L4[💰 财务 finance<br/>成本核算 / 月结对账单]
-  L2 --> L5[👥 HRBP hrbp<br/>主播梯队 / 考勤排班]
-  L3 --> L6[🎙️ 员工 employee<br/>带货主播 / 现场中控]
+  L1["👑 系统管理员 super_admin"] --> L2["🏢 管理员 admin<br/>业务总监 / 机构负责人"]
+  L2 --> L3["🚀 运营 operator<br/>操盘手 / 场控 / 投放"]
+  L2 --> L4["💰 财务 finance<br/>成本核算 / 月结对账单"]
+  L2 --> L5["👥 HRBP hrbp<br/>主播梯队 / 考勤排班"]
+  L3 --> L6["🎙️ 员工 employee<br/>带货主播 / 现场中控"]
   L5 --> L6
   
-  EXT[🏷️ 品牌自播代表 brand_viewer<br/>品牌专属受限只读看板] -.->|物理 RLS 强隔离| L2
+  EXT["🏷️ 品牌自播代表 brand_viewer<br/>品牌专属受限只读看板"] -.->|物理 RLS 强隔离| L2
 ```
 
 - **👑 Level 1 · 系统管理员 (`super_admin`)**：平台最高权限，平台店铺接入启停、多租户调度、数据字典与底层配置；
@@ -110,40 +110,41 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  subgraph 前端控制台 (apps/web · React 19 + Vite + Tailwind)
-    Topbar[顶栏中枢: 模式切换器 / 7大平台店铺选择 / 全局Cmd+K搜索]
-    Sidebar[自适应侧边栏: 按代运营/自播模式与7大平台业态动态裁剪]
-    Views[78个业务页面: 驾驶舱 / 排班中心 / 成本对账 / 品牌自播门户 / AI工作台]
+  subgraph Web["前端控制台 (apps/web · React 19 + Vite)"]
+    direction TB
+    UI_Top["顶栏中枢: 3大工作模式 / 7大平台店铺切换 / Cmd+K 全局搜索"]
+    UI_Side["自适应侧边栏: 按代运营与自播模式、7大平台业态动态裁剪"]
+    UI_Page["78个业务页面: 运营驾驶舱 / 排班中心 / 月结对账 / 品牌门户 / AI工作台"]
+    UI_Top --> UI_Page
+    UI_Side --> UI_Page
   end
 
-  subgraph 后端微服务 (apps/api · Fastify 5 + TypeScript)
-    Guard[RBAC 6级身份权限 & 成本敏感数据隔离中间件]
-    API_Core[258个业务API端点]
-    Engine_Profit[全口径净利算法引擎]
-    Engine_Schedule[AI 智能排班防冲突推导引擎]
-    Engine_Weather[气象联动智能选品穿搭引擎]
-    Engine_Alert[指标阈值告警与 Webhook 调度引擎]
-    Engine_AI[自研四阶受控 Agentic 编排器]
+  subgraph API["后端服务群 (apps/api · Fastify 5 + TypeScript)"]
+    direction TB
+    MW_Guard["安全守卫: 6级 RBAC 权限校验 + 商业成本脱敏隔离"]
+    API_Core["业务路由中枢: 258个 REST 端点 + SSE 流式通信"]
+    
+    subgraph Engines["核心业务算法与 AI 引擎"]
+      direction LR
+      E_Profit["真实净利算法"]
+      E_Sched["AI排班推导"]
+      E_Weather["气象穿搭选品"]
+      E_AI["4阶受控编排器"]
+    end
+    
+    MW_Guard --> API_Core
+    API_Core --> Engines
   end
 
-  subgraph 数据中枢 (PostgreSQL 14+)
-    DB_Base[(126 张业务表与事实表)]
-    DB_Migrations[database/migrate.js 自动化增量版本迁移链]
+  subgraph DB["数据中枢 (PostgreSQL 14+)"]
+    direction TB
+    DB_Tables[("126张核心业务与事实表")]
+    DB_Migrate["自动化增量迁移链 (100~113)"]
+    DB_Migrate -.-> DB_Tables
   end
 
-  Topbar --> Views
-  Sidebar --> Views
-  Views -->|REST API / SSE 流式通信| Guard
-  Guard --> API_Core
-  API_Core --> Engine_Profit
-  API_Core --> Engine_Schedule
-  API_Core --> Engine_Weather
-  API_Core --> Engine_Alert
-  API_Core --> Engine_AI
-  Engine_Profit --> DB_Base
-  Engine_Schedule --> DB_Base
-  Engine_AI --> DB_Base
-  DB_Migrations --> DB_Base
+  UI_Page ==>|REST / SSE 数据通信| MW_Guard
+  Engines ==>|连接池查询与写入| DB_Tables
 ```
 
 ---
