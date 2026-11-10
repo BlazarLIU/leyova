@@ -420,7 +420,7 @@ function buildAgencySection(): NavSection {
         icon: Building2,
         module: 'agency',
         children: [
-          { label: '甲方客户档案', href: '/agency/clients' },
+          { label: '品牌自播档案', href: '/agency/clients' },
           { label: '代播签约项目', href: '/agency/projects' },
           { label: '月结对账单凭据', href: '/agency/settlement' },
         ],
@@ -491,7 +491,7 @@ function buildAgencyPureNavigation(): NavSection[] {
     {
       title: '代播客户与对账',
       items: [
-        { label: '甲方品牌客户', icon: Building2, href: '/agency/clients' },
+        { label: '品牌自播管理', icon: Building2, href: '/agency/clients' },
         { label: '代播签约项目', icon: FileText, href: '/agency/projects' },
         { label: '月结对账单凭据', icon: Receipt, href: '/agency/settlement', badge: '法律级' },
       ],

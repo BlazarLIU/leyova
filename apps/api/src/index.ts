@@ -124,10 +124,10 @@ async function main() {
   await app.register(jdRoutes)       // jd: 京东专属分析（自营/POP/履约）
   await app.register(xiaohongshuRoutes) // xiaohongshu: 小红书专属分析（笔记/搜索/种草）
   await app.register(costRoutes)        // cost: 成本录入与净利计算 (Track 1)
-  await app.register(agencyClientsRoutes) // agency: 甲方客户档案与品牌账号 (Track 2)
+  await app.register(agencyClientsRoutes) // agency: 品牌自播档案与专属账号 (Track 2)
   await app.register(agencyProjectsRoutes) // agency: 项目合同与专项看板 (Track 2)
   await app.register(agencySettlementRoutes) // agency: 月结对账单与不可变保护 (Track 2)
-  await app.register(agencyPortalRoutes) // portal: 甲方品牌只读专属看板 (Track 2)
+  await app.register(agencyPortalRoutes) // portal: 品牌自播只读专属看板 (Track 2)
   await app.register(weatherRoutes)      // weather: 竞品差异化特色 · 天气 AI 穿搭与智能选品 (Track 1)
   await app.register(scheduleRoutes)     // schedule: AI 智能主播排班建议 (Track 1)
   await app.register(alertRulesRoutes)   // alerts: 自定义指标阈值告警与 Webhook 调度 (Track 1)

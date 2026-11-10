@@ -28,7 +28,7 @@ export const ClientsPage: React.FC = () => {
   const [contactPhone, setContactPhone] = useState('')
   const [contractNo, setContractNo] = useState('')
 
-  // 甲方账号表单
+  // 品牌自播账号表单
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [viewerName, setViewerName] = useState('')
@@ -104,7 +104,7 @@ export const ClientsPage: React.FC = () => {
         setUsername('')
         setPassword('')
         setViewerName('')
-        alert('甲方品牌独立登录账号开通成功！品牌方可使用该账号登录 /brand-portal 查看专属看板。')
+        alert('品牌自播专属登录账号开通成功！品牌方可使用该账号登录 /brand-portal 查看专属看板。')
       } else {
         const json = await res.json()
         alert(json.message || '开通账号失败')
@@ -119,9 +119,9 @@ export const ClientsPage: React.FC = () => {
       {/* 头部标题与操作 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">甲方品牌客户档案</h1>
+          <h1 className="text-xl font-bold text-gray-900">品牌自播档案管理</h1>
           <p className="text-xs text-gray-500 mt-1">
-            签约品牌方档案库：统一管理品牌合同、开通专属受限只读登录账号与项目权限隔离
+            品牌自播档案库：统一管理自播品牌合同、开通专属受限登录账号与项目权限隔离
           </p>
         </div>
         <button
@@ -179,7 +179,7 @@ export const ClientsPage: React.FC = () => {
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-600 bg-blue-50/80 hover:bg-blue-100/80 transition-colors"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                开通甲方账号
+                开通自播账号
               </button>
 
               <a
@@ -277,12 +277,12 @@ export const ClientsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 开通甲方账号弹窗 */}
+      {/* 开通品牌自播账号弹窗 */}
       {showUserModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-white rounded-xl shadow-xl border border-gray-100 w-full max-w-md p-6 space-y-4">
             <div>
-              <h3 className="text-base font-bold text-gray-900">开通甲方品牌专属登录账号</h3>
+              <h3 className="text-base font-bold text-gray-900">开通品牌自播专属登录账号</h3>
               <p className="text-xs text-gray-500 mt-1">
                 为【{selectedClientName}】生成独立登录凭证。该账号登录后自动受到项目范围与数据敏感字段隔离保护。
               </p>
@@ -329,7 +329,7 @@ export const ClientsPage: React.FC = () => {
                   <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                   权限安全保障说明：
                 </div>
-                <p>• 甲方账号无法查看其他品牌的数据与直播场次（数据库 RLS 强隔离）；</p>
+                <p>• 品牌自播账号无法查看其他品牌的数据与直播场次（数据库 RLS 强隔离）；</p>
                 <p>• 内部人力薪资与代播真实成本默认隐藏，仅开放成交 GMV、时长与正式月结单。</p>
               </div>
 

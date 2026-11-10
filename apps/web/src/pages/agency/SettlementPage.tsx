@@ -133,7 +133,7 @@ export const SettlementPage: React.FC = () => {
         <div className="text-xs text-amber-800 space-y-1">
           <p className="font-semibold">对账法律凭单不可篡改安全规则：</p>
           <p>
-            对账单状态一旦推进至「已发送 (sent)」、「甲方确认 (confirmed)」或「已结款 (paid)」，后端数据库触发不可逆锁定规则，严禁任何人员直接篡改金额或删除凭证，保障对账真实可信。
+            对账单状态一旦推进至「已发送 (sent)」、「品牌方确认 (confirmed)」或「已结款 (paid)」，后端数据库触发不可逆锁定规则，严禁任何人员直接篡改金额或删除凭证，保障对账真实可信。
           </p>
         </div>
       </div>
@@ -172,10 +172,10 @@ export const SettlementPage: React.FC = () => {
                     statusText = '内部复核中'
                   } else if (b.status === 'sent') {
                     statusBadge = 'bg-blue-50 text-blue-600 border border-blue-200'
-                    statusText = '已发送甲方 (已锁定)'
+                    statusText = '已发送品牌方 (已锁定)'
                   } else if (b.status === 'confirmed') {
                     statusBadge = 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                    statusText = '甲方已确认'
+                    statusText = '品牌方已确认'
                   } else if (b.status === 'paid') {
                     statusBadge = 'bg-purple-50 text-purple-600 border border-purple-200'
                     statusText = '款项已结清'
@@ -224,7 +224,7 @@ export const SettlementPage: React.FC = () => {
                               onClick={() => handleUpdateStatus(b.id, 'sent')}
                               className="px-2 py-1 text-[11px] bg-blue-600 text-white hover:bg-blue-700 rounded shadow-2xs"
                             >
-                              发送甲方
+                              发送品牌方
                             </button>
                           )}
                           {b.status === 'sent' && (

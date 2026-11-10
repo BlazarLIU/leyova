@@ -5,7 +5,7 @@ import { requireAuth } from '../../lib/guard.js'
 import bcrypt from 'bcryptjs'
 
 export async function agencyClientsRoutes(app: FastifyInstance) {
-  // ── GET /api/v1/agency/clients ── 获取甲方品牌客户列表
+  // ── GET /api/v1/agency/clients ── 获取品牌自播客户列表
   app.get('/api/v1/agency/clients', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
@@ -40,7 +40,7 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
     }
   })
 
-  // ── POST /api/v1/agency/clients ── 创建甲方客户
+  // ── POST /api/v1/agency/clients ── 创建品牌自播客户
   app.post('/api/v1/agency/clients', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
@@ -69,14 +69,14 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
         [tenantId, name, brandName || name, contact || null, contactPhone || null, contractNo || null]
       )
 
-      return sendOk(reply, rows[0], '甲方客户创建成功')
+      return sendOk(reply, rows[0], '品牌自播客户创建成功')
     } catch (err: any) {
       request.log.error(err, 'Failed to create agency client')
       return sendError(reply, 500, err.message)
     }
   })
 
-  // ── PUT /api/v1/agency/clients/:id ── 修改甲方客户
+  // ── PUT /api/v1/agency/clients/:id ── 修改品牌自播客户
   app.put('/api/v1/agency/clients/:id', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
@@ -113,7 +113,7 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
     }
   })
 
-  // ── POST /api/v1/agency/clients/:id/users ── 为甲方开通品牌登录账号
+  // ── POST /api/v1/agency/clients/:id/users ── 为品牌自播开通专属登录账号
   app.post('/api/v1/agency/clients/:id/users', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
@@ -168,7 +168,7 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
         clientId: Number(id),
         allowedProjects: projectIds,
         userType: 'brand_viewer',
-      }, '甲方品牌登录账号开通成功')
+      }, '品牌自播专属登录账号开通成功')
     } catch (err: any) {
       request.log.error(err, 'Failed to create brand viewer user')
       return sendError(reply, 500, err.message)

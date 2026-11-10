@@ -454,7 +454,7 @@ export const ScheduleManagementPage: React.FC = () => {
                     <th className="py-3 px-4">场次主题</th>
                     <th className="py-3 px-4">开播日期与时间</th>
                     <th className="py-3 px-4">直播间</th>
-                    <th className="py-3 px-4">执棒主播</th>
+                    <th className="py-3 px-4">带货主播</th>
                     <th className="py-3 px-4">场控运营</th>
                     <th className="py-3 px-4">项目归属</th>
                     <th className="py-3 px-4">状态</th>
@@ -608,7 +608,7 @@ export const ScheduleManagementPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1 font-medium">执棒主播</label>
+                    <label className="block text-gray-300 mb-1 font-medium">带货主播</label>
                     <select
                       required
                       value={modalForm.anchorId}

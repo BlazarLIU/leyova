@@ -203,7 +203,7 @@ export const ProjectsPage: React.FC = () => {
             <h3 className="text-base font-bold text-gray-900">签约代播项目合同</h3>
             <form onSubmit={handleCreate} className="space-y-3 text-xs">
               <div>
-                <label className="block text-gray-600 mb-1">所属甲方品牌客户</label>
+                <label className="block text-gray-600 mb-1">所属自播品牌</label>
                 <select
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}

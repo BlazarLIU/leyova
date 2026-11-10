@@ -4,7 +4,7 @@ import { sendOk, sendError } from '../../lib/http.js'
 import { requireAuth } from '../../lib/guard.js'
 
 export async function agencyPortalRoutes(app: FastifyInstance) {
-  // ── GET /api/v1/portal/dashboard ── 甲方专属看板数据
+  // ── GET /api/v1/portal/dashboard ── 品牌自播专属看板数据
   app.get('/api/v1/portal/dashboard', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user

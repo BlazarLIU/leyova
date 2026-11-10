@@ -85,7 +85,7 @@ export const BrandDashboardPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-gray-900">{brandName} · 品牌履约驾驶舱</h1>
               <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                <ShieldCheck className="w-3.5 h-3.5" /> 甲方受限只读视角
+                <ShieldCheck className="w-3.5 h-3.5" /> 品牌自播受限只读视角
               </span>
             </div>
             <p className="text-xs text-gray-400 mt-1">
