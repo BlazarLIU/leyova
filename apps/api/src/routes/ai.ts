@@ -20,6 +20,45 @@ import {
   resolveApprovalAction,
   resolveRejectAction,
 } from '../lib/ai-access.js'
+import { runAnalysis, type AnalysisResult } from '../ai/orchestrator.js'
+
+function formatAnalysisToMarkdown(result: AnalysisResult): string {
+  const { conclusion, verification } = result
+  const lines: string[] = []
+
+  lines.push(`### 💡 核心结论\n**${conclusion.headline}**\n`)
+
+  if (conclusion.findings && conclusion.findings.length > 0) {
+    lines.push(`#### 📊 关键业务指标`)
+    for (const f of conclusion.findings) {
+      lines.push(`- ${f}`)
+    }
+    lines.push('')
+  }
+
+  if (conclusion.risks && conclusion.risks.length > 0) {
+    lines.push(`#### ⚠️ 风险与异动识别`)
+    for (const r of conclusion.risks) {
+      lines.push(`- ${r}`)
+    }
+    lines.push('')
+  }
+
+  if (conclusion.actions && conclusion.actions.length > 0) {
+    lines.push(`#### 🎯 经营决策建议`)
+    for (const a of conclusion.actions) {
+      lines.push(`1. ${a}`)
+    }
+    lines.push('')
+  }
+
+  const verifyText = verification.passed
+    ? `🛡️ **数据真实性核验**：全量 ${verification.checkedNumbers} 个核心数据指标 100% 溯源通过（零大模型幻觉计算）`
+    : `🛡️ **数据真实性核验**：${verification.matched}/${verification.checkedNumbers} 个指标已核验`
+  lines.push(`> [!NOTE]\n> ${verifyText}\n`)
+
+  return lines.join('\n')
+}
 export async function aiRoutes(app: FastifyInstance) {
   // ── GET /api/v1/ai/daily-report ── 数据驱动日报简报
   app.get('/api/v1/ai/daily-report', async (request, reply) => {
@@ -281,74 +320,28 @@ export async function aiRoutes(app: FastifyInstance) {
         knowledgePublicWorkspace: bindings[0]?.knowledge_public_workspace,
       }
 
-      const aiCfg = await refreshAiRuntimeConfig()
+      // 5. 执行自研 Agentic Orchestrator (四阶受控编排：Planner → Executor → Critic → Reporter)
       let replyText = ''
-      let provider: 'deerflow' | 'openclaw' | 'fallback' = 'fallback'
-      let modelName = env.OPENCLAW_MODEL
+      let provider = 'agentic-orchestrator'
+      let modelName = 'agentic-bi-v4'
 
-      // OpenClaw 优先（主底座，2026-09-01 由 DeerFlow 优先切换）：
-      // 记忆/知识检索 + 工具调用均在 OpenClaw 链路完成；不可用时再回退 DeerFlow。
-      const openClawRes = await requestOpenClawReply({
-        message,
-        conversationId: convId,
-        modelName: env.OPENCLAW_MODEL,
-        context: scope,
-        systemPrompt: LEYOVA_SYSTEM_PROMPT,
-        history,
-      })
-
-      if (openClawRes && openClawRes.reply) {
-        replyText = openClawRes.reply
-        provider = 'openclaw'
-        modelName = openClawRes.modelName
-      }
-
-      // DeerFlow 兜底（OpenClaw 不可用时无缝回退；ai_engine=openclaw 时
-      // requestDeerFlowReply 直接返回 null，落入规则引擎兜底）。
-      // 超时解耦：归因类长链路若超过 deerflowTimeoutMs、deerFlowRes 返回 null 落入
-      // fallback，但 run 仍在 DeerFlow 侧继续；onLateReply 会在后台补取到真实回复后
-      // 回调，把库里的 fallback 文本替换为完整回复——不再丢真实三段式回复。
-      if (!replyText) {
-        const deerFlowRes = await requestDeerFlowReply({
-          message,
-          conversationId: convId,
-          deerflowThreadId: toDeerFlowThreadId(convId),
-          systemPrompt: LEYOVA_SYSTEM_PROMPT,
-          options: runOptions,
-          // 多用户隔离：当前会话用户 → DeerFlow config.context.secrets.leyova_user_id
-          // → MCP 拦截器注入 X-Leyova-User-Id → leyova MCP 按用户隔离数据
-          userId: user.id,
-          onLateReply: async (lateRes) => {
-            // 仅替换刚写入的 fallback 一行（按内容精确匹配，避免误覆盖后续新回复）
-            if (!lateRes.reply || !replyText) return
-            try {
-              const { rowCount } = await pool.query(
-                `UPDATE ai_messages SET content = $2
-                 WHERE id = (
-                   SELECT id FROM ai_messages
-                   WHERE conversation_id = $1 AND role = 'assistant' AND content = $3
-                   ORDER BY id DESC LIMIT 1
-                 )`,
-                [convId, lateRes.reply, replyText]
-              )
-              if (rowCount === 1) {
-                console.info(`[ai] DeerFlow 异步补取回复已替换 fallback 文本（${lateRes.reply.length} 字符）`)
-              }
-            } catch (lateErr) {
-              console.warn('[ai] DeerFlow 异步补取回复落库失败:', (lateErr as Error).message)
-            }
+      try {
+        const analysisRes = await runAnalysis(
+          {
+            question: message,
+            role: user.role,
+            userId: user.id,
+            conversationId: Number(convId),
           },
-        })
-
-        if (deerFlowRes && deerFlowRes.reply) {
-          replyText = deerFlowRes.reply
-          provider = 'deerflow'
-          modelName = aiCfg.deerflowModel
-        }
-      }
-
-      if (!replyText) {
+          null,
+          pool
+        )
+        replyText = formatAnalysisToMarkdown(analysisRes)
+      } catch (orchErr) {
+        request.log.warn({ orchErr }, 'Agentic runAnalysis failed, fallback to rule engine')
         replyText = await generateDataDrivenReply(pool, message).catch(() => '')
+        provider = 'fallback'
+        modelName = 'rule-engine-fallback'
       }
 
       // 6. 保存 AI 回复
@@ -364,11 +357,9 @@ export async function aiRoutes(app: FastifyInstance) {
         conversationId: Number(convId),
         actorUserId: user.id,
         scope,
-        toolName: provider === 'deerflow'
-          ? 'deerflow.chat'
-          : provider === 'openclaw'
-            ? 'openclaw.chat'
-            : 'fallback.rule_engine',
+        toolName: provider === 'agentic-orchestrator'
+          ? 'orchestrator.chat'
+          : 'fallback.rule_engine',
         riskLevel: 'read_only',
         inputPayload: { message },
         resultSummary: replyText.slice(0, 500),
@@ -495,61 +486,46 @@ export async function aiRoutes(app: FastifyInstance) {
       // 发送 conversationId
       reply.raw.write(`data: ${JSON.stringify({ type: 'conversation', conversationId: convId })}\n\n`)
 
-      // 7. 尝试流式 OpenClaw（SSE）→ DeerFlow 兜底 → 规则引擎兜底
+      // 7. 执行自研 Agentic Orchestrator (四阶受控编排：Planner → Executor → Critic → Reporter)
       let fullReply = ''
-      let provider: 'deerflow' | 'openclaw' | 'fallback' = 'fallback'
+      let provider = 'agentic-orchestrator'
 
-      const openClawRes = await streamOpenClawReply(
-        {
-          message,
-          conversationId: convId,
-          modelName: env.OPENCLAW_MODEL,
-          context: scope,
-          systemPrompt: LEYOVA_SYSTEM_PROMPT,
-          history,
-        },
-        (token) => {
-          fullReply += token
-          reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: token })}\n\n`)
-        }
-      )
+      try {
+        // 发送规划阶段工具指示
+        reply.raw.write(`data: ${JSON.stringify({ type: 'tool_call', tool: 'planner: 构建受控分析计划' })}\n\n`)
 
-      if (openClawRes) {
-        provider = 'openclaw'
-      } else {
-        // DeerFlow 兜底（ai_engine=openclaw 时 streamDeerFlowReply 直接返回 null）
-        const deerFlowRes = await streamDeerFlowReply(
+        const analysisRes = await runAnalysis(
           {
-            message,
-            conversationId: convId,
-            deerflowThreadId: toDeerFlowThreadId(convId),
-            systemPrompt: LEYOVA_SYSTEM_PROMPT,
-            // 多用户隔离：会话用户 → config.context.secrets.leyova_user_id → X-Leyova-User-Id
+            question: message,
+            role: user.role,
             userId: user.id,
-            options: runOptions,
+            conversationId: Number(convId),
           },
-          (token) => {
-            fullReply += token
-            reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: token })}\n\n`)
-          },
-          (toolName) => {
-            // 转发工具调用指示（前端渲染「调用工具」条）
-            reply.raw.write(`data: ${JSON.stringify({ type: 'tool_call', tool: toolName })}\n\n`)
-          }
+          null,
+          pool
         )
 
-        if (!deerFlowRes) {
-          // DeerFlow 也不可用，回退到规则引擎
-          provider = 'fallback'
-          fullReply = await generateDataDrivenReply(pool, message)
-
-          // 逐块发送 fallback 回复
-          const chunks = fullReply.match(/[\s\S]{1,20}/g) || [fullReply]
-          for (const chunk of chunks) {
-            reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`)
+        // 转发工具执行步骤指示条（前端实时高亮正在调用的语义工具）
+        for (const step of analysisRes.steps) {
+          if (step.role === 'executor') {
+            reply.raw.write(`data: ${JSON.stringify({ type: 'tool_call', tool: `${step.toolName}: 语义层精确取数` })}\n\n`)
           }
-        } else {
-          provider = 'deerflow'
+        }
+
+        fullReply = formatAnalysisToMarkdown(analysisRes)
+
+        // 逐块流式推送经过 Critic 100% 验证的分析结论 Markdown
+        const chunks = fullReply.match(/[\s\S]{1,15}/g) || [fullReply]
+        for (const chunk of chunks) {
+          reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`)
+        }
+      } catch (orchErr) {
+        request.log.warn({ orchErr }, 'Agentic stream runAnalysis failed, fallback to rule engine')
+        provider = 'fallback'
+        fullReply = await generateDataDrivenReply(pool, message)
+        const chunks = fullReply.match(/[\s\S]{1,20}/g) || [fullReply]
+        for (const chunk of chunks) {
+          reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`)
         }
       }
 

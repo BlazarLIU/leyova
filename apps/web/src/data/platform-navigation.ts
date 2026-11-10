@@ -28,9 +28,11 @@ import {
   LayoutDashboard, BarChart3, Monitor, Radio, TrendingUp, Globe, Bot,
   CalendarDays, ClipboardPlus, Table, Clapperboard, LineChart, Mic, Zap,
   BarChart4, Database, Settings, AlertTriangle, Store, Package,
-  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Layers, Home, Clock,
+  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Layers, Home, Clock, Undo2, Shield,
+  CloudSun, Building2, Trophy, Receipt, Eye,
 } from 'lucide-react'
 import type { NavSection, NavSubItem } from '@/types'
+import type { WorkMode } from '@/hooks/useWorkMode'
 
 export type PlatformMode = 'live' | 'shelf' | 'content'
 
@@ -129,6 +131,7 @@ function buildAiSection(mode: PlatformMode): NavSection {
     title: '智能分析',
     items: [
       { label, icon: Bot, href: '/ai/chat', badge: 'New', module: 'ai' },
+      { label: '天气 AI 选品穿搭', icon: CloudSun, href: '/ai/weather', badge: '智能', module: 'ai' },
       {
         label: '商业智能',
         icon: LineChart,
@@ -136,6 +139,7 @@ function buildAiSection(mode: PlatformMode): NavSection {
         children: [
           { label: 'BI 仪表盘', href: '/bi/dashboard' },
           { label: 'ROI 看板', href: '/bi/roi' },
+          { label: '退款分析', href: '/bi/refund-analysis' },
           { label: '异常检测', href: '/bi/anomaly-detection' },
         ],
       },
@@ -178,6 +182,10 @@ function buildLiveSections(platformCode?: string): NavSection[] {
           children: [
             { label: '主播列表', href: '/anchors/list' },
             { label: '主播档案', href: '/anchors/profile' },
+            { label: '我的排班', href: '/anchors/my-schedule' },
+            { label: '排班管理', href: '/anchors/schedule' },
+            { label: 'AI智能排班', href: '/anchors/schedule-recommend' },
+            { label: '我的业绩', href: '/anchors/my-performance' },
             { label: '训练管理', href: '/anchors/training' },
             { label: '话术模板', href: '/ops/script-library' },
             { label: '能力看板', href: '/ops/capabilities' },
@@ -222,6 +230,7 @@ function buildLiveSections(platformCode?: string): NavSection[] {
           children: [
             { label: '问题库', href: '/ops/issue-library' },
             { label: '目标达成', href: '/ops/goal-tracking' },
+            { label: '经营成本核算', href: '/ops/costs' },
             { label: '直播间健康度', href: '/ops/room-health' },
             { label: '改进任务', href: '/system/tasks' },
             { label: '活动管理', href: '/system/promotions' },
@@ -264,8 +273,10 @@ function buildShelfSections(platformCode?: string): NavSection[] {
         ...(isPdd ? [
           { label: '成团转化分析', icon: Users, href: '/shop/pdd/group-funnel' },
           { label: '三口径对账', icon: Layers, href: '/shop/pdd/caliber-compare' },
+          { label: '售后与店铺健康', icon: Undo2, href: '/shop/pdd/refund' },
         ] : []),
         ...(isJd ? [
+          { label: '店铺星级（四维考核）', icon: Shield, href: '/shop/jd/store-rating' },
           { label: '履约时效监控', icon: Clock, href: '/shop/jd/fulfillment' },
         ] : []),
         { label: '商品结构分析', icon: Package, href: '/shop/products', module: 'product_center' },
@@ -275,6 +286,7 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           module: 'ops',
           children: isTaobaoFamily
             ? [
+                { label: '商品与渠道结构', href: '/shop/taobao/product-channel' },
                 { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
                 { label: '万相台投放对账', href: '/shop/taobao/ad-reconciliation' },
                 { label: '投放 ROI 分析', href: '/bi/roi' },
@@ -318,6 +330,7 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           module: 'ops',
           children: [
             { label: '目标达成', href: '/ops/goal-tracking' },
+            { label: '经营成本核算', href: '/ops/costs' },
             { label: '活动管理', href: '/system/promotions', module: 'ops_activities' },
             { label: '改进任务', href: '/system/tasks' },
             { label: '问题库', href: '/ops/issue-library' },
@@ -384,6 +397,7 @@ function buildContentSections(): NavSection[] {
           module: 'ops',
           children: [
             { label: '目标达成', href: '/ops/goal-tracking' },
+            { label: '经营成本核算', href: '/ops/costs' },
             { label: '活动管理', href: '/system/promotions', module: 'ops_activities' },
             { label: '改进任务', href: '/system/tasks' },
           ],
@@ -391,6 +405,28 @@ function buildContentSections(): NavSection[] {
       ],
     },
   ]
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 代运营与对账管理
+// ═══════════════════════════════════════════════════════════════
+
+function buildAgencySection(): NavSection {
+  return {
+    title: '代运营管理',
+    items: [
+      {
+        label: 'MCN 代运营',
+        icon: Building2,
+        module: 'agency',
+        children: [
+          { label: '甲方客户档案', href: '/agency/clients' },
+          { label: '代播签约项目', href: '/agency/projects' },
+          { label: '月结对账单凭据', href: '/agency/settlement' },
+        ],
+      },
+    ],
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -419,16 +455,114 @@ function buildSystemSection(): NavSection {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 主入口
+// 模式一：纯代运营展示模式（MCN 机构运营架构）
+// ═══════════════════════════════════════════════════════════════
+
+function buildAgencyPureNavigation(): NavSection[] {
+  return [
+    {
+      title: '运营驾驶',
+      items: [
+        { label: '运营驾驶舱', icon: BarChart3, href: '/overview/cockpit', badge: '代播版' },
+        { label: '实时监控', icon: Radio, href: '/overview/live-monitor' },
+        { label: '多直播间总览', icon: Monitor, href: '/system/multi-room' },
+      ],
+    },
+    {
+      title: '直播管理',
+      items: [
+        { label: '主播管理', icon: Users, href: '/anchors/list' },
+        { label: '我的排班', icon: CalendarDays, href: '/anchors/my-schedule' },
+        { label: '排班管理', icon: Clock, href: '/anchors/schedule' },
+        { label: 'AI排班建议', icon: Bot, href: '/anchors/schedule-recommend', badge: 'AI' },
+      ],
+    },
+    {
+      title: '业务分析',
+      items: [
+        { label: '业绩数据', icon: LineChart, href: '/overview/analytics' },
+        { label: '主播效能数据', icon: Mic, href: '/review/anchors' },
+        { label: '天气AI穿搭', icon: CloudSun, href: '/ai/weather', badge: '特色' },
+        { label: '我的业绩', icon: Trophy, href: '/anchors/my-performance' },
+        { label: '成本核算', icon: Layers, href: '/ops/costs' },
+        { label: '竞品观察', icon: Eye, href: '/system/competitors' },
+      ],
+    },
+    {
+      title: '代播客户与对账',
+      items: [
+        { label: '甲方品牌客户', icon: Building2, href: '/agency/clients' },
+        { label: '代播签约项目', icon: FileText, href: '/agency/projects' },
+        { label: '月结对账单凭据', icon: Receipt, href: '/agency/settlement', badge: '法律级' },
+      ],
+    },
+    {
+      title: '系统工具',
+      items: [
+        { label: '数据报警 (Webhook)', icon: AlertTriangle, href: '/system/alerts' },
+        { label: '系统设置与权限', icon: Settings, href: '/system/users' },
+      ],
+    },
+  ]
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 模式二：纯品牌自播展示模式（7大平台全渠道决策，隐藏外包中介）
+// ═══════════════════════════════════════════════════════════════
+
+function buildBrandPureNavigation(mode: PlatformMode, capability?: PlatformCapability | null): NavSection[] {
+  const sections: NavSection[] = [
+    {
+      title: '品牌经营总览',
+      items: [
+        { label: '全渠道经营大盘', icon: Globe, href: '/omnichannel/dashboard', badge: '7大平台' },
+        { label: '店铺经营看板', icon: Store, href: '/shop/overview' },
+        { label: '经营分析工作台', icon: Bot, href: '/ai/workbench' },
+      ],
+    },
+  ]
+
+  if (mode === 'live') {
+    sections.push(...buildLiveSections(capability?.platformCode))
+  } else if (mode === 'shelf') {
+    sections.push(...buildShelfSections(capability?.platformCode))
+  } else {
+    sections.push(...buildContentSections())
+  }
+
+  sections.push(buildAiSection(mode))
+  sections.push(buildDataSection(mode))
+  sections.push(buildSystemSection())
+
+  return sections
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 主入口：按 3 个展示模块分流构建导航
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * 根据平台业态构建完整导航。
- * 这是菜单的唯一来源，Sidebar 只负责渲染。
+ * 根据平台业态与工作模式构建导航。
+ * @param capability 平台能力
+ * @param workMode 3 种展示模式：agency(纯代运营) | brand(纯品牌自播) | all(全功能)
  */
-export function buildNavigation(capability?: PlatformCapability | null): NavSection[] {
+export function buildNavigation(
+  capability?: PlatformCapability | null,
+  workMode: WorkMode = 'all'
+): NavSection[] {
+  // 模式一：纯代运营展示模式
+  if (workMode === 'agency') {
+    return buildAgencyPureNavigation()
+  }
+
   const mode = resolvePlatformMode(capability)
 
+  // 模式二：纯品牌自播展示模式
+  if (workMode === 'brand') {
+    return buildBrandPureNavigation(mode, capability)
+  }
+
+  // 模式三：包含代运营和品牌自播的全功能展示
   const sections: NavSection[] = [buildOverviewSection(mode)]
 
   if (mode === 'live') {
@@ -440,6 +574,7 @@ export function buildNavigation(capability?: PlatformCapability | null): NavSect
   }
 
   sections.push(buildAiSection(mode))
+  sections.push(buildAgencySection())
   sections.push(buildDataSection(mode))
   sections.push(buildSystemSection())
 

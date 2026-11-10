@@ -6,6 +6,7 @@ import { cn } from '@/utils/cn'
 import { buildNavigation } from '@/data/platform-navigation'
 import { useSidebar } from '@/hooks/useSidebar'
 import { usePlatform } from '@/hooks/usePlatform'
+import { useWorkMode } from '@/hooks/useWorkMode'
 import { api } from '@/services/api'
 import type { NavItem, NavSection, RoleInfo } from '@/types'
 
@@ -236,6 +237,7 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
   }
 
   const { currentPlatform, isModuleSupported } = usePlatform()
+  const { workMode, currentModeInfo } = useWorkMode()
 
   const canSee = (m?: string) =>
     // 平台能力过滤：当前平台若不支持该模块，直接隐藏
@@ -256,7 +258,7 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     const cap = currentPlatform?.capabilities
       ? { ...currentPlatform.capabilities, platformCode: currentPlatform.platform_code }
       : null
-    let sections = buildNavigation(cap)
+    let sections = buildNavigation(cap, workMode)
 
     // controller → 不显示「系统」分组
     if (role === 'controller') {
@@ -301,6 +303,17 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
       className="fixed left-0 top-0 h-screen bg-orbit-surface border-r border-orbit-border flex flex-col z-40 overflow-hidden"
     >
       <LeyovaLogo collapsed={collapsed && !isMobile} />
+
+      {(!collapsed || isMobile) && (
+        <div className="px-3 pt-2 pb-1">
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-orbit-border/60 text-[11px]">
+            <span className="text-slate-400 font-medium truncate">系统模式</span>
+            <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold border', currentModeInfo.badgeColor)}>
+              {currentModeInfo.shortLabel}
+            </span>
+          </div>
+        </div>
+      )}
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-6">
         {getVisibleNavigation(userRole).map(section => (

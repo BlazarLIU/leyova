@@ -7,6 +7,8 @@ import { useSidebar } from '@/hooks/useSidebar'
 import { useTheme } from '@/hooks/useTheme'
 import { api } from '@/services/api'
 import { PlatformShopSelector } from '@/components/common/PlatformShopSelector'
+import { GlobalSearch } from '@/components/common/GlobalSearch'
+import { WorkModeSwitcher } from '@/components/common/WorkModeSwitcher'
 
 const routeLabels: Record<string, string> = {
   '/overview/home': '首页',
@@ -115,9 +117,19 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
         <span className="text-slate-200 font-medium">{pageTitle}</span>
       </div>
 
+      {/* 3 种展示模式快速切换器：代运营 MCN / 品牌自播 (全渠道) / 全功能总览 */}
+      <div className="ml-2 hidden sm:block">
+        <WorkModeSwitcher />
+      </div>
+
       {/* Platform & Shop Quick Selector */}
       <div className="ml-2 hidden sm:block">
         <PlatformShopSelector />
+      </div>
+
+      {/* Global Command/Search Palette */}
+      <div className="ml-2 hidden md:block">
+        <GlobalSearch />
       </div>
 
       {/* Right: actions */}

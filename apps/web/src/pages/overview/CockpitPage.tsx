@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { DollarSign, Percent, TrendingUp, BarChart3, Package, ClipboardList, FileText, Calendar } from 'lucide-react'
 import { StatCard } from '@/components/ui/StatCard'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
+import { PerformanceLeaderboard } from '@/components/overview/PerformanceLeaderboard'
+import { useWorkMode } from '@/hooks/useWorkMode'
 import { api } from '@/services/api'
 import type { StatCardData } from '@/types'
 
@@ -49,6 +51,7 @@ const trafficColors = [
 ]
 
 export function CockpitPage() {
+  const { workMode } = useWorkMode()
   const [cockpitStats, setCockpitStats] = useState<StatCardData[]>(defaultStats())
   const [gmvTrendData, setGmvTrendData] = useState<TrendItem[]>([])
   const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([])
@@ -146,8 +149,25 @@ export function CockpitPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">经营驾驶舱</h1>
-            <p className="text-slate-500 text-sm mt-1">核心经营数据总览</p>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-bold text-slate-100">
+                {workMode === 'agency'
+                  ? 'Leyova 直播代运营中心'
+                  : workMode === 'brand'
+                  ? '品牌自播经营驾驶舱'
+                  : '全功能综合经营驾驶舱'}
+              </h1>
+              {workMode === 'agency' && (
+                <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  MCN 专业版
+                </span>
+              )}
+            </div>
+            <p className="text-slate-400 text-xs mt-1">
+              {workMode === 'agency'
+                ? '基于排班、搭档绩效、主播直播数据和代播项目汇总当前周期的运营表现'
+                : '全平台全渠道店铺核心经营数据、真实净利与流量转化总览'}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-slate-500" />
@@ -298,6 +318,15 @@ export function CockpitPage() {
             </div>
           </CardBody>
         </Card>
+      </motion.div>
+
+      {/* 竞品对标：业绩排行榜 (主播GMV / 项目 双维度) */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.45 }}
+      >
+        <PerformanceLeaderboard />
       </motion.div>
 
       {/* ── 巡检摘要 & 经营日报 ── */}

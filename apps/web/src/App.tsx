@@ -37,6 +37,9 @@ import { KsIndirectGmvPage } from '@/pages/shop/kuaishou/KsIndirectGmvPage'
 import { KsFansTeamPage } from '@/pages/shop/kuaishou/KsFansTeamPage'
 import { JdBusinessBoardPage } from '@/pages/shop/jd/JdBusinessBoardPage'
 import { JdFulfillmentPage } from '@/pages/shop/jd/JdFulfillmentPage'
+import { JdStoreRatingPage } from '@/pages/shop/jd/JdStoreRatingPage'
+import { PddRefundAnalysisPage } from '@/pages/shop/pdd/PddRefundAnalysisPage'
+import { TaobaoProductChannelPage } from '@/pages/shop/taobao/TaobaoProductChannelPage'
 import { XhsNoteBoardPage } from '@/pages/shop/xiaohongshu/XhsNoteBoardPage'
 import { XhsConversionPage } from '@/pages/shop/xiaohongshu/XhsConversionPage'
 import { PlatformManagementPage } from '@/pages/system/PlatformManagementPage'
@@ -59,9 +62,20 @@ import { AnchorListPage } from '@/pages/anchors/AnchorListPage'
 import { AnchorProfilePage } from '@/pages/anchors/AnchorProfilePage'
 import { TrainingPage } from '@/pages/anchors/TrainingPage'
 import { ScriptTemplatesPage } from '@/pages/anchors/ScriptTemplatesPage'
+import { ScheduleRecommendPage } from '@/pages/anchors/ScheduleRecommendPage'
+import { ScheduleManagementPage } from '@/pages/anchors/ScheduleManagementPage'
+import { MySchedulePage } from '@/pages/anchors/MySchedulePage'
+import { MyPerformancePage } from '@/pages/anchors/MyPerformancePage'
+import { WeatherSelectionPage } from '@/pages/ai/WeatherSelectionPage'
+import { BrandLoginPage } from '@/pages/brand-portal/BrandLoginPage'
 
 // 运营提效
 import { CapabilitiesPage } from '@/pages/ops/CapabilitiesPage'
+import { CostStructurePage } from '@/pages/ops/CostStructurePage'
+import { ClientsPage } from '@/pages/agency/ClientsPage'
+import { ProjectsPage } from '@/pages/agency/ProjectsPage'
+import { SettlementPage } from '@/pages/agency/SettlementPage'
+import { BrandDashboardPage } from '@/pages/brand-portal/BrandDashboardPage'
 
 import { IssueLibraryPage } from '@/pages/ops/IssueLibraryPage'
 import { GoalTrackingPage } from '@/pages/ops/GoalTrackingPage'
@@ -91,6 +105,7 @@ export default function App() {
     <Routes>
       {/* Auth routes — no sidebar layout */}
       <Route path="/sign-in" element={<SignInPage />} />
+      <Route path="/brand-login" element={<BrandLoginPage />} />
 
       {/* Main app routes — with sidebar layout */}
       <Route element={<Layout />}>
@@ -111,6 +126,7 @@ export default function App() {
 
         {/* ===== AI 分析助手 ===== */}
         <Route path="/ai/chat" element={<ChatPage />} />
+        <Route path="/ai/weather" element={<WeatherSelectionPage />} />
 
         {/* ===== 数据管理 ===== */}
         <Route path="/data/management" element={<DataManagementPage />} />
@@ -132,6 +148,9 @@ export default function App() {
         <Route path="/shop/kuaishou/fans-team" element={<KsFansTeamPage />} />
         <Route path="/shop/jd/board" element={<JdBusinessBoardPage />} />
         <Route path="/shop/jd/fulfillment" element={<JdFulfillmentPage />} />
+        <Route path="/shop/jd/store-rating" element={<JdStoreRatingPage />} />
+        <Route path="/shop/pdd/refund" element={<PddRefundAnalysisPage />} />
+        <Route path="/shop/taobao/product-channel" element={<TaobaoProductChannelPage />} />
         <Route path="/shop/xiaohongshu/notes" element={<XhsNoteBoardPage />} />
         <Route path="/shop/xiaohongshu/conversion" element={<XhsConversionPage />} />
         <Route path="/system/platforms" element={<PlatformManagementPage />} />
@@ -153,6 +172,10 @@ export default function App() {
         <Route path="/anchors/list" element={<AnchorListPage />} />
         <Route path="/anchors/profile" element={<AnchorProfilePage />} />
         <Route path="/anchors/training" element={<TrainingPage />} />
+        <Route path="/anchors/schedule" element={<ScheduleManagementPage />} />
+        <Route path="/anchors/my-schedule" element={<MySchedulePage />} />
+        <Route path="/anchors/schedule-recommend" element={<ScheduleRecommendPage />} />
+        <Route path="/anchors/my-performance" element={<MyPerformancePage />} />
         {/* ===== 运营提效 ===== */}
         <Route path="/ops/capabilities" element={<CapabilitiesPage />} />
         <Route path="/ops/script-library" element={<ScriptTemplatesPage />} />
@@ -160,6 +183,13 @@ export default function App() {
         <Route path="/ops/goal-tracking" element={<GoalTrackingPage />} />
         <Route path="/ops/room-health" element={<RoomHealthPage />} />
         <Route path="/ops/session-products" element={<SessionProductsPage />} />
+        <Route path="/ops/costs" element={<CostStructurePage />} />
+
+        {/* ===== MCN 代运营与对账中心 ===== */}
+        <Route path="/agency/clients" element={<ClientsPage />} />
+        <Route path="/agency/projects" element={<ProjectsPage />} />
+        <Route path="/agency/settlement" element={<SettlementPage />} />
+        <Route path="/brand-portal" element={<BrandDashboardPage />} />
 
         {/* ===== 直播复盘 ===== */}
         <Route path="/review/overview" element={<ReviewOverviewPage />} />

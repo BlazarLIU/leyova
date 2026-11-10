@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: leyova-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: leyova
+      POSTGRES_PASSWORD: leyova_password
+      POSTGRES_DB: leyova
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leyova -d leyova"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: leyova-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 8788
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://leyova:leyova_password@db:5432/leyova
+      SESSION_SECRET: leyova-super-secret-session-key-at-least-64-characters-long-for-security
+      WEB_ORIGIN: http://localhost:5513
+      AI_ENABLED: "false"
+    ports:
+      - "8788:8788"
+    command: >
+      sh -c "node database/migrate.js && node apps/api/dist/index.js"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: leyova-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "5513:80"
+
+volumes:
+  pgdata:
+

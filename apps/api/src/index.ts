@@ -13,7 +13,6 @@ import { anchorRoutes } from './routes/anchors.js'
 import { biRoutes } from './routes/bi.js'
 import { opsRoutes } from './routes/ops.js'
 import { systemRoutes } from './routes/system.js'
-import { openclawRoutes } from './routes/openclaw.js'
 import { personnelRoutes } from './routes/personnel.js'
 import { sessionRoutes } from './routes/sessions.js'
 import { aiRoutes } from './routes/ai.js'
@@ -37,6 +36,14 @@ import { pddRoutes } from './routes/pdd.js'
 import { kuaishouRoutes } from './routes/kuaishou.js'
 import { jdRoutes } from './routes/jd.js'
 import { xiaohongshuRoutes } from './routes/xiaohongshu.js'
+import { costRoutes } from './routes/costs.js'
+import { agencyClientsRoutes } from './routes/agency/clients.js'
+import { agencyProjectsRoutes } from './routes/agency/projects.js'
+import { agencySettlementRoutes } from './routes/agency/settlement.js'
+import { agencyPortalRoutes } from './routes/agency/portal.js'
+import { weatherRoutes } from './routes/weather.js'
+import { scheduleRoutes } from './routes/schedule.js'
+import { alertRulesRoutes } from './routes/alerts.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
@@ -94,7 +101,6 @@ async function main() {
   await app.register(biRoutes)        // BI dashboard, ROI, refund, anomalies
   await app.register(opsRoutes)       // ops: product-templates, ad-plans, capabilities, goals, scripts, issues, room-health
   await app.register(systemRoutes)    // system: config, alerts, competitors, multi-room, inventory
-  await app.register(openclawRoutes)   // openclaw: config (大模型/会话管理，写入 openclaw.json)
   await app.register(personnelRoutes) // personnel: anchors, operators, managers, attendance
   await app.register(dataRoutes)      // data: tables, uploads, quality, exports
   await app.register(reviewRoutes)    // review: overview, channels, anchors, funnel, compare
@@ -117,6 +123,14 @@ async function main() {
   await app.register(kuaishouRoutes) // kuaishou: 快手专属分析
   await app.register(jdRoutes)       // jd: 京东专属分析（自营/POP/履约）
   await app.register(xiaohongshuRoutes) // xiaohongshu: 小红书专属分析（笔记/搜索/种草）
+  await app.register(costRoutes)        // cost: 成本录入与净利计算 (Track 1)
+  await app.register(agencyClientsRoutes) // agency: 甲方客户档案与品牌账号 (Track 2)
+  await app.register(agencyProjectsRoutes) // agency: 项目合同与专项看板 (Track 2)
+  await app.register(agencySettlementRoutes) // agency: 月结对账单与不可变保护 (Track 2)
+  await app.register(agencyPortalRoutes) // portal: 甲方品牌只读专属看板 (Track 2)
+  await app.register(weatherRoutes)      // weather: 竞品差异化特色 · 天气 AI 穿搭与智能选品 (Track 1)
+  await app.register(scheduleRoutes)     // schedule: AI 智能主播排班建议 (Track 1)
+  await app.register(alertRulesRoutes)   // alerts: 自定义指标阈值告警与 Webhook 调度 (Track 1)
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {

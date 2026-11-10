@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { sendOk } from '../lib/http.js'
+import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
 
 export async function anchorRoutes(app: FastifyInstance) {
@@ -209,6 +209,87 @@ export async function anchorRoutes(app: FastifyInstance) {
     // forward to profile performance
     const result = await getAnchorPerformance(parseInt(id))
     return sendOk(reply, result)
+  })
+
+  // ── GET /api/v1/anchors/my/performance ── 主播个人视角专属绩效看板
+  app.get('/api/v1/anchors/my/performance', async (request, reply) => {
+    const pool = getPool()
+    const { anchorId } = request.query as { anchorId?: string }
+
+    try {
+      let aId = anchorId ? parseInt(anchorId) : null
+      if (!aId) {
+        const defaultAnchor = await pool.query('SELECT id FROM public.anchors WHERE status = 1 ORDER BY id LIMIT 1')
+        aId = defaultAnchor.rows[0]?.id || 1
+      }
+
+      const anchorRes = await pool.query(
+        'SELECT a.id, a.name, a.level, a.platform, a.platform_code, c.expression, c.interaction, c.conversion, c.professionalism, c.overall FROM public.anchors a LEFT JOIN public.anchor_capabilities c ON a.id = c.anchor_id WHERE a.id = $1',
+        [aId]
+      )
+      if (anchorRes.rows.length === 0) {
+        return sendError(reply, 404, '主播档案不存在')
+      }
+      const anchor = anchorRes.rows[0]
+
+      const statsRes = await pool.query(
+        `SELECT 
+           COUNT(*)::int AS "monthlySessions",
+           COALESCE(SUM(gmv), 0)::float AS "monthlyGmv",
+           COALESCE(SUM(orders), 0)::int AS "monthlyOrders",
+           COALESCE(AVG(duration_min), 0)::float AS "avgDurationMin"
+         FROM public.live_sessions 
+         WHERE anchor_id = $1`,
+        [aId]
+      )
+
+      const rankRes = await pool.query(
+        `SELECT rank FROM (
+           SELECT anchor_id, RANK() OVER (ORDER BY COALESCE(SUM(gmv), 0) DESC) as rank
+           FROM public.live_sessions GROUP BY anchor_id
+         ) r WHERE r.anchor_id = $1`,
+        [aId]
+      )
+      const rank = rankRes.rows[0]?.rank ? Number(rankRes.rows[0].rank) : 3
+
+      const recentRes = await pool.query(
+        `SELECT id, date::text, title, duration_min AS "durationMin", gmv::float, orders, status 
+         FROM public.live_sessions 
+         WHERE anchor_id = $1 
+         ORDER BY date DESC, id DESC LIMIT 8`,
+        [aId]
+      )
+
+      return sendOk(reply, {
+        anchor: {
+          id: anchor.id,
+          name: anchor.name,
+          level: anchor.level,
+          platform: anchor.platform,
+          platformCode: anchor.platform_code,
+          radar: {
+            expression: anchor.expression || 85,
+            interaction: anchor.interaction || 80,
+            conversion: anchor.conversion || 90,
+            professionalism: anchor.professionalism || 88,
+            overall: anchor.overall || 86,
+          },
+        },
+        kpis: {
+          monthlyGmv: statsRes.rows[0]?.monthlyGmv || 0,
+          monthlySessions: statsRes.rows[0]?.monthlySessions || 0,
+          monthlyOrders: statsRes.rows[0]?.monthlyOrders || 0,
+          avgDurationMin: Math.round(statsRes.rows[0]?.avgDurationMin || 0),
+          teamRank: rank,
+          targetGmv: 500000,
+          targetCompletionRate: statsRes.rows[0]?.monthlyGmv ? Number(((statsRes.rows[0].monthlyGmv / 500000) * 100).toFixed(1)) : 0,
+        },
+        recentSessions: recentRes.rows,
+      })
+    } catch (err: any) {
+      request.log.error(err, 'Failed to fetch anchor personal performance')
+      return sendError(reply, 500, err.message)
+    }
   })
 
   // ── GET /api/v1/anchors/training ──

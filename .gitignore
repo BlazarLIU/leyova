@@ -25,10 +25,10 @@ sessions/
 .backup/
 .pgdata/
 
-# 仓库自带的数据库实例必须入库（覆盖上面的 *.sql / database/ 忽略）
+# 仓库自带的数据库实例必须入库
 !database/
-!database/**
-!*.sql
+!database/*.sql
+!database/migrations/*.sql
 
 .agents/
 .claude/

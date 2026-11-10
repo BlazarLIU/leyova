@@ -16,6 +16,8 @@ import {
   Mic,                      // 主播赋能
   Zap,                      // 运营提效
   BarChart4,                // 直播复盘
+  Building2,                // MCN 代运营
+  CloudSun,                 // 天气 AI 穿搭
   // ---- 系统 ----
   Settings,                 // 系统配置
   AlertTriangle,            // 异常中心
@@ -65,6 +67,13 @@ export const navigation: NavSection[] = [
         badge: 'New',
         module: 'ai',
       },
+      {
+        label: '天气AI穿搭',
+        icon: CloudSun,
+        href: '/ai/weather',
+        badge: '特色',
+        module: 'weather_ai',
+      },
 
       // 内容中心（折叠组）
       {
@@ -100,6 +109,10 @@ export const navigation: NavSection[] = [
         children: [
           { label: '主播列表', href: '/anchors/list' },
           { label: '主播档案', href: '/anchors/profile' },
+          { label: '我的排班', href: '/anchors/my-schedule' },
+          { label: '排班管理', href: '/anchors/schedule' },
+          { label: 'AI智能排班', href: '/anchors/schedule-recommend' },
+          { label: '我的业绩', href: '/anchors/my-performance' },
           { label: '训练管理', href: '/anchors/training' },
         ],
       },
@@ -111,6 +124,7 @@ export const navigation: NavSection[] = [
         module: 'ops',
         children: [
           { label: '能力看板', href: '/ops/capabilities' },
+          { label: '成本与净利', href: '/ops/costs' },
           { label: '话术模板', href: '/ops/script-library' },
           { label: '问题库', href: '/ops/issue-library' },
           { label: '目标达成', href: '/ops/goal-tracking' },
@@ -119,6 +133,19 @@ export const navigation: NavSection[] = [
           { label: '改进任务', href: '/system/tasks' },
           { label: '活动管理', href: '/system/promotions' },
           { label: '竞品观察', href: '/system/competitors' },
+        ],
+      },
+
+      // MCN 代运营中心（对外 SaaS）
+      {
+        label: 'MCN 代运营',
+        icon: Building2,
+        module: 'agency',
+        children: [
+          { label: '品牌客户档案', href: '/agency/clients' },
+          { label: '代播项目合同', href: '/agency/projects' },
+          { label: '月结对账单', href: '/agency/settlement' },
+          { label: '品牌方只读看板', href: '/brand-portal' },
         ],
       },
 
