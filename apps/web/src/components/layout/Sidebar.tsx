@@ -179,10 +179,16 @@ function NavItemLink({
 }
 
 const roleLabels: Record<string, string> = {
-  super_admin: '系统管理员',
+  super_admin: '👑 系统管理员',
+  admin: '🏢 管理员 (总监)',
+  operator: '🚀 运营 (操盘手)',
+  finance: '💰 财务主管',
+  hrbp: '👥 HRBP',
+  employee: '🎙️ 员工 (主播/中控)',
   ops_director: '运营总监',
-  ops_staff: '运营',
-  controller: '中控',
+  ops_staff: '运营专员',
+  controller: '现场中控',
+  brand_viewer: '🏷️ 品牌自播代表',
 }
 
 export function Sidebar({ user }: { user?: { username: string; realName: string; role: string } }) {
@@ -260,12 +266,13 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
       : null
     let sections = buildNavigation(cap, workMode)
 
-    // controller → 不显示「系统」分组
-    if (role === 'controller') {
-      sections = sections.filter(section => section.title !== '系统')
+    // 基层员工与中控 → 严格不显示「系统」与「代运营对账」
+    if (role === 'controller' || role === 'employee') {
+      sections = sections.filter(section => section.title !== '系统' && section.title !== '代运营管理' && section.title !== '代播客户与对账')
     }
-    if (role === 'controller') {
-      // controller：严格两段式过滤（子级 module 优先，回退到父级 module）
+
+    // 严格两段式过滤（支持 employee / controller / finance / hrbp 的深度子菜单过滤）
+    if (['controller', 'employee', 'finance', 'hrbp'].includes(role)) {
       return sections.map(section => ({
         ...section,
         items: section.items.map(item => {

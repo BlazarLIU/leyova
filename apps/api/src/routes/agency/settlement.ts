@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { getPool } from '../../lib/db.js'
 import { sendOk, sendError } from '../../lib/http.js'
-import { requireAuth } from '../../lib/guard.js'
+import { requireAuth, requireRole } from '../../lib/guard.js'
 
 export async function agencySettlementRoutes(app: FastifyInstance) {
   // ── GET /api/v1/agency/settlement/bills ── 获取对账单列表
@@ -65,7 +65,7 @@ export async function agencySettlementRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/agency/settlement/calculate ── 预览计算月度对账单
-  app.post('/api/v1/agency/settlement/calculate', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/agency/settlement/calculate', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
     const tenantId = user?.tenant_id || 1
@@ -165,7 +165,7 @@ export async function agencySettlementRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/agency/settlement/bills ── 生成并保存对账单
-  app.post('/api/v1/agency/settlement/bills', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/agency/settlement/bills', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
     const tenantId = user?.tenant_id || 1
@@ -277,7 +277,7 @@ export async function agencySettlementRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/agency/settlement/bills/:id/status ── 推进账单状态机
-  app.put('/api/v1/agency/settlement/bills/:id/status', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.put('/api/v1/agency/settlement/bills/:id/status', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
     const tenantId = user?.tenant_id || 1

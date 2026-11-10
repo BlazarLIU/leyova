@@ -8,6 +8,8 @@ export interface AuthUser {
   username: string
   realName: string
   role: string
+  userType?: string
+  tenantId?: number
 }
 
 /**
@@ -43,11 +45,11 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply):
  */
 export async function findSessionUser(pool: any, token: string): Promise<AuthUser | null> {
   const result = await pool.query(
-    `SELECT u.id, u.username, u.real_name, u.role
+    `SELECT u.id, u.username, u.real_name, u.role, u.user_type, u.tenant_id
      FROM user_sessions s JOIN users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.expires_at > NOW() AND u.status = 1`,
     [token]
-  ) as { rows: Array<{ id: number; username: string; real_name: string; role: string }> }
+  ) as { rows: Array<{ id: number; username: string; real_name: string; role: string; user_type?: string; tenant_id?: number }> }
 
   const row = result.rows[0]
   if (!row) return null
@@ -57,7 +59,36 @@ export async function findSessionUser(pool: any, token: string): Promise<AuthUse
     username: row.username,
     realName: row.real_name,
     role: row.role,
+    userType: row.user_type,
+    tenantId: row.tenant_id,
   }
+}
+
+/**
+ * 校验用户是否属于指定角色之一（super_admin 拥有全局最高权限，永远放行）
+ */
+export function requireRole(allowedRoles: string[]) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+
+    if (user.role === 'super_admin') {
+      return
+    }
+
+    if (!allowedRoles.includes(user.role)) {
+      sendError(reply, 403, '当前角色无权访问该功能')
+      return
+    }
+  }
+}
+
+/**
+ * 敏感成本与利润数据访问判断：仅系统管理员、管理员、财务专员可见
+ */
+export function canAccessCost(user: AuthUser): boolean {
+  if (!user) return false
+  return ['super_admin', 'admin', 'finance'].includes(user.role)
 }
 
 /**

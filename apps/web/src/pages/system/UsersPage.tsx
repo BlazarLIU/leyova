@@ -18,17 +18,28 @@ interface Account {
 }
 
 const ROLE_LABEL: Record<string, string> = {
-  super_admin: '超级管理员',
-  admin: '管理员',
-  controller: '中控',
-  operator: '运营',
-  anchor: '主播',
+  super_admin: '👑 系统管理员',
+  admin: '🏢 管理员 (总监)',
+  operator: '🚀 运营 (操盘手)',
+  finance: '💰 财务主管',
+  hrbp: '👥 HRBP',
+  employee: '🎙️ 员工 (主播/中控)',
+}
+
+const ROLE_BADGE_VARIANT: Record<string, 'danger' | 'warning' | 'success' | 'info' | 'neutral'> = {
+  super_admin: 'danger',
+  admin: 'warning',
+  operator: 'info',
+  finance: 'success',
+  hrbp: 'warning',
+  employee: 'neutral',
 }
 
 export function UsersPage() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState<string | null>(null)
+  const [filterRole, setFilterRole] = useState<string>('all')
   const [form, setForm] = useState({ username: '', realName: '', password: '', role: 'operator' })
   const [creating, setCreating] = useState(false)
 
@@ -132,11 +143,37 @@ export function UsersPage() {
       <motion.div {...fadeIn}>
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" /> 账号列表
-              <button onClick={load} className="ml-auto text-xs text-slate-500 hover:text-slate-300">
-                <RefreshCw className="inline h-3 w-3" /> 刷新
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-cyan-400" />
+                <span className="font-semibold text-slate-100">账号列表</span>
+                <span className="text-xs text-slate-500 font-mono">({accounts.length})</span>
+              </div>
+              
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={() => setFilterRole('all')}
+                  className={`px-2.5 py-1 rounded text-xs transition-colors ${
+                    filterRole === 'all' ? 'bg-cyan-500/20 text-cyan-300 font-medium' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  全部
+                </button>
+                {Object.entries(ROLE_LABEL).map(([code, label]) => (
+                  <button
+                    key={code}
+                    onClick={() => setFilterRole(code)}
+                    className={`px-2.5 py-1 rounded text-xs transition-colors ${
+                      filterRole === code ? 'bg-cyan-500/20 text-cyan-300 font-medium' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {label.split(' ')[0]}
+                  </button>
+                ))}
+                <button onClick={load} className="ml-2 text-xs text-slate-500 hover:text-slate-300 p-1">
+                  <RefreshCw className="inline h-3 w-3" />
+                </button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -149,19 +186,21 @@ export function UsersPage() {
                     <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
                       <th className="py-2 pr-3">用户名</th>
                       <th className="py-2 pr-3">姓名</th>
-                      <th className="py-2 pr-3">角色</th>
+                      <th className="py-2 pr-3">角色权限分级</th>
                       <th className="py-2 pr-3">状态</th>
                       <th className="py-2 pr-3">创建时间</th>
                       <th className="py-2 text-right">操作</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {accounts.map((a) => (
+                    {accounts
+                      .filter((a) => filterRole === 'all' || a.role === filterRole)
+                      .map((a) => (
                       <tr key={a.id} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
                         <td className="py-2 pr-3 font-mono text-slate-200">{a.username}</td>
                         <td className="py-2 pr-3">{a.realName || '-'}</td>
                         <td className="py-2 pr-3">
-                          <Badge variant={a.role === 'super_admin' ? 'danger' : a.role === 'admin' ? 'warning' : 'neutral'}>
+                          <Badge variant={ROLE_BADGE_VARIANT[a.role] || 'neutral'}>
                             {ROLE_LABEL[a.role] || a.role}
                           </Badge>
                         </td>

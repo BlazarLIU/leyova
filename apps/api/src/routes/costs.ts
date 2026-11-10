@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify'
 import { getPool } from '../lib/db.js'
 import { sendOk, sendError } from '../lib/http.js'
-import { requireAuth } from '../lib/guard.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
 
 export async function costRoutes(app: FastifyInstance) {
   // ── GET /api/v1/costs ── 成本明细列表
-  app.get('/api/v1/costs', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.get('/api/v1/costs', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const { shopId, platformCode, costType, startDate, endDate, limit = 50, offset = 0 } = request.query as {
       shopId?: string
@@ -89,7 +89,7 @@ export async function costRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/costs/summary ── 成本汇总与净利计算
-  app.get('/api/v1/costs/summary', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.get('/api/v1/costs/summary', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const { shopId, platformCode, startDate, endDate } = request.query as {
       shopId?: string
@@ -198,7 +198,7 @@ export async function costRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/costs ── 录入成本
-  app.post('/api/v1/costs', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/costs', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
     const { shopId, platformCode, costDate, costType, costName, amount, remark } = request.body as {
@@ -235,7 +235,7 @@ export async function costRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/costs/:id ── 修改成本
-  app.put('/api/v1/costs/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.put('/api/v1/costs/:id', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
     const { shopId, platformCode, costDate, costType, costName, amount, remark } = request.body as {
@@ -297,7 +297,7 @@ export async function costRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/costs/:id ── 删除成本
-  app.delete('/api/v1/costs/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.delete('/api/v1/costs/:id', { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
 

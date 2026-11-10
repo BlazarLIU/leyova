@@ -132,10 +132,10 @@ export async function systemRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '密码不能为空')
       }
       const hash = bcrypt.hashSync(password, 10)
-      const role = body.role || 'ops_staff'
-      const validRoles = ['super_admin', 'ops_director', 'ops_staff', 'controller', 'admin', 'manager', 'employee']
+      const role = body.role || 'employee'
+      const validRoles = ['super_admin', 'admin', 'operator', 'finance', 'hrbp', 'employee', 'ops_director', 'ops_staff', 'controller', 'manager']
       if (!validRoles.includes(role)) {
-        return sendError(reply, 400, '角色不合法')
+        return sendError(reply, 400, '角色不合法，可选角色：系统管理员(super_admin)、管理员(admin)、运营(operator)、财务(finance)、HRBP(hrbp)、员工(employee)')
       }
       const { rows } = await pool.query(
         `INSERT INTO users (username, password_hash, real_name, role, status)
