@@ -147,7 +147,7 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
         provider: cfg.provider,
         baseUrl: cfg.baseUrl || null,
         degraded: !configured,
-        note: configured ? '知识库已接入' : '未接入企业知识库，AI 分析助手将仅使用当前对话上下文',
+        note: configured ? '知识库已接入' : '未接入企业知识库，AI 助手将仅使用当前对话上下文',
       })
     } catch (err) {
       return sendError(reply, 500, '获取知识库状态失败')

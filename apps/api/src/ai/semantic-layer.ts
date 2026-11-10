@@ -1,5 +1,5 @@
 /**
- * semantic-layer.ts — 指标语义层（AI 分析助手与 BI 共用的唯一取数入口）
+ * semantic-layer.ts — 指标语义层（AI 助手与 BI 共用的唯一取数入口）
  *
  * 对齐计划 5.1 / 8.4：
  *   - 只暴露受控的原语：list_metrics / list_dimensions / query_metric /

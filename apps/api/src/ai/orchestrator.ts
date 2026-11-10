@@ -1,5 +1,5 @@
 /**
- * orchestrator.ts — AI 分析助手四阶受控编排（Planner → Executor → Critic → Reporter）
+ * orchestrator.ts — AI 助手四阶受控编排（Planner → Executor → Critic → Reporter）
  *
  * 对齐计划 5.3 与 8.4：
  *   - **数字由代码算，LLM 只做规划与表达**

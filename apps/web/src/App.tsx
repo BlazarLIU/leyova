@@ -124,7 +124,7 @@ export default function App() {
         <Route path="/live/registration" element={<LiveRegistrationPage />} />
         <Route path="/live/data" element={<DataLivePage />} />
 
-        {/* ===== AI 分析助手 ===== */}
+        {/* ===== AI 助手 ===== */}
         <Route path="/ai/chat" element={<ChatPage />} />
         <Route path="/ai/weather" element={<WeatherSelectionPage />} />
 

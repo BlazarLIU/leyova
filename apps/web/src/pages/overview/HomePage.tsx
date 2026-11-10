@@ -31,7 +31,7 @@ const quickEntries = [
   { label: '经营驾驶舱', icon: LayoutDashboard, href: '/overview/cockpit', color: 'from-violet-500/20 to-violet-600/10', border: 'border-violet-500/30', textColor: 'text-violet-300' },
   { label: '实时监控', icon: Activity, href: '/overview/live-monitor', color: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-500/30', textColor: 'text-cyan-300' },
   { label: '直播登记', icon: ClipboardPlus, href: '/live/registration', color: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/30', textColor: 'text-emerald-300' },
-  { label: 'AI 分析助手', icon: Sparkles, href: '/ai/chat', color: 'from-purple-500/20 to-purple-600/10', border: 'border-purple-500/30', textColor: 'text-purple-300' },
+  { label: 'AI 助手', icon: Sparkles, href: '/ai/chat', color: 'from-purple-500/20 to-purple-600/10', border: 'border-purple-500/30', textColor: 'text-purple-300' },
 ]
 
 

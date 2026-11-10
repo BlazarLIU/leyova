@@ -18,7 +18,7 @@ const SEARCH_DIRECTORY: SearchItem[] = [
   { id: 'settlement', title: '月结对账单与法律凭单', category: '代运营', url: '/agency/settlement', keywords: ['对账', '月结', '账单', '凭据', '结算', '应收'] },
   { id: 'clients', title: '品牌自播档案与账号', category: '代运营', url: '/agency/clients', keywords: ['客户', '自播', '品牌', '账号', '开通'] },
   { id: 'omni', title: '全渠道跨平台大盘', category: '业务大盘', url: '/omnichannel', keywords: ['全渠道', '多平台', '京东', '拼多多', '淘宝', '快手', '抖音'] },
-  { id: 'chat', title: 'AI 经营分析助手 (Agentic BI)', category: 'AI 赋能', url: '/ai/chat', keywords: ['ai', '助手', '问答', '归因', '波动', '预测'] },
+  { id: 'chat', title: 'AI 助手 (Agentic BI)', category: 'AI 赋能', url: '/ai/chat', keywords: ['ai', '助手', '问答', '归因', '波动', '预测'] },
   { id: 'anchors', title: '主播能力与表现矩阵', category: '主播赋能', url: '/anchors/list', keywords: ['主播', '能力', '评分', '达人'] },
 ]
 
@@ -119,7 +119,7 @@ export const GlobalSearch: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-blue-600" />
                   <span>
-                    向 <strong>AI 分析助手</strong>提问：<span className="font-semibold text-gray-900">"{query}"</span>
+                    向 <strong>AI 助手</strong>提问：<span className="font-semibold text-gray-900">"{query}"</span>
                   </span>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-blue-500" />

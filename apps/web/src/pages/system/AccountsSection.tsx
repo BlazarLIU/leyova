@@ -21,7 +21,7 @@ const moduleNameMap: Record<string, string> = {
   data: '数据管理',
   bi: '商业智能',
   ops: '运营提效',
-  ai: 'AI 分析助手',
+  ai: 'AI 助手',
   personal_achievement: '个人达成',
   live_registration: '直播登记',
   live_data: '登记数据管理',

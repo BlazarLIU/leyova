@@ -9,7 +9,7 @@ import {
   Table,                    // 直播数据管理
   Monitor,                  // 多直播间总览
   // ---- 应用 ----
-  Bot,                      // AI 分析助手
+  Bot,                      // AI 助手
   Database,                 // 数据管理
   Clapperboard,             // 内容中心
   LineChart,                // 商业智能
@@ -59,9 +59,9 @@ export const navigation: NavSection[] = [
   {
     title: '应用',
     items: [
-      // AI 分析助手（带 New 徽标）
+      // AI 助手（带 New 徽标）
       {
-        label: 'AI 分析助手',
+        label: 'AI 助手',
         icon: Bot,
         href: '/ai/chat',
         badge: 'New',

@@ -377,7 +377,7 @@ export async function aiRoutes(app: FastifyInstance) {
       request.log.warn({ err }, 'ai/chat POST failed')
       const message = (request.body as any)?.message || ''
       const fallbackReply = await generateDataDrivenReply(getPool(), message).catch(() =>
-        `感谢您的提问：**"${message}"**\n\n这是 AI 分析助手的回复。当前数据库查询异常，稍后将自动恢复。`
+        `感谢您的提问：**"${message}"**\n\n这是 AI 助手的回复。当前数据库查询异常，稍后将自动恢复。`
       )
       return sendOk(reply, {
         reply: fallbackReply,
@@ -1029,7 +1029,7 @@ async function generateDataDrivenReply(pool: any, message: string): Promise<stri
   }
 
   if (msg.includes('你好') || msg.includes('嗨') || msg.includes('hello') || msg.includes('hi')) {
-    return `你好！👋 我是 **leyova AI 分析助手**，可以帮你查询以下实时数据：\n\n` +
+    return `你好！👋 我是 **leyova AI 助手**，可以帮你查询以下实时数据：\n\n` +
       `- **📊 GMV/业绩** — 查询整体销售数据和订单量\n` +
       `- **🎤 主播排行** — 查看主播业绩排名和关键指标\n` +
       `- **📡 渠道分析** — 了解各渠道投放效果和 ROI\n` +

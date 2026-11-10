@@ -16,7 +16,7 @@ const routeLabels: Record<string, string> = {
   '/overview/live-monitor': '实时监控',
   '/overview/sessions': '场次管理',
   '/overview/analytics': '数据分析',
-  '/ai/chat': 'AI 分析助手',
+  '/ai/chat': 'AI 助手',
   '/data/management': '数据管理',
   '/data/upload': '数据上传',
   '/data/quality': '数据质量',
@@ -303,7 +303,7 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
                     <div className="space-y-1">
                       {[
                         { label: '首页', path: '/overview/home' },
-                        { label: 'AI 分析助手', path: '/ai/chat' },
+                        { label: 'AI 助手', path: '/ai/chat' },
                         { label: '主播列表', path: '/anchors/list' },
                         { label: '系统配置', path: '/system/config' },
                       ].map(item => (

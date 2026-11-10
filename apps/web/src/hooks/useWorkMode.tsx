@@ -24,7 +24,7 @@ export const WORK_MODES: Record<WorkMode, WorkModeInfo> = {
     mode: 'brand',
     label: '品牌自播模式 (全渠道)',
     shortLabel: '品牌自营',
-    description: '专注品牌自营全平台经营决策：7大平台货架大盘、真实净利算法与 AI 分析助手',
+    description: '专注品牌自营全平台经营决策：7大平台货架大盘、真实净利算法与 AI 助手',
     iconName: 'Store',
     badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
   },

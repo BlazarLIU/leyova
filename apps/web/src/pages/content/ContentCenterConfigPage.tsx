@@ -226,11 +226,11 @@ export function ContentCenterConfigPage() {
           <CardBody className="space-y-3">
             <div className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-3 text-xs text-slate-400">
               本系统<strong className="text-slate-300">不内置、不部署</strong>知识库引擎。
-              如需 AI 分析助手引用运营规则、大促复盘、爆款卖点等资料，
+              如需 AI 助手引用运营规则、大促复盘、爆款卖点等资料，
               请自行部署 <span className="text-cyan-400">RAGFlow</span> 或 <span className="text-cyan-400">MaxKB</span>，
               然后在下方填入地址与 API Key 即可接入。
               <br />
-              未配置时，AI 分析助手仅使用当前对话上下文，核心功能不受影响。
+              未配置时，AI 助手仅使用当前对话上下文，核心功能不受影响。
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -303,7 +303,7 @@ export function ContentCenterConfigPage() {
                 <span className="text-slate-500">
                   {kb.configured
                     ? `当前使用 ${kb.provider}，检索 TopK=${kb.topK}`
-                    : 'AI 分析助手将仅使用当前对话上下文'}
+                    : 'AI 助手将仅使用当前对话上下文'}
                 </span>
               </div>
             )}

@@ -1,5 +1,5 @@
 /**
- * analysis.ts — AI 分析助手 HTTP 接口（P4）
+ * analysis.ts — AI 助手 HTTP 接口（P4）
  *
  * 暴露四阶编排分析能力：
  *   POST /api/v1/analysis/run        执行一次完整分析

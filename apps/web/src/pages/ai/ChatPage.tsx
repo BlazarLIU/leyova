@@ -393,7 +393,7 @@ export function ChatPage() {
       const aiMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `感谢您的提问：**"${content}"**\n\n这是 AI 分析助手的离线回复。当前流式服务不可用，稍后将自动恢复在线分析能力。\n\n**当前可用的分析能力：**\n- GMV、UV、转化率等核心指标查询\n- 异常数据自动检测与预警\n- 多维度数据对比与趋势分析\n- 运营建议与优化方案`,
+        content: `感谢您的提问：**"${content}"**\n\n这是 AI 助手的离线回复。当前流式服务不可用，稍后将自动恢复在线分析能力。\n\n**当前可用的分析能力：**\n- GMV、UV、转化率等核心指标查询\n- 异常数据自动检测与预警\n- 多维度数据对比与趋势分析\n- 运营建议与优化方案`,
         timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
       }
       setMessages(m => [...m, aiMsg])

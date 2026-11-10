@@ -123,9 +123,9 @@ function buildDataSection(mode: PlatformMode): NavSection {
 /** 智能分析（所有平台共享，但入口文案随业态） */
 function buildAiSection(mode: PlatformMode): NavSection {
   const label =
-    mode === 'live' ? 'AI 直播分析助手'
-    : mode === 'shelf' ? 'AI 店铺分析助手'
-    : 'AI 内容分析助手'
+    mode === 'live' ? 'AI 直播助手'
+    : mode === 'shelf' ? 'AI 店铺助手'
+    : 'AI 助手'
 
   return {
     title: '智能分析',
