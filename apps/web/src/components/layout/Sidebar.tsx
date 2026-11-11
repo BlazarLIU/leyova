@@ -290,6 +290,8 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     return sections.map(section => ({
       ...section,
       items: section.items.filter(item => {
+        // 平台能力过滤：当前平台若不支持该模块，直接隐藏
+        if (!isModuleSupported(item.module)) return false
         // 如果没有指定 module，默认可见（向后兼容）
         if (!item.module) return true
         // 如果用户模块列表为空（例如数据还没加载完），默认可见

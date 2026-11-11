@@ -7,6 +7,18 @@ export async function opsRoutes(app: FastifyInstance) {
   app.get('/api/v1/ops/capabilities', async (request, reply) => {
     const pool = getPool()
     try {
+      const platformParam = (request.query as any)?.platform
+      // 若平台为货架或内容平台（如 jd, taobao, tmall, pdd, xiaohongshu），这些平台无主播业务，直接返回空
+      const nonLivePlatforms = ['jd', 'taobao', 'tmall', 'pdd', 'xiaohongshu']
+      if (platformParam && nonLivePlatforms.includes(String(platformParam).toLowerCase())) {
+        return sendOk(reply, {
+          dimensions: [],
+          anchorRankings: [],
+          capabilities: [],
+          rankings: [],
+        })
+      }
+
       const { rows: caps } = await pool.query(
         `SELECT a.name AS anchor_name, ac.*
          FROM anchor_capabilities ac
@@ -25,10 +37,52 @@ export async function opsRoutes(app: FastifyInstance) {
            AND ar.rank_date = (SELECT MAX(rank_date) FROM anchor_rankings)
          ORDER BY ar.overall DESC`
       )
-      return sendOk(reply, { dimensions: caps, anchorRankings: rankings })
+
+      let avgExpression = 0
+      let avgInteraction = 0
+      let avgConversion = 0
+      let avgProfessionalism = 0
+      if (caps.length > 0) {
+        avgExpression = Math.round(caps.reduce((sum: number, c: any) => sum + Number(c.expression || 0), 0) / caps.length)
+        avgInteraction = Math.round(caps.reduce((sum: number, c: any) => sum + Number(c.interaction || 0), 0) / caps.length)
+        avgConversion = Math.round(caps.reduce((sum: number, c: any) => sum + Number(c.conversion || 0), 0) / caps.length)
+        avgProfessionalism = Math.round(caps.reduce((sum: number, c: any) => sum + Number(c.professionalism || 0), 0) / caps.length)
+      }
+
+      const dimensions = [
+        { id: 'expression', label: '表达能力', score: avgExpression, color: 'primary' },
+        { id: 'interaction', label: '互动能力', score: avgInteraction, color: 'accent' },
+        { id: 'conversion', label: '转化能力', score: avgConversion, color: 'success' },
+        { id: 'professionalism', label: '专业度', score: avgProfessionalism, color: 'warning' },
+      ]
+
+      const rankSource = rankings.length > 0 ? rankings : caps
+      const anchorRankings = rankSource.map((r: any, idx: number) => ({
+        rank: idx + 1,
+        id: r.id || r.anchor_id || idx + 1,
+        anchorId: r.anchor_id,
+        name: r.anchor_name || r.name || `主播 ${idx + 1}`,
+        overall: Number(r.overall) || 0,
+        expression: Number(r.expression) || 0,
+        interaction: Number(r.interaction) || 0,
+        conversion: Number(r.conversion) || 0,
+        professionalism: Number(r.professionalism) || 0,
+      }))
+
+      return sendOk(reply, {
+        dimensions,
+        anchorRankings,
+        capabilities: caps,
+        rankings: anchorRankings,
+      })
     } catch (err) {
       request.log.warn({ err }, 'ops/capabilities query failed')
-      return sendOk(reply, { capabilities: [], rankings: [] })
+      return sendOk(reply, {
+        dimensions: [],
+        anchorRankings: [],
+        capabilities: [],
+        rankings: [],
+      })
     }
   })
 

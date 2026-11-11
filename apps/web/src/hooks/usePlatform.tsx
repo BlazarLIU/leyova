@@ -29,16 +29,24 @@ const PlatformContext = createContext<PlatformContextValue>({
 })
 
 const LIVE_ONLY_MODULES = new Set([
+  'anchor',
+  'session_products',
+  'room_health',
+  'multi_room',
+  'live_monitor',
   'personal_achievement',
   'live_registration',
   'live_data',
   'review',
+  'review_overview',
   'review_products',
   'review_short_video',
+  'review_short_videos',
   'review_channels',
   'review_anchors',
   'review_funnel',
   'review_loop',
+  'review_closed_loop',
 ])
 
 export function PlatformProvider({ children }: { children: React.ReactNode }) {

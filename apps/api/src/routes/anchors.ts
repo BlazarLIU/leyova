@@ -8,7 +8,10 @@ export async function anchorRoutes(app: FastifyInstance) {
   //    We register both paths for compatibility
   const listHandler = async (_request: any, reply: any) => {
     const pool = getPool()
-    const query = _request.query as { status?: string }
+    const query = _request.query as { status?: string; platform?: string }
+    if (query?.platform && ['jd', 'taobao', 'tmall', 'pdd', 'xiaohongshu'].includes(String(query.platform).toLowerCase())) {
+      return sendOk(reply, [])
+    }
     try {
       let sql = `SELECT a.id, a.name, a.platform, a.level, a.status,
                         COALESCE(AVG(ls.gmv), 0) AS avg_gmv,

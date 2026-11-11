@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Store, Globe, Check, ShieldCheck } from 'lucide-react'
 import { usePlatform } from '@/hooks/usePlatform'
 import { cn } from '@/utils/cn'
+import { checkRoutePlatformCompatibility } from '@/utils/platformRoute'
 
 export function PlatformShopSelector() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const {
     enabledPlatforms,
     currentPlatform,
@@ -90,7 +94,21 @@ export function PlatformShopSelector() {
                   return (
                     <button
                       key={platform.platform_code}
-                      onClick={() => setPlatformCode(platform.platform_code)}
+                      onClick={() => {
+                        setPlatformCode(platform.platform_code)
+                        setOpen(false)
+
+                        // 检查当前路由是否与新平台兼容，若不兼容则自动重定向至新平台专属首页
+                        const compatibility = checkRoutePlatformCompatibility(
+                          location.pathname,
+                          platform.platform_code,
+                          platform.capabilities,
+                          platform.platform_name
+                        )
+                        if (!compatibility.supported && compatibility.redirectUrl) {
+                          navigate(compatibility.redirectUrl, { replace: true })
+                        }
+                      }}
                       className={cn(
                         "flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors text-left",
                         active

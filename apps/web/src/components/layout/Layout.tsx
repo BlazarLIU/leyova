@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { Footer } from './Footer'
 import { SidebarContext, useSidebarState } from '@/hooks/useSidebar'
+import { usePlatform } from '@/hooks/usePlatform'
+import { checkRoutePlatformCompatibility } from '@/utils/platformRoute'
+import { PlatformMismatchNotice } from '@/components/common/PlatformMismatchNotice'
 import { api } from '@/services/api'
 import { ApiError } from '@/services/api'
 
 export function Layout() {
   const sidebarState = useSidebarState()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { currentPlatform, setPlatformCode } = usePlatform()
   const [authChecking, setAuthChecking] = useState(true)
   const [authUser, setAuthUser] = useState<any>(null)
 
@@ -74,7 +79,25 @@ export function Layout() {
             <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <ErrorBoundary>
                 <div className="flex-1 min-h-0 flex flex-col">
-                  <Outlet />
+                  {(() => {
+                    const compatibility = checkRoutePlatformCompatibility(
+                      location.pathname,
+                      currentPlatform?.platform_code,
+                      currentPlatform?.capabilities,
+                      currentPlatform?.platform_name
+                    )
+                    if (!compatibility.supported) {
+                      return (
+                        <PlatformMismatchNotice
+                          compatibility={compatibility}
+                          currentPlatformName={currentPlatform?.platform_name}
+                          onSwitchPlatform={(code) => setPlatformCode(code)}
+                          onGoToDashboard={() => navigate(compatibility.redirectUrl, { replace: true })}
+                        />
+                      )
+                    }
+                    return <Outlet />
+                  })()}
                 </div>
               </ErrorBoundary>
             </main>
