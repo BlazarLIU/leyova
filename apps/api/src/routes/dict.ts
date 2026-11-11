@@ -11,6 +11,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireRole } from '../lib/guard.js'
 
 export async function dictRoutes(app: FastifyInstance) {
   const pool = getPool()
@@ -29,9 +30,9 @@ export async function dictRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/system/dict ──
-  app.post('/api/v1/system/dict', async (request: FastifyRequest<{
+  app.post<{
     Body: { code: string; name: string; itemCount?: number; status?: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/system/dict', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
       const { code, name, itemCount, status } = request.body || ({} as any)
       if (!code || !name) return sendError(reply, 400, '缺少必要参数 (code, name)')
@@ -51,10 +52,10 @@ export async function dictRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/system/dict/:id ──
-  app.put('/api/v1/system/dict/:id', async (request: FastifyRequest<{
+  app.put<{
     Params: { id: string }
     Body: { name?: string; itemCount?: number; status?: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/system/dict/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
@@ -81,7 +82,7 @@ export async function dictRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/system/dict/:id ──
-  app.delete('/api/v1/system/dict/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  app.delete<{ Params: { id: string } }>('/api/v1/system/dict/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')

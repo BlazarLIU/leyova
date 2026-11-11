@@ -15,6 +15,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import {
   IngestionService,
   CleanerService,
@@ -121,9 +123,9 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 4. POST /api/v1/governance/ingest/api ── 客户类型 1: 官方 OpenAPI 同步
-  app.post('/api/v1/governance/ingest/api', async (request: FastifyRequest<{
+  app.post<{
     Body: { platformCode: string; shopId: number; datasetType?: 'orders' | 'refunds'; sinceTime?: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/governance/ingest/api', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const user = (request as any).user
       const result = await ingestionService.ingestFromApi({
@@ -141,7 +143,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 5. POST /api/v1/governance/ingest/file ── 客户类型 2: 手动上传文件
-  app.post('/api/v1/governance/ingest/file', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/governance/ingest/file', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const data = await request.file()
       if (!data) {
@@ -173,9 +175,9 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 6. POST /api/v1/governance/batches/:id/clean ── 触发清洗任务
-  app.post('/api/v1/governance/batches/:id/clean', async (request: FastifyRequest<{
+  app.post<{
     Params: { id: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/governance/batches/:id/clean', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       const result = await cleanerService.cleanBatch(batchId)
@@ -186,10 +188,10 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 7. POST /api/v1/governance/batches/:id/validate ── 触发独立质量校验
-  app.post('/api/v1/governance/batches/:id/validate', async (request: FastifyRequest<{
+  app.post<{
     Params: { id: string }
     Body?: { cleaningRunId?: number; controlTotalAmount?: number; tolerance?: number }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/governance/batches/:id/validate', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       let runId = request.body?.cleaningRunId
@@ -228,19 +230,26 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 9. POST /api/v1/governance/issues/:id/resolve ── 提交人工审核决策
-  app.post('/api/v1/governance/issues/:id/resolve', async (request: FastifyRequest<{
+  app.post<{
     Params: { id: string }
     Body: { decision: 'CONFIRM_FIX' | 'REJECT' | 'OVERRIDE_ALLOW'; reason: string; fixedValues?: any }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/governance/issues/:id/resolve', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const issueId = parseInt(request.params.id)
       const user = (request as any).user
       const result = await reviewService.resolveIssue({
         issueId,
-        reviewerId: user?.id || 1,
+        reviewerId: user.id,
         decision: request.body.decision,
         reason: request.body.reason,
         fixedValues: request.body.fixedValues,
+      })
+      await writeAuditLog(pool, {
+        request,
+        action: 'governance.issue.resolve',
+        resourceType: 'data_quality_issues',
+        resourceId: issueId,
+        afterData: { decision: request.body.decision, reason: request.body.reason },
       })
       return sendOk(reply, result)
     } catch (err: any) {
@@ -249,10 +258,10 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 10. POST /api/v1/governance/batches/:id/reconcile ── 多层对账中心
-  app.post('/api/v1/governance/batches/:id/reconcile', async (request: FastifyRequest<{
+  app.post<{
     Params: { id: string }
     Body: { expectedRowCount?: number; expectedTotalAmount?: number; tolerance?: number }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/governance/batches/:id/reconcile', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       const results = await reconciliationService.reconcileBatch({
@@ -270,18 +279,25 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 11. POST /api/v1/governance/batches/:id/publish ── 原子发布闸门
-  app.post('/api/v1/governance/batches/:id/publish', async (request: FastifyRequest<{
+  app.post<{
     Params: { id: string }
     Body?: { policyVersion?: string; allowPartial?: boolean }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/governance/batches/:id/publish', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       const user = (request as any).user
       const result = await publishingService.publishBatch({
         batchId,
-        userId: user?.id || 1,
+        userId: user.id,
         policyVersion: request.body?.policyVersion,
         allowPartial: request.body?.allowPartial,
+      })
+      await writeAuditLog(pool, {
+        request,
+        action: 'governance.batch.publish',
+        resourceType: 'import_batches',
+        resourceId: batchId,
+        afterData: result,
       })
       return sendOk(reply, result)
     } catch (err: any) {
@@ -291,14 +307,21 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 12. POST /api/v1/governance/publishes/:id/reverse ── 撤销/反向冲正
-  app.post('/api/v1/governance/publishes/:id/reverse', async (request: FastifyRequest<{
+  app.post<{
     Params: { id: string }
     Body: { reason: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/governance/publishes/:id/reverse', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])] }, async (request, reply) => {
     try {
       const publishRunId = parseInt(request.params.id)
       const user = (request as any).user
-      const result = await publishingService.reverseBatch(publishRunId, request.body.reason, user?.id || 1)
+      const result = await publishingService.reverseBatch(publishRunId, request.body.reason, user.id)
+      await writeAuditLog(pool, {
+        request,
+        action: 'governance.publish.reverse',
+        resourceType: 'publish_runs',
+        resourceId: publishRunId,
+        afterData: { reason: request.body.reason, result },
+      })
       return sendOk(reply, result)
     } catch (err: any) {
       return sendError(reply, 500, err.message)

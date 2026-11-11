@@ -5,6 +5,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireRole } from '../lib/guard.js'
 import { aggregateRange, aggregateShopDaily, aggregatePlatformMonthly } from '../cron/aggregate-facts.js'
 import { ensureAllPartitions } from '../cron/manage-partitions.js'
 
@@ -12,9 +13,9 @@ export async function maintenanceRoutes(app: FastifyInstance) {
   const pool = getPool()
 
   // ── POST /api/v1/maintenance/aggregate ── 回填聚合
-  app.post('/api/v1/maintenance/aggregate', async (request: FastifyRequest<{
+  app.post<{
     Body: { from?: string; to?: string; date?: string; month?: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/maintenance/aggregate', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
       const b = request.body || ({} as any)
 
@@ -80,9 +81,9 @@ export async function maintenanceRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/maintenance/partitions ── 手动补齐分区
-  app.post('/api/v1/maintenance/partitions', async (request: FastifyRequest<{
+  app.post<{
     Body: { monthsAhead?: number }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/maintenance/partitions', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
       const months = request.body?.monthsAhead ?? 3
       const r = await ensureAllPartitions(Number(months) || 3)

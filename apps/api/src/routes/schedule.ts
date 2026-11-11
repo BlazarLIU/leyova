@@ -1,7 +1,10 @@
 import type { FastifyInstance } from 'fastify'
 import { getPool } from '../lib/db.js'
 import { sendOk, sendError } from '../lib/http.js'
-import { requireAuth } from '../lib/guard.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
+
+const SCHEDULE_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'hrbp', 'operator']
 
 export async function scheduleRoutes(app: FastifyInstance) {
   // ── GET /api/v1/schedule/meta ── 获取排班所需的元数据（直播间、主播、运营人员、项目）
@@ -109,7 +112,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/schedule/sessions ── 新建排班场次（含冲突检测）
-  app.post('/api/v1/schedule/sessions', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/schedule/sessions', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     const {
       title,
@@ -184,7 +187,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/schedule/sessions/:id ── 更新排班场次
-  app.put('/api/v1/schedule/sessions/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.put('/api/v1/schedule/sessions/:id', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
     const { title, date, startTime, endTime, roomId, anchorId, operatorId, projectId, status, remark } = request.body as any
@@ -242,6 +245,15 @@ export async function scheduleRoutes(app: FastifyInstance) {
         return sendError(reply, 404, '场次不存在')
       }
 
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'schedule.update',
+        resourceType: 'live_session',
+        resourceId: id,
+        afterData: rows[0],
+        request,
+      })
+
       return sendOk(reply, rows[0], '排班更新成功')
     } catch (err: any) {
       request.log.error(err, 'Failed to update schedule session')
@@ -250,7 +262,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/schedule/sessions/:id ── 取消/删除排班场次
-  app.delete('/api/v1/schedule/sessions/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.delete('/api/v1/schedule/sessions/:id', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
 
@@ -263,9 +275,23 @@ export async function scheduleRoutes(app: FastifyInstance) {
       if (rowCount === 0) {
         // 如果已经开播或完成，则不能物理删除，改为 status = cancelled
         await pool.query('UPDATE public.live_sessions SET status = \'cancelled\' WHERE id = $1', [Number(id)])
+        await writeAuditLog(pool, {
+          actorUserId: (request as any).user?.id,
+          action: 'schedule.cancel',
+          resourceType: 'live_session',
+          resourceId: id,
+          request,
+        })
         return sendOk(reply, { cancelled: true }, '场次已标记为已取消')
       }
 
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'schedule.delete',
+        resourceType: 'live_session',
+        resourceId: id,
+        request,
+      })
       return sendOk(reply, { deleted: true }, '排班已删除')
     } catch (err: any) {
       request.log.error(err, 'Failed to delete schedule session')
@@ -274,7 +300,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/schedule/apply-recommendation ── 一键将 AI 排班建议应用为指定日期的排班
-  app.post('/api/v1/schedule/apply-recommendation', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/schedule/apply-recommendation', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     const { targetDate, roomId = 1, projectId, scheduleItems } = request.body as any
 
@@ -321,6 +347,14 @@ export async function scheduleRoutes(app: FastifyInstance) {
         )
         createdSessions.push(res.rows[0])
       }
+
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'schedule.apply_recommendation',
+        resourceType: 'live_session',
+        afterData: { targetDate, createdCount: createdSessions.length },
+        request,
+      })
 
       return sendOk(reply, { createdCount: createdSessions.length, sessions: createdSessions }, 'AI排班建议已成功转化为正式排班计划！')
     } catch (err: any) {

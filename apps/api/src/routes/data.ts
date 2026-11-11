@@ -13,7 +13,8 @@ import type { FastifyInstance } from 'fastify'
 import * as XLSX from 'xlsx'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
-import { requireAuth } from '../lib/guard.js'
+import { requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import { findDuplicateSession, buildDuplicateMessage } from '../lib/livereg-dedupe.js'
 import { executeCleaningPipeline } from '../ingest/cleaner/engine.js'
 import {
@@ -90,8 +91,11 @@ export async function dataRoutes(app: FastifyInstance) {
     }
   })
 
+  const DATA_OPERATE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance']
+  const DATA_ADMIN_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'finance']
+
   // ── POST /api/v1/data/tables/:id/refresh ──
-  app.post('/api/v1/data/tables/:id/refresh', async (request, reply) => {
+  app.post('/api/v1/data/tables/:id/refresh', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -143,14 +147,14 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/data/uploads/:id ── 删除上传记录和文件
-  app.delete('/api/v1/data/uploads/:id', async (request, reply) => {
+  app.delete('/api/v1/data/uploads/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const pool = getPool()
     try {
       const fs = await import('node:fs')
       const path = await import('node:path')
       const { rows } = await pool.query(
-        'SELECT source_path FROM data_uploads WHERE id = $1',
+        'SELECT file_name, source_path FROM data_uploads WHERE id = $1',
         [parseInt(id)],
       )
       if (rows.length === 0) return reply.code(404).send({ success: false, message: '记录不存在' })
@@ -160,6 +164,14 @@ export async function dataRoutes(app: FastifyInstance) {
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
       }
       await pool.query('DELETE FROM data_uploads WHERE id = $1', [parseInt(id)])
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.upload.delete',
+        resourceType: 'data_upload',
+        resourceId: id,
+        beforeData: rows[0],
+        request,
+      })
       return sendOk(reply, { message: '删除成功' })
     } catch (err) {
       request.log.warn({ err }, 'data/uploads/:id delete failed')
@@ -168,8 +180,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/data/upload-preview ──
-  app.post('/api/v1/data/upload-preview', async (request, reply) => {
-    if (!(await requireAuth(request, reply))) return
+  app.post('/api/v1/data/upload-preview', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const parts = request.parts()
@@ -291,9 +302,8 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/data/uploads ──
-  app.post('/api/v1/data/uploads', async (request, reply) => {
-    const user = await requireAuth(request, reply)
-    if (!user) return
+  app.post('/api/v1/data/uploads', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
+    const user = (request as any).user
     const pool = getPool()
     try {
       const parts = request.parts()
@@ -548,7 +558,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/data/exports ──
-  app.post('/api/v1/data/exports', async (request, reply) => {
+  app.post('/api/v1/data/exports', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { exportName?: string; format?: string }
@@ -615,11 +625,20 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/data/live/:id ──
-  app.delete('/api/v1/data/live/:id', async (request, reply) => {
+  app.delete('/api/v1/data/live/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const result = await pool.query('DELETE FROM live_registrations WHERE id = $1 RETURNING id', [parseInt(id)])
+      if ((result.rowCount ?? 0) > 0) {
+        await writeAuditLog(pool, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.live_registration.delete',
+          resourceType: 'live_registration',
+          resourceId: id,
+          request,
+        })
+      }
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0, id: parseInt(id) })
     } catch (err) {
       request.log.warn({ err }, 'data/live delete failed')
@@ -628,7 +647,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/data/live/:id ──
-  app.put('/api/v1/data/live/:id', async (request, reply) => {
+  app.put('/api/v1/data/live/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -707,6 +726,14 @@ export async function dataRoutes(app: FastifyInstance) {
         ],
       )
       if (result.rows.length === 0) return sendError(reply, 404, '登记记录不存在')
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.live_registration.update',
+        resourceType: 'live_registration',
+        resourceId: sessionId,
+        afterData: result.rows[0],
+        request,
+      })
       return sendOk(reply, result.rows[0], '登记信息已更新')
     } catch (err) {
       request.log.warn({ err }, 'data/live update failed')
@@ -818,11 +845,18 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/data/uploaded-data/anchor/:id ──
-  app.delete('/api/v1/data/uploaded-data/anchor/:id', async (request, reply) => {
+  app.delete('/api/v1/data/uploaded-data/anchor/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       await pool.query('DELETE FROM douyin_anchor_daily_metrics WHERE id = $1', [parseInt(id)])
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.uploaded_anchor.delete',
+        resourceType: 'douyin_anchor_daily_metric',
+        resourceId: id,
+        request,
+      })
       return sendOk(reply, { deleted: true })
     } catch (err) {
       request.log.warn({ err }, 'data/uploaded-data/anchor/:id delete failed')
@@ -831,7 +865,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/data/uploaded-data/anchor/batch-delete ──
-  app.post('/api/v1/data/uploaded-data/anchor/batch-delete', async (request, reply) => {
+  app.post('/api/v1/data/uploaded-data/anchor/batch-delete', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { ids: number[] }
@@ -841,6 +875,13 @@ export async function dataRoutes(app: FastifyInstance) {
         `DELETE FROM douyin_anchor_daily_metrics WHERE id = ANY($1::int[])`,
         [ids],
       )
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.uploaded_anchor.batch_delete',
+        resourceType: 'douyin_anchor_daily_metric',
+        afterData: { ids, deletedCount: result.rowCount },
+        request,
+      })
       return sendOk(reply, { deleted: true, count: result.rowCount })
     } catch (err) {
       request.log.warn({ err }, 'data/uploaded-data/anchor/batch-delete failed')
@@ -904,11 +945,18 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/data/uploaded-data/channel/:id ──
-  app.delete('/api/v1/data/uploaded-data/channel/:id', async (request, reply) => {
+  app.delete('/api/v1/data/uploaded-data/channel/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       await pool.query('DELETE FROM douyin_channel_daily_metrics WHERE id = $1', [parseInt(id)])
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.uploaded_channel.delete',
+        resourceType: 'douyin_channel_daily_metric',
+        resourceId: id,
+        request,
+      })
       return sendOk(reply, { deleted: true })
     } catch (err) {
       request.log.warn({ err }, 'data/uploaded-data/channel/:id delete failed')
@@ -917,7 +965,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/data/uploaded-data/channel/batch-delete ──
-  app.post('/api/v1/data/uploaded-data/channel/batch-delete', async (request, reply) => {
+  app.post('/api/v1/data/uploaded-data/channel/batch-delete', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { ids: number[] }
@@ -927,6 +975,13 @@ export async function dataRoutes(app: FastifyInstance) {
         `DELETE FROM douyin_channel_daily_metrics WHERE id = ANY($1::int[])`,
         [ids],
       )
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.uploaded_channel.batch_delete',
+        resourceType: 'douyin_channel_daily_metric',
+        afterData: { ids, deletedCount: result.rowCount },
+        request,
+      })
       return sendOk(reply, { deleted: true, count: result.rowCount })
     } catch (err) {
       request.log.warn({ err }, 'data/uploaded-data/channel/batch-delete failed')
@@ -959,7 +1014,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/data/clean-rules ── 创建自定义清洗规则集
-  app.post('/api/v1/data/clean-rules', async (request, reply) => {
+  app.post('/api/v1/data/clean-rules', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as {
@@ -978,6 +1033,14 @@ export async function dataRoutes(app: FastifyInstance) {
          RETURNING *`,
         [body.name, body.platform_code, body.description || '', JSON.stringify(body.rules)]
       )
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.clean_rule.create',
+        resourceType: 'clean_rule_set',
+        resourceId: rows[0]?.id,
+        afterData: rows[0],
+        request,
+      })
       return sendOk(reply, rows[0], '清洗规则集创建成功')
     } catch (err) {
       request.log.error({ err }, 'Failed to create clean rule set')
@@ -986,7 +1049,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/data/clean-rules/:id ── 更新自定义清洗规则集
-  app.put('/api/v1/data/clean-rules/:id', async (request, reply) => {
+  app.put('/api/v1/data/clean-rules/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -1020,6 +1083,14 @@ export async function dataRoutes(app: FastifyInstance) {
         values
       )
       if (rows.length === 0) return sendError(reply, 404, '清洗规则集不存在')
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.clean_rule.update',
+        resourceType: 'clean_rule_set',
+        resourceId: id,
+        afterData: rows[0],
+        request,
+      })
       return sendOk(reply, rows[0], '清洗规则集更新成功')
     } catch (err) {
       request.log.error({ err }, 'Failed to update clean rule set')
@@ -1028,7 +1099,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/data/clean-rules/:id ── 删除自定义清洗规则集 (系统内置不可删)
-  app.delete('/api/v1/data/clean-rules/:id', async (request, reply) => {
+  app.delete('/api/v1/data/clean-rules/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -1037,6 +1108,13 @@ export async function dataRoutes(app: FastifyInstance) {
       if (rows[0].is_system) return sendError(reply, 403, '系统官方清洗规则不可删除')
 
       await pool.query(`DELETE FROM clean_rule_sets WHERE id = $1`, [parseInt(id)])
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'data.clean_rule.delete',
+        resourceType: 'clean_rule_set',
+        resourceId: id,
+        request,
+      })
       return sendOk(reply, { deleted: true }, '清洗规则集已删除')
     } catch (err) {
       request.log.error({ err }, 'Failed to delete clean rule set')
@@ -1045,7 +1123,7 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/data/clean-rules/test ── 预演测试清洗规则（返回前后 Diff 对照与清洗报告）
-  app.post('/api/v1/data/clean-rules/test', async (request, reply) => {
+  app.post('/api/v1/data/clean-rules/test', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
     try {
       const body = request.body as {
         rows: Record<string, any>[]

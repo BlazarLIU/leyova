@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
 import { sendOk } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireRole } from '../lib/guard.js'
 
 export async function personnelRoutes(app: FastifyInstance) {
   // ── GET /api/v1/personnel/anchors ──
@@ -24,7 +25,7 @@ export async function personnelRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/personnel/anchors ──
-  app.post('/api/v1/personnel/anchors', async (request, reply) => {
+  app.post('/api/v1/personnel/anchors', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { name?: string; level?: string; status?: number }
@@ -43,7 +44,7 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/personnel/anchors/:id ──
   // 软删除：仅标记 status=0，保留历史出勤数据
-  app.delete('/api/v1/personnel/anchors/:id', async (request, reply) => {
+  app.delete('/api/v1/personnel/anchors/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -74,7 +75,7 @@ export async function personnelRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/personnel/operators ──
-  app.post('/api/v1/personnel/operators', async (request, reply) => {
+  app.post('/api/v1/personnel/operators', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { name?: string; employeeId?: string; status?: number }
@@ -91,7 +92,7 @@ export async function personnelRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/personnel/anchors/:id ──
-  app.put('/api/v1/personnel/anchors/:id', async (request, reply) => {
+  app.put('/api/v1/personnel/anchors/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -109,7 +110,7 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/personnel/operators/:id ──
   // 软删除：仅标记 status=0，保留历史出勤数据
-  app.delete('/api/v1/personnel/operators/:id', async (request, reply) => {
+  app.delete('/api/v1/personnel/operators/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -125,7 +126,7 @@ export async function personnelRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/personnel/operators/:id ──
-  app.put('/api/v1/personnel/operators/:id', async (request, reply) => {
+  app.put('/api/v1/personnel/operators/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -142,7 +143,7 @@ export async function personnelRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/personnel/managers ── (from users with role=manager)
-  app.get('/api/v1/personnel/managers', async (request, reply) => {
+  app.get('/api/v1/personnel/managers', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { rows } = await pool.query(
@@ -157,7 +158,7 @@ export async function personnelRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/personnel/managers ──
-  app.post('/api/v1/personnel/managers', async (request, reply) => {
+  app.post('/api/v1/personnel/managers', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { username?: string; realName?: string; status?: number }
@@ -179,7 +180,7 @@ export async function personnelRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/personnel/managers/:id ──
-  app.delete('/api/v1/personnel/managers/:id', async (request, reply) => {
+  app.delete('/api/v1/personnel/managers/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }

@@ -9,6 +9,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireRole } from '../lib/guard.js'
 import {
   convertFindingsToTasks,
   convertAllActions,
@@ -16,11 +17,13 @@ import {
   archiveReportToKb,
 } from '../ai/closure.js'
 
+const ANALYSIS_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance']
+
 export async function closureRoutes(app: FastifyInstance) {
   const pool = getPool()
 
   // ── POST /api/v1/analysis/tasks/convert ──
-  app.post('/api/v1/analysis/tasks/convert', async (request: FastifyRequest<{
+  app.post<{
     Body: {
       runId?: number
       sourceQuestion?: string
@@ -33,7 +36,7 @@ export async function closureRoutes(app: FastifyInstance) {
       /** 或批量：直接传行动建议数组 */
       actions?: string[]
     }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/analysis/tasks/convert', { preHandler: [requireRole(ANALYSIS_WRITE_ROLES)] }, async (request, reply) => {
     try {
       const b = request.body || ({} as any)
 
@@ -94,13 +97,13 @@ export async function closureRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/analysis/report ── 生成复盘报告
-  app.post('/api/v1/analysis/report', async (request: FastifyRequest<{
+  app.post<{
     Body: {
       timeRange: { from: string; to: string }
       filters?: { platform?: string; shopId?: number }
       archiveToKb?: boolean
     }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/analysis/report', { preHandler: [requireRole(ANALYSIS_WRITE_ROLES)] }, async (request, reply) => {
     try {
       const b = request.body || ({} as any)
       if (!b.timeRange?.from || !b.timeRange?.to) {
@@ -134,9 +137,9 @@ export async function closureRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/analysis/report/archive ── 单独沉淀报告
-  app.post('/api/v1/analysis/report/archive', async (request: FastifyRequest<{
+  app.post<{
     Body: { title: string; markdown: string; metadata?: Record<string, any> }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/analysis/report/archive', { preHandler: [requireRole(ANALYSIS_WRITE_ROLES)] }, async (request, reply) => {
     try {
       const b = request.body || ({} as any)
       if (!b.title || !b.markdown) return sendError(reply, 400, '缺少 title 或 markdown')

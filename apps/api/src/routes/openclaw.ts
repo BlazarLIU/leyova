@@ -8,8 +8,10 @@
  * 仅系统管理员（super_admin）可访问。
  */
 import type { FastifyInstance } from 'fastify'
+import { getPool } from '../lib/db.js'
 import { sendOk, sendError } from '../lib/http.js'
 import { requireAuth } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import { isAdminRole } from '../lib/ai-access.js'
 import { getOpenClawConfigView, patchOpenClawConfig, restartOpenClaw } from '../lib/openclaw-config.js'
 
@@ -100,6 +102,20 @@ export async function openclawRoutes(app: FastifyInstance) {
     try {
       patchOpenClawConfig(body)
       const { killed, started } = restartOpenClaw()
+      await writeAuditLog(getPool(), {
+        request,
+        action: 'openclaw.config.update',
+        resourceType: 'openclaw_config',
+        resourceId: body.providerId || 'global',
+        afterData: {
+          modelsMode: body.modelsMode,
+          providerId: body.providerId,
+          primaryModel: body.primaryModel,
+          allowList: body.allowList,
+          session: body.session,
+          restarted: started,
+        },
+      })
       return sendOk(reply, {
         message: '配置已保存，OpenClaw 已重启',
         restarted: started,

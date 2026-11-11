@@ -46,3 +46,4 @@ async function dbPlugin(app: FastifyInstance) {
 
 export { dbPlugin }
 export default fp(dbPlugin, { name: 'db' })
+export { withRlsContext, resolveUserRlsScope, type ResolvedRlsScope } from './rls.js'

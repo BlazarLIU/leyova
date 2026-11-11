@@ -86,11 +86,74 @@ export function requireRole(allowedRoles: string[]) {
 }
 
 /**
- * 敏感成本与利润数据访问判断：仅系统管理员、管理员、财务专员可见
+ * 敏感成本与利润数据访问判断：仅系统管理员、管理员、财务专员可见（排除只读品牌方）
  */
 export function canAccessCost(user: AuthUser): boolean {
-  if (!user) return false
+  if (!user || user.userType === 'brand_viewer') return false
   return ['super_admin', 'admin', 'finance'].includes(user.role)
+}
+
+/**
+ * 角色管理层级校验：防止普通管理员（admin）越权创建、提权或修改超级管理员（super_admin）账号
+ */
+export function canManageTargetUser(
+  actorRole: string,
+  targetCurrentRole?: string | null,
+  targetNewRole?: string | null
+): boolean {
+  if (actorRole === 'super_admin') return true
+  if (actorRole !== 'admin') return false
+  if (targetCurrentRole === 'super_admin') return false
+  if (targetNewRole === 'super_admin') return false
+  return true
+}
+
+/**
+ * Fail-closed 获取当前用户的合法可见平台集合：
+ * - 未登录用户：返回空 Set（不可见任何平台）
+ * - brand_viewer：仅限其授权 agency_projects 关联的平台
+ * - super_admin（非 brand_viewer）：返回 null 表示全平台可见
+ * - 其余角色：读取 role_platform_permissions 与 user_platform_permissions 并集；无配置则返回空 Set
+ */
+export async function getUserAllowedPlatforms(
+  pool: any,
+  user: AuthUser | null | undefined
+): Promise<Set<string> | null> {
+  if (!user || !user.id) {
+    return new Set<string>()
+  }
+
+  if (user.userType === 'brand_viewer') {
+    const tenantId = user.tenantId || 1
+    const res = (await pool.query(
+      `SELECT DISTINCT p.platform_code
+       FROM public.brand_viewer_permissions bvp
+       JOIN public.agency_projects p
+         ON p.tenant_id = bvp.tenant_id
+        AND p.id = ANY(bvp.project_ids)
+       WHERE bvp.user_id = $1 AND bvp.tenant_id = $2`,
+      [user.id, tenantId]
+    )) as { rows: Array<{ platform_code: string }> }
+    return new Set(res.rows.map((r) => r.platform_code))
+  }
+
+  if (user.role === 'super_admin') {
+    return null
+  }
+
+  const res = (await pool.query(
+    `SELECT platform_code
+     FROM public.role_platform_permissions rpp
+     JOIN public.roles r ON r.id = rpp.role_id
+     WHERE r.code = $1
+     UNION
+     SELECT platform_code
+     FROM public.user_platform_permissions
+     WHERE user_id = $2`,
+    [user.role, user.id]
+  )) as { rows: Array<{ platform_code: string }> }
+
+  return new Set(res.rows.map((r) => r.platform_code))
 }
 
 /**

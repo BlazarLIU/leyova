@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
+import { RequireAccess } from '@/components/auth/RequireAccess'
+import { useAuth, getDefaultHomePath } from '@/hooks/useAuth'
 import { SignInPage } from '@/pages/auth/SignInPage'
 
 // 总览
@@ -44,6 +46,7 @@ import { XhsNoteBoardPage } from '@/pages/shop/xiaohongshu/XhsNoteBoardPage'
 import { XhsConversionPage } from '@/pages/shop/xiaohongshu/XhsConversionPage'
 import { PlatformManagementPage } from '@/pages/system/PlatformManagementPage'
 import { UsersPage } from '@/pages/system/UsersPage'
+import { AuditLogsPage } from '@/pages/system/AuditLogsPage'
 import { DictPage } from '@/pages/system/DictPage'
 
 // 内容中心
@@ -105,6 +108,12 @@ import { PromotionCampaignsPage } from '@/pages/system/PromotionCampaignsPage'
 import { CompetitorWatchPage } from '@/pages/system/CompetitorWatchPage'
 import { MultiRoomOverviewPage } from '@/pages/system/MultiRoomOverviewPage'
 
+function HomeLandingRedirect() {
+  const { user, allowedModules, loading } = useAuth()
+  if (loading || !user) return null
+  return <Navigate to={getDefaultHomePath(user, allowedModules)} replace />
+}
+
 export default function App() {
   return (
     <Routes>
@@ -114,109 +123,111 @@ export default function App() {
 
       {/* Main app routes — with sidebar layout */}
       <Route element={<Layout />}>
-        {/* 默认跳转到首页 */}
-        <Route path="/" element={<Navigate to="/overview/home" replace />} />
+        {/* 默认按角色与权限智能跳转首页 */}
+        <Route path="/" element={<HomeLandingRedirect />} />
 
         {/* ===== 总览 ===== */}
-        <Route path="/overview/home" element={<PlatformAwareHomePage />} />
-        <Route path="/overview/cockpit" element={<CockpitPage />} />
-        <Route path="/overview/live-monitor" element={<LiveMonitorPage />} />
+        <Route path="/overview/home" element={<RequireAccess module="overview"><PlatformAwareHomePage /></RequireAccess>} />
+        <Route path="/overview/cockpit" element={<RequireAccess module="overview"><CockpitPage /></RequireAccess>} />
+        <Route path="/overview/live-monitor" element={<RequireAccess module="overview"><LiveMonitorPage /></RequireAccess>} />
         {/* <Route path="/overview/sessions" element={<SessionsPage />} />  已冻结 */}
-        <Route path="/overview/analytics" element={<AnalyticsPage />} />
+        <Route path="/overview/analytics" element={<RequireAccess module="overview"><AnalyticsPage /></RequireAccess>} />
 
         {/* ===== 直播管理 ===== */}
-        <Route path="/live/attendance" element={<AttendancePage />} />
-        <Route path="/live/registration" element={<LiveRegistrationPage />} />
-        <Route path="/live/data" element={<DataLivePage />} />
+        <Route path="/live/attendance" element={<RequireAccess module="personal_achievement"><AttendancePage /></RequireAccess>} />
+        <Route path="/live/registration" element={<RequireAccess module="live_registration"><LiveRegistrationPage /></RequireAccess>} />
+        <Route path="/live/data" element={<RequireAccess module="live_data"><DataLivePage /></RequireAccess>} />
 
         {/* ===== AI 助手 ===== */}
-        <Route path="/ai/chat" element={<ChatPage />} />
-        <Route path="/ai/weather" element={<WeatherSelectionPage />} />
+        <Route path="/ai/chat" element={<RequireAccess module="ai"><ChatPage /></RequireAccess>} />
+        <Route path="/ai/weather" element={<RequireAccess module="ai"><WeatherSelectionPage /></RequireAccess>} />
 
         {/* ===== 数据管理 ===== */}
-        <Route path="/data/management" element={<DataManagementPage />} />
-        <Route path="/data/upload" element={<DataUploadPage />} />
-        <Route path="/data/uploaded-data" element={<UploadedDataPage />} />
-        <Route path="/data/quality" element={<DataQualityPage />} />
-        <Route path="/data/ingest" element={<IngestWizardPage />} />
-        <Route path="/omnichannel/dashboard" element={<OmniDashboardPage />} />
-        <Route path="/content/center-config" element={<ContentCenterConfigPage />} />
-        <Route path="/ai/workbench" element={<AnalysisWorkbenchPage />} />
-        <Route path="/shop/overview" element={<ShopOverviewPage />} />
-        <Route path="/shop/products" element={<ShopProductsPage />} />
-        <Route path="/shop/taobao/board" element={<TaobaoShopBoardPage />} />
-        <Route path="/shop/taobao/ad-reconciliation" element={<TaobaoAdReconciliationPage />} />
-        <Route path="/shop/pdd/group-funnel" element={<PddGroupFunnelPage />} />
-        <Route path="/shop/pdd/caliber-compare" element={<PddCaliberComparePage />} />
-        <Route path="/shop/kuaishou/traffic-split" element={<KsTrafficSplitPage />} />
-        <Route path="/shop/kuaishou/indirect-gmv" element={<KsIndirectGmvPage />} />
-        <Route path="/shop/kuaishou/fans-team" element={<KsFansTeamPage />} />
-        <Route path="/shop/jd/board" element={<JdBusinessBoardPage />} />
-        <Route path="/shop/jd/fulfillment" element={<JdFulfillmentPage />} />
-        <Route path="/shop/jd/store-rating" element={<JdStoreRatingPage />} />
-        <Route path="/shop/pdd/refund" element={<PddRefundAnalysisPage />} />
-        <Route path="/shop/taobao/product-channel" element={<TaobaoProductChannelPage />} />
-        <Route path="/shop/xiaohongshu/notes" element={<XhsNoteBoardPage />} />
-        <Route path="/shop/xiaohongshu/conversion" element={<XhsConversionPage />} />
-        <Route path="/system/platforms" element={<PlatformManagementPage />} />
-        <Route path="/system/users" element={<UsersPage />} />
-        <Route path="/system/dict" element={<DictPage />} />
+        <Route path="/data/management" element={<RequireAccess module="data"><DataManagementPage /></RequireAccess>} />
+        <Route path="/data/upload" element={<RequireAccess module="data"><DataUploadPage /></RequireAccess>} />
+        <Route path="/data/uploaded-data" element={<RequireAccess module="data"><UploadedDataPage /></RequireAccess>} />
+        <Route path="/data/quality" element={<RequireAccess module="data"><DataQualityPage /></RequireAccess>} />
+        <Route path="/data/ingest" element={<RequireAccess module="data"><IngestWizardPage /></RequireAccess>} />
+        <Route path="/omnichannel/dashboard" element={<RequireAccess module="overview"><OmniDashboardPage /></RequireAccess>} />
+        <Route path="/content/center-config" element={<RequireAccess anyModules={['content', 'system_ai']}><ContentCenterConfigPage /></RequireAccess>} />
+        <Route path="/ai/workbench" element={<RequireAccess module="overview"><AnalysisWorkbenchPage /></RequireAccess>} />
+        <Route path="/shop/overview" element={<RequireAccess module="overview"><ShopOverviewPage /></RequireAccess>} />
+        <Route path="/shop/products" element={<RequireAccess module="product_center"><ShopProductsPage /></RequireAccess>} />
+        <Route path="/shop/taobao/board" element={<RequireAccess module="overview"><TaobaoShopBoardPage /></RequireAccess>} />
+        <Route path="/shop/taobao/ad-reconciliation" element={<RequireAccess anyModules={['overview', 'ops']}><TaobaoAdReconciliationPage /></RequireAccess>} />
+        <Route path="/shop/pdd/group-funnel" element={<RequireAccess module="bi"><PddGroupFunnelPage /></RequireAccess>} />
+        <Route path="/shop/pdd/caliber-compare" element={<RequireAccess module="overview"><PddCaliberComparePage /></RequireAccess>} />
+        <Route path="/shop/kuaishou/traffic-split" element={<RequireAccess module="bi"><KsTrafficSplitPage /></RequireAccess>} />
+        <Route path="/shop/kuaishou/indirect-gmv" element={<RequireAccess module="bi"><KsIndirectGmvPage /></RequireAccess>} />
+        <Route path="/shop/kuaishou/fans-team" element={<RequireAccess module="ops"><KsFansTeamPage /></RequireAccess>} />
+        <Route path="/shop/jd/board" element={<RequireAccess module="overview"><JdBusinessBoardPage /></RequireAccess>} />
+        <Route path="/shop/jd/fulfillment" element={<RequireAccess module="fulfillment"><JdFulfillmentPage /></RequireAccess>} />
+        <Route path="/shop/jd/store-rating" element={<RequireAccess module="overview"><JdStoreRatingPage /></RequireAccess>} />
+        <Route path="/shop/pdd/refund" element={<RequireAccess module="bi"><PddRefundAnalysisPage /></RequireAccess>} />
+        <Route path="/shop/taobao/product-channel" element={<RequireAccess anyModules={['overview', 'ops']}><TaobaoProductChannelPage /></RequireAccess>} />
+        <Route path="/shop/xiaohongshu/notes" element={<RequireAccess module="overview"><XhsNoteBoardPage /></RequireAccess>} />
+        <Route path="/shop/xiaohongshu/conversion" element={<RequireAccess module="content"><XhsConversionPage /></RequireAccess>} />
+        <Route path="/system/platforms" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><PlatformManagementPage /></RequireAccess>} />
+        <Route path="/system/users" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><UsersPage /></RequireAccess>} />
+        <Route path="/system/audit-logs" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><AuditLogsPage /></RequireAccess>} />
+        <Route path="/system/dict" element={<RequireAccess roles={['super_admin']} module="system_dict"><DictPage /></RequireAccess>} />
 
         {/* ===== 内容中心 ===== */}
-        <Route path="/content/video-create" element={<VideoCreatePage />} />
-        <Route path="/content/video-data" element={<VideoDataPage />} />
-        <Route path="/content/config" element={<ContentConfigPage />} />
+        <Route path="/content/video-create" element={<RequireAccess module="content"><VideoCreatePage /></RequireAccess>} />
+        <Route path="/content/video-data" element={<RequireAccess module="content"><VideoDataPage /></RequireAccess>} />
+        <Route path="/content/config" element={<RequireAccess module="content"><ContentConfigPage /></RequireAccess>} />
 
         {/* ===== 商业智能 ===== */}
-        <Route path="/bi/dashboard" element={<BiDashboardPage />} />
-        <Route path="/bi/roi" element={<RoiDashboardPage />} />
-        <Route path="/bi/refund-analysis" element={<RefundAnalysisPage />} />
-        <Route path="/bi/anomaly-detection" element={<AnomalyDetectionPage />} />
+        <Route path="/bi/dashboard" element={<RequireAccess module="bi"><BiDashboardPage /></RequireAccess>} />
+        <Route path="/bi/roi" element={<RequireAccess module="bi"><RoiDashboardPage /></RequireAccess>} />
+        <Route path="/bi/refund-analysis" element={<RequireAccess module="bi"><RefundAnalysisPage /></RequireAccess>} />
+        <Route path="/bi/anomaly-detection" element={<RequireAccess module="bi"><AnomalyDetectionPage /></RequireAccess>} />
 
         {/* ===== 主播赋能 ===== */}
-        <Route path="/anchors/list" element={<AnchorListPage />} />
-        <Route path="/anchors/profile" element={<AnchorProfilePage />} />
-        <Route path="/anchors/training" element={<TrainingPage />} />
-        <Route path="/anchors/schedule" element={<ScheduleManagementPage />} />
-        <Route path="/anchors/my-schedule" element={<MySchedulePage />} />
-        <Route path="/anchors/schedule-recommend" element={<ScheduleRecommendPage />} />
-        <Route path="/anchors/my-performance" element={<MyPerformancePage />} />
+        <Route path="/anchors/list" element={<RequireAccess module="anchor"><AnchorListPage /></RequireAccess>} />
+        <Route path="/anchors/profile" element={<RequireAccess module="anchor"><AnchorProfilePage /></RequireAccess>} />
+        <Route path="/anchors/training" element={<RequireAccess module="anchor"><TrainingPage /></RequireAccess>} />
+        <Route path="/anchors/schedule" element={<RequireAccess module="anchor"><ScheduleManagementPage /></RequireAccess>} />
+        <Route path="/anchors/my-schedule" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><MySchedulePage /></RequireAccess>} />
+        <Route path="/anchors/schedule-recommend" element={<RequireAccess module="anchor"><ScheduleRecommendPage /></RequireAccess>} />
+        <Route path="/anchors/my-performance" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><MyPerformancePage /></RequireAccess>} />
+
         {/* ===== 运营提效 ===== */}
-        <Route path="/ops/capabilities" element={<CapabilitiesPage />} />
-        <Route path="/ops/script-library" element={<ScriptTemplatesPage />} />
-        <Route path="/ops/issue-library" element={<IssueLibraryPage />} />
-        <Route path="/ops/goal-tracking" element={<GoalTrackingPage />} />
-        <Route path="/ops/room-health" element={<RoomHealthPage />} />
-        <Route path="/ops/session-products" element={<SessionProductsPage />} />
-        <Route path="/ops/costs" element={<CostStructurePage />} />
-        <Route path="/ops/inventory" element={<InventoryCenterPage />} />
-        <Route path="/ops/fulfillment" element={<FulfillmentSlaPage />} />
-        <Route path="/ops/after-sales" element={<AfterSalesPage />} />
-        <Route path="/ops/kol" element={<KolCooperationPage />} />
-        <Route path="/ops/cs" element={<CustomerServicePage />} />
+        <Route path="/ops/capabilities" element={<RequireAccess anyModules={['ops', 'anchor']}><CapabilitiesPage /></RequireAccess>} />
+        <Route path="/ops/script-library" element={<RequireAccess anyModules={['ops', 'anchor']}><ScriptTemplatesPage /></RequireAccess>} />
+        <Route path="/ops/issue-library" element={<RequireAccess module="ops"><IssueLibraryPage /></RequireAccess>} />
+        <Route path="/ops/goal-tracking" element={<RequireAccess module="ops"><GoalTrackingPage /></RequireAccess>} />
+        <Route path="/ops/room-health" element={<RequireAccess module="ops"><RoomHealthPage /></RequireAccess>} />
+        <Route path="/ops/session-products" element={<RequireAccess module="session_products"><SessionProductsPage /></RequireAccess>} />
+        <Route path="/ops/costs" element={<RequireAccess roles={['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance']} module="ops"><CostStructurePage /></RequireAccess>} />
+        <Route path="/ops/inventory" element={<RequireAccess module="product_center"><InventoryCenterPage /></RequireAccess>} />
+        <Route path="/ops/fulfillment" element={<RequireAccess module="fulfillment"><FulfillmentSlaPage /></RequireAccess>} />
+        <Route path="/ops/after-sales" element={<RequireAccess module="after_sales"><AfterSalesPage /></RequireAccess>} />
+        <Route path="/ops/kol" element={<RequireAccess module="kol"><KolCooperationPage /></RequireAccess>} />
+        <Route path="/ops/cs" element={<RequireAccess module="customer_service"><CustomerServicePage /></RequireAccess>} />
 
         {/* ===== MCN 代运营与对账中心 ===== */}
-        <Route path="/agency/clients" element={<ClientsPage />} />
-        <Route path="/agency/projects" element={<ProjectsPage />} />
-        <Route path="/agency/settlement" element={<SettlementPage />} />
-        <Route path="/brand-portal" element={<BrandDashboardPage />} />
+        <Route path="/agency/clients" element={<RequireAccess module="agency"><ClientsPage /></RequireAccess>} />
+        <Route path="/agency/projects" element={<RequireAccess module="agency"><ProjectsPage /></RequireAccess>} />
+        <Route path="/agency/settlement" element={<RequireAccess module="agency"><SettlementPage /></RequireAccess>} />
+        <Route path="/brand-portal" element={<RequireAccess allowBrandViewer module="agency"><BrandDashboardPage /></RequireAccess>} />
 
         {/* ===== 直播复盘 ===== */}
-        <Route path="/review/overview" element={<ReviewOverviewPage />} />
-        <Route path="/review/products" element={<ProductAnalysisPage />} />
-        <Route path="/review/short-videos" element={<ShortVideoTrafficPage />} />
-        <Route path="/review/channels" element={<ChannelAnalysisPage />} />
-        <Route path="/review/anchors" element={<AnchorPerformancePage />} />
-        <Route path="/review/funnel" element={<FunnelAnalysisPage />} />
-        <Route path="/review/closed-loop" element={<ClosedLoopPage />} />
+        <Route path="/review/overview" element={<RequireAccess anyModules={['review_overview', 'review']}><ReviewOverviewPage /></RequireAccess>} />
+        <Route path="/review/products" element={<RequireAccess module="review"><ProductAnalysisPage /></RequireAccess>} />
+        <Route path="/review/short-videos" element={<RequireAccess module="review"><ShortVideoTrafficPage /></RequireAccess>} />
+        <Route path="/review/channels" element={<RequireAccess anyModules={['review_channels', 'review']}><ChannelAnalysisPage /></RequireAccess>} />
+        <Route path="/review/anchors" element={<RequireAccess anyModules={['review_anchors', 'review']}><AnchorPerformancePage /></RequireAccess>} />
+        <Route path="/review/funnel" element={<RequireAccess anyModules={['review_funnel', 'review']}><FunnelAnalysisPage /></RequireAccess>} />
+        <Route path="/review/closed-loop" element={<RequireAccess anyModules={['review_closed_loop', 'review']}><ClosedLoopPage /></RequireAccess>} />
 
         {/* ===== 系统 ===== */}
-        <Route path="/system/config" element={<SystemConfigPage />} />
-        <Route path="/system/alerts" element={<AlertCenterPage />} />
-        <Route path="/system/tasks" element={<ImprovementTasksPage />} />
-        <Route path="/system/promotions" element={<PromotionCampaignsPage />} />
-        <Route path="/system/competitors" element={<CompetitorWatchPage />} />
-        <Route path="/system/multi-room" element={<MultiRoomOverviewPage />} />
+        <Route path="/system/config" element={<RequireAccess roles={['super_admin']} module="system_config"><SystemConfigPage /></RequireAccess>} />
+        <Route path="/system/alerts" element={<RequireAccess module="system_alerts"><AlertCenterPage /></RequireAccess>} />
+        <Route path="/system/tasks" element={<RequireAccess anyModules={['system_tasks', 'ops']}><ImprovementTasksPage /></RequireAccess>} />
+        <Route path="/system/promotions" element={<RequireAccess anyModules={['system_promotions', 'ops']}><PromotionCampaignsPage /></RequireAccess>} />
+        <Route path="/system/competitors" element={<RequireAccess anyModules={['system_competitors', 'ops']}><CompetitorWatchPage /></RequireAccess>} />
+        <Route path="/system/multi-room" element={<RequireAccess module="system_multiroom"><MultiRoomOverviewPage /></RequireAccess>} />
       </Route>
     </Routes>
   )

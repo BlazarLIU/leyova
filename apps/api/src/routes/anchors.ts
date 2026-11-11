@@ -1,46 +1,53 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
-import { requireAuth } from '../lib/guard.js'
+import { getPool, withRlsContext } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 
 export async function anchorRoutes(app: FastifyInstance) {
   // ── GET /api/v1/anchors/list ──
   //    Frontend: /api/anchors ← /api/v1/anchors (no /list)
   //    We register both paths for compatibility
   const listHandler = async (_request: any, reply: any) => {
-    const pool = getPool()
+    const user = _request.user
     const query = _request.query as { status?: string; platform?: string }
     if (query?.platform && ['jd', 'taobao', 'tmall', 'pdd', 'xiaohongshu'].includes(String(query.platform).toLowerCase())) {
       return sendOk(reply, [])
     }
     try {
-      let sql = `SELECT a.id, a.name, a.platform, a.level, a.status,
-                        COALESCE(AVG(ls.gmv), 0) AS avg_gmv,
-                        COALESCE(AVG(ls.views), 0)::int AS avg_views,
-                        COALESCE(AVG(ls.uv_value), 0) AS avg_uv_value,
-                        COALESCE(AVG(ls.interaction_rate), 0) AS avg_interaction_rate,
-                        COALESCE(AVG(ls.retention_rate), 0) AS avg_retention_rate,
-                        COALESCE(AVG(ls.gpm), 0) AS avg_gpm,
-                        COALESCE(AVG(ls.online_peak), 0)::int AS avg_online_peak,
-                        COALESCE(AVG(ls.new_fans), 0)::int AS avg_new_fans,
-                        ac.expression, ac.interaction, ac.conversion,
-                        ac.professionalism, ac.overall
-                 FROM anchors a
-                 LEFT JOIN live_sessions ls ON ls.anchor_id = a.id AND ls.status = 'completed'
-                 LEFT JOIN LATERAL (
-                   SELECT * FROM anchor_capabilities
-                   WHERE anchor_id = a.id
-                   ORDER BY evaluated_at DESC LIMIT 1
-                 ) ac ON true
-                 WHERE a.status = 1`
-      const params: any[] = []
-      if (query.status !== undefined) {
-        sql += ' AND a.status = $1'
-        params.push(parseInt(query.status))
-      }
-      sql += ' GROUP BY a.id, a.name, a.platform, a.level, a.status, ac.expression, ac.interaction, ac.conversion, ac.professionalism, ac.overall'
-      sql += ' ORDER BY a.id'
-      const result = await pool.query(sql, params)
+      const result = await withRlsContext(user, async (client) => {
+        let sql = `SELECT a.id, a.name, a.platform, a.level, a.status,
+                          COALESCE(AVG(ls.gmv), 0) AS avg_gmv,
+                          COALESCE(AVG(ls.views), 0)::int AS avg_views,
+                          COALESCE(AVG(ls.uv_value), 0) AS avg_uv_value,
+                          COALESCE(AVG(ls.interaction_rate), 0) AS avg_interaction_rate,
+                          COALESCE(AVG(ls.retention_rate), 0) AS avg_retention_rate,
+                          COALESCE(AVG(ls.gpm), 0) AS avg_gpm,
+                          COALESCE(AVG(ls.online_peak), 0)::int AS avg_online_peak,
+                          COALESCE(AVG(ls.new_fans), 0)::int AS avg_new_fans,
+                          ac.expression, ac.interaction, ac.conversion,
+                          ac.professionalism, ac.overall
+                   FROM anchors a
+                   LEFT JOIN live_sessions ls ON ls.anchor_id = a.id AND ls.status = 'completed'
+                   LEFT JOIN LATERAL (
+                     SELECT * FROM anchor_capabilities
+                     WHERE anchor_id = a.id
+                     ORDER BY evaluated_at DESC LIMIT 1
+                   ) ac ON true
+                   WHERE a.status = 1`
+        const params: any[] = []
+        if (query.status !== undefined) {
+          params.push(parseInt(query.status))
+          sql += ` AND a.status = $${params.length}`
+        }
+        if (user?.role === 'employee' && user?.anchorId) {
+          params.push(Number(user.anchorId))
+          sql += ` AND a.id = $${params.length}`
+        }
+        sql += ' GROUP BY a.id, a.name, a.platform, a.level, a.status, ac.expression, ac.interaction, ac.conversion, ac.professionalism, ac.overall'
+        sql += ' ORDER BY a.id'
+        return client.query(sql, params)
+      })
       return sendOk(reply, result.rows.map(r => {
         // 自动识别短板
         const capMap = { expression: r.expression, interaction: r.interaction, conversion: r.conversion, professionalism: r.professionalism }
@@ -71,13 +78,17 @@ export async function anchorRoutes(app: FastifyInstance) {
     }
   }
 
-  app.get('/api/v1/anchors/list', listHandler)
-  app.get('/api/v1/anchors', listHandler)
+  app.get('/api/v1/anchors/list', { preHandler: [requireAuth] }, listHandler)
+  app.get('/api/v1/anchors', { preHandler: [requireAuth] }, listHandler)
 
   // ── GET /api/v1/anchors/profile/:id ──
   //    Frontend: /api/anchors/:id
-  app.get('/api/v1/anchors/profile/:id', async (request, reply) => {
+  app.get('/api/v1/anchors/profile/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+    const user = (request as any).user
     const { id } = request.params as { id: string }
+    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
+      return sendError(reply, 403, '仅可查看本人关联主播档案')
+    }
     const pool = getPool()
     try {
       const result = await pool.query<{
@@ -106,16 +117,23 @@ export async function anchorRoutes(app: FastifyInstance) {
     }
   })
   // Alias for frontend calls like /api/anchors/1
-  app.get('/api/v1/anchors/:id', async (request, reply) => {
+  app.get('/api/v1/anchors/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+    const user = (request as any).user
     const { id } = request.params as { id: string }
-    // Reuse the profile handler by forwarding
+    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
+      return sendError(reply, 403, '仅可查看本人关联主播档案')
+    }
     request.params = { id }
     return sendOk(reply, await getAnchorDetail(parseInt(id)))
   })
 
   // ── GET /api/v1/anchors/profile/:id/performance ──
-  app.get('/api/v1/anchors/profile/:id/performance', async (request, reply) => {
+  app.get('/api/v1/anchors/profile/:id/performance', { preHandler: [requireAuth] }, async (request, reply) => {
+    const user = (request as any).user
     const { id } = request.params as { id: string }
+    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
+      return sendError(reply, 403, '仅可查看本人关联主播绩效数据')
+    }
     const pool = getPool()
     try {
       const stats = await pool.query<{
@@ -207,8 +225,12 @@ export async function anchorRoutes(app: FastifyInstance) {
       return sendOk(reply, { stats: [], monthlyData: [], recentSessions: [] })
     }
   })
-  app.get('/api/v1/anchors/:id/performance', async (request, reply) => {
+  app.get('/api/v1/anchors/:id/performance', { preHandler: [requireAuth] }, async (request, reply) => {
+    const user = (request as any).user
     const { id } = request.params as { id: string }
+    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
+      return sendError(reply, 403, '仅可查看本人关联主播绩效数据')
+    }
     request.params = { id }
     // forward to profile performance
     const result = await getAnchorPerformance(parseInt(id))
@@ -244,25 +266,35 @@ export async function anchorRoutes(app: FastifyInstance) {
         return sendError(reply, 404, '当前登录账号未绑定主播档案，请联系管理员在系统管理中关联')
       }
 
-      const anchorRes = await pool.query(
-        'SELECT a.id, a.name, a.level, a.platform, a.platform_code, c.expression, c.interaction, c.conversion, c.professionalism, c.overall FROM public.anchors a LEFT JOIN public.anchor_capabilities c ON a.id = c.anchor_id WHERE a.id = $1',
-        [aId]
-      )
+      const { anchorRes, statsRes, recentRes } = await withRlsContext(request, async (client) => {
+        const aRes = await client.query(
+          'SELECT a.id, a.name, a.level, a.platform, a.platform_code, c.expression, c.interaction, c.conversion, c.professionalism, c.overall FROM public.anchors a LEFT JOIN public.anchor_capabilities c ON a.id = c.anchor_id WHERE a.id = $1',
+          [aId]
+        )
+        const sRes = await client.query(
+          `SELECT 
+             COUNT(*)::int AS "monthlySessions",
+             COALESCE(SUM(gmv), 0)::float AS "monthlyGmv",
+             COALESCE(SUM(orders), 0)::int AS "monthlyOrders",
+             COALESCE(AVG(duration_min), 0)::float AS "avgDurationMin"
+           FROM public.live_sessions 
+           WHERE anchor_id = $1`,
+          [aId]
+        )
+        const rRes = await client.query(
+          `SELECT id, date::text, title, duration_min AS "durationMin", gmv::float, orders, status 
+           FROM public.live_sessions 
+           WHERE anchor_id = $1 
+           ORDER BY date DESC, id DESC LIMIT 8`,
+          [aId]
+        )
+        return { anchorRes: aRes, statsRes: sRes, recentRes: rRes }
+      })
+
       if (anchorRes.rows.length === 0) {
-        return sendError(reply, 404, '主播档案不存在')
+        return sendError(reply, 404, '主播档案不存在或无权访问')
       }
       const anchor = anchorRes.rows[0]
-
-      const statsRes = await pool.query(
-        `SELECT 
-           COUNT(*)::int AS "monthlySessions",
-           COALESCE(SUM(gmv), 0)::float AS "monthlyGmv",
-           COALESCE(SUM(orders), 0)::int AS "monthlyOrders",
-           COALESCE(AVG(duration_min), 0)::float AS "avgDurationMin"
-         FROM public.live_sessions 
-         WHERE anchor_id = $1`,
-        [aId]
-      )
 
       const rankRes = await pool.query(
         `SELECT rank FROM (
@@ -272,14 +304,6 @@ export async function anchorRoutes(app: FastifyInstance) {
         [aId]
       )
       const rank = rankRes.rows[0]?.rank ? Number(rankRes.rows[0].rank) : 3
-
-      const recentRes = await pool.query(
-        `SELECT id, date::text, title, duration_min AS "durationMin", gmv::float, orders, status 
-         FROM public.live_sessions 
-         WHERE anchor_id = $1 
-         ORDER BY date DESC, id DESC LIMIT 8`,
-        [aId]
-      )
 
       return sendOk(reply, {
         anchor: {
@@ -431,7 +455,7 @@ export async function anchorRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/scripts/templates ──
-  app.post('/api/v1/scripts/templates', async (request, reply) => {
+  app.post('/api/v1/scripts/templates', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'hrbp', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     const body = request.body as { category?: string; title?: string; scenario?: string; content?: string }
     if (!body.title?.trim()) {
@@ -443,6 +467,13 @@ export async function anchorRoutes(app: FastifyInstance) {
          VALUES ($1, $2, $3, $4) RETURNING id`,
         [body.category || 'opening', body.title.trim(), body.scenario?.trim() || '', body.content?.trim() || '']
       )
+      await writeAuditLog(pool, {
+        request,
+        action: 'anchors.script_template.create',
+        resourceType: 'anchor_script_templates',
+        resourceId: result.rows[0].id,
+        afterData: { id: result.rows[0].id, title: body.title.trim(), category: body.category || 'opening' },
+      })
       return sendOk(reply, { id: result.rows[0].id })
     } catch {
       return reply.code(500).send({ success: false, message: '创建失败' })

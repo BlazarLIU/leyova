@@ -12,6 +12,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireRole } from '../lib/guard.js'
 import { runAnalysis, type AnalysisMode } from '../ai/orchestrator.js'
 import { resolveScope, listMetrics, listDimensions } from '../ai/semantic-layer.js'
 import { listPlatformMetrics } from '../ai/platform-metrics.js'
@@ -25,7 +26,7 @@ export async function analysisRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/analysis/run ──
-  app.post('/api/v1/analysis/run', async (request: FastifyRequest<{
+  app.post<{
     Body: {
       question: string
       mode?: AnalysisMode
@@ -35,7 +36,7 @@ export async function analysisRoutes(app: FastifyInstance) {
       /** 当前选中的平台，启用平台专属分析 */
       platformCode?: string
     }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/analysis/run', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const body = request.body || ({} as any)
       const question = (body.question || '').trim()

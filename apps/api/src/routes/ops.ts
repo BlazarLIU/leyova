@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireRole } from '../lib/guard.js'
+
+const OPS_PLAN_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'controller']
 
 export async function opsRoutes(app: FastifyInstance) {
   // ── GET /api/v1/ops/capabilities ── (frontend: /ops/capabilities)
@@ -374,7 +377,7 @@ async function generateAutoIssueTags(pool: any): Promise<AutoTag[]> {
   })
 
   // ── POST /api/v1/ops/session-plans ── 创建排品计划
-  app.post('/api/v1/ops/session-plans', async (request: any, reply) => {
+  app.post('/api/v1/ops/session-plans', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
     const pool = getPool()
     const { roomId, date, anchorId, products, campaignId, notes } = request.body ?? {}
     if (!roomId || !date || !anchorId) {
@@ -408,7 +411,7 @@ async function generateAutoIssueTags(pool: any): Promise<AutoTag[]> {
   })
 
   // ── DELETE /api/v1/ops/session-plans/:id ── 删除排品计划
-  app.delete('/api/v1/ops/session-plans/:id', async (request: any, reply) => {
+  app.delete('/api/v1/ops/session-plans/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
     const pool = getPool()
     try {
       await pool.query('DELETE FROM session_plans WHERE id = $1', [request.params.id])

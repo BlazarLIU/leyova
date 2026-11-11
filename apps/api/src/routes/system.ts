@@ -1,8 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
-import { requireAuth, requireRole } from '../lib/guard.js'
+import { getPool, withRlsContext } from '../lib/db.js'
+import { canManageTargetUser, requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import { queryInventoryProducts } from './inventory.js'
 
 // 规范化目标模板指标项：{ metric, target, unit }，过滤非法项
@@ -43,11 +44,19 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/system/modules ──
-  app.get('/api/v1/system/modules', async (request, reply) => {
+  app.get('/api/v1/system/modules', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { rows } = await pool.query(
-        `SELECT code, name, icon, sort_order, visible_to FROM system_modules ORDER BY sort_order`
+        `SELECT m.code,
+                m.name,
+                m.icon,
+                m.sort_order,
+                COALESCE(ARRAY_AGG(rm.role_code ORDER BY rm.role_code) FILTER (WHERE rm.role_code IS NOT NULL), '{}'::varchar[]) AS visible_to
+         FROM system_modules m
+         LEFT JOIN role_modules rm ON rm.module_code = m.code
+         GROUP BY m.code, m.name, m.icon, m.sort_order
+         ORDER BY m.sort_order`
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -59,8 +68,19 @@ export async function systemRoutes(app: FastifyInstance) {
   // ── PUT /api/v1/system/roles/modules ── 更新角色模块权限
   app.put('/api/v1/system/roles/modules', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
+    const actor = (request as any).user
     try {
       const body = request.body as { roleCode: string; moduleCodes: string[] }
+      if (!body?.roleCode || !Array.isArray(body.moduleCodes)) {
+        return sendError(reply, 400, '缺少必要参数 (roleCode, moduleCodes)')
+      }
+      if (body.roleCode === 'super_admin' && actor.role !== 'super_admin') {
+        return sendError(reply, 403, '仅超级管理员可修改 super_admin 模块权限')
+      }
+
+      const beforeRes = await pool.query('SELECT module_code FROM role_modules WHERE role_code = $1 ORDER BY module_code', [body.roleCode])
+      const beforeModules = beforeRes.rows.map((r: any) => r.module_code)
+
       const client = await pool.connect()
       try {
         await client.query('BEGIN')
@@ -72,26 +92,42 @@ export async function systemRoutes(app: FastifyInstance) {
           )
         }
         await client.query('COMMIT')
-        return sendOk(reply, { updated: true })
       } catch (e) {
         await client.query('ROLLBACK')
         throw e
       } finally {
         client.release()
       }
+
+      await writeAuditLog(pool, {
+        request,
+        action: 'system.role_modules.update',
+        resourceType: 'role_modules',
+        resourceId: body.roleCode,
+        beforeData: { roleCode: body.roleCode, moduleCodes: beforeModules },
+        afterData: { roleCode: body.roleCode, moduleCodes: body.moduleCodes },
+      })
+
+      return sendOk(reply, { updated: true })
     } catch (err) {
       request.log.warn({ err }, 'system/roles/modules update failed')
-      return sendOk(reply, { updated: false })
+      return sendError(reply, 500, '更新角色模块权限失败')
     }
   })
 
   // ── GET /api/v1/system/users ──
   app.get('/api/v1/system/users', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
+    const actor = (request as any).user
     try {
       const { rows } = await pool.query(
-        `SELECT id, username, real_name AS "realName", role, status, last_login_at AS "lastLogin",
-                created_at AS "createdAt" FROM users ORDER BY id`
+        `SELECT id, username, real_name AS "realName", role, user_type AS "userType",
+                tenant_id AS "tenantId", anchor_id AS "anchorId", status,
+                last_login_at AS "lastLogin", created_at AS "createdAt"
+         FROM users
+         WHERE ($1 = 'super_admin' OR tenant_id = $2)
+         ORDER BY id`,
+        [actor.role, actor.tenantId || 1]
       )
       // 为每条用户附加模块权限
       const result = []
@@ -112,10 +148,11 @@ export async function systemRoutes(app: FastifyInstance) {
   // ── POST /api/v1/system/users ──
   app.post('/api/v1/system/users', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
+    const actor = (request as any).user
     try {
       const body = request.body as {
         username?: string; realName?: string; role?: string; status?: number; modules?: string[]
-        password?: string
+        password?: string; anchorId?: number | null; tenantId?: number | null; userType?: string
       }
       const username = (body.username || '').trim()
       if (!username || username.length > 50) {
@@ -139,14 +176,21 @@ export async function systemRoutes(app: FastifyInstance) {
       if (!validRoles.includes(role)) {
         return sendError(reply, 400, '角色不合法，可选角色：系统管理员(super_admin)、管理员(admin)、运营(operator)、财务(finance)、HRBP(hrbp)、员工(employee)')
       }
+      if (!canManageTargetUser(actor.role, undefined, role)) {
+        return sendError(reply, 403, '仅超级管理员可创建 super_admin 账号')
+      }
+      const tenantId = actor.role === 'super_admin' && body.tenantId ? body.tenantId : (actor.tenantId || 1)
+      const userType = body.userType === 'brand_viewer' ? 'brand_viewer' : 'agency_staff'
+
       const { rows } = await pool.query(
-        `INSERT INTO users (username, password_hash, real_name, role, status)
-         VALUES ($1, $2, $3, $4, $5) RETURNING id, username, real_name AS "realName", role, status, created_at AS "createdAt"`,
-        [username, hash, body.realName || '新用户', role, body.status ?? 1]
+        `INSERT INTO users (username, password_hash, real_name, role, status, tenant_id, user_type, anchor_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING id, username, real_name AS "realName", role, status, tenant_id AS "tenantId", user_type AS "userType", anchor_id AS "anchorId", created_at AS "createdAt"`,
+        [username, hash, body.realName || '新用户', role, body.status ?? 1, tenantId, userType, body.anchorId ?? null]
       )
       if (rows.length === 0) return sendError(reply, 500, '创建失败')
-      // 保存自定义模块权限
-      if (body.modules && body.modules.length > 0) {
+      // 保存自定义模块权限（非 super_admin 目标角色）
+      if (body.modules && body.modules.length > 0 && canManageTargetUser(actor.role, role, role)) {
         for (const mc of body.modules) {
           await pool.query(
             'INSERT INTO role_modules (role_code, module_code) VALUES ($1, $2) ON CONFLICT DO NOTHING',
@@ -154,6 +198,13 @@ export async function systemRoutes(app: FastifyInstance) {
           )
         }
       }
+      await writeAuditLog(pool, {
+        request,
+        action: 'system.user.create',
+        resourceType: 'users',
+        resourceId: rows[0].id,
+        afterData: rows[0],
+      })
       return sendOk(reply, rows[0])
     } catch (err) {
       request.log.warn({ err }, 'system/users create failed')
@@ -164,18 +215,32 @@ export async function systemRoutes(app: FastifyInstance) {
   // ── PUT /api/v1/system/users/:id ──
   app.put('/api/v1/system/users/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
+    const actor = (request as any).user
     try {
       const { id } = request.params as { id: string }
+      const targetId = parseInt(id)
       const body = request.body as {
         realName?: string; role?: string; status?: number; modules?: string[]
       }
+      const beforeRes = await pool.query(
+        'SELECT id, username, real_name AS "realName", role, status, tenant_id AS "tenantId", user_type AS "userType", anchor_id AS "anchorId" FROM users WHERE id = $1',
+        [targetId]
+      )
+      if (beforeRes.rows.length === 0) {
+        return sendError(reply, 404, '目标用户不存在')
+      }
+      const beforeUser = beforeRes.rows[0]
+      if (!canManageTargetUser(actor.role, beforeUser.role, body.role)) {
+        return sendError(reply, 403, '无权修改 super_admin 账号或将账号提权为 super_admin')
+      }
+
       await pool.query(
         `UPDATE users SET real_name = COALESCE($1, real_name), role = COALESCE($2, role),
          status = COALESCE($3, status), updated_at = NOW() WHERE id = $4`,
-        [body.realName, body.role, body.status, parseInt(id)]
+        [body.realName, body.role, body.status, targetId]
       )
       // 更新模块权限
-      if (body.role && body.modules) {
+      if (body.role && body.modules && canManageTargetUser(actor.role, body.role, body.role)) {
         const client = await pool.connect()
         try {
           await client.query('BEGIN')
@@ -194,23 +259,59 @@ export async function systemRoutes(app: FastifyInstance) {
           client.release()
         }
       }
+      const afterRes = await pool.query(
+        'SELECT id, username, real_name AS "realName", role, status, tenant_id AS "tenantId", user_type AS "userType", anchor_id AS "anchorId" FROM users WHERE id = $1',
+        [targetId]
+      )
+      await writeAuditLog(pool, {
+        request,
+        action: 'system.user.update',
+        resourceType: 'users',
+        resourceId: targetId,
+        beforeData: beforeUser,
+        afterData: afterRes.rows[0] ?? null,
+      })
       return sendOk(reply, { updated: true })
     } catch (err) {
       request.log.warn({ err }, 'system/users update failed')
-      return sendOk(reply, { updated: false })
+      return sendError(reply, 500, '更新用户失败')
     }
   })
 
   // ── DELETE /api/v1/system/users/:id ──
   app.delete('/api/v1/system/users/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
+    const actor = (request as any).user
     try {
       const { id } = request.params as { id: string }
-      const result = await pool.query('DELETE FROM users WHERE id = $1', [parseInt(id)])
+      const targetId = parseInt(id)
+      if (targetId === actor.id) {
+        return sendError(reply, 400, '不能删除当前登录账号')
+      }
+      const beforeRes = await pool.query(
+        'SELECT id, username, real_name AS "realName", role, status, tenant_id AS "tenantId", user_type AS "userType" FROM users WHERE id = $1',
+        [targetId]
+      )
+      if (beforeRes.rows.length === 0) {
+        return sendError(reply, 404, '目标用户不存在')
+      }
+      if (!canManageTargetUser(actor.role, beforeRes.rows[0].role)) {
+        return sendError(reply, 403, '仅超级管理员可删除 super_admin 账号')
+      }
+      const result = await pool.query('DELETE FROM users WHERE id = $1', [targetId])
+      if ((result.rowCount ?? 0) > 0) {
+        await writeAuditLog(pool, {
+          request,
+          action: 'system.user.delete',
+          resourceType: 'users',
+          resourceId: targetId,
+          beforeData: beforeRes.rows[0],
+        })
+      }
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0 })
     } catch (err) {
       request.log.warn({ err }, 'system/users delete failed')
-      return sendOk(reply, { deleted: false })
+      return sendError(reply, 500, '删除用户失败')
     }
   })
 
@@ -230,7 +331,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/system/rooms ──
-  app.post('/api/v1/system/rooms', async (request, reply) => {
+  app.post('/api/v1/system/rooms', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as {
@@ -241,22 +342,30 @@ export async function systemRoutes(app: FastifyInstance) {
          VALUES ($1, $2, $3) RETURNING id, name, platform, status, created_at, updated_at`,
         [body.name || '新直播间', body.platform || '抖音', body.status || 'inactive']
       )
-      if (rows.length === 0) return sendOk(reply, { error: '创建失败' })
+      if (rows.length === 0) return sendError(reply, 500, '创建失败')
+      await writeAuditLog(pool, {
+        request,
+        action: 'system.room.create',
+        resourceType: 'live_rooms',
+        resourceId: rows[0].id,
+        afterData: rows[0],
+      })
       return sendOk(reply, rows[0])
     } catch (err) {
       request.log.warn({ err }, 'system/rooms create failed')
-      return sendOk(reply, { error: '创建失败' })
+      return sendError(reply, 500, '创建失败')
     }
   })
 
   // ── PUT /api/v1/system/rooms/:id ──
-  app.put('/api/v1/system/rooms/:id', async (request, reply) => {
+  app.put('/api/v1/system/rooms/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const body = request.body as {
         name?: string; platform?: string; status?: string
       }
+      const beforeRes = await pool.query('SELECT id, name, platform, status FROM live_rooms WHERE id = $1', [parseInt(id)])
       const result = await pool.query(
         `UPDATE live_rooms SET
          name = COALESCE($1, name),
@@ -266,28 +375,49 @@ export async function systemRoutes(app: FastifyInstance) {
          WHERE id = $4`,
         [body.name, body.platform, body.status, parseInt(id)]
       )
+      if ((result.rowCount ?? 0) > 0) {
+        const afterRes = await pool.query('SELECT id, name, platform, status FROM live_rooms WHERE id = $1', [parseInt(id)])
+        await writeAuditLog(pool, {
+          request,
+          action: 'system.room.update',
+          resourceType: 'live_rooms',
+          resourceId: id,
+          beforeData: beforeRes.rows[0] ?? null,
+          afterData: afterRes.rows[0] ?? null,
+        })
+      }
       return sendOk(reply, { updated: (result.rowCount ?? 0) > 0 })
     } catch (err) {
       request.log.warn({ err }, 'system/rooms update failed')
-      return sendOk(reply, { updated: false })
+      return sendError(reply, 500, '更新失败')
     }
   })
 
   // ── DELETE /api/v1/system/rooms/:id ──
-  app.delete('/api/v1/system/rooms/:id', async (request, reply) => {
+  app.delete('/api/v1/system/rooms/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
+      const beforeRes = await pool.query('SELECT id, name, platform, status FROM live_rooms WHERE id = $1', [parseInt(id)])
       const result = await pool.query('DELETE FROM live_rooms WHERE id = $1', [parseInt(id)])
+      if ((result.rowCount ?? 0) > 0) {
+        await writeAuditLog(pool, {
+          request,
+          action: 'system.room.delete',
+          resourceType: 'live_rooms',
+          resourceId: id,
+          beforeData: beforeRes.rows[0] ?? null,
+        })
+      }
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0 })
     } catch (err) {
       request.log.warn({ err }, 'system/rooms delete failed')
-      return sendOk(reply, { deleted: false })
+      return sendError(reply, 500, '删除失败')
     }
   })
 
   // ── GET /api/v1/system/target-templates ── 目标模板列表
-  app.get('/api/v1/system/target-templates', async (request, reply) => {
+  app.get('/api/v1/system/target-templates', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { rows } = await pool.query(
@@ -303,7 +433,7 @@ export async function systemRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/system/target-templates ── 新建目标
   // metrics: [{ metric, target, unit }]（每个指标均可设定目标数值）
-  app.post('/api/v1/system/target-templates', async (request, reply) => {
+  app.post('/api/v1/system/target-templates', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { name?: string; period?: string; metrics?: Array<{ metric?: string; target?: number | string; unit?: string }> }
@@ -328,7 +458,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/system/target-templates/:id ── 编辑目标
-  app.put('/api/v1/system/target-templates/:id', async (request, reply) => {
+  app.put('/api/v1/system/target-templates/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -360,7 +490,7 @@ export async function systemRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/system/target-templates/:id/apply ── 应用到目标达成
   // 将模板中的每个指标项写入 goal_tracking（目标达成页面数据源）
-  app.post('/api/v1/system/target-templates/:id/apply', async (request, reply) => {
+  app.post('/api/v1/system/target-templates/:id/apply', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -404,7 +534,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/system/target-templates/:id ── 删除目标（级联删除其目标达成记录）
-  app.delete('/api/v1/system/target-templates/:id', async (request, reply) => {
+  app.delete('/api/v1/system/target-templates/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -436,21 +566,33 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/system/config ──
-  app.put('/api/v1/system/config', async (request, reply) => {
+  app.put('/api/v1/system/config', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as Record<string, string>
-      for (const [key, value] of Object.entries(body)) {
+      const keys = Object.keys(body || {})
+      const beforeRes = keys.length > 0
+        ? await pool.query('SELECT config_key, config_value FROM system_config WHERE config_key = ANY($1)', [keys])
+        : { rows: [] }
+      for (const [key, value] of Object.entries(body || {})) {
         await pool.query(
           `INSERT INTO system_config (config_key, config_value) VALUES ($1, $2)
            ON CONFLICT (config_key) DO UPDATE SET config_value = $2, updated_at = NOW()`,
           [key, value]
         )
       }
+      await writeAuditLog(pool, {
+        request,
+        action: 'system.config.update',
+        resourceType: 'system_config',
+        resourceId: keys.join(','),
+        beforeData: beforeRes.rows,
+        afterData: body,
+      })
       return sendOk(reply, { message: '配置已更新' })
     } catch (err) {
       request.log.warn({ err }, 'system/config update failed')
-      return sendOk(reply, { message: '更新失败' })
+      return sendError(reply, 500, '更新失败')
     }
   })
 
@@ -744,7 +886,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/system/tasks/:id/status ──
-  app.put('/api/v1/system/tasks/:id/status', async (request, reply) => {
+  app.put('/api/v1/system/tasks/:id/status', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
     const body = request.body as { status?: string }
@@ -820,7 +962,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/system/promotions ──
-  app.post('/api/v1/system/promotions', async (request, reply) => {
+  app.post('/api/v1/system/promotions', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as {
@@ -846,10 +988,102 @@ export async function systemRoutes(app: FastifyInstance) {
           JSON.stringify(body.applicableAnchors || []),
         ]
       )
+      await writeAuditLog(pool, {
+        request,
+        action: 'system.promotion.create',
+        resourceType: 'promotions',
+        resourceId: rows[0].id,
+        afterData: { id: rows[0].id, name: body.name, type: body.type, startDate: body.startDate, endDate: body.endDate },
+      })
       return sendOk(reply, { id: rows[0].id, created: true })
     } catch (err) {
       request.log.warn({ err }, 'system/promotions create failed')
       return sendOk(reply, { created: false })
+    }
+  })
+
+  // ── GET /api/v1/system/audit-logs ── 安全审计日志查询
+  app.get('/api/v1/system/audit-logs', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
+    try {
+      const q = request.query as {
+        page?: string
+        pageSize?: string
+        action?: string
+        resourceType?: string
+        actorUserId?: string
+        from?: string
+        to?: string
+      }
+      const page = Math.max(1, parseInt(q.page || '1', 10) || 1)
+      const pageSize = Math.min(100, Math.max(1, parseInt(q.pageSize || '30', 10) || 30))
+      const offset = (page - 1) * pageSize
+
+      const conditions: string[] = []
+      const params: any[] = []
+      let idx = 1
+
+      if (q.action) {
+        conditions.push(`al.action ILIKE $${idx++}`)
+        params.push(`%${q.action.trim()}%`)
+      }
+      if (q.resourceType) {
+        conditions.push(`al.resource_type = $${idx++}`)
+        params.push(q.resourceType.trim())
+      }
+      if (q.actorUserId) {
+        conditions.push(`al.actor_user_id = $${idx++}`)
+        params.push(parseInt(q.actorUserId, 10))
+      }
+      if (q.from) {
+        conditions.push(`al.created_at >= $${idx++}::timestamptz`)
+        params.push(q.from)
+      }
+      if (q.to) {
+        conditions.push(`al.created_at <= $${idx++}::timestamptz`)
+        params.push(q.to)
+      }
+
+      const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+      const data = await withRlsContext(request, async (client) => {
+        const countRes = await client.query<{ total: number }>(
+          `SELECT COUNT(*)::int AS total FROM public.audit_logs al ${whereSql}`,
+          params
+        )
+        const listRes = await client.query(
+          `SELECT
+             al.id::text AS id,
+             al.actor_user_id AS "actorUserId",
+             u.username AS "actorUsername",
+             u.real_name AS "actorRealName",
+             u.role AS "actorRole",
+             al.action,
+             al.resource_type AS "resourceType",
+             al.resource_id AS "resourceId",
+             al.before_data AS "beforeData",
+             al.after_data AS "afterData",
+             al.ip_address AS "ipAddress",
+             al.user_agent AS "userAgent",
+             al.created_at::text AS "createdAt"
+           FROM public.audit_logs al
+           LEFT JOIN public.users u ON u.id = al.actor_user_id
+           ${whereSql}
+           ORDER BY al.created_at DESC, al.id DESC
+           LIMIT $${idx} OFFSET $${idx + 1}`,
+          [...params, pageSize, offset]
+        )
+        return {
+          total: countRes.rows[0]?.total ?? 0,
+          items: listRes.rows,
+          page,
+          pageSize,
+        }
+      })
+
+      return sendOk(reply, data)
+    } catch (err: any) {
+      request.log.error({ err }, 'system/audit-logs query failed')
+      return sendError(reply, 500, '获取审计日志失败')
     }
   })
 }

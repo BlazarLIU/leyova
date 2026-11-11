@@ -1,45 +1,38 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { getPool, withRlsContext } from '../lib/db.js'
+import { getUserAllowedPlatforms, requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import { platformRegistry } from '../platform/index.js'
 
 export async function platformRoutes(app: FastifyInstance) {
   const pool = getPool()
 
   // ── GET /api/v1/platforms ── 获取所有平台列表（含全局开关、能力声明与权限状态）
-  app.get('/api/v1/platforms', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/platforms', { preHandler: [requireAuth] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = (request as any).user
-      const role = user?.role || 'admin' // default to admin for dev/unauthenticated sessions
+      const permittedPlatforms = await getUserAllowedPlatforms(pool, user)
 
-      const { rows } = await pool.query(`
-        SELECT 
-          p.platform_code, 
-          p.platform_name, 
-          p.category, 
-          p.is_enabled, 
-          p.sort_order, 
-          p.icon,
-          p.api_config,
-          COALESCE(
-            (SELECT json_agg(json_build_object('id', s.id, 'name', s.shop_name, 'status', s.status, 'authStatus', s.auth_status))
-             FROM dim_shop s WHERE s.platform_code = p.platform_code AND s.status = 'active'),
-            '[]'::json
-          ) AS shops
-        FROM system_platform_configs p
-        ORDER BY p.sort_order ASC
-      `)
-
-      // If user is not admin, check which platforms are permitted
-      let permittedPlatforms: Set<string> | null = null
-      if (role !== 'admin' && role !== 'super_admin' && user?.id) {
-        const permRes = await pool.query(`
-          SELECT platform_code FROM role_platform_permissions rpp
-          JOIN roles r ON r.id = rpp.role_id
-          WHERE r.code = $1
-        `, [role])
-        permittedPlatforms = new Set(permRes.rows.map(r => r.platform_code))
-      }
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(`
+          SELECT 
+            p.platform_code, 
+            p.platform_name, 
+            p.category, 
+            p.is_enabled, 
+            p.sort_order, 
+            p.icon,
+            p.api_config,
+            COALESCE(
+              (SELECT json_agg(json_build_object('id', s.id, 'name', s.shop_name, 'status', s.status, 'authStatus', s.auth_status))
+               FROM dim_shop s WHERE s.platform_code = p.platform_code AND s.status = 'active'),
+              '[]'::json
+            ) AS shops
+          FROM system_platform_configs p
+          ORDER BY p.sort_order ASC
+        `)
+      )
 
       const result = rows.map((row: any) => {
         const capabilities = platformRegistry.getCapabilities(row.platform_code)
@@ -59,13 +52,18 @@ export async function platformRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/platforms/:code ── 管理员开启/关闭特定平台
-  app.put('/api/v1/platforms/:code', async (request: FastifyRequest<{
+  app.put<{
     Params: { code: string }
     Body: { is_enabled?: boolean; sort_order?: number; api_config?: Record<string, any> }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/platforms/:code', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
       const { code } = request.params
       const { is_enabled, sort_order, api_config } = request.body || {}
+
+      const beforeRes = await pool.query('SELECT * FROM system_platform_configs WHERE platform_code = $1', [code])
+      if (beforeRes.rows.length === 0) {
+        return sendError(reply, 404, '平台不存在')
+      }
 
       const updates: string[] = []
       const values: any[] = [code]
@@ -98,9 +96,14 @@ export async function platformRoutes(app: FastifyInstance) {
       `
 
       const { rows } = await pool.query(sql, values)
-      if (rows.length === 0) {
-        return sendError(reply, 404, '平台不存在')
-      }
+      await writeAuditLog(pool, {
+        request,
+        action: 'platform.config.update',
+        resourceType: 'system_platform_configs',
+        resourceId: code,
+        beforeData: beforeRes.rows[0],
+        afterData: rows[0],
+      })
 
       return sendOk(reply, rows[0], '平台配置更新成功')
     } catch (err) {
@@ -110,17 +113,19 @@ export async function platformRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/platforms/:code/shops ── 获取某平台下有效店铺列表
-  app.get('/api/v1/platforms/:code/shops', async (request: FastifyRequest<{
+  app.get<{
     Params: { code: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/platforms/:code/shops', { preHandler: [requireAuth] }, async (request, reply) => {
     try {
       const { code } = request.params
-      const { rows } = await pool.query(`
-        SELECT id, platform_code, shop_name, external_shop_id, status, auth_status, extra, created_at
-        FROM dim_shop
-        WHERE platform_code = $1 AND status = 'active'
-        ORDER BY id ASC
-      `, [code])
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(`
+          SELECT id, platform_code, shop_name, external_shop_id, status, auth_status, extra, created_at
+          FROM dim_shop
+          WHERE platform_code = $1 AND status = 'active'
+          ORDER BY id ASC
+        `, [code])
+      )
       return sendOk(reply, rows)
     } catch (err) {
       request.log.error({ err }, 'Failed to fetch shops')
@@ -129,7 +134,7 @@ export async function platformRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/platforms/permissions ── 获取角色-平台权限矩阵
-  app.get('/api/v1/platforms/permissions', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/platforms/permissions', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { rows } = await pool.query(`
         SELECT 
@@ -153,19 +158,33 @@ export async function platformRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/platforms/permissions ── 更新角色-平台权限
-  app.put('/api/v1/platforms/permissions', async (request: FastifyRequest<{
+  app.put<{
     Body: {
       roleId: number
       platformCode: string
       isPermitted: boolean
       allowedModules?: string[]
     }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/platforms/permissions', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
+      const actor = (request as any).user
       const { roleId, platformCode, isPermitted, allowedModules } = request.body || {}
       if (!roleId || !platformCode) {
         return sendError(reply, 400, '缺少必要参数 (roleId, platformCode)')
       }
+
+      const roleRes = await pool.query('SELECT code FROM roles WHERE id = $1', [roleId])
+      if (roleRes.rows.length === 0) {
+        return sendError(reply, 404, '目标角色不存在')
+      }
+      if (roleRes.rows[0].code === 'super_admin' && actor.role !== 'super_admin') {
+        return sendError(reply, 403, '仅系统超级管理员可调整 super_admin 平台权限')
+      }
+
+      const beforeRes = await pool.query(
+        'SELECT * FROM role_platform_permissions WHERE role_id = $1 AND platform_code = $2',
+        [roleId, platformCode]
+      )
 
       if (isPermitted) {
         await pool.query(`
@@ -180,6 +199,15 @@ export async function platformRoutes(app: FastifyInstance) {
           WHERE role_id = $1 AND platform_code = $2
         `, [roleId, platformCode])
       }
+
+      await writeAuditLog(pool, {
+        request,
+        action: 'platform.permission.update',
+        resourceType: 'role_platform_permissions',
+        resourceId: `${roleId}:${platformCode}`,
+        beforeData: beforeRes.rows[0] ?? null,
+        afterData: { roleId, roleCode: roleRes.rows[0].code, platformCode, isPermitted, allowedModules: allowedModules || [] },
+      })
 
       return sendOk(reply, { success: true }, '角色平台权限更新成功')
     } catch (err) {

@@ -847,6 +847,10 @@ export async function aiRoutes(app: FastifyInstance) {
       const knowledgePublicWorkspace = body.knowledgePublicWorkspace || null
       const visibility = body.visibility || 'private'
 
+      if ((scopeType !== 'user' || visibility !== 'private') && !['super_admin', 'admin'].includes(user.role)) {
+        return sendError(reply, 403, '仅管理员可创建角色/全局范围的 AI 上下文绑定')
+      }
+
       const { rows } = await pool.query(
         `INSERT INTO ai_context_bindings
            (user_id, scope_type, scope_id,

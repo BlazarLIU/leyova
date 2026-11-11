@@ -11,6 +11,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import {
   getKbConfig,
   testKnowledgeBaseConnection,
@@ -32,7 +34,7 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
   const pool = getPool()
 
   // ── GET /api/v1/kb/config ── 读取配置（apiKey 脱敏）
-  app.get('/api/v1/kb/config', async (_request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/kb/config', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { rows } = await pool.query(
         `SELECT config_key, config_value FROM ai_config WHERE config_key = ANY($1::text[])`,
@@ -60,7 +62,7 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/kb/config ── 保存配置
-  app.put('/api/v1/kb/config', async (request: FastifyRequest<{
+  app.put<{
     Body: {
       provider?: KbProvider
       baseUrl?: string
@@ -69,7 +71,7 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
       topK?: number
       similarityThreshold?: number
     }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/kb/config', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     try {
       const b = request.body || {}
       const upserts: Array<[string, string]> = []
@@ -103,6 +105,20 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
       // 配置已变更，主动失效缓存后再读回最新值
       invalidateKbConfigCache()
       const cfg = await getKbConfig()
+      await writeAuditLog(pool, {
+        request,
+        action: 'kb.config.update',
+        resourceType: 'ai_config',
+        resourceId: 'kb',
+        afterData: {
+          provider: cfg.provider,
+          baseUrl: cfg.baseUrl,
+          datasetIds: cfg.datasetIds,
+          topK: cfg.topK,
+          similarityThreshold: cfg.similarityThreshold,
+          apiKeyUpdated: Boolean(b.apiKey && b.apiKey !== '' && !b.apiKey.includes('****')),
+        },
+      })
       return sendOk(reply, {
         provider: cfg.provider,
         baseUrl: cfg.baseUrl,
@@ -114,7 +130,7 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/kb/test ── 连通性测试
-  app.post('/api/v1/kb/test', async (_request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/kb/test', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const result = await testKnowledgeBaseConnection()
       return sendOk(reply, result, result.message)
@@ -124,9 +140,9 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/kb/search ── 直接检索（供调试与外部调用）
-  app.post('/api/v1/kb/search', async (request: FastifyRequest<{
+  app.post<{
     Body: { query: string; datasetIds?: string[]; topK?: number }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/kb/search', { preHandler: [requireAuth] }, async (request, reply) => {
     try {
       const { query, datasetIds, topK } = request.body || {}
       if (!query) return sendError(reply, 400, '缺少查询内容')

@@ -1,21 +1,25 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
-import { requireAuth } from '../lib/guard.js'
+import { getPool, withRlsContext } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
+
+const SESSION_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'controller']
 
 export async function sessionRoutes(app: FastifyInstance) {
   // ── GET /api/v1/sessions/:id ── 单场次详情
-  app.get('/api/v1/sessions/:id', async (request, reply) => {
-    const pool = getPool()
+  app.get('/api/v1/sessions/:id', { preHandler: [requireAuth] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
-      const { rows } = await pool.query(
-        `SELECT ls.*, a.name AS anchor_name, lr.name AS room_name
-         FROM live_sessions ls
-         LEFT JOIN anchors a ON a.id = ls.anchor_id
-         LEFT JOIN live_rooms lr ON lr.id = ls.room_id
-         WHERE ls.id = $1`,
-        [id]
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT ls.*, a.name AS anchor_name, lr.name AS room_name
+           FROM live_sessions ls
+           LEFT JOIN anchors a ON a.id = ls.anchor_id
+           LEFT JOIN live_rooms lr ON lr.id = ls.room_id
+           WHERE ls.id = $1`,
+          [id]
+        )
       )
       if (rows.length === 0) return reply.code(404).send({ success: false, message: '场次不存在' })
       return sendOk(reply, rows[0])
@@ -26,9 +30,7 @@ export async function sessionRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/sessions ── 创建场次
-  app.post('/api/v1/sessions', async (request, reply) => {
-    const user = await requireAuth(request, reply)
-    if (!user) return
+  app.post('/api/v1/sessions', { preHandler: [requireRole(SESSION_WRITE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as {
@@ -52,9 +54,7 @@ export async function sessionRoutes(app: FastifyInstance) {
   })
 
   // ── PATCH /api/v1/sessions/:id ── 更新场次
-  app.patch('/api/v1/sessions/:id', async (request, reply) => {
-    const user = await requireAuth(request, reply)
-    if (!user) return
+  app.patch('/api/v1/sessions/:id', { preHandler: [requireRole(SESSION_WRITE_ROLES)] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -97,9 +97,8 @@ export async function sessionRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/sessions/:id/finalize ── 完结场次
-  app.post('/api/v1/sessions/:id/finalize', async (request, reply) => {
-    const user = await requireAuth(request, reply)
-    if (!user) return
+  app.post('/api/v1/sessions/:id/finalize', { preHandler: [requireRole(SESSION_WRITE_ROLES)] }, async (request, reply) => {
+    const user = (request as any).user
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -112,6 +111,14 @@ export async function sessionRoutes(app: FastifyInstance) {
         [body.gmv, body.orders, id]
       )
       if (rows.length === 0) return reply.code(404).send({ success: false, message: '场次不存在或已完结' })
+      await writeAuditLog(pool, {
+        actorUserId: user?.id,
+        action: 'session.finalize',
+        resourceType: 'live_session',
+        resourceId: id,
+        afterData: rows[0],
+        request,
+      })
       return sendOk(reply, { session: rows[0] }, '场次已完结')
     } catch (err) {
       request.log.warn({ err }, 'POST /sessions/:id/finalize failed')
@@ -120,15 +127,16 @@ export async function sessionRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/sessions/:id/metrics ── 场次指标
-  app.get('/api/v1/sessions/:id/metrics', async (request, reply) => {
-    const pool = getPool()
+  app.get('/api/v1/sessions/:id/metrics', { preHandler: [requireAuth] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
-      const { rows } = await pool.query(
-        `SELECT id, gmv, orders, duration_min,
-                COALESCE(gmv / NULLIF(orders, 0), 0) AS avg_order_value
-         FROM live_sessions WHERE id = $1`,
-        [id]
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT id, gmv, orders, duration_min,
+                  COALESCE(gmv / NULLIF(orders, 0), 0) AS avg_order_value
+           FROM live_sessions WHERE id = $1`,
+          [id]
+        )
       )
       if (rows.length === 0) return reply.code(404).send({ success: false, message: '场次不存在' })
       return sendOk(reply, { metrics: rows[0] })

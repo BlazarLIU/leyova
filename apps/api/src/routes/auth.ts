@@ -14,6 +14,9 @@ interface DbUser {
   password_hash: string
   real_name: string
   role: string
+  user_type?: string
+  tenant_id?: number
+  anchor_id?: number | null
   status: number
 }
 
@@ -44,7 +47,7 @@ export async function authRoutes(app: FastifyInstance) {
     let user: DbUser | null = null
     try {
       const result = await pool.query<DbUser>(
-        'SELECT id, username, password_hash, real_name, role, status FROM users WHERE username = $1 AND status = 1',
+        'SELECT id, username, password_hash, real_name, role, user_type, tenant_id, anchor_id, status FROM users WHERE username = $1 AND status = 1',
         [username]
       )
       user = result.rows[0] ?? null
@@ -99,6 +102,9 @@ export async function authRoutes(app: FastifyInstance) {
       username: user.username,
       realName: user.real_name,
       role: user.role,
+      userType: user.user_type || 'agency_staff',
+      tenantId: user.tenant_id ?? 1,
+      anchorId: user.anchor_id ? Number(user.anchor_id) : undefined,
     }
 
     return sendOk(reply, { user: userInfo })
@@ -131,8 +137,11 @@ export async function authRoutes(app: FastifyInstance) {
         username: string
         real_name: string
         role: string
+        user_type?: string
+        tenant_id?: number
+        anchor_id?: number | null
       }>(
-        `SELECT u.id, u.username, u.real_name, u.role
+        `SELECT u.id, u.username, u.real_name, u.role, u.user_type, u.tenant_id, u.anchor_id
          FROM user_sessions s JOIN users u ON u.id = s.user_id
          WHERE s.id = $1 AND s.expires_at > NOW() AND u.status = 1`,
         [token]
@@ -150,6 +159,9 @@ export async function authRoutes(app: FastifyInstance) {
           username: user.username,
           realName: user.real_name,
           role: user.role,
+          userType: user.user_type || 'agency_staff',
+          tenantId: user.tenant_id ?? 1,
+          anchorId: user.anchor_id ? Number(user.anchor_id) : undefined,
         },
       })
     } catch (err) {

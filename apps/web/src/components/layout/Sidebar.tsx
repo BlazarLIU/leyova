@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, LogOut } from 'lucide-react'
+import { ChevronDown, ChevronRight, LogOut, Eye } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { buildNavigation } from '@/data/platform-navigation'
 import { useSidebar } from '@/hooks/useSidebar'
 import { usePlatform } from '@/hooks/usePlatform'
 import { useWorkMode } from '@/hooks/useWorkMode'
+import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/services/api'
-import type { NavItem, NavSection, RoleInfo } from '@/types'
+import type { NavItem, NavSection } from '@/types'
 
 function LeyovaLogo({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate()
@@ -194,35 +195,26 @@ const roleLabels: Record<string, string> = {
 export function Sidebar({ user }: { user?: { username: string; realName: string; role: string } }) {
   const { collapsed, isMobile, mobileOpen, closeMobile } = useSidebar()
   const navigate = useNavigate()
+  const {
+    user: authUser,
+    allowedModules,
+    loading: authLoading,
+    isBrandViewer,
+    isSuperAdmin,
+  } = useAuth()
 
   const onNavClick = () => {
     if (isMobile) closeMobile()
   }
 
-  const [userRole, setUserRole] = useState<string>(user?.role || 'employee')
-  const [userModules, setUserModules] = useState<string[]>([])
+  const effectiveUser = user || authUser
+  const userRole = effectiveUser?.role || ''
   const [showLogout, setShowLogout] = useState(false)
   const userAreaRef = useRef<HTMLDivElement>(null)
 
-  const displayName = user?.realName || user?.username || '未命名'
+  const displayName = effectiveUser?.realName || effectiveUser?.username || '未命名'
   const avatarLetter = displayName.trim().charAt(0) || '用'
-  const roleLabel = roleLabels[user?.role || ''] || user?.role || ''
-
-  useEffect(() => {
-    if (user?.role) {
-      setUserRole(user.role)
-    }
-  }, [user?.role])
-
-  // 当 userRole 变化时，重新获取模块权限
-  useEffect(() => {
-    api.get<RoleInfo[]>('/system/roles')
-      .then((roles) => {
-        const found = roles.find(r => r.code === userRole)
-        setUserModules(found ? found.modules : [])
-      })
-      .catch(() => {})
-  }, [userRole])
+  const roleLabel = roleLabels[userRole] || userRole || ''
 
   // 点击外部关闭退出菜单
   useEffect(() => {
@@ -245,17 +237,30 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
   const { currentPlatform, isModuleSupported } = usePlatform()
   const { workMode, currentModeInfo } = useWorkMode()
 
-  const isSuperAdmin = userRole === 'super_admin'
-
-  // 严格 fail-closed 权限过滤：未定义模块或权限未就绪时默认拒绝，杜绝越权
+  // 严格 fail-closed 权限过滤：未定义模块、品牌方只读或权限未就绪时默认拒绝
   const canSee = (m?: string) => {
+    if (authLoading || !userRole || isBrandViewer) return false
     if (!isModuleSupported(m)) return false
     if (isSuperAdmin) return true
-    if (!m || userModules.length === 0) return false
-    return userModules.includes(m)
+    if (!m || allowedModules.length === 0) return false
+    return allowedModules.includes(m)
   }
 
   const getVisibleNavigation = (role: string): NavSection[] => {
+    if (authLoading || !role) return []
+
+    // 品牌方只读代表：仅允许查看品牌方专属履约看板，彻底隔离代运营及后台菜单
+    if (isBrandViewer) {
+      return [
+        {
+          title: '品牌方门户',
+          items: [
+            { label: '品牌方只读看板', icon: Eye, href: '/brand-portal', badge: '只读' },
+          ],
+        },
+      ]
+    }
+
     // 按当前平台的实际业态构建菜单：
     //   直播电商 → 场次/主播/复盘链路
     //   货架电商 → 店铺/商品/投放链路
@@ -268,7 +273,7 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
 
     // 基层员工与中控 → 严格不显示「系统」与「代运营对账」
     if (role === 'controller' || role === 'employee') {
-      sections = sections.filter(section => section.title !== '系统' && section.title !== '代运营管理' && section.title !== '代播客户与对账')
+      sections = sections.filter(section => section.title !== '系统' && section.title !== '系统工具' && section.title !== '代运营管理' && section.title !== '代播客户与对账')
     }
 
     // 严格两段式过滤（支持所有角色的深度子菜单与模块过滤，统一 fail-closed）
@@ -297,7 +302,7 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     >
       <LeyovaLogo collapsed={collapsed && !isMobile} />
 
-      {(!collapsed || isMobile) && (
+      {(!collapsed || isMobile) && !isBrandViewer && (
         <div className="px-3 pt-2 pb-1">
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-orbit-border/60 text-[11px]">
             <span className="text-slate-400 font-medium truncate">系统模式</span>

@@ -4,6 +4,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
+import { requireRole } from '../lib/guard.js'
 import {
   listCaliberConfig,
   listAmountTypes,
@@ -38,9 +39,9 @@ export async function caliberRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/caliber/check ── 跨平台对比口径校验
-  app.post('/api/v1/caliber/check', async (request: FastifyRequest<{
+  app.post<{
     Body: { platformCodes: string[]; metric?: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/caliber/check', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const { platformCodes, metric = 'gmv' } = request.body || ({} as any)
       if (!Array.isArray(platformCodes) || platformCodes.length === 0) {

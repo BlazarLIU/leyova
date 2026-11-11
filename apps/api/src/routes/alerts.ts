@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import { getPool } from '../lib/db.js'
 import { sendOk, sendError } from '../lib/http.js'
-import { requireAuth } from '../lib/guard.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 
 export async function alertRulesRoutes(app: FastifyInstance) {
   // ── GET /api/v1/alerts/rules ── 获取自定义指标告警规则列表
@@ -38,7 +39,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/alerts/rules ── 创建告警规则
-  app.post('/api/v1/alerts/rules', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/alerts/rules', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     const {
       ruleName,
@@ -86,7 +87,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/alerts/rules/:id ── 更新规则
-  app.put('/api/v1/alerts/rules/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.put('/api/v1/alerts/rules/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
     const { ruleName, condition, threshold, notifyChannels, severity, isActive } = request.body as any
@@ -136,14 +137,22 @@ export async function alertRulesRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/alerts/rules/:id ── 删除规则
-  app.delete('/api/v1/alerts/rules/:id', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.delete('/api/v1/alerts/rules/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
     try {
+      const beforeRes = await pool.query('SELECT * FROM public.alert_rules WHERE id = $1', [Number(id)])
       const { rowCount } = await pool.query('DELETE FROM public.alert_rules WHERE id = $1', [Number(id)])
       if (rowCount === 0) {
         return sendError(reply, 404, '规则不存在')
       }
+      await writeAuditLog(pool, {
+        request,
+        action: 'alerts.rule.delete',
+        resourceType: 'alert_rules',
+        resourceId: id,
+        beforeData: beforeRes.rows[0] ?? null,
+      })
       return sendOk(reply, { success: true }, '告警规则已删除')
     } catch (err: any) {
       request.log.error(err, 'Failed to delete alert rule')
@@ -152,7 +161,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/alerts/rules/test-webhook ── 测试推送 Webhook
-  app.post('/api/v1/alerts/rules/test-webhook', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/alerts/rules/test-webhook', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const { webhookUrl, channelType = 'dingtalk', ruleName = '测试指标预警' } = request.body as any
     if (!webhookUrl) {
       return sendError(reply, 400, 'Webhook URL 不能为空')
@@ -237,7 +246,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/alerts/events/:id/status ── 推进/解决单条告警事件
-  app.put('/api/v1/alerts/events/:id/status', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.put('/api/v1/alerts/events/:id/status', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     const { id } = request.params as { id: string }
     const { status } = request.body as { status: 'pending' | 'processing' | 'resolved' }
@@ -267,7 +276,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/alerts/events/resolve-all ── 一键闭环所有待处理告警
-  app.post('/api/v1/alerts/events/resolve-all', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/alerts/events/resolve-all', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { rowCount } = await pool.query(
@@ -275,6 +284,12 @@ export async function alertRulesRoutes(app: FastifyInstance) {
          SET status = 'resolved', updated_at = NOW()
          WHERE status IN ('pending', 'processing')`
       )
+      await writeAuditLog(pool, {
+        request,
+        action: 'alerts.events.resolve_all',
+        resourceType: 'alert_events',
+        afterData: { resolvedCount: rowCount },
+      })
       return sendOk(reply, { resolvedCount: rowCount }, `已一键闭环 ${rowCount} 条未决告警事件`)
     } catch (err: any) {
       request.log.error(err, 'Failed to resolve all alert events')

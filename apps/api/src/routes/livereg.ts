@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
-import { requireAuth } from '../lib/guard.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
 
 export async function liveregRoutes(app: FastifyInstance) {
   // ── GET /api/v1/livereg/form-data ──
@@ -30,9 +30,11 @@ export async function liveregRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/livereg/submit ──
-  app.post('/api/v1/livereg/submit', async (request, reply) => {
-    const user = await requireAuth(request, reply)
-    if (!user) return
+  app.post(
+    '/api/v1/livereg/submit',
+    { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'controller', 'employee'])] },
+    async (request, reply) => {
+      const user = (request as any).user
     const pool = getPool()
     try {
       const body = request.body as {

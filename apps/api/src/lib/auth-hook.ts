@@ -71,5 +71,19 @@ export function registerAuthHook(app: FastifyInstance): void {
       })
       return reply
     }
+
+    // 3) 全局 fail-closed 写保护：brand_viewer 为品牌方只读视角，禁止非账号安全类的写操作
+    const WRITE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
+    if (request.user?.userType === 'brand_viewer' && WRITE_METHODS.includes(request.method)) {
+      const cleanPath = request.url.split('?')[0]
+      const allowedBrandMutations = ['/api/v1/auth/logout', '/api/v1/auth/change-password']
+      if (!allowedBrandMutations.includes(cleanPath)) {
+        reply.code(403).send({
+          success: false,
+          message: '品牌方只读视角禁止执行修改或写入操作',
+        })
+        return reply
+      }
+    }
   })
 }

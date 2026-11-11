@@ -20,12 +20,17 @@ export function SignInPage() {
     try {
       const form = e.target as HTMLFormElement
       const formData = new FormData(form)
-      await api.post('/v1/auth/login', {
+      const res: any = await api.post('/v1/auth/login', {
         username: formData.get('username'),
         password: formData.get('password'),
         rememberMe,
       })
-      navigate('/overview/home')
+      const u = res?.user
+      if (u?.role === 'brand_viewer' || u?.userType === 'brand_viewer') {
+        navigate('/brand-portal')
+      } else {
+        navigate('/')
+      }
     } catch (err: any) {
       setError(err.message || '网络错误，请重试')
     } finally {

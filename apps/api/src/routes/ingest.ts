@@ -13,6 +13,8 @@ import * as XLSX from 'xlsx'
 import { createHash } from 'node:crypto'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import { runSyncJob, runPlatformSync, type SyncDataType } from '../ingest/sync-job.js'
 import { ingestManualFacts, mapRowsToStandard, TRADE_COLUMN_ALIASES, TRAFFIC_COLUMN_ALIASES } from '../ingest/manual-mapper.js'
 import { executeCleaningPipeline } from '../ingest/cleaner/engine.js'
@@ -185,14 +187,14 @@ export async function ingestRoutes(app: FastifyInstance) {
   // ═══════════════════════════════════════════════════════════════
 
   // ── POST /api/v1/ingest/sync ── 触发同步（单店铺 或 整平台）
-  app.post('/api/v1/ingest/sync', async (request: FastifyRequest<{
+  app.post<{
     Body: {
       platformCode: string
       shopId?: number
       dataType?: SyncDataType
       since?: string
     }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/ingest/sync', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const { platformCode, shopId, dataType = 'trade', since } = request.body || {}
       if (!platformCode) return sendError(reply, 400, '缺少 platformCode')
@@ -207,6 +209,13 @@ export async function ingestRoutes(app: FastifyInstance) {
         skipped: results.filter((r) => r.status === 'skipped').length,
         failed: results.filter((r) => r.status === 'failed').length,
       }
+      await writeAuditLog(pool, {
+        request,
+        action: 'ingest.sync',
+        resourceType: 'ingest_sync_jobs',
+        resourceId: `${platformCode}:${shopId ?? 'all'}`,
+        afterData: { platformCode, shopId, dataType, summary },
+      })
       return sendOk(reply, { summary, results }, '同步任务已执行')
     } catch (err) {
       request.log.error({ err }, 'Failed to run ingest sync')
@@ -306,14 +315,14 @@ export async function ingestRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/ingest/mappings ── 保存自定义列映射
-  app.post('/api/v1/ingest/mappings', async (request: FastifyRequest<{
+  app.post<{
     Body: {
       templateCode: string
       platformCode: string
       headers: string[]
       columnMappings: Record<string, string | null>
     }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/ingest/mappings', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const { templateCode, platformCode, headers, columnMappings } = request.body || {}
       if (!platformCode || !Array.isArray(headers) || !columnMappings) {
@@ -337,9 +346,9 @@ export async function ingestRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/ingest/fingerprint ── 计算表头指纹并查询已有映射
-  app.post('/api/v1/ingest/fingerprint', async (request: FastifyRequest<{
+  app.post<{
     Body: { platformCode: string; headers: string[] }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/ingest/fingerprint', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const { platformCode, headers } = request.body || {}
       if (!platformCode || !Array.isArray(headers)) return sendError(reply, 400, '缺少必要参数')
@@ -359,7 +368,7 @@ export async function ingestRoutes(app: FastifyInstance) {
   // ═══════════════════════════════════════════════════════════════
 
   // ── POST /api/v1/ingest/preview ── 上传文件 → 解析 + 映射建议 + 清洗预演 Diff
-  app.post('/api/v1/ingest/preview', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/ingest/preview', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const parts = request.parts()
       let fileBuffer: Buffer | null = null
@@ -474,7 +483,7 @@ export async function ingestRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/ingest/manual-upload ── 正式导入（绑定模板+映射+规则集）
-  app.post('/api/v1/ingest/manual-upload', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/ingest/manual-upload', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const parts = request.parts()
       let fileBuffer: Buffer | null = null
@@ -599,9 +608,9 @@ export async function ingestRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/ingest/detect-template ── 根据表头识别模板 + 映射建议
-  app.post('/api/v1/ingest/detect-template', async (request: FastifyRequest<{
+  app.post<{
     Body: { headers: string[]; platformCode?: string }
-  }>, reply: FastifyReply) => {
+  }>('/api/v1/ingest/detect-template', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const { headers, platformCode } = request.body || ({} as any)
       if (!Array.isArray(headers) || headers.length === 0) {

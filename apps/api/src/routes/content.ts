@@ -11,7 +11,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+import { writeAuditLog } from '../lib/audit.js'
 import { createProvider, type ProviderInfo } from '../content/providers/comfyui.js'
+
+const PROVIDER_WRITE_ROLES = ['super_admin', 'admin', 'ops_director']
+const CONTENT_WORK_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator']
 
 export async function contentRoutes(app: FastifyInstance) {
   const pool = getPool()
@@ -51,9 +56,9 @@ export async function contentRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/content/providers ──
-  app.post('/api/v1/content/providers', async (request: FastifyRequest<{
+  app.post<{
     Body: { name: string; providerType?: string; baseUrl: string; apiKey?: string; isDefault?: boolean }
-  }>, reply) => {
+  }>('/api/v1/content/providers', { preHandler: [requireRole(PROVIDER_WRITE_ROLES)] }, async (request, reply) => {
     try {
       const { name, providerType = 'comfyui', baseUrl, apiKey, isDefault } = request.body || {}
       if (!name || !baseUrl) return sendError(reply, 400, '缺少必要参数 (name, baseUrl)')
@@ -66,6 +71,14 @@ export async function contentRoutes(app: FastifyInstance) {
          VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         [name, providerType, baseUrl, apiKey || null, !!isDefault],
       )
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'content_provider.create',
+        resourceType: 'content_provider',
+        resourceId: rows[0]?.id,
+        afterData: { id: rows[0]?.id, name, providerType, baseUrl, isDefault: !!isDefault },
+        request,
+      })
       return sendOk(reply, rows[0], '生成服务已保存')
     } catch (err) {
       return sendError(reply, 500, '保存生成服务失败')
@@ -73,10 +86,10 @@ export async function contentRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/content/providers/:id ──
-  app.put('/api/v1/content/providers/:id', async (request: FastifyRequest<{
+  app.put<{
     Params: { id: string }
     Body: { name?: string; baseUrl?: string; apiKey?: string; isEnabled?: boolean; isDefault?: boolean }
-  }>, reply) => {
+  }>('/api/v1/content/providers/:id', { preHandler: [requireRole(PROVIDER_WRITE_ROLES)] }, async (request, reply) => {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
@@ -101,6 +114,14 @@ export async function contentRoutes(app: FastifyInstance) {
         vals,
       )
       if (rows.length === 0) return sendError(reply, 404, '生成服务不存在')
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'content_provider.update',
+        resourceType: 'content_provider',
+        resourceId: id,
+        afterData: { id, name: b.name, baseUrl: b.baseUrl, isEnabled: b.isEnabled, isDefault: b.isDefault },
+        request,
+      })
       return sendOk(reply, rows[0], '更新成功')
     } catch (err) {
       return sendError(reply, 500, '更新生成服务失败')
@@ -108,11 +129,18 @@ export async function contentRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/content/providers/:id ──
-  app.delete('/api/v1/content/providers/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+  app.delete<{ Params: { id: string } }>('/api/v1/content/providers/:id', { preHandler: [requireRole(PROVIDER_WRITE_ROLES)] }, async (request, reply) => {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
       await pool.query(`DELETE FROM content_providers WHERE id = $1`, [id])
+      await writeAuditLog(pool, {
+        actorUserId: (request as any).user?.id,
+        action: 'content_provider.delete',
+        resourceType: 'content_provider',
+        resourceId: id,
+        request,
+      })
       return sendOk(reply, { deleted: true }, '已删除')
     } catch (err) {
       return sendError(reply, 500, '删除生成服务失败')
@@ -120,7 +148,7 @@ export async function contentRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/content/providers/:id/test ── 连通性测试
-  app.post('/api/v1/content/providers/:id/test', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+  app.post<{ Params: { id: string } }>('/api/v1/content/providers/:id/test', { preHandler: [requireRole(PROVIDER_WRITE_ROLES)] }, async (request, reply) => {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
@@ -170,9 +198,9 @@ export async function contentRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post('/api/v1/content/projects', async (request: FastifyRequest<{
+  app.post<{
     Body: { name: string; description?: string; platformCode?: string; shopId?: number }
-  }>, reply) => {
+  }>('/api/v1/content/projects', { preHandler: [requireRole(CONTENT_WORK_ROLES)] }, async (request, reply) => {
     try {
       const { name, description, platformCode, shopId } = request.body || {}
       if (!name) return sendError(reply, 400, '缺少项目名称')
@@ -219,7 +247,7 @@ export async function contentRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/content/tasks ── 提交生成任务
-  app.post('/api/v1/content/tasks', async (request: FastifyRequest<{
+  app.post<{
     Body: {
       projectId?: number
       providerId?: number
@@ -227,7 +255,7 @@ export async function contentRoutes(app: FastifyInstance) {
       prompt?: string
       workflow?: Record<string, any>
     }
-  }>, reply) => {
+  }>('/api/v1/content/tasks', { preHandler: [requireRole(CONTENT_WORK_ROLES)] }, async (request, reply) => {
     try {
       const { projectId, providerId, taskType = 'text2video', prompt, workflow } = request.body || {}
 
@@ -377,7 +405,7 @@ export async function contentRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/content/video-metrics ── 手动写入视频数据（API 接口预留同一形状）
-  app.post('/api/v1/content/video-metrics', async (request: FastifyRequest<{
+  app.post<{
     Body: {
       platformCode: string
       shopId?: number
@@ -395,7 +423,7 @@ export async function contentRoutes(app: FastifyInstance) {
       attributedGmv?: number
       source?: string
     }
-  }>, reply) => {
+  }>('/api/v1/content/video-metrics', { preHandler: [requireRole(CONTENT_WORK_ROLES)] }, async (request, reply) => {
     try {
       const b = request.body || ({} as any)
       if (!b.platformCode || !b.bizDate || !b.videoId) {

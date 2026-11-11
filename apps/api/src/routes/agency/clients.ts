@@ -1,36 +1,38 @@
 import type { FastifyInstance } from 'fastify'
-import { getPool } from '../../lib/db.js'
+import { getPool, withRlsContext } from '../../lib/db.js'
 import { sendOk, sendError } from '../../lib/http.js'
-import { requireAuth } from '../../lib/guard.js'
+import { requireAuth, requireRole } from '../../lib/guard.js'
+import { writeAuditLog } from '../../lib/audit.js'
 import bcrypt from 'bcryptjs'
 
 export async function agencyClientsRoutes(app: FastifyInstance) {
   // ── GET /api/v1/agency/clients ── 获取品牌自播客户列表
   app.get('/api/v1/agency/clients', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
     const user = (request as any).user
-    const tenantId = user?.tenant_id || 1
+    const tenantId = user?.tenantId || 1
 
     try {
-      const { rows } = await pool.query(
-        `
-        SELECT 
-          c.id,
-          c.name,
-          c.brand_name AS "brandName",
-          c.contact,
-          c.contact_phone AS "contactPhone",
-          c.contract_no AS "contractNo",
-          c.status,
-          c.created_at AS "createdAt",
-          COUNT(p.id)::int AS "projectCount"
-        FROM public.agency_clients c
-        LEFT JOIN public.agency_projects p ON c.id = p.client_id
-        WHERE c.tenant_id = $1
-        GROUP BY c.id
-        ORDER BY c.created_at DESC
-        `,
-        [tenantId]
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `
+          SELECT 
+            c.id,
+            c.name,
+            c.brand_name AS "brandName",
+            c.contact,
+            c.contact_phone AS "contactPhone",
+            c.contract_no AS "contractNo",
+            c.status,
+            c.created_at AS "createdAt",
+            COUNT(p.id)::int AS "projectCount"
+          FROM public.agency_clients c
+          LEFT JOIN public.agency_projects p ON c.id = p.client_id
+          WHERE c.tenant_id = $1
+          GROUP BY c.id
+          ORDER BY c.created_at DESC
+          `,
+          [tenantId]
+        )
       )
 
       return sendOk(reply, rows)
@@ -41,10 +43,9 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/agency/clients ── 创建品牌自播客户
-  app.post('/api/v1/agency/clients', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
+  app.post('/api/v1/agency/clients', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const user = (request as any).user
-    const tenantId = user?.tenant_id || 1
+    const tenantId = user?.tenantId || 1
     const { name, brandName, contact, contactPhone, contractNo } = request.body as {
       name: string
       brandName?: string
@@ -58,16 +59,26 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
     }
 
     try {
-      const { rows } = await pool.query(
-        `
-        INSERT INTO public.agency_clients 
-          (tenant_id, name, brand_name, contact, contact_phone, contract_no)
-        VALUES 
-          ($1, $2, $3, $4, $5, $6)
-        RETURNING *
-        `,
-        [tenantId, name, brandName || name, contact || null, contactPhone || null, contractNo || null]
-      )
+      const { rows } = await withRlsContext(request, async (client) => {
+        const inserted = await client.query(
+          `
+          INSERT INTO public.agency_clients 
+            (tenant_id, name, brand_name, contact, contact_phone, contract_no)
+          VALUES 
+            ($1, $2, $3, $4, $5, $6)
+          RETURNING *
+          `,
+          [tenantId, name, brandName || name, contact || null, contactPhone || null, contractNo || null]
+        )
+        await writeAuditLog(client, {
+          request,
+          action: 'agency.client.create',
+          resourceType: 'agency_clients',
+          resourceId: inserted.rows[0].id,
+          afterData: inserted.rows[0],
+        })
+        return inserted
+      })
 
       return sendOk(reply, rows[0], '品牌自播客户创建成功')
     } catch (err: any) {
@@ -77,36 +88,55 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/agency/clients/:id ── 修改品牌自播客户
-  app.put('/api/v1/agency/clients/:id', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
+  app.put('/api/v1/agency/clients/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     const user = (request as any).user
-    const tenantId = user?.tenant_id || 1
+    const tenantId = user?.tenantId || 1
     const { id } = request.params as { id: string }
     const { name, brandName, contact, contactPhone, contractNo, status } = request.body as any
 
     try {
-      const { rows } = await pool.query(
-        `
-        UPDATE public.agency_clients
-        SET 
-          name = COALESCE($1, name),
-          brand_name = COALESCE($2, brand_name),
-          contact = COALESCE($3, contact),
-          contact_phone = COALESCE($4, contact_phone),
-          contract_no = COALESCE($5, contract_no),
-          status = COALESCE($6, status),
-          updated_at = NOW()
-        WHERE id = $7 AND tenant_id = $8
-        RETURNING *
-        `,
-        [name, brandName, contact, contactPhone, contractNo, status, Number(id), tenantId]
-      )
+      const outcome = await withRlsContext(request, async (client) => {
+        const beforeRes = await client.query(
+          'SELECT * FROM public.agency_clients WHERE id = $1 AND tenant_id = $2',
+          [Number(id), tenantId]
+        )
+        if (beforeRes.rows.length === 0) {
+          return { rows: [] }
+        }
+        const updated = await client.query(
+          `
+          UPDATE public.agency_clients
+          SET 
+            name = COALESCE($1, name),
+            brand_name = COALESCE($2, brand_name),
+            contact = COALESCE($3, contact),
+            contact_phone = COALESCE($4, contact_phone),
+            contract_no = COALESCE($5, contract_no),
+            status = COALESCE($6, status),
+            updated_at = NOW()
+          WHERE id = $7 AND tenant_id = $8
+          RETURNING *
+          `,
+          [name, brandName, contact, contactPhone, contractNo, status, Number(id), tenantId]
+        )
+        if (updated.rows.length > 0) {
+          await writeAuditLog(client, {
+            request,
+            action: 'agency.client.update',
+            resourceType: 'agency_clients',
+            resourceId: id,
+            beforeData: beforeRes.rows[0],
+            afterData: updated.rows[0],
+          })
+        }
+        return updated
+      })
 
-      if (rows.length === 0) {
+      if (outcome.rows.length === 0) {
         return sendError(reply, 404, '客户不存在或无权限')
       }
 
-      return sendOk(reply, rows[0], '客户更新成功')
+      return sendOk(reply, outcome.rows[0], '客户更新成功')
     } catch (err: any) {
       request.log.error(err, 'Failed to update agency client')
       return sendError(reply, 500, err.message)
@@ -114,59 +144,97 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/agency/clients/:id/users ── 为品牌自播开通专属登录账号
-  app.post('/api/v1/agency/clients/:id/users', { preHandler: [requireAuth] }, async (request, reply) => {
+  app.post('/api/v1/agency/clients/:id/users', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     const user = (request as any).user
-    const tenantId = user?.tenant_id || 1
+    const tenantId = user?.tenantId || 1
     const { id } = request.params as { id: string }
-    const { username, password, name, phone, projectIds = [], canViewCost = false } = request.body as any
+    const { username, password, name, projectIds = [], canViewCost = false, canViewAnchors = true } = request.body as any
 
     if (!username || !password) {
       return sendError(reply, 400, '登录用户名和密码为必填项')
     }
 
     try {
-      // 验证客户归属
-      const clientRes = await pool.query(
-        'SELECT id, brand_name FROM public.agency_clients WHERE id = $1 AND tenant_id = $2',
-        [Number(id), tenantId]
+      const dupRes = await pool.query('SELECT 1 FROM public.users WHERE username = $1', [String(username).trim()])
+      if (dupRes.rows.length > 0) {
+        return sendError(reply, 409, '用户名已存在')
+      }
+
+      // 验证客户归属与项目范围（使用 RLS 上下文）
+      const clientRes = await withRlsContext(request, (client) =>
+        client.query(
+          'SELECT id, brand_name FROM public.agency_clients WHERE id = $1 AND tenant_id = $2',
+          [Number(id), tenantId]
+        )
       )
       if (clientRes.rows.length === 0) {
         return sendError(reply, 404, '客户不存在')
       }
 
+      const validProjectIds: number[] = Array.isArray(projectIds)
+        ? projectIds.map((p: any) => Number(p)).filter((n: number) => Number.isFinite(n) && n > 0)
+        : []
+      if (validProjectIds.length > 0) {
+        const pCheck = await withRlsContext(request, (client) =>
+          client.query(
+            'SELECT id FROM public.agency_projects WHERE id = ANY($1) AND client_id = $2 AND tenant_id = $3',
+            [validProjectIds, Number(id), tenantId]
+          )
+        )
+        if (pCheck.rows.length !== validProjectIds.length) {
+          return sendError(reply, 400, '部分授权项目不属于当前品牌客户或不存在')
+        }
+      }
+
       // bcrypt 哈希密码
       const hashedPassword = bcrypt.hashSync(password, 10)
 
-      // 创建用户
+      // 创建用户并写入 brand_viewer_permissions 与审计日志
       const userRes = await pool.query(
         `
         INSERT INTO public.users (username, password_hash, real_name, role, status, tenant_id, user_type)
         VALUES ($1, $2, $3, 'brand_viewer', 1, $4, 'brand_viewer')
         RETURNING id, username, real_name, user_type
         `,
-        [username, hashedPassword, name || `${clientRes.rows[0].brand_name}代表`, tenantId]
+        [String(username).trim(), hashedPassword, name || `${clientRes.rows[0].brand_name}代表`, tenantId]
       )
       const createdUser = userRes.rows[0]
 
-      // 绑定 brand_viewer_permissions
-      await pool.query(
-        `
-        INSERT INTO public.brand_viewer_permissions 
-          (user_id, tenant_id, client_id, project_ids, can_view_cost)
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (user_id, client_id) 
-        DO UPDATE SET project_ids = EXCLUDED.project_ids, can_view_cost = EXCLUDED.can_view_cost
-        `,
-        [createdUser.id, tenantId, Number(id), projectIds, canViewCost]
-      )
+      await withRlsContext(request, async (client) => {
+        await client.query(
+          `
+          INSERT INTO public.brand_viewer_permissions 
+            (user_id, tenant_id, client_id, project_ids, can_view_cost, can_view_anchors)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          ON CONFLICT (user_id, client_id) 
+          DO UPDATE SET project_ids = EXCLUDED.project_ids,
+                        can_view_cost = EXCLUDED.can_view_cost,
+                        can_view_anchors = EXCLUDED.can_view_anchors
+          `,
+          [createdUser.id, tenantId, Number(id), validProjectIds, Boolean(canViewCost), Boolean(canViewAnchors)]
+        )
+        await writeAuditLog(client, {
+          request,
+          action: 'agency.client.brand_user.create',
+          resourceType: 'brand_viewer_permissions',
+          resourceId: `${id}:${createdUser.id}`,
+          afterData: {
+            userId: createdUser.id,
+            username: createdUser.username,
+            clientId: Number(id),
+            projectIds: validProjectIds,
+            canViewCost: Boolean(canViewCost),
+          },
+        })
+      })
 
       return sendOk(reply, {
         userId: createdUser.id,
         username: createdUser.username,
         realName: createdUser.real_name,
         clientId: Number(id),
-        allowedProjects: projectIds,
+        allowedProjects: validProjectIds,
         userType: 'brand_viewer',
       }, '品牌自播专属登录账号开通成功')
     } catch (err: any) {

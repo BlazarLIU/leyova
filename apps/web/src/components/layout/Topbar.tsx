@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utils/cn'
 import { useSidebar } from '@/hooks/useSidebar'
 import { useTheme } from '@/hooks/useTheme'
+import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/services/api'
 import { PlatformShopSelector } from '@/components/common/PlatformShopSelector'
 import { GlobalSearch } from '@/components/common/GlobalSearch'
@@ -35,18 +36,77 @@ const routeLabels: Record<string, string> = {
   '/ops/room-health': '直播间健康度',
   '/ops/session-products': '场次排品',
   '/system/config': '系统配置',
+  '/system/platforms': '平台与渠道管理',
+  '/system/users': '账号管理',
+  '/system/audit-logs': '操作审计日志',
+  '/system/dict': '字典管理',
   '/system/alerts': '异常中心',
   '/system/tasks': '改进任务',
   '/system/promotions': '活动管理',
   '/system/competitors': '竞品观察',
   '/system/multi-room': '多直播间总览',
+  '/agency/clients': '品牌客户档案',
+  '/agency/projects': '代播签约项目',
+  '/agency/settlement': '月结对账单',
+  '/brand-portal': '品牌方只读看板',
+  '/ops/inventory': '商品主数据与库存',
+  '/ops/fulfillment': '履约SLA与赔付风控',
+  '/ops/after-sales': '售后工单与原因归因',
+  '/ops/kol': '达人合作与佣金',
+  '/ops/cs': '客服响应与绩效',
+  '/ops/costs': '成本结构与净利',
 }
 
 type Notification = { id: string; text: string; time: string; unread: boolean }
 
+const ROUTE_MODULE_REQUIREMENTS: Record<string, string> = {
+  '/overview/home': 'overview',
+  '/overview/cockpit': 'overview',
+  '/overview/live-monitor': 'overview',
+  '/overview/analytics': 'overview',
+  '/ai/chat': 'ai',
+  '/data/management': 'data',
+  '/data/upload': 'data',
+  '/data/quality': 'data',
+  '/bi/dashboard': 'bi',
+  '/bi/roi': 'bi',
+  '/bi/refund-analysis': 'bi',
+  '/bi/anomaly-detection': 'bi',
+  '/anchors/list': 'anchor',
+  '/anchors/profile': 'anchor',
+  '/anchors/training': 'anchor',
+  '/anchors/scripts': 'anchor',
+  '/ops/capabilities': 'ops',
+  '/ops/script-library': 'ops',
+  '/ops/issue-library': 'ops',
+  '/ops/goal-tracking': 'ops',
+  '/ops/room-health': 'ops',
+  '/ops/session-products': 'session_products',
+  '/ops/inventory': 'product_center',
+  '/ops/fulfillment': 'fulfillment',
+  '/ops/after-sales': 'after_sales',
+  '/ops/kol': 'kol',
+  '/ops/cs': 'customer_service',
+  '/ops/costs': 'ops',
+  '/agency/clients': 'agency',
+  '/agency/projects': 'agency',
+  '/agency/settlement': 'agency',
+  '/system/config': 'system_config',
+  '/system/platforms': 'system_users',
+  '/system/users': 'system_users',
+  '/system/audit-logs': 'system_users',
+  '/system/dict': 'system_dict',
+  '/system/alerts': 'system_alerts',
+  '/system/tasks': 'system_tasks',
+  '/system/promotions': 'system_promotions',
+  '/system/competitors': 'system_competitors',
+  '/system/multi-room': 'system_multiroom',
+}
+
 export function Topbar({ user }: { user?: { username: string; realName: string; role: string } }) {
   const { toggle: toggleSidebar } = useSidebar()
   const { theme, toggle: toggleTheme } = useTheme()
+  const { isBrandViewer, hasModule } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -57,7 +117,13 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
   const userAreaRef = useRef<HTMLDivElement>(null)
   const unreadCount = notifications.filter(n => n.unread).length
 
-  const searchableRoutes = Object.entries(routeLabels).map(([path, label]) => ({ path, label }))
+  const searchableRoutes = Object.entries(routeLabels)
+    .filter(([path]) => {
+      if (isBrandViewer) return path === '/brand-portal'
+      const reqMod = ROUTE_MODULE_REQUIREMENTS[path]
+      return reqMod ? hasModule(reqMod) : path === '/brand-portal' && hasModule('agency')
+    })
+    .map(([path, label]) => ({ path, label }))
 
   const filteredResults = searchQuery.trim()
     ? searchableRoutes.filter(item =>
@@ -118,9 +184,11 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
       </div>
 
       {/* 3 种展示模式快速切换器：代运营 MCN / 品牌自播 (全渠道) / 全功能总览 */}
-      <div className="ml-2 hidden sm:block">
-        <WorkModeSwitcher />
-      </div>
+      {!isBrandViewer && (
+        <div className="ml-2 hidden sm:block">
+          <WorkModeSwitcher />
+        </div>
+      )}
 
       {/* Platform & Shop Quick Selector */}
       <div className="ml-2 hidden sm:block">
@@ -128,9 +196,11 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
       </div>
 
       {/* Global Command/Search Palette */}
-      <div className="ml-2 hidden md:block">
-        <GlobalSearch />
-      </div>
+      {!isBrandViewer && (
+        <div className="ml-2 hidden md:block">
+          <GlobalSearch />
+        </div>
+      )}
 
       {/* Right: actions */}
       <div className="ml-auto flex items-center gap-1">
@@ -301,12 +371,7 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
                   <>
                     <p className="text-xs text-slate-600 uppercase tracking-wider font-medium mb-3">快捷入口</p>
                     <div className="space-y-1">
-                      {[
-                        { label: '首页', path: '/overview/home' },
-                        { label: 'AI 助手', path: '/ai/chat' },
-                        { label: '主播列表', path: '/anchors/list' },
-                        { label: '系统配置', path: '/system/config' },
-                      ].map(item => (
+                      {searchableRoutes.slice(0, 5).map(item => (
                         <div
                           key={item.path}
                           onClick={() => { navigate(item.path); setShowSearch(false); setSearchQuery('') }}
