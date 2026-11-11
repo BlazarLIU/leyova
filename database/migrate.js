@@ -114,7 +114,10 @@ async function run() {
           await client.query('BEGIN')
           try {
             await client.query(sql)
-            await client.query('INSERT INTO public.schema_migrations (version) VALUES ($1)', [version])
+            await client.query(
+              'INSERT INTO public.schema_migrations (version, name) VALUES ($1, $2) ON CONFLICT (version) DO NOTHING',
+              [version, version]
+            )
             await client.query('COMMIT')
             console.log(`  ✅ 成功应用迁移: ${version}`)
             newlyApplied++

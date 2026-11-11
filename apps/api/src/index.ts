@@ -44,6 +44,7 @@ import { agencyPortalRoutes } from './routes/agency/portal.js'
 import { weatherRoutes } from './routes/weather.js'
 import { scheduleRoutes } from './routes/schedule.js'
 import { alertRulesRoutes } from './routes/alerts.js'
+import { governanceRoutes } from './routes/governance.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
@@ -131,6 +132,7 @@ async function main() {
   await app.register(weatherRoutes)      // weather: 竞品差异化特色 · 天气 AI 穿搭与智能选品 (Track 1)
   await app.register(scheduleRoutes)     // schedule: AI 智能主播排班建议 (Track 1)
   await app.register(alertRulesRoutes)   // alerts: 自定义指标阈值告警与 Webhook 调度 (Track 1)
+  await app.register(governanceRoutes)   // governance: 7大平台API、双轨接入、数据清洗、质量校验与发布闸门
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {
