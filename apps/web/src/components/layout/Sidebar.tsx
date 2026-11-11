@@ -199,7 +199,7 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     if (isMobile) closeMobile()
   }
 
-  const [userRole, setUserRole] = useState<string>(user?.role || 'super_admin')
+  const [userRole, setUserRole] = useState<string>(user?.role || 'employee')
   const [userModules, setUserModules] = useState<string[]>([])
   const [showLogout, setShowLogout] = useState(false)
   const userAreaRef = useRef<HTMLDivElement>(null)
@@ -245,15 +245,15 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
   const { currentPlatform, isModuleSupported } = usePlatform()
   const { workMode, currentModeInfo } = useWorkMode()
 
-  const canSee = (m?: string) =>
-    // 平台能力过滤：当前平台若不支持该模块，直接隐藏
-    isModuleSupported(m) &&
-    // 未标注模块 → 默认可见（向后兼容）
-    (!m ||
-    // 模块列表为空（数据未加载完） → 默认可见
-    userModules.length === 0 ||
-    // 有该模块权限 → 可见
-    userModules.includes(m))
+  const isSuperAdmin = userRole === 'super_admin'
+
+  // 严格 fail-closed 权限过滤：未定义模块或权限未就绪时默认拒绝，杜绝越权
+  const canSee = (m?: string) => {
+    if (!isModuleSupported(m)) return false
+    if (isSuperAdmin) return true
+    if (!m || userModules.length === 0) return false
+    return userModules.includes(m)
+  }
 
   const getVisibleNavigation = (role: string): NavSection[] => {
     // 按当前平台的实际业态构建菜单：
@@ -271,35 +271,19 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
       sections = sections.filter(section => section.title !== '系统' && section.title !== '代运营管理' && section.title !== '代播客户与对账')
     }
 
-    // 严格两段式过滤（支持 employee / controller / finance / hrbp 的深度子菜单过滤）
-    if (['controller', 'employee', 'finance', 'hrbp'].includes(role)) {
-      return sections.map(section => ({
-        ...section,
-        items: section.items.map(item => {
-          if (!item.children?.length) {
-            return canSee(item.module) ? item : null
-          }
-          // 折叠组：过滤 children，子集为空则整个分组不显示
-          const children = item.children.filter(child => canSee(child.module || item.module))
-          if (children.length === 0) return null
-          return { ...item, children }
-        }).filter((item): item is NonNullable<typeof item> => item !== null),
-      })).filter(section => section.items.length > 0)
-    }
-    // 其他角色：沿用现有单级过滤逻辑，行为不回退
+    // 严格两段式过滤（支持所有角色的深度子菜单与模块过滤，统一 fail-closed）
     return sections.map(section => ({
       ...section,
-      items: section.items.filter(item => {
-        // 平台能力过滤：当前平台若不支持该模块，直接隐藏
-        if (!isModuleSupported(item.module)) return false
-        // 如果没有指定 module，默认可见（向后兼容）
-        if (!item.module) return true
-        // 如果用户模块列表为空（例如数据还没加载完），默认可见
-        if (userModules.length === 0) return true
-        // 检查用户是否有该模块权限
-        return userModules.includes(item.module)
-      }),
-    })).filter(section => section.items.length > 0) // 移除没有可见导航项的分组
+      items: section.items.map(item => {
+        if (!item.children?.length) {
+          return canSee(item.module) ? item : null
+        }
+        // 折叠组：过滤 children，子集为空则整个分组不显示
+        const children = item.children.filter(child => canSee(child.module || item.module))
+        if (children.length === 0) return null
+        return { ...item, children }
+      }).filter((item): item is NonNullable<typeof item> => item !== null),
+    })).filter(section => section.items.length > 0)
   }
 
   return (

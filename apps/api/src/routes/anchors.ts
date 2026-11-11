@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireAuth } from '../lib/guard.js'
 
 export async function anchorRoutes(app: FastifyInstance) {
   // ── GET /api/v1/anchors/list ──
@@ -215,15 +216,32 @@ export async function anchorRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/anchors/my/performance ── 主播个人视角专属绩效看板
-  app.get('/api/v1/anchors/my/performance', async (request, reply) => {
+  // 修复 P0-9：严格要求会话鉴权，并按真实账号绑定关系定位主播档案，杜绝静默兜底 Anchor ID 1
+  app.get('/api/v1/anchors/my/performance', { preHandler: [requireAuth] }, async (request, reply) => {
     const pool = getPool()
+    const user = (request as any).user
     const { anchorId } = request.query as { anchorId?: string }
 
     try {
-      let aId = anchorId ? parseInt(anchorId) : null
+      let aId: number | null = null
+
+      const isPrivileged = ['super_admin', 'admin', 'operator', 'hrbp'].includes(user?.role)
+      if (anchorId && isPrivileged) {
+        aId = parseInt(anchorId, 10)
+      } else if (user?.anchorId) {
+        aId = user.anchorId
+      } else {
+        const found = await pool.query(
+          'SELECT id FROM public.anchors WHERE user_id = $1 OR name = $2 LIMIT 1',
+          [user?.id, user?.realName || user?.username]
+        )
+        if (found.rows.length > 0) {
+          aId = found.rows[0].id
+        }
+      }
+
       if (!aId) {
-        const defaultAnchor = await pool.query('SELECT id FROM public.anchors WHERE status = 1 ORDER BY id LIMIT 1')
-        aId = defaultAnchor.rows[0]?.id || 1
+        return sendError(reply, 404, '当前登录账号未绑定主播档案，请联系管理员在系统管理中关联')
       }
 
       const anchorRes = await pool.query(

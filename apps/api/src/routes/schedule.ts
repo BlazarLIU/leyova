@@ -335,11 +335,24 @@ export async function scheduleRoutes(app: FastifyInstance) {
     const user = (request as any).user
 
     try {
-      // 找到对应的主播 ID（如果是主播账号通过 real_name 或 username 关联，默认沈知夏 ID 1 兜底）
-      let anchorId = 1
-      const findAnchor = await pool.query('SELECT id, name FROM public.anchors WHERE name = $1 LIMIT 1', [user.realName || user.username])
-      if (findAnchor.rows.length > 0) {
-        anchorId = findAnchor.rows[0].id
+      // 找到对应的主播 ID（优先通过 user.anchorId 或 user_id 关联，杜绝无脑沈知夏 ID 1 兜底）
+      let anchorId = user?.anchorId
+      if (!anchorId) {
+        const findAnchor = await pool.query(
+          'SELECT id, name FROM public.anchors WHERE user_id = $1 OR name = $2 LIMIT 1',
+          [user?.id, user?.realName || user?.username]
+        )
+        if (findAnchor.rows.length > 0) {
+          anchorId = findAnchor.rows[0].id
+        }
+      }
+
+      if (!anchorId) {
+        return sendOk(reply, {
+          anchorId: null,
+          sessions: [],
+          message: '当前登录账号未绑定主播档案，无个人排班数据',
+        })
       }
 
       const sql = `

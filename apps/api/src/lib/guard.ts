@@ -10,6 +10,7 @@ export interface AuthUser {
   role: string
   userType?: string
   tenantId?: number
+  anchorId?: number
 }
 
 /**
@@ -45,11 +46,11 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply):
  */
 export async function findSessionUser(pool: any, token: string): Promise<AuthUser | null> {
   const result = await pool.query(
-    `SELECT u.id, u.username, u.real_name, u.role, u.user_type, u.tenant_id
+    `SELECT u.id, u.username, u.real_name, u.role, u.user_type, u.tenant_id, u.anchor_id
      FROM user_sessions s JOIN users u ON u.id = s.user_id
      WHERE s.id = $1 AND s.expires_at > NOW() AND u.status = 1`,
     [token]
-  ) as { rows: Array<{ id: number; username: string; real_name: string; role: string; user_type?: string; tenant_id?: number }> }
+  ) as { rows: Array<{ id: number; username: string; real_name: string; role: string; user_type?: string; tenant_id?: number; anchor_id?: number }> }
 
   const row = result.rows[0]
   if (!row) return null
@@ -61,6 +62,7 @@ export async function findSessionUser(pool: any, token: string): Promise<AuthUse
     role: row.role,
     userType: row.user_type,
     tenantId: row.tenant_id,
+    anchorId: row.anchor_id ? Number(row.anchor_id) : undefined,
   }
 }
 

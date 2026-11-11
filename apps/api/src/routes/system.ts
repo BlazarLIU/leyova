@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
 
 // 规范化目标模板指标项：{ metric, target, unit }，过滤非法项
 function normalizeTemplateMetrics(items?: Array<{ metric?: string; target?: number | string; unit?: string }>) {
@@ -55,7 +56,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/system/roles/modules ── 更新角色模块权限
-  app.put('/api/v1/system/roles/modules', async (request, reply) => {
+  app.put('/api/v1/system/roles/modules', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as { roleCode: string; moduleCodes: string[] }
@@ -84,7 +85,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/system/users ──
-  app.get('/api/v1/system/users', async (request, reply) => {
+  app.get('/api/v1/system/users', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { rows } = await pool.query(
@@ -108,7 +109,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/system/users ──
-  app.post('/api/v1/system/users', async (request, reply) => {
+  app.post('/api/v1/system/users', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const body = request.body as {
@@ -160,7 +161,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── PUT /api/v1/system/users/:id ──
-  app.put('/api/v1/system/users/:id', async (request, reply) => {
+  app.put('/api/v1/system/users/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
@@ -200,7 +201,7 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── DELETE /api/v1/system/users/:id ──
-  app.delete('/api/v1/system/users/:id', async (request, reply) => {
+  app.delete('/api/v1/system/users/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
     const pool = getPool()
     try {
       const { id } = request.params as { id: string }
