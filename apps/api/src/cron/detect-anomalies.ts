@@ -28,6 +28,31 @@ async function sendWebhookNotification(
   }
 }
 
+/** 写入 24 小时去重的告警事件（未闭环同名+同描述前缀 24h 内不重复创建） */
+async function insertDedupAlert(
+  pool: ReturnType<typeof getPool>,
+  severity: 'critical' | 'warning',
+  title: string,
+  description: string,
+): Promise<boolean> {
+  const exist = await pool.query(
+    `SELECT 1 FROM alert_events
+     WHERE title = $1
+       AND description = $2
+       AND event_time >= NOW() - INTERVAL '24 hours'
+       AND status IN ('pending', 'processing')
+     LIMIT 1`,
+    [title, description],
+  )
+  if (exist.rows.length > 0) return false
+  await pool.query(
+    `INSERT INTO alert_events (severity, title, description, event_time, status)
+     VALUES ($1, $2, $3, NOW(), 'pending')`,
+    [severity, title, description],
+  )
+  return true
+}
+
 export async function detectAnomalies(): Promise<void> {
   const pool = getPool()
   const start = Date.now()
@@ -203,6 +228,69 @@ export async function detectAnomalies(): Promise<void> {
       }
     }
 
+    // 4. 核心业务链 SLA 与库存风控巡检（低库存 / 48h发货24h揽收违约 / 售后审单倒计时临期）
+    let chainAlertsCount = 0
+
+    // 4a. 低库存预警（available_qty < safety_stock）
+    const lowStockRes = await pool.query(`
+      SELECT p.sku_code, p.product_name, s.warehouse_name, s.available_qty, s.safety_stock
+      FROM fact_inventory_stock s
+      JOIN dim_product p ON p.id = s.product_id
+      WHERE p.status = 'active' AND s.available_qty < s.safety_stock
+      ORDER BY (s.safety_stock - s.available_qty) DESC
+      LIMIT 10
+    `)
+    for (const row of lowStockRes.rows) {
+      const desc = `SKU "${row.sku_code}"（${row.product_name}，${row.warehouse_name}）可用库存 ${row.available_qty} 低于安全库存阈值 ${row.safety_stock}`
+      if (await insertDedupAlert(pool, Number(row.available_qty) <= 5 ? 'critical' : 'warning', '全渠道低库存预警', desc)) {
+        chainAlertsCount++
+      }
+    }
+
+    // 4b. 刷新动态超时运单状态并触发 48h 发货 / 24h 揽收违约预警
+    await pool.query(`
+      UPDATE fact_fulfillment_waybill
+      SET is_ship_delayed = CASE WHEN shipped_at IS NULL AND NOW() > ship_deadline_at THEN true ELSE is_ship_delayed END,
+          is_fake_ship_risk = CASE WHEN shipped_at IS NOT NULL AND pickup_at IS NULL AND NOW() - shipped_at > INTERVAL '24 hours' THEN true ELSE is_fake_ship_risk END,
+          updated_at = NOW()
+      WHERE fulfillment_status IN ('pending_ship', 'shipped_no_pickup')
+        AND ((shipped_at IS NULL AND NOW() > ship_deadline_at AND is_ship_delayed = false)
+          OR (shipped_at IS NOT NULL AND pickup_at IS NULL AND NOW() - shipped_at > INTERVAL '24 hours' AND is_fake_ship_risk = false))
+    `)
+    const slaRiskRes = await pool.query(`
+      SELECT platform_code, order_no, estimated_penalty_amount, sla_risk_reason, is_fake_ship_risk
+      FROM fact_fulfillment_waybill
+      WHERE fulfillment_status IN ('pending_ship', 'shipped_no_pickup')
+        AND (is_ship_delayed = true OR is_fake_ship_risk = true)
+      ORDER BY estimated_penalty_amount DESC
+      LIMIT 10
+    `)
+    for (const w of slaRiskRes.rows) {
+      const title = w.is_fake_ship_risk ? '24h无揽收虚假发货风控' : '48h履约延迟发货预警'
+      const desc = `平台[${w.platform_code}]订单 ${w.order_no}：${w.sla_risk_reason || title}（预估赔付 ¥${w.estimated_penalty_amount}）`
+      if (await insertDedupAlert(pool, 'critical', title, desc)) {
+        chainAlertsCount++
+      }
+    }
+
+    // 4c. 售后工单自审倒计时临期预警（剩余不足 6 小时）
+    const afterSaleRes = await pool.query(`
+      SELECT ticket_no, platform_code, refund_type, refund_amount,
+             ROUND(EXTRACT(EPOCH FROM (audit_deadline_at - NOW())) / 3600.0, 1) AS rem_hours
+      FROM fact_after_sale_tickets
+      WHERE ticket_status IN ('pending_audit', 'waiting_return')
+        AND audit_deadline_at IS NOT NULL
+        AND audit_deadline_at <= NOW() + INTERVAL '6 hours'
+      ORDER BY audit_deadline_at ASC
+      LIMIT 10
+    `)
+    for (const t of afterSaleRes.rows) {
+      const desc = `售后工单 ${t.ticket_no}（${t.platform_code} / ¥${t.refund_amount}）距离平台自动同意截点仅余 ${t.rem_hours} 小时`
+      if (await insertDedupAlert(pool, Number(t.rem_hours) <= 2 ? 'critical' : 'warning', '售后审单超时预警', desc)) {
+        chainAlertsCount++
+      }
+    }
+
     const elapsed = ((Date.now() - start) / 1000).toFixed(2)
     logger.info(
       {
@@ -211,6 +299,7 @@ export async function detectAnomalies(): Promise<void> {
         gmvAlertsCreated: gmvCreated,
         roomAlertsCreated: roomCreated,
         ruleAlertsCreated: ruleAlertsCount,
+        chainAlertsCreated: chainAlertsCount,
       },
       'Anomaly detection and alert evaluation completed'
     )

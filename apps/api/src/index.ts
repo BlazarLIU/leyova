@@ -45,6 +45,11 @@ import { weatherRoutes } from './routes/weather.js'
 import { scheduleRoutes } from './routes/schedule.js'
 import { alertRulesRoutes } from './routes/alerts.js'
 import { governanceRoutes } from './routes/governance.js'
+import { inventoryRoutes } from './routes/inventory.js'
+import { fulfillmentRoutes } from './routes/fulfillment.js'
+import { afterSalesRoutes } from './routes/after-sales.js'
+import { kolRoutes } from './routes/kol.js'
+import { customerServiceRoutes } from './routes/customer-service.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { registerCronJobs, runInitialDataSync } from './cron/index.js'
@@ -133,6 +138,11 @@ async function main() {
   await app.register(scheduleRoutes)     // schedule: AI 智能主播排班建议 (Track 1)
   await app.register(alertRulesRoutes)   // alerts: 自定义指标阈值告警与 Webhook 调度 (Track 1)
   await app.register(governanceRoutes)   // governance: 7大平台API、双轨接入、数据清洗、质量校验与发布闸门
+  await app.register(inventoryRoutes)    // inventory: 商品主数据与全渠道库存中心
+  await app.register(fulfillmentRoutes)  // fulfillment: 多平台48h履约SLA与赔付风控
+  await app.register(afterSalesRoutes)   // after-sales: 售后退货原因归因与工单闭环
+  await app.register(kolRoutes)          // kol: 外部达人档案与佣金台账
+  await app.register(customerServiceRoutes) // cs: 客服咨询会话与响应绩效
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {

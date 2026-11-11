@@ -81,6 +81,11 @@ import { IssueLibraryPage } from '@/pages/ops/IssueLibraryPage'
 import { GoalTrackingPage } from '@/pages/ops/GoalTrackingPage'
 import { RoomHealthPage } from '@/pages/ops/RoomHealthPage'
 import { SessionProductsPage } from '@/pages/ops/SessionProductsPage'
+import { InventoryCenterPage } from '@/pages/ops/InventoryCenterPage'
+import { FulfillmentSlaPage } from '@/pages/ops/FulfillmentSlaPage'
+import { AfterSalesPage } from '@/pages/ops/AfterSalesPage'
+import { KolCooperationPage } from '@/pages/ops/KolCooperationPage'
+import { CustomerServicePage } from '@/pages/ops/CustomerServicePage'
 
 // 直播复盘
 import { ReviewOverviewPage } from '@/pages/review/ReviewOverviewPage'
@@ -184,6 +189,11 @@ export default function App() {
         <Route path="/ops/room-health" element={<RoomHealthPage />} />
         <Route path="/ops/session-products" element={<SessionProductsPage />} />
         <Route path="/ops/costs" element={<CostStructurePage />} />
+        <Route path="/ops/inventory" element={<InventoryCenterPage />} />
+        <Route path="/ops/fulfillment" element={<FulfillmentSlaPage />} />
+        <Route path="/ops/after-sales" element={<AfterSalesPage />} />
+        <Route path="/ops/kol" element={<KolCooperationPage />} />
+        <Route path="/ops/cs" element={<CustomerServicePage />} />
 
         {/* ===== MCN 代运营与对账中心 ===== */}
         <Route path="/agency/clients" element={<ClientsPage />} />

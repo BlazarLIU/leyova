@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
+import { queryInventoryProducts } from './inventory.js'
 
 // 规范化目标模板指标项：{ metric, target, unit }，过滤非法项
 function normalizeTemplateMetrics(items?: Array<{ metric?: string; target?: number | string; unit?: string }>) {
@@ -680,9 +681,15 @@ export async function systemRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/system/inventory ──
-  app.get('/api/v1/system/inventory', async (_request, reply) => {
-    // TODO: 建 inventory 表后改为从数据库查询
-    return sendOk(reply, [])
+  app.get('/api/v1/system/inventory', async (request, reply) => {
+    const pool = getPool()
+    try {
+      const items = await queryInventoryProducts(pool)
+      return sendOk(reply, items)
+    } catch (err) {
+      request.log.warn({ err }, 'system/inventory query failed')
+      return sendOk(reply, [])
+    }
   })
 
   // ── GET /api/v1/system/tasks ── (改进任务列表，含自动生成)

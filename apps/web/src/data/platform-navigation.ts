@@ -231,6 +231,11 @@ function buildLiveSections(platformCode?: string): NavSection[] {
             { label: '问题库', href: '/ops/issue-library' },
             { label: '目标达成', href: '/ops/goal-tracking' },
             { label: '经营成本核算', href: '/ops/costs' },
+            { label: '商品主数据与库存', href: '/ops/inventory', module: 'product_center' },
+            { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
+            { label: '售后工单与原因归因', href: '/ops/after-sales', module: 'after_sales' },
+            { label: '达人合作与佣金', href: '/ops/kol', module: 'kol' },
+            { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
             { label: '直播间健康度', href: '/ops/room-health' },
             { label: '改进任务', href: '/system/tasks' },
             { label: '活动管理', href: '/system/promotions' },
@@ -301,6 +306,7 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           icon: TrendingDown,
           module: 'bi',
           children: [
+            { label: '售后工单与原因归因', href: '/ops/after-sales', module: 'after_sales' },
             { label: '退款分析', href: '/bi/refund-analysis' },
             { label: '异常检测', href: '/bi/anomaly-detection' },
           ],
@@ -316,6 +322,7 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           module: 'product_center',
           children: [
             { label: '商品结构分析', href: '/shop/products' },
+            { label: '商品主数据与库存', href: '/ops/inventory', module: 'product_center' },
             { label: '竞品价格观察', href: '/system/competitors' },
           ],
         },
@@ -329,6 +336,9 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           icon: Zap,
           module: 'ops',
           children: [
+            { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
+            { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
+            { label: '达人合作与佣金', href: '/ops/kol', module: 'kol' },
             { label: '目标达成', href: '/ops/goal-tracking' },
             { label: '经营成本核算', href: '/ops/costs' },
             { label: '活动管理', href: '/system/promotions', module: 'ops_activities' },
@@ -376,13 +386,11 @@ function buildContentSections(): NavSection[] {
       title: '达人合作',
       items: [
         {
-          label: '达人管理',
+          label: '达人合作与佣金',
           icon: Users,
-          module: 'anchor',
+          module: 'kol',
           children: [
-            { label: '达人列表', href: '/anchors/list' },
-            { label: '达人档案', href: '/anchors/profile' },
-            { label: '合作评估', href: '/anchors/training' },
+            { label: '达人排期与佣金台账', href: '/ops/kol', module: 'kol' },
           ],
         },
         { label: '竞品笔记监测', icon: MessageSquare, href: '/system/competitors', module: 'ops' },
@@ -396,6 +404,10 @@ function buildContentSections(): NavSection[] {
           icon: Zap,
           module: 'ops',
           children: [
+            { label: '商品主数据与库存', href: '/ops/inventory', module: 'product_center' },
+            { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
+            { label: '售后工单与原因归因', href: '/ops/after-sales', module: 'after_sales' },
+            { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
             { label: '目标达成', href: '/ops/goal-tracking' },
             { label: '经营成本核算', href: '/ops/costs' },
             { label: '活动管理', href: '/system/promotions', module: 'ops_activities' },
