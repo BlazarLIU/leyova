@@ -6,16 +6,15 @@
 
 ## 一、项目概览
 
-**leyova** 是一个抖音直播电商数据管理系统，采用 **React 19 + Fastify + PostgreSQL** 技术栈，正在从旧版 PHP 系统向现代化架构迁移。
+**leyova**（乐播云）是一个**全渠道电商直播与代运营数字中台**，采用 **React 19 + Fastify 5 + PostgreSQL 18** 技术栈，支持抖音、快手、淘宝、天猫、京东、拼多多、小红书 **7 大平台**，兼顾 MCN 代运营与品牌自播双轨业务。
 
 | 项目 | 说明 |
 |------|------|
 | 项目名称 | leyova (Orbit Dashboard) |
 | 业务领域 | 抖音直播电商运营数据分析 |
-| 旧版技术栈 | PHP + MySQL (MariaDB) |
-| 新版技术栈 | React 19 + Fastify + PostgreSQL |
+| 技术栈 | React 19 + Fastify 5 + PostgreSQL 18 |
 | 部署方式 | PM2 进程管理 |
-| 开发状态 | 新旧系统并行运行中 |
+| 开发状态 | 单系统运行中 |
 
 ---
 
@@ -55,17 +54,6 @@
 | node-cron | 4 | 定时任务调度 |
 | Pino | (Fastify 内置) | 结构化日志 |
 | tsx | 4 | TypeScript 执行引擎 |
-
-### 2.3 旧版技术栈 (待下线)
-
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| PHP | - | 旧版后端语言 |
-| MySQL (MariaDB) | - | 旧版数据库 |
-| PhpSpreadsheet | 3.1 | Excel 处理 |
-| phpMyAdmin | - | 数据库管理工具 |
-
----
 
 ## 三、前端模块与页面
 
@@ -174,7 +162,7 @@
 
 ## 四、后端 API 模块
 
-### 4.1 路由模块总览 (13 个模块, 70+ API 端点)
+### 4.1 路由模块总览 (38 个路由文件, 270 个 API 端点)
 
 所有 API 前缀为 `/api/v1/`，基于 Fastify 构建。
 
@@ -398,58 +386,6 @@
 | `dict_items` | 字典项 |
 | `target_templates` | 目标模板 |
 
-### 5.2 MySQL 数据库 (leyova) — 旧系统
-
-#### 5.2.1 基础表 (19 张)
-
-| 表名 | 说明 | 核心字段 |
-|------|------|---------|
-| `users` | 用户 | id, username, password, real_name, role (super_admin/admin/manager/employee), status |
-| `anchors` | 主播 | id, anchor_name, platform, room_id, status |
-| `rooms` | 直播间 | id, name, operator_id, status |
-| `operators` | 中控/运营 | id, operator_name, employee_id, status |
-| `controllers` | 导播设备 | id, controller_name, status |
-| `data_groups` | 数据组 | id, group_name, created_by |
-| `ad_streams` | 投流数据 | id, group_id, ad_cost, platform, ad_type |
-| `livestreams` | 直播数据 (核心) | id, date, anchor_id, room_id, gmv, return_amount, gsv, ad_cost, ad_gsv |
-| `login_logs` | 登录日志 | id, user_id, ip, login_time |
-| `operation_logs` | 操作日志 | id, user_id, action, target_type, details |
-| `sample_inventories` | 样衣库存 | id, item_code, item_name, type, status, quantity |
-| `assets` | 资产 | id, asset_name, asset_code, category, value |
-| `asset_inventories` | 资产盘点 | id, inventory_name, inventory_date, status |
-| `asset_inventory_details` | 盘点详情 | id, inventory_id, asset_id, actual_status |
-| `weekly_meetings` | 周会数据 | id, week_date, content |
-| `personal_targets` | 个人目标 | id, user_id, target_date, target_gmv |
-| `financial_records` | 财务记录 | id, date, description, receipt_amount, payment_amount |
-| `user_rooms` | 用户-直播间关联 | id, user_id, room_id |
-
-#### 5.2.2 迁移扩展表 (45+ 张)
-
-**迁移 001 — 直播场次扩展:**
-`metric_definitions`, `livestream_sessions`, `livestream_metric_intervals`, `livestream_traffic_sources`
-
-**迁移 002 — 商品管理:**
-`products`, `livestream_product_plans`, `livestream_product_metrics`, `livestream_product_segments`
-
-**迁移 003 — 广告投放:**
-`ad_accounts`, `ad_campaigns`, `ad_creatives`, `ad_campaign_metric_snapshots`
-
-**迁移 004 — 主播赋能:**
-`anchor_profiles`, `anchor_assessments`, `training_courses`, `anchor_training_tasks`, `training_submissions`
-
-**迁移 005 — 运营与合规:**
-`operation_actions`, `alert_rules`, `alert_events`, `livestream_review_reports`, `improvement_tasks`, `compliance_rules` (12种类型), `compliance_incidents`, `data_sync_jobs`, `data_upload_batches`, `data_upload_errors`, `script_templates`, `script_versions`, `livestream_media_assets`, `livestream_review_annotations`
-
-**迁移 009 — Phase 4 高级功能:**
-`product_profit_details`, `product_profit_summary`, `refund_reasons`, `anchor_schedules`, `anchor_product_matches`, `product_recommendations`, `training_recommendations`, `anomaly_detection_rules`, `anomaly_events`, `trend_predictions`, `competitor_brands`, `competitor_observations`, `promotion_campaigns`, `promotion_schedules`, `promotion_reports`, `room_benchmarks`, `room_comparisons`, `best_practices`, `practice_replications`, `bi_dashboards`, `bi_widgets`, `data_aggregation_snapshots`, `data_export_tasks`
-
-**迁移 011 — P0 核心经营:**
-`room_health_records`, `goal_tracking`, `session_product_planning`
-
-**迁移 012 — P1 运营提效:**
-`product_templates`, `template_product_relations`, `ad_plans`, `ad_reviews`, `ad_material_performance`, `anchor_skill_scores`, `script_library`, `issue_library`
-
----
 
 ## 六、系统架构目录
 
@@ -466,7 +402,7 @@
 │   │   └── 404.html                   # SPA 路由处理
 │   ├── src/
 │   │   ├── main.tsx                   # React 入口
-│   │   ├── App.tsx                    # 路由配置 (41条路由)
+│   │   ├── App.tsx                    # 路由配置
 │   │   ├── index.css                  # 全局样式 (Tailwind + 主题变量)
 │   │   ├── types/index.ts             # 全局类型定义
 │   │   ├── services/api.ts            # API 请求封装 (fetch)
@@ -508,7 +444,7 @@
 │   │   │       ├── ReviewBenchmarkBadge.tsx
 │   │   │       ├── ReviewFunnel.tsx
 │   │   │       └── ReviewMetricGroup.tsx
-│   │   └── pages/                     # 页面组件 (40+)
+│   │   └── pages/                     # 页面组件 (82个)
 │   │       ├── auth/SignInPage.tsx
 │   │       ├── overview/              # 4个页面
 │   │       ├── live/                  # 3个页面
@@ -542,58 +478,19 @@
 │   │   │   ├── logger.ts              # Pino 日志
 │   │   │   ├── error-handler.ts       # 全局错误处理器
 │   │   │   └── importer.ts            # CSV/XLSX 导入引擎
-│   │   ├── routes/                    # 13个路由模块
-│   │   ├── cron/                      # 3个定时任务
+│   │   ├── routes/                    # 38个路由文件 (含 agency/ 4个)
+│   │   ├── cron/                      # 5个定时任务
 │   │   ├── cli/                       # 备份/日志清理工具
 │   │   └── generated/                 # Prisma 生成代码
 │   └── uploads/                       # 文件上传目录
 │
 ├── database/                          # 数据库
-│   ├── postgresql/                   # PostgreSQL 迁移 (14个SQL + seeds)
-│   ├── migrations/                   # MySQL 迁移 (12个文件)
-│   ├── backups/                      # 数据库备份
-│   └── cleanup-for-production.sql    # 上线清理脚本
+│   ├── 01_schema.sql                 # 基线建表 (59 表)
+│   ├── 02_seed.sql                   # 基础字典与默认账号
+│   ├── 03_demo_data.sql              # 演示数据 (可重复执行)
+│   ├── migrations/                   # PostgreSQL 增量迁移 (100~114, 15个文件)
+│   └── migrate.js                    # 增量迁移执行器
 │
-├── api/                               # 旧 PHP API
-│   ├── helpers.php                    # API 辅助函数库
-│   └── anchor_training.php            # 主播训练管理 API
-│
-├── css/
-│   └── factory.css                    # Orbit Design System (2700行)
-│
-├── js/
-│   ├── factory.js                     # Factory 核心 JS
-│   └── charts.js                      # SVG 图表系统
-│
-├── docs/                              # 项目文档
-│   ├── plan.md                        # 复盘模块落地计划
-│   ├── douyin-daily-report-system-optimization-plan.md
-│   ├── security/                      # 安全文档
-│   └── test/                          # 测试数据
-│
-├── .trae/                             # Trae AI 配置
-├── phpmyadmin/                        # phpMyAdmin
-├── vendor/                            # Composer PHP 依赖
-├── node_modules/                      # Node.js 依赖
-├── uploads/sample_images/             # 示例图片
-├── logs/                              # 运行时日志
-│
-├── .htaccess                          # Apache 路由重写
-├── php.ini                            # PHP Session 配置
-├── composer.json                      # PHP 依赖 (PhpSpreadsheet)
-├── package.json                       # 根目录依赖 (node-cron, xlsx)
-├── create_database.sql                # MySQL 建库脚本 (19张基础表)
-├── phase1_database.sql                # 阶段一数据库变更
-├── create_asset_tables.sql            # 资产表创建脚本
-├── create_controller_table.sql        # 导播设备表创建脚本
-├── sample_data_seed.sql               # 脱敏示例数据
-├── backup_database.sql                # 数据库备份 SQL
-├── add_room_operator.sql              # 添加房间运营人员 SQL
-├── implementation_plan.md             # 抖音数据对接实施方案
-├── README_LOG_MANAGEMENT.md           # 日志管理文档
-├── cron_log_cleanup.sh                # 日志清理 Shell 脚本
-├── test-api.sh                        # API 测试脚本
-└── data_management.php.backup         # 旧数据管理页面备份
 ```
 
 ---
@@ -616,12 +513,6 @@
 | `cli/cleanup-logs.ts` | 日志滚写清理 |
 | `scripts/init_session.sh` | Session 目录初始化 |
 
-### 7.3 外部脚本
-
-| 文件 | 说明 |
-|------|------|
-| `cron_log_cleanup.sh` | 日志清理 Shell 脚本 |
-| `test-api.sh` | 对 PHP 端点的 curl 测试脚本 (覆盖25+接口) |
 
 ---
 
@@ -755,9 +646,69 @@ pnpm build
 
 ---
 
-## 十一、核心设计要点
+## 十一、数据治理引擎
 
-1. **双轨数据库**：PostgreSQL (新系统主库) + MySQL (旧系统遗留库)，逐步迁移
+> 本章对应 `apps/api/src/modules/data-governance/` 与迁移 `114`，是系统接入真实平台数据的底座。
+
+### 11.1 设计定位
+
+企业级数据清洗与质量校验引擎，目标支撑**千万级数据量与按月物理分区**（迁移 114 标注目标：年营收 10 亿+、数据量 5000 万级）。
+
+### 11.2 五段式流水线
+
+```
+外部数据源
+   ↓  ingestion  原始接入（保留 raw 原文，可回溯）
+raw_records
+   ↓  cleaning   清洗标准化（字段映射、类型纠正、去重）
+clean_records
+   ↓  validation 质量校验（P0/P1/P2 三级问题，闸门拦截）
+validation_runs + data_quality_issues
+   ↓  publishing 发布到事实表（幂等写入）
+canonical_orders / canonical_order_items / canonical_refund_events
+   ↓  reconciliation 双源对账
+reconciliation_runs + publish_reversals
+```
+
+### 11.3 模块与职责
+
+| 文件 | 职责 |
+|---|---|
+| `ingestion/ingestion-service.ts` | 原始数据接入，写 `raw_records`，创建 `import_batches` |
+| `cleaning/cleaner-service.ts` | 清洗标准化，写 `clean_records`，记录 `cleaning_runs` |
+| `validation/validation-service.ts` | 质量校验，产出 `validation_runs` 与 `data_quality_issues` |
+| `publishing/publishing-service.ts` | 发布到 canonical 层，含闸门检查与幂等写入 |
+| `reconciliation/reconciliation-service.ts` | 双源对账，写 `reconciliation_runs` |
+| `review/review-service.ts` | 人工复核流程 |
+| `allocation.ts` | 优惠/费用分摊算法 |
+| `adapters/` | 7 平台适配器（与 `src/platform/adapters/` **并存，职责重叠**） |
+| `security.ts` | 治理链路权限校验 |
+| `types.ts` | 规范化记录类型定义（Canonical*Record） |
+
+### 11.4 数据表（14 张父表 + 按月分区子表）
+
+| 分组 | 表 |
+|---|---|
+| 接入层 | `import_batches`、`import_files`、`raw_records` |
+| 清洗层 | `clean_records`、`clean_rule_sets`、`cleaning_runs`、`field_mapping_rules`、`upload_column_mappings` |
+| 校验层 | `validation_runs`、`data_quality_issues` |
+| 规范化层 | `canonical_orders`、`canonical_order_items`、`canonical_refund_events` |
+| 发布层 | `publish_runs`、`publish_reversals` |
+| 对账层 | `reconciliation_runs` |
+
+**分区规则**：`raw_records`、`clean_records`、`canonical_orders`、`canonical_order_items`、`canonical_refund_events`、`fact_trade_daily`、`fact_traffic_daily` 均按月分区。
+
+> ⚠️ **已知问题（见审计报告分册 02）**：分区维护任务 `cron/manage-partitions.ts` 的 `PARTITIONED_TABLES` **只覆盖 2 张表**（`fact_trade_daily`、`fact_traffic_daily`），其余 5 张仅靠迁移 114 一次性建到 2027-07，**无 DEFAULT 分区兜底**，2027-08-01 起插入会失败。分区命名亦存在 `_y2026m10`（带 m）与 `_y202610`（不带 m）两种混用。
+
+### 11.5 API 端点（`routes/governance.ts`，12 个）
+
+覆盖接入批次管理、清洗执行、校验执行、发布、回滚、对账、质量问题查询等治理全流程操作。
+
+---
+
+## 十二、核心设计要点
+
+1. **单一数据库**：PostgreSQL 18（唯一数据存储，196 张表，含按月分区）
 2. **RBAC 权限体系**：基于角色-模块-权限的三层控制，支持细粒度访问管理
 3. **数据导入引擎**：支持 CSⅤ/XLSX 自动解析，四种导入模板自动识别
 4. **AI 集成**：数据驱动 AI 问答，支持主播排行/渠道分析/异常预警/日报生成
