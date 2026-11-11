@@ -195,4 +195,90 @@ export async function alertRulesRoutes(app: FastifyInstance) {
       return sendError(reply, 500, `Webhook 发送异常: ${err.message}`)
     }
   })
+
+  // ── GET /api/v1/alerts/events ── 查询告警事件列表（支持状态过滤与分页）
+  app.get('/api/v1/alerts/events', { preHandler: [requireAuth] }, async (request, reply) => {
+    const pool = getPool()
+    const { status, limit = '50', offset = '0' } = request.query as any
+
+    try {
+      const conds: string[] = []
+      const params: any[] = []
+
+      if (status) {
+        params.push(status)
+        conds.push(`status = $${params.length}`)
+      }
+
+      const whereClause = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
+      const lim = Math.min(parseInt(limit, 10) || 50, 200)
+      const off = Math.max(parseInt(offset, 10) || 0, 0)
+
+      params.push(lim, off)
+      const query = `
+        SELECT id, severity, title, description, event_time AS "eventTime", status, created_at AS "createdAt", updated_at AS "updatedAt"
+        FROM public.alert_events
+        ${whereClause}
+        ORDER BY event_time DESC, id DESC
+        LIMIT $${params.length - 1} OFFSET $${params.length}
+      `
+      const { rows } = await pool.query(query, params)
+
+      const countRes = await pool.query(`SELECT count(*)::int as total FROM public.alert_events ${whereClause}`, conds.length > 0 ? [status] : [])
+
+      return sendOk(reply, {
+        total: countRes.rows[0]?.total || 0,
+        items: rows,
+      })
+    } catch (err: any) {
+      request.log.error(err, 'Failed to fetch alert events')
+      return sendError(reply, 500, err.message)
+    }
+  })
+
+  // ── PUT /api/v1/alerts/events/:id/status ── 推进/解决单条告警事件
+  app.put('/api/v1/alerts/events/:id/status', { preHandler: [requireAuth] }, async (request, reply) => {
+    const pool = getPool()
+    const { id } = request.params as { id: string }
+    const { status } = request.body as { status: 'pending' | 'processing' | 'resolved' }
+
+    if (!['pending', 'processing', 'resolved'].includes(status)) {
+      return sendError(reply, 400, '无效的告警状态，仅支持 pending / processing / resolved')
+    }
+
+    try {
+      const { rows } = await pool.query(
+        `UPDATE public.alert_events
+         SET status = $1, updated_at = NOW()
+         WHERE id = $2
+         RETURNING id, severity, title, status, updated_at`,
+        [status, Number(id)]
+      )
+
+      if (rows.length === 0) {
+        return sendError(reply, 404, '告警事件不存在')
+      }
+
+      return sendOk(reply, rows[0], `告警状态已成功更新为: ${status}`)
+    } catch (err: any) {
+      request.log.error(err, 'Failed to update alert event status')
+      return sendError(reply, 500, err.message)
+    }
+  })
+
+  // ── POST /api/v1/alerts/events/resolve-all ── 一键闭环所有待处理告警
+  app.post('/api/v1/alerts/events/resolve-all', { preHandler: [requireAuth] }, async (request, reply) => {
+    const pool = getPool()
+    try {
+      const { rowCount } = await pool.query(
+        `UPDATE public.alert_events
+         SET status = 'resolved', updated_at = NOW()
+         WHERE status IN ('pending', 'processing')`
+      )
+      return sendOk(reply, { resolvedCount: rowCount }, `已一键闭环 ${rowCount} 条未决告警事件`)
+    } catch (err: any) {
+      request.log.error(err, 'Failed to resolve all alert events')
+      return sendError(reply, 500, err.message)
+    }
+  })
 }

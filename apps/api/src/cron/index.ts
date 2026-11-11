@@ -165,7 +165,7 @@ async function runAnomalyPatrol(): Promise<void> {
   }
 
   const { rows } = await pool.query(
-    `SELECT title, description, severity, event_time
+    `SELECT id, title, description, severity, event_time
      FROM alert_events
      WHERE status = 'pending'
      ORDER BY event_time DESC
@@ -209,6 +209,15 @@ async function runAnomalyPatrol(): Promise<void> {
         `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
         [convRows[0].id, reply.reply]
       ).catch(() => {})
+    }
+
+    // 修复 P0-4 消费闭环：将已完成 AI 巡检分析的 pending 告警推进至 processing 状态，避免无限次重复巡检
+    const eventIds = rows.map((r: any) => r.id).filter(Boolean)
+    if (eventIds.length > 0) {
+      await pool.query(
+        `UPDATE alert_events SET status = 'processing', updated_at = NOW() WHERE id = ANY($1::int[])`,
+        [eventIds]
+      )
     }
   }
 }
