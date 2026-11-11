@@ -151,28 +151,33 @@ export async function costRoutes(app: FastifyInstance) {
       let tIdx = 1
 
       if (shopId) {
-        tradeConditions.push(`shop_id = $${tIdx++}`)
+        tradeConditions.push(`f.shop_id = $${tIdx++}`)
         tradeParams.push(Number(shopId))
       }
       if (platformCode) {
-        tradeConditions.push(`platform_code = $${tIdx++}`)
+        tradeConditions.push(`f.platform_code = $${tIdx++}`)
         tradeParams.push(platformCode)
       }
       if (startDate) {
-        tradeConditions.push(`biz_date >= $${tIdx++}`)
+        tradeConditions.push(`f.biz_date >= $${tIdx++}`)
         tradeParams.push(startDate)
       }
       if (endDate) {
-        tradeConditions.push(`biz_date <= $${tIdx++}`)
+        tradeConditions.push(`f.biz_date <= $${tIdx++}`)
         tradeParams.push(endDate)
       }
+      tradeConditions.push(`(pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`)
       const tradeWhere = tradeConditions.length > 0 ? `WHERE ${tradeConditions.join(' AND ')}` : ''
 
       const tradeResult = await pool.query(`
         SELECT 
-          COALESCE(SUM(gmv), 0)::float AS "totalGmv",
-          COALESCE(SUM(refund_amount), 0)::float AS "totalRefund"
-        FROM public.fact_trade_daily
+          COALESCE(SUM(f.gmv), 0)::float AS "totalGmv",
+          COALESCE(SUM(f.refund_amount), 0)::float AS "totalRefund"
+        FROM public.fact_trade_daily f
+        LEFT JOIN public.platform_caliber_config pcc
+          ON pcc.platform_code = f.platform_code
+         AND pcc.metric_code = 'gmv'
+         AND pcc.is_default = true
         ${tradeWhere}
       `, tradeParams)
 

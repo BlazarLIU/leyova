@@ -78,15 +78,20 @@ export async function getJdModeBreakdown(
     else if (mode !== 'unknown') popShopCount++
   }
 
-  // POP 成交（fact_trade_daily）
+  // POP 成交（fact_trade_daily，按平台默认口径过滤避免多口径重复叠加）
   const popRes = await p.query(
-    `SELECT shop_id,
-            COALESCE(SUM(gmv), 0)::numeric          AS amount,
-            COALESCE(SUM(paid_order_count), 0)::int AS orders
-       FROM fact_trade_daily
-      WHERE platform_code = ANY($1::text[])
-        AND biz_date BETWEEN $2::date AND $3::date
-      GROUP BY shop_id`,
+    `SELECT f.shop_id,
+            COALESCE(SUM(f.gmv), 0)::numeric          AS amount,
+            COALESCE(SUM(f.paid_order_count), 0)::int AS orders
+       FROM fact_trade_daily f
+       LEFT JOIN platform_caliber_config pcc
+         ON pcc.platform_code = f.platform_code
+        AND pcc.metric_code = 'gmv'
+        AND pcc.is_default = true
+      WHERE f.platform_code = ANY($1::text[])
+        AND f.biz_date BETWEEN $2::date AND $3::date
+        AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)
+      GROUP BY f.shop_id`,
     [platformCodes, from, to],
   )
 

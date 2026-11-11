@@ -84,6 +84,9 @@ function platformClause(
   return { sql: conds.length > 0 ? `AND ${conds.join(' AND ')}` : '', params }
 }
 
+const DEFAULT_CALIBER_JOIN = `LEFT JOIN platform_caliber_config pcc ON pcc.platform_code = f.platform_code AND pcc.metric_code = 'gmv' AND pcc.is_default = true`
+const DEFAULT_CALIBER_COND = `AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`
+
 export async function omnichannelRoutes(app: FastifyInstance) {
   const pool = getPool()
 
@@ -112,7 +115,9 @@ export async function omnichannelRoutes(app: FastifyInstance) {
             COALESCE(sum(paid_buyer_count), 0)::int  AS paid_buyer_count,
             COALESCE(sum(refund_amount), 0)::numeric AS refund_amount
           FROM fact_trade_daily f
+          ${DEFAULT_CALIBER_JOIN}
           WHERE f.biz_date BETWEEN $1::date AND $2::date
+          ${DEFAULT_CALIBER_COND}
           ${pc.sql}`
         if (shopId) {
           params.push(parseInt(shopId, 10))
@@ -194,8 +199,10 @@ export async function omnichannelRoutes(app: FastifyInstance) {
            count(DISTINCT f.shop_id)::int             AS shop_count
          FROM fact_trade_daily f
          JOIN system_platform_configs p ON p.platform_code = f.platform_code
+         ${DEFAULT_CALIBER_JOIN}
          WHERE f.biz_date BETWEEN $1::date AND $2::date
            AND p.is_enabled = true
+           ${DEFAULT_CALIBER_COND}
          ${pc.sql}
          GROUP BY f.platform_code, p.platform_name, p.category, p.sort_order
          ORDER BY gmv DESC`,
@@ -261,7 +268,9 @@ export async function omnichannelRoutes(app: FastifyInstance) {
          FROM fact_trade_daily f
          JOIN dim_shop s ON s.id = f.shop_id
          JOIN system_platform_configs p ON p.platform_code = f.platform_code
+         ${DEFAULT_CALIBER_JOIN}
          WHERE f.biz_date BETWEEN $1::date AND $2::date
+           ${DEFAULT_CALIBER_COND}
          ${pc.sql}
          GROUP BY f.shop_id, s.shop_name, f.platform_code, p.platform_name
          ORDER BY gmv DESC
@@ -300,7 +309,9 @@ export async function omnichannelRoutes(app: FastifyInstance) {
           COALESCE(sum(f.paid_order_count), 0)::int AS paid_order_count,
           COALESCE(sum(f.refund_amount), 0)::numeric AS refund_amount
         FROM fact_trade_daily f
+        ${DEFAULT_CALIBER_JOIN}
         WHERE f.biz_date BETWEEN $1::date AND $2::date
+        ${DEFAULT_CALIBER_COND}
         ${pc.sql}`
       if (shopId) {
         params.push(parseInt(shopId, 10))
@@ -358,8 +369,10 @@ export async function omnichannelRoutes(app: FastifyInstance) {
            COALESCE(sum(refund_amount), 0)::numeric AS refund_amount,
            CASE WHEN sum(gmv) > 0 THEN round(sum(refund_amount)/sum(gmv)*100, 2) ELSE 0 END AS refund_rate,
            CASE WHEN sum(paid_order_count) > 0 THEN round(sum(gmv)/sum(paid_order_count), 2) ELSE 0 END AS avg_order_value
-         FROM fact_trade_daily
-         WHERE shop_id = $1 AND biz_date BETWEEN $2::date AND $3::date`,
+         FROM fact_trade_daily f
+         ${DEFAULT_CALIBER_JOIN}
+         WHERE f.shop_id = $1 AND f.biz_date BETWEEN $2::date AND $3::date
+         ${DEFAULT_CALIBER_COND}`,
         [shopId, r.from, r.to],
       )
 
@@ -377,23 +390,27 @@ export async function omnichannelRoutes(app: FastifyInstance) {
 
       // 渠道结构
       const channelRes = await pool.query(
-        `SELECT channel_name,
-                COALESCE(sum(gmv), 0)::numeric AS gmv,
-                COALESCE(sum(paid_order_count), 0)::int AS orders
-           FROM fact_trade_daily
-          WHERE shop_id = $1 AND biz_date BETWEEN $2::date AND $3::date
-          GROUP BY channel_name ORDER BY gmv DESC`,
+        `SELECT f.channel_name,
+                COALESCE(sum(f.gmv), 0)::numeric AS gmv,
+                COALESCE(sum(f.paid_order_count), 0)::int AS orders
+           FROM fact_trade_daily f
+           ${DEFAULT_CALIBER_JOIN}
+          WHERE f.shop_id = $1 AND f.biz_date BETWEEN $2::date AND $3::date
+          ${DEFAULT_CALIBER_COND}
+          GROUP BY f.channel_name ORDER BY gmv DESC`,
         [shopId, r.from, r.to],
       )
 
       // 日趋势
       const dailyRes = await pool.query(
-        `SELECT biz_date,
-                COALESCE(sum(gmv), 0)::numeric AS gmv,
-                COALESCE(sum(paid_order_count), 0)::int AS orders
-           FROM fact_trade_daily
-          WHERE shop_id = $1 AND biz_date BETWEEN $2::date AND $3::date
-          GROUP BY biz_date ORDER BY biz_date`,
+        `SELECT f.biz_date,
+                COALESCE(sum(f.gmv), 0)::numeric AS gmv,
+                COALESCE(sum(f.paid_order_count), 0)::int AS orders
+           FROM fact_trade_daily f
+           ${DEFAULT_CALIBER_JOIN}
+          WHERE f.shop_id = $1 AND f.biz_date BETWEEN $2::date AND $3::date
+          ${DEFAULT_CALIBER_COND}
+          GROUP BY f.biz_date ORDER BY f.biz_date`,
         [shopId, r.from, r.to],
       )
 

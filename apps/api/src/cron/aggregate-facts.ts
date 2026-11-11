@@ -61,15 +61,20 @@ export async function aggregateShopDaily(
         COALESCE(v.clicks_sum, 0),
         now()
      FROM (
-        SELECT biz_date, platform_code, shop_id,
-               SUM(gmv)             AS gmv_sum,
-               SUM(pay_amount)      AS pay_sum,
-               SUM(paid_order_count) AS order_sum,
-               SUM(paid_buyer_count) AS buyer_sum,
-               SUM(refund_amount)   AS refund_sum
-          FROM fact_trade_daily
-         WHERE biz_date = $1::date
-         GROUP BY biz_date, platform_code, shop_id
+        SELECT f.biz_date, f.platform_code, f.shop_id,
+               SUM(f.gmv)              AS gmv_sum,
+               SUM(f.pay_amount)       AS pay_sum,
+               SUM(f.paid_order_count) AS order_sum,
+               SUM(f.paid_buyer_count) AS buyer_sum,
+               SUM(f.refund_amount)    AS refund_sum
+          FROM fact_trade_daily f
+          LEFT JOIN platform_caliber_config pcc
+            ON pcc.platform_code = f.platform_code
+           AND pcc.metric_code = 'gmv'
+           AND pcc.is_default = true
+         WHERE f.biz_date = $1::date
+           AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)
+         GROUP BY f.biz_date, f.platform_code, f.shop_id
      ) t
      LEFT JOIN (
         SELECT biz_date, platform_code, shop_id, SUM(ad_spend) AS spend_sum
@@ -164,13 +169,13 @@ export async function aggregateRange(
     days.push(await aggregateShopDaily(pool, r.d))
   }
 
-  // 计算涉及月份
+  // 计算涉及月份（按月初 UTC 步进，避免 31 号溢出或末日早于起点日导致当月遗漏）
   const months = new Set<string>()
-  const cur = new Date(from)
-  const end = new Date(to)
+  const cur = new Date(`${from.slice(0, 7)}-01T00:00:00Z`)
+  const end = new Date(`${to.slice(0, 7)}-01T00:00:00Z`)
   while (cur <= end) {
-    months.add(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`)
-    cur.setMonth(cur.getMonth() + 1)
+    months.add(cur.toISOString().slice(0, 7))
+    cur.setUTCMonth(cur.getUTCMonth() + 1)
   }
 
   const monthResults: Array<{ ym: string; platformRows: number }> = []
