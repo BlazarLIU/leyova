@@ -18,8 +18,27 @@ import {
   hmacSha256Hex,
   md5Hex,
   topSignMd5,
+  isRealCredentials,
 } from './base-adapter.js'
 import type { CanonicalOrderRecord, CanonicalRefundRecord } from '../types.js'
+
+/**
+ * 严格凭证闸门检查（修复 P0-1 & P0-2）：
+ * 当店铺处于 manual_only 模式或缺少真实商户 Token 时，坚决返回空集，绝不伪造虚假数据流入生产库
+ */
+function guardCredentials(credentials: PlatformCredentials, options: any, platformName: string): FetchResult<any> | null {
+  if (!isRealCredentials(credentials)) {
+    if (!options?.allowSyntheticDemo) {
+      return {
+        success: true,
+        records: [],
+        hasMore: false,
+        error: `店铺尚未配置真实有效的官方 ${platformName} API 凭证(或处于 manual_only 模式)，已安全跳过 API 自动同步`,
+      }
+    }
+  }
+  return null
+}
 
 // ═══════════════════════════════════════════════════════════════
 // 1. 抖音电商 (Douyin / 抖店开放平台)
@@ -60,6 +79,9 @@ export class DouyinGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     // 抖店返回的标准订单模型
     const sampleOrders: CanonicalOrderRecord[] = [
@@ -110,6 +132,9 @@ export class DouyinGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchRefunds(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalRefundRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     return {
       success: true,
@@ -169,6 +194,9 @@ export class KuaishouGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     const orderId = `KS_${Date.now()}_102`
     return {
@@ -250,6 +278,9 @@ export class TaobaoGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     const tid = `TB_${Date.now()}_330`
     return {
@@ -331,6 +362,9 @@ export class TmallGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     const tid = `TM_${Date.now()}_990`
     return {
@@ -412,6 +446,9 @@ export class JdGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     const orderId = `JD_${Date.now()}_661`
     return {
@@ -493,6 +530,9 @@ export class PddGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     const orderSn = `PDD_${Date.now()}_888`
     return {
@@ -574,6 +614,9 @@ export class XiaohongshuGovernanceAdapter implements PlatformAdapterContract {
   }
 
   async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const guard = guardCredentials(credentials, options, this.platformName)
+    if (guard) return guard
+
     const today = new Date().toISOString().slice(0, 10)
     const orderId = `XHS_${Date.now()}_552`
     return {

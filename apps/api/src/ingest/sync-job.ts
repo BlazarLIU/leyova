@@ -80,11 +80,11 @@ async function upsertTradeRows(
   for (const r of records) {
     await pool.query(
       `INSERT INTO fact_trade_daily
-         (biz_date, platform_code, shop_id, channel_name,
+         (biz_date, platform_code, shop_id, channel_name, amount_type,
           gmv, pay_amount, paid_order_count, paid_buyer_count,
           refund_amount, refund_count, source, extra)
-       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'api', $11)
-       ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
+       VALUES ($1::date, $2, $3, $4, 'gross_paid', $5, $6, $7, $8, $9, $10, 'api', $11)
+       ON CONFLICT (biz_date, platform_code, shop_id, channel_name, amount_type)
        DO UPDATE SET
          gmv              = EXCLUDED.gmv,
          pay_amount       = EXCLUDED.pay_amount,

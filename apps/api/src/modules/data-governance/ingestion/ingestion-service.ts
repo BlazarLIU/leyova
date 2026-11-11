@@ -64,16 +64,36 @@ export class IngestionService {
         throw new Error(`店铺不存在: ${shopId}`)
       }
       const shop = shopRes.rows[0]
+
+      // 修复 P0-1 & P0-2：若店铺为手动导入模式或未授权，严禁生成伪造数据污染生产数据库
+      if (shop.auth_status === 'manual_only' || shop.auth_status === 'unauthorized') {
+        return {
+          success: true,
+          batchId: null,
+          message: `店铺 [${shop.shop_name}] 处于 ${shop.auth_status} 状态，跳过外部 API 自动拉取`,
+          recordsCount: 0,
+        }
+      }
+
       const tokenInfo = shop.auth_token_info || {}
+      if (!tokenInfo.accessToken || String(tokenInfo.accessToken).startsWith('mock_')) {
+        return {
+          success: true,
+          batchId: null,
+          message: `店铺 [${shop.shop_name}] 尚未配置有效的官方生产 API AccessToken，跳过自动拉取，杜绝假数据污染`,
+          recordsCount: 0,
+        }
+      }
 
       // 2. 调用平台适配器拉取数据
       const credentials = {
-        appKey: tokenInfo.appKey || 'demo_app_key',
-        appSecret: tokenInfo.appSecret || 'demo_app_secret',
+        appKey: tokenInfo.appKey,
+        appSecret: tokenInfo.appSecret,
         accessToken: tokenInfo.accessToken,
         refreshToken: tokenInfo.refreshToken,
         shopId,
         platformCode,
+        authStatus: shop.auth_status,
       }
 
       const fetchResult = await adapter.fetchOrders(credentials, { sinceTime })

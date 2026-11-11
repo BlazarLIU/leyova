@@ -13,8 +13,16 @@ import type { Pool } from 'pg'
 import { getPool } from '../lib/db.js'
 import { logger } from '../lib/logger.js'
 
-/** 需要按月分区的父表 */
-const PARTITIONED_TABLES = ['fact_trade_daily', 'fact_traffic_daily']
+/** 需要按月分区的父表（涵盖核心事实表与企业数据治理全链路分层表） */
+const PARTITIONED_TABLES = [
+  'fact_trade_daily',
+  'fact_traffic_daily',
+  'raw_records',
+  'clean_records',
+  'canonical_orders',
+  'canonical_order_items',
+  'canonical_refund_events',
+]
 
 /** yyyymm 形状 */
 function ym(d: Date): string {
@@ -46,13 +54,14 @@ export async function ensureFuturePartitions(
     const start = new Date(now.getFullYear(), now.getMonth() + offset, 1)
     const end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 1)
     const name = `${parentTable}_y${ym(start)}`
+    const altName = `${parentTable}_y${start.getFullYear()}m${String(start.getMonth() + 1).padStart(2, '0')}`
 
     const exists = await pool.query(
-      `SELECT 1 FROM pg_class WHERE relname = $1 AND relkind = 'r'`,
-      [name],
+      `SELECT relname FROM pg_class WHERE relname IN ($1, $2) AND relkind = 'r'`,
+      [name, altName],
     )
     if (exists.rows.length > 0) {
-      result.existing.push(name)
+      result.existing.push(exists.rows[0].relname)
       continue
     }
 
@@ -64,8 +73,8 @@ export async function ensureFuturePartitions(
       result.created.push(name)
       logger.info({ partition: name }, '[partition] created')
     } catch (err: any) {
-      // 并发创建会报 duplicate_table，视为已存在
-      if (err?.code === '42P07') {
+      // 42P07: duplicate_table, 42P17: partition range overlap
+      if (err?.code === '42P07' || err?.code === '42P17') {
         result.existing.push(name)
       } else {
         result.errors.push({ table: parentTable, partition: name, error: String(err?.message || err) })
@@ -90,12 +99,13 @@ export async function ensurePartitionForMonth(
   const start = new Date(year, month - 1, 1)
   const end = new Date(year, month, 1)
   const name = `${parentTable}_y${start.getFullYear()}${String(start.getMonth() + 1).padStart(2, '0')}`
+  const altName = `${parentTable}_y${start.getFullYear()}m${String(start.getMonth() + 1).padStart(2, '0')}`
 
   const exists = await pool.query(
-    `SELECT 1 FROM pg_class WHERE relname = $1 AND relkind = 'r'`,
-    [name],
+    `SELECT relname FROM pg_class WHERE relname IN ($1, $2) AND relkind = 'r'`,
+    [name, altName],
   )
-  if (exists.rows.length > 0) return { name, created: false }
+  if (exists.rows.length > 0) return { name: exists.rows[0].relname, created: false }
 
   try {
     await pool.query(
@@ -105,7 +115,7 @@ export async function ensurePartitionForMonth(
     logger.info({ partition: name }, '[partition] created (backfill)')
     return { name, created: true }
   } catch (err: any) {
-    if (err?.code === '42P07') return { name, created: false }
+    if (err?.code === '42P07' || err?.code === '42P17') return { name, created: false }
     return { name, created: false, error: String(err?.message || err) }
   }
 }

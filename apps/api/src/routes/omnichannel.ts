@@ -62,6 +62,7 @@ function platformClause(
   requested: string | undefined,
   allowed: Set<string> | null,
   alias = 'f',
+  startIndex = 3,
 ): { sql: string; params: any[] } {
   const params: any[] = []
   const conds: string[] = []
@@ -71,12 +72,12 @@ function platformClause(
       // 无权限 → 强制返回空集
       return { sql: 'AND false', params: [] }
     }
-    conds.push(`${alias}.platform_code = $1`)
+    conds.push(`${alias}.platform_code = $${startIndex}`)
     params.push(requested)
   } else if (allowed) {
     const list = Array.from(allowed)
     if (list.length === 0) return { sql: 'AND false', params: [] }
-    conds.push(`${alias}.platform_code = ANY($1::text[])`)
+    conds.push(`${alias}.platform_code = ANY($${startIndex}::text[])`)
     params.push(list)
   }
 

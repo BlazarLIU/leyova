@@ -89,3 +89,20 @@ export function topSignMd5(params: Record<string, any>, secret: string): string 
   return md5Hex(query).toUpperCase()
 }
 
+/**
+ * 校验是否为真实生产商户凭证 (杜绝 mock/demo 假数据流入生产库)
+ */
+export function isRealCredentials(credentials: PlatformCredentials): boolean {
+  if (credentials.authStatus === 'manual_only' || credentials.authStatus === 'unauthorized') {
+    return false
+  }
+  if (!credentials.accessToken || credentials.accessToken.startsWith('mock_') || credentials.accessToken.startsWith('demo_')) {
+    return false
+  }
+  if (!credentials.appKey || credentials.appKey.startsWith('mock_') || credentials.appKey.startsWith('demo_')) {
+    return false
+  }
+  return true
+}
+
+
