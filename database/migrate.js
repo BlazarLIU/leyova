@@ -67,6 +67,7 @@ async function run() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS public.schema_migrations (
         version character varying(100) PRIMARY KEY,
+        name character varying(255),
         applied_at timestamp with time zone DEFAULT now()
       );
     `)
