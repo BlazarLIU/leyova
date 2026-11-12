@@ -9,9 +9,9 @@ export class JdAdapter implements PlatformAdapter {
     return {
       supportsLive: false,
       supportsShelf: true,
-      supportsContent: false,
+      supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: true,
+      supportsAutoSync: false,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -45,7 +45,7 @@ export class PddAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: false,
       supportsAds: true,
-      supportsAutoSync: true,
+      supportsAutoSync: false,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',

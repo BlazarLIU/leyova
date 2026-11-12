@@ -40,8 +40,16 @@ async function dbPlugin(app: FastifyInstance) {
   }
 
   app.addHook('onClose', async () => {
-    await pgPool.end()
+    await closePool()
   })
+}
+
+export async function closePool() {
+  if (pool) {
+    const active = pool
+    pool = null
+    await active.end()
+  }
 }
 
 export { dbPlugin }

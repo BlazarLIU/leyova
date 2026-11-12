@@ -220,7 +220,7 @@ export interface ModuleInfo {
   name: string
   icon: string
   sort_order: number
-  visible_to: string
+  assigned_roles?: string[]
 }
 
 export interface LiveRoom {

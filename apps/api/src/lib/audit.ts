@@ -58,3 +58,4 @@ export async function writeAuditLog(executor: DbExecutor, entry: AuditLogEntry):
     ]
   )
 }
+

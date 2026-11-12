@@ -9,6 +9,12 @@ import type { UserAccount, RoleInfo, ModuleInfo } from '@/types'
 
 const roleLabels: Record<string, string> = {
   super_admin: '系统管理员',
+  admin: '管理员 (总监)',
+  operator: '运营操盘手',
+  ad_buyer: '投放专员',
+  finance: '财务专员',
+  hrbp: 'HRBP',
+  employee: '一线员工',
   ops_director: '运营总监',
   ops_staff: '运营',
   controller: '中控',
@@ -207,6 +213,12 @@ export function AccountsSection({ users, roles, allModules, onUsersChange }: Pro
                   <select value={form.role} onChange={e => handleRoleChange(e.target.value)}
                     className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                     <option value="super_admin">系统管理员</option>
+                    <option value="admin">管理员 (总监)</option>
+                    <option value="operator">运营操盘手</option>
+                    <option value="ad_buyer">投放专员</option>
+                    <option value="finance">财务专员</option>
+                    <option value="hrbp">HRBP</option>
+                    <option value="employee">一线员工</option>
                     <option value="ops_director">运营总监</option>
                     <option value="ops_staff">运营</option>
                     <option value="controller">中控</option>

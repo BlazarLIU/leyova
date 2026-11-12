@@ -22,6 +22,7 @@ import { findSessionUser, type AuthUser } from './guard.js'
 /** 无需登录即可访问的路径前缀 */
 const PUBLIC_PREFIXES = [
   '/api/v1/health',
+  '/api/v1/ready',
   '/api/v1/auth/login',
   '/api/v1/auth/me',       // 未登录时返回 401 由 handler 自己处理
   '/docs',

@@ -55,6 +55,11 @@ const routeLabels: Record<string, string> = {
   '/ops/kol': '达人合作与佣金',
   '/ops/cs': '客服响应与绩效',
   '/ops/costs': '成本结构与净利',
+  '/ops/net-roi': '全域投放与T+7净ROI',
+  '/ops/search-keywords': '搜索词卡位',
+  '/ops/members': '会员与私域',
+  '/content/schedule': '内容排产与归因',
+  '/system/compliance': '2026 合规风控',
 }
 
 type Notification = { id: string; text: string; time: string; unread: boolean }
@@ -88,6 +93,12 @@ const ROUTE_MODULE_REQUIREMENTS: Record<string, string> = {
   '/ops/kol': 'kol',
   '/ops/cs': 'customer_service',
   '/ops/costs': 'ops',
+  '/ops/net-roi': 'net_roi',
+  '/ops/search-keywords': 'search_seo',
+  '/ops/members': 'members',
+  '/overview/sessions': 'session',
+  '/content/schedule': 'content_schedule',
+  '/system/compliance': 'compliance',
   '/agency/clients': 'agency',
   '/agency/projects': 'agency',
   '/agency/settlement': 'agency',

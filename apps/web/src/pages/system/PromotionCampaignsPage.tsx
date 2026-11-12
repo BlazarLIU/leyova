@@ -5,6 +5,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { api } from '@/services/api'
+import { PromotionLayerSimulator } from '@/components/promotions/PromotionLayerSimulator'
 
 const fadeIn = {
   initial: { opacity: 0, y: 12 },
@@ -459,6 +460,8 @@ export function PromotionCampaignsPage() {
           </CardBody>
         </Card>
       </motion.div>
+
+      <PromotionLayerSimulator />
     </div>
   )
 }

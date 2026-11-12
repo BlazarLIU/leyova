@@ -10,11 +10,10 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
 import { usePlatform } from '@/hooks/usePlatform'
+import { resolvePlatformMode, type PlatformMode } from '@/data/platform-navigation'
 import { HomePage as DouyinHomePage } from './HomePage'
 
 const fadeIn = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4 } }
-
-type PlatformMode = 'live' | 'shelf' | 'content'
 
 interface PlatformStats {
   gmv: number
@@ -61,9 +60,7 @@ function GenericPlatformHome() {
 
   // 判断业态
   const cap = currentPlatform?.capabilities
-  const mode: PlatformMode = cap?.supportsLive ? 'live'
-    : cap?.supportsContent ? 'content'
-    : 'shelf'
+  const mode: PlatformMode = resolvePlatformMode(cap, platformCode)
 
   const load = useCallback(async () => {
     if (!platformCode) { setLoading(false); return }

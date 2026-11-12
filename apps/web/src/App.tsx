@@ -8,7 +8,7 @@ import { SignInPage } from '@/pages/auth/SignInPage'
 import { PlatformAwareHomePage } from '@/pages/overview/PlatformAwareHomePage'
 import { CockpitPage } from '@/pages/overview/CockpitPage'
 import { LiveMonitorPage } from '@/pages/overview/LiveMonitorPage'
-// import { SessionsPage } from '@/pages/overview/SessionsPage' // 已冻结
+import { SessionsPage } from '@/pages/overview/SessionsPage'
 import { AnalyticsPage } from '@/pages/overview/AnalyticsPage'
 
 // 直播管理
@@ -89,6 +89,11 @@ import { FulfillmentSlaPage } from '@/pages/ops/FulfillmentSlaPage'
 import { AfterSalesPage } from '@/pages/ops/AfterSalesPage'
 import { KolCooperationPage } from '@/pages/ops/KolCooperationPage'
 import { CustomerServicePage } from '@/pages/ops/CustomerServicePage'
+import { NetRoiPage } from '@/pages/ops/NetRoiPage'
+import { SearchKeywordsPage } from '@/pages/ops/SearchKeywordsPage'
+import { MembersPage } from '@/pages/ops/MembersPage'
+import { ContentSchedulePage } from '@/pages/content/ContentSchedulePage'
+import { CompliancePage } from '@/pages/system/CompliancePage'
 
 // 直播复盘
 import { ReviewOverviewPage } from '@/pages/review/ReviewOverviewPage'
@@ -130,7 +135,8 @@ export default function App() {
         <Route path="/overview/home" element={<RequireAccess module="overview"><PlatformAwareHomePage /></RequireAccess>} />
         <Route path="/overview/cockpit" element={<RequireAccess module="overview"><CockpitPage /></RequireAccess>} />
         <Route path="/overview/live-monitor" element={<RequireAccess module="overview"><LiveMonitorPage /></RequireAccess>} />
-        {/* <Route path="/overview/sessions" element={<SessionsPage />} />  已冻结 */}
+        <Route path="/overview/sessions" element={<RequireAccess module="session"><SessionsPage /></RequireAccess>} />
+        <Route path="/ops/sessions" element={<RequireAccess module="session"><SessionsPage /></RequireAccess>} />
         <Route path="/overview/analytics" element={<RequireAccess module="overview"><AnalyticsPage /></RequireAccess>} />
 
         {/* ===== 直播管理 ===== */}
@@ -175,6 +181,7 @@ export default function App() {
         {/* ===== 内容中心 ===== */}
         <Route path="/content/video-create" element={<RequireAccess module="content"><VideoCreatePage /></RequireAccess>} />
         <Route path="/content/video-data" element={<RequireAccess module="content"><VideoDataPage /></RequireAccess>} />
+        <Route path="/content/schedule" element={<RequireAccess module="content_schedule"><ContentSchedulePage /></RequireAccess>} />
         <Route path="/content/config" element={<RequireAccess module="content"><ContentConfigPage /></RequireAccess>} />
 
         {/* ===== 商业智能 ===== */}
@@ -205,6 +212,9 @@ export default function App() {
         <Route path="/ops/after-sales" element={<RequireAccess module="after_sales"><AfterSalesPage /></RequireAccess>} />
         <Route path="/ops/kol" element={<RequireAccess module="kol"><KolCooperationPage /></RequireAccess>} />
         <Route path="/ops/cs" element={<RequireAccess module="customer_service"><CustomerServicePage /></RequireAccess>} />
+        <Route path="/ops/net-roi" element={<RequireAccess roles={['super_admin', 'admin', 'finance', 'ops_director', 'ad_buyer']} module="net_roi"><NetRoiPage /></RequireAccess>} />
+        <Route path="/ops/search-keywords" element={<RequireAccess module="search_seo"><SearchKeywordsPage /></RequireAccess>} />
+        <Route path="/ops/members" element={<RequireAccess module="members"><MembersPage /></RequireAccess>} />
 
         {/* ===== MCN 代运营与对账中心 ===== */}
         <Route path="/agency/clients" element={<RequireAccess module="agency"><ClientsPage /></RequireAccess>} />
@@ -228,6 +238,7 @@ export default function App() {
         <Route path="/system/promotions" element={<RequireAccess anyModules={['system_promotions', 'ops']}><PromotionCampaignsPage /></RequireAccess>} />
         <Route path="/system/competitors" element={<RequireAccess anyModules={['system_competitors', 'ops']}><CompetitorWatchPage /></RequireAccess>} />
         <Route path="/system/multi-room" element={<RequireAccess module="system_multiroom"><MultiRoomOverviewPage /></RequireAccess>} />
+        <Route path="/system/compliance" element={<RequireAccess module="compliance"><CompliancePage /></RequireAccess>} />
       </Route>
     </Routes>
   )

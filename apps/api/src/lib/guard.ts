@@ -3,6 +3,21 @@ import { sendError } from './http.js'
 import { env } from '../config/env.js'
 import { getPool } from './db.js'
 
+export type RoleCode =
+  | 'super_admin'
+  | 'admin'
+  | 'operator'
+  | 'finance'
+  | 'hrbp'
+  | 'employee'
+  | 'ad_buyer'
+  | 'ops_director'
+  | 'ops_staff'
+  | 'controller'
+  | 'brand_viewer'
+
+export const AD_SPEND_ROLES: RoleCode[] = ['super_admin', 'admin', 'finance', 'ops_director', 'ad_buyer']
+
 export interface AuthUser {
   id: number
   username: string
@@ -88,9 +103,21 @@ export function requireRole(allowedRoles: string[]) {
 /**
  * 敏感成本与利润数据访问判断：仅系统管理员、管理员、财务专员可见（排除只读品牌方）
  */
-export function canAccessCost(user: AuthUser): boolean {
-  if (!user || user.userType === 'brand_viewer') return false
+export function canAccessCost(
+  user: { role?: string | null; userType?: string | null } | null | undefined
+): boolean {
+  if (!user || !user.role || user.userType === 'brand_viewer') return false
   return ['super_admin', 'admin', 'finance'].includes(user.role)
+}
+
+/**
+ * 投流消耗与归因 ROI 访问判断：投放专员与核心管理/财务角色可见（成本与毛利明细仍受 canAccessCost 控制）
+ */
+export function canAccessAdSpend(
+  user: { role?: string | null; userType?: string | null } | null | undefined
+): boolean {
+  if (!user || !user.role || user.userType === 'brand_viewer') return false
+  return AD_SPEND_ROLES.includes(user.role as RoleCode)
 }
 
 /**

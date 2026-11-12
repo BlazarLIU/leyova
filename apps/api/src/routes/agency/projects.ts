@@ -14,7 +14,7 @@ export async function agencyProjectsRoutes(app: FastifyInstance) {
       const { rows } = await withRlsContext(request, (client) =>
         client.query(
           `
-          SELECT 
+          SELECT
             p.id,
             p.tenant_id AS "tenantId",
             p.client_id AS "clientId",
@@ -137,7 +137,7 @@ export async function agencyProjectsRoutes(app: FastifyInstance) {
         // 1. 项目基础信息（PG RLS 自动校验租户、平台与 brand_viewer 项目边界）
         const projectRes = await client.query(
           `
-          SELECT 
+          SELECT
             p.*,
             c.name AS "clientName",
             c.brand_name AS "brandName"
@@ -156,7 +156,7 @@ export async function agencyProjectsRoutes(app: FastifyInstance) {
         // 2. 场次汇总与 GMV
         const sessionStats = await client.query(
           `
-          SELECT 
+          SELECT
             COUNT(*)::int AS "sessionCount",
             COALESCE(SUM(gmv), 0)::float AS "actualGmv",
             COALESCE(SUM(duration_min), 0)::float / 60.0 AS "actualHours",
@@ -170,7 +170,7 @@ export async function agencyProjectsRoutes(app: FastifyInstance) {
         // 3. 坑位与代垫推广费汇总
         const feeStats = await client.query(
           `
-          SELECT 
+          SELECT
             COALESCE(SUM(amount), 0)::float AS "totalFees"
           FROM public.agency_slot_fees
           WHERE project_id = $1 AND tenant_id = $2
@@ -181,7 +181,7 @@ export async function agencyProjectsRoutes(app: FastifyInstance) {
         // 4. 主播排期
         const anchorAssignments = await client.query(
           `
-          SELECT 
+          SELECT
             a.id AS "anchorId",
             a.name AS "anchorName",
             assign.role,

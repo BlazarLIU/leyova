@@ -272,19 +272,19 @@ export async function anchorRoutes(app: FastifyInstance) {
           [aId]
         )
         const sRes = await client.query(
-          `SELECT 
+          `SELECT
              COUNT(*)::int AS "monthlySessions",
              COALESCE(SUM(gmv), 0)::float AS "monthlyGmv",
              COALESCE(SUM(orders), 0)::int AS "monthlyOrders",
              COALESCE(AVG(duration_min), 0)::float AS "avgDurationMin"
-           FROM public.live_sessions 
+           FROM public.live_sessions
            WHERE anchor_id = $1`,
           [aId]
         )
         const rRes = await client.query(
-          `SELECT id, date::text, title, duration_min AS "durationMin", gmv::float, orders, status 
-           FROM public.live_sessions 
-           WHERE anchor_id = $1 
+          `SELECT id, date::text, title, duration_min AS "durationMin", gmv::float, orders, status
+           FROM public.live_sessions
+           WHERE anchor_id = $1
            ORDER BY date DESC, id DESC LIMIT 8`,
           [aId]
         )

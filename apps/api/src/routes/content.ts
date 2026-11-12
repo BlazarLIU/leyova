@@ -10,9 +10,10 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
-import { requireAuth, requireRole } from '../lib/guard.js'
+import { getPool, withRlsContext } from '../lib/db.js'
+import { canAccessAdSpend, requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
+import { assertShopPlatform } from '../lib/shop-guard.js'
 import { createProvider, type ProviderInfo } from '../content/providers/comfyui.js'
 
 const PROVIDER_WRITE_ROLES = ['super_admin', 'admin', 'ops_director']
@@ -459,6 +460,379 @@ export async function contentRoutes(app: FastifyInstance) {
       return sendOk(reply, rows[0], '视频数据已保存')
     } catch (err) {
       return sendError(reply, 500, '保存视频数据失败')
+    }
+  })
+
+  // ═══════════════════════════════════════════════════════════════
+  // 5. 内容排产工作流 + 多端分发衍生 + 内容归因台账 (Migration 118)
+  // ═══════════════════════════════════════════════════════════════
+  const SCHEDULE_STAGES = [
+    'topic_planned', 'script_drafted', 'shooting', 'editing',
+    'compliance_review', 'approved', 'scheduled', 'published',
+  ]
+
+  app.get<{
+    Querystring: { platform?: string; stage?: string }
+  }>('/api/v1/content/schedules', { preHandler: [requireAuth] }, async (request, reply) => {
+    const { platform, stage } = request.query || {}
+    try {
+      const rows = await withRlsContext(request, async (client) => {
+        const params: any[] = []
+        const conds: string[] = []
+        if (platform) {
+          params.push(platform)
+          conds.push(`cs.platform_code = $${params.length}`)
+        }
+        if (stage) {
+          params.push(stage)
+          conds.push(`cs.stage = $${params.length}`)
+        }
+        const whereSql = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
+        const res = await client.query(
+          `SELECT cs.*, p.platform_name,
+                  u1.real_name AS owner_name,
+                  u2.real_name AS reviewer_name,
+                  ca.name AS asset_name
+           FROM public.content_schedules cs
+           LEFT JOIN public.system_platform_configs p ON p.platform_code = cs.platform_code
+           LEFT JOIN public.users u1 ON u1.id = cs.owner_user_id
+           LEFT JOIN public.users u2 ON u2.id = cs.reviewer_user_id
+           LEFT JOIN public.content_assets ca ON ca.id = cs.asset_id
+           ${whereSql}
+           ORDER BY COALESCE(cs.planned_publish_at, cs.created_at) DESC, cs.id DESC`,
+          params,
+        )
+        return res.rows
+      })
+      return sendOk(reply, rows)
+    } catch (err) {
+      request.log.warn({ err }, 'content/schedules query failed')
+      return sendError(reply, 500, '查询内容排期工作流失败')
+    }
+  })
+
+  app.post<{
+    Body: {
+      title: string
+      topicCategory?: string
+      platformCode: string
+      targetPlatforms?: string[]
+      scriptSummary?: string
+      plannedPublishAt?: string
+      assetId?: number | null
+      complianceChecked?: boolean
+      complianceNote?: string
+    }
+  }>('/api/v1/content/schedules', { preHandler: [requireRole(CONTENT_WORK_ROLES)] }, async (request, reply) => {
+    const b = request.body || ({} as any)
+    if (!b.title || !b.platformCode) {
+      return sendError(reply, 400, '缺少必要参数 (title, platformCode)')
+    }
+    const actor = (request as any).user
+    try {
+      const row = await withRlsContext(request, async (client, scope) => {
+        const res = await client.query(
+          `INSERT INTO public.content_schedules
+             (tenant_id, title, topic_category, stage, platform_code, target_platforms,
+              script_summary, owner_user_id, planned_publish_at, asset_id,
+              compliance_checked, compliance_note)
+           VALUES ($1, $2, $3, 'topic_planned', $4, $5, $6, $7, $8, $9, $10, $11)
+           RETURNING *`,
+          [
+            scope.tenantId,
+            b.title.trim(),
+            b.topicCategory || '商品测评',
+            b.platformCode,
+            Array.isArray(b.targetPlatforms) && b.targetPlatforms.length > 0 ? b.targetPlatforms : [b.platformCode],
+            b.scriptSummary || '',
+            actor?.id || null,
+            b.plannedPublishAt || null,
+            b.assetId ? Number(b.assetId) : null,
+            Boolean(b.complianceChecked),
+            b.complianceNote || '',
+          ],
+        )
+        await writeAuditLog(client, {
+          request,
+          action: 'content.schedule.create',
+          resourceType: 'content_schedules',
+          resourceId: res.rows[0].id,
+          afterData: res.rows[0],
+        })
+        return res.rows[0]
+      })
+      return sendOk(reply, row, '内容排期已创建')
+    } catch (err) {
+      request.log.warn({ err }, 'content/schedules create failed')
+      return sendError(reply, 500, '创建内容排期失败')
+    }
+  })
+
+  app.patch<{
+    Params: { id: string }
+    Body: { stage: string; complianceChecked?: boolean; complianceNote?: string; externalContentId?: string }
+  }>('/api/v1/content/schedules/:id/stage', { preHandler: [requireRole(CONTENT_WORK_ROLES)] }, async (request, reply) => {
+    const id = Number(request.params.id)
+    const b = request.body || ({} as any)
+    if (!Number.isInteger(id) || id <= 0 || !SCHEDULE_STAGES.includes(b.stage)) {
+      return sendError(reply, 400, '无效的排期 ID 或工作流阶段')
+    }
+
+    try {
+      const actor = (request as any).user
+      const outcome = await withRlsContext(request, async (client) => {
+        const beforeRes = await client.query('SELECT * FROM public.content_schedules WHERE id = $1', [id])
+        const before = beforeRes.rows[0]
+        if (!before) return { error: { code: 404, msg: '内容排期不存在或无权访问' } }
+
+        const nextComplianceChecked =
+          b.complianceChecked !== undefined ? Boolean(b.complianceChecked) : Boolean(before.compliance_checked)
+        if (['approved', 'scheduled', 'published'].includes(b.stage) && !nextComplianceChecked) {
+          return { error: { code: 400, msg: '进入审批通过/待发布/已发布阶段前，必须完成广审/平台合规预检 (complianceChecked=true)' } }
+        }
+
+        const { rows } = await client.query(
+          `UPDATE public.content_schedules
+           SET stage = $1,
+               compliance_checked = $2,
+               compliance_note = COALESCE($3, compliance_note),
+               external_content_id = COALESCE($4, external_content_id),
+               reviewer_user_id = CASE WHEN $1 IN ('compliance_review', 'approved') THEN COALESCE(reviewer_user_id, $5) ELSE reviewer_user_id END,
+               published_at = CASE WHEN $1 = 'published' THEN COALESCE(published_at, NOW()) ELSE published_at END,
+               updated_at = NOW()
+           WHERE id = $6
+           RETURNING *`,
+          [
+            b.stage,
+            nextComplianceChecked,
+            b.complianceNote !== undefined ? b.complianceNote : null,
+            b.externalContentId !== undefined ? b.externalContentId : null,
+            actor?.id || null,
+            id,
+          ],
+        )
+
+        await writeAuditLog(client, {
+          request,
+          action: 'content.schedule.transition',
+          resourceType: 'content_schedules',
+          resourceId: id,
+          beforeData: before,
+          afterData: rows[0],
+        })
+        return { row: rows[0] }
+      })
+
+      if ('error' in outcome && outcome.error) {
+        return sendError(reply, outcome.error.code, outcome.error.msg)
+      }
+      return sendOk(reply, outcome.row, '排期阶段已推进')
+    } catch (err) {
+      request.log.warn({ err }, 'content/schedules transition failed')
+      return sendError(reply, 500, '推进内容排期阶段失败')
+    }
+  })
+
+  // ── POST /api/v1/content/assets/:id/derive ── 一鱼多吃：生成平台适配衍生素材版本
+  app.post<{
+    Params: { id: string }
+    Body: { targetPlatform: string; name?: string; complianceStatus?: string }
+  }>('/api/v1/content/assets/:id/derive', { preHandler: [requireRole(CONTENT_WORK_ROLES)] }, async (request, reply) => {
+    const parentId = Number(request.params.id)
+    const b = request.body || ({} as any)
+    if (!Number.isInteger(parentId) || parentId <= 0 || !b.targetPlatform) {
+      return sendError(reply, 400, '缺少必要参数 (assetId, targetPlatform)')
+    }
+
+    try {
+      const parentRes = await pool.query('SELECT * FROM public.content_assets WHERE id = $1', [parentId])
+      const parent = parentRes.rows[0]
+      if (!parent) return sendError(reply, 404, '母版素材不存在')
+
+      const derivedName = b.name?.trim() || `${parent.name} [${b.targetPlatform}分发版]`
+      const { rows } = await pool.query(
+        `INSERT INTO public.content_assets
+           (project_id, task_id, asset_type, name, url, local_path, size_bytes, duration_seconds,
+            provider, extra, tenant_id, parent_asset_id, source_platform, distribution_status, compliance_status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'ready', $14)
+         RETURNING *`,
+        [
+          parent.project_id,
+          parent.task_id,
+          parent.asset_type,
+          derivedName,
+          parent.url,
+          parent.local_path,
+          parent.size_bytes,
+          parent.duration_seconds,
+          parent.provider,
+          parent.extra || '{}',
+          parent.tenant_id || 1,
+          parentId,
+          b.targetPlatform,
+          b.complianceStatus || 'pending',
+        ],
+      )
+      await writeAuditLog(pool, {
+        request,
+        action: 'content.asset.derive',
+        resourceType: 'content_assets',
+        resourceId: rows[0].id,
+        afterData: rows[0],
+      })
+      return sendOk(reply, rows[0], '已派生多端适配版本')
+    } catch (err) {
+      request.log.warn({ err }, 'content/assets derive failed')
+      return sendError(reply, 500, '派生多平台素材失败')
+    }
+  })
+
+  // ── GET /api/v1/content/attribution ── 内容→搜索回搜→交易 GMV 归因台账
+  app.get<{
+    Querystring: { platform?: string; shopId?: string; channel?: string; from?: string; to?: string }
+  }>('/api/v1/content/attribution', { preHandler: [requireAuth] }, async (request, reply) => {
+    const user = (request as any).user
+    const showSpend = canAccessAdSpend(user)
+    const { platform, shopId, channel, from, to } = request.query || {}
+    const toDate = to || new Date().toISOString().slice(0, 10)
+    const fromDate = from || new Date(Date.now() - 29 * 86400_000).toISOString().slice(0, 10)
+
+    try {
+      const data = await withRlsContext(request, async (client) => {
+        const params: any[] = [fromDate, toDate]
+        let filterSql = ''
+        if (platform) {
+          params.push(platform)
+          filterSql += ` AND l.platform_code = $${params.length}`
+        }
+        if (shopId) {
+          params.push(Number(shopId))
+          filterSql += ` AND l.shop_id = $${params.length}`
+        }
+        if (channel) {
+          params.push(channel)
+          filterSql += ` AND l.attribution_channel = $${params.length}`
+        }
+
+        const { rows } = await client.query(
+          `SELECT l.*, s.shop_name, p.platform_name, cs.title AS schedule_title
+           FROM public.content_attribution_ledger l
+           LEFT JOIN public.dim_shop s ON s.id = l.shop_id
+           LEFT JOIN public.system_platform_configs p ON p.platform_code = l.platform_code
+           LEFT JOIN public.content_schedules cs ON cs.id = l.schedule_id
+           WHERE l.biz_date >= $1::date AND l.biz_date <= $2::date ${filterSql}
+           ORDER BY l.attributed_gmv DESC, l.biz_date DESC`,
+          params,
+        )
+
+        const items = rows.map((r) => ({
+          ...r,
+          ad_spend: showSpend ? Number(r.ad_spend || 0) : null,
+        }))
+
+        const summary = {
+          total_views: rows.reduce((a, r) => a + Number(r.views || 0), 0),
+          total_engagements: rows.reduce((a, r) => a + Number(r.engagements || 0), 0),
+          total_search_back: rows.reduce((a, r) => a + Number(r.search_back_count || 0), 0),
+          total_orders: rows.reduce((a, r) => a + Number(r.attributed_orders || 0), 0),
+          total_attributed_gmv: Number(rows.reduce((a, r) => a + Number(r.attributed_gmv || 0), 0).toFixed(2)),
+          total_settled_gmv: Number(rows.reduce((a, r) => a + Number(r.settled_gmv || 0), 0).toFixed(2)),
+          total_ad_spend: showSpend
+            ? Number(rows.reduce((a, r) => a + Number(r.ad_spend || 0), 0).toFixed(2))
+            : null,
+        }
+
+        return { range: { from: fromDate, to: toDate }, spendMasked: !showSpend, summary, items }
+      })
+      return sendOk(reply, data)
+    } catch (err) {
+      request.log.warn({ err }, 'content/attribution query failed')
+      return sendError(reply, 500, '查询内容归因台账失败')
+    }
+  })
+
+  app.post<{
+    Body: {
+      contentId: string
+      scheduleId?: number | null
+      platformCode: string
+      shopId: number
+      bizDate: string
+      attributionChannel?: string
+      attributionWindowHours?: number
+      views?: number
+      engagements?: number
+      searchBackCount?: number
+      attributedOrders?: number
+      attributedGmv?: number
+      settledGmv?: number
+      adSpend?: number
+    }
+  }>('/api/v1/content/attribution', { preHandler: [requireRole([...CONTENT_WORK_ROLES, 'ad_buyer'])] }, async (request, reply) => {
+    const b = request.body || ({} as any)
+    if (!b.contentId || !b.platformCode || !b.shopId || !b.bizDate) {
+      return sendError(reply, 400, '缺少必要参数 (contentId, platformCode, shopId, bizDate)')
+    }
+
+    try {
+      const outcome = await withRlsContext(request, async (client, scope) => {
+        const shopCheck = await assertShopPlatform(client, b.shopId, b.platformCode)
+        if (!shopCheck.ok) {
+          return { error: { code: shopCheck.statusCode || 400, msg: shopCheck.message || '店铺校验失败' } }
+        }
+
+        const { rows } = await client.query(
+          `INSERT INTO public.content_attribution_ledger
+             (tenant_id, content_id, schedule_id, platform_code, shop_id, biz_date,
+              attribution_channel, attribution_window_hours, views, engagements,
+              search_back_count, attributed_orders, attributed_gmv, settled_gmv, ad_spend)
+           VALUES ($1, $2, $3, $4, $5, $6::date, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+           ON CONFLICT (tenant_id, content_id, platform_code, shop_id, biz_date, attribution_channel) DO UPDATE SET
+             schedule_id = COALESCE(EXCLUDED.schedule_id, public.content_attribution_ledger.schedule_id),
+             attribution_window_hours = EXCLUDED.attribution_window_hours,
+             views = EXCLUDED.views,
+             engagements = EXCLUDED.engagements,
+             search_back_count = EXCLUDED.search_back_count,
+             attributed_orders = EXCLUDED.attributed_orders,
+             attributed_gmv = EXCLUDED.attributed_gmv,
+             settled_gmv = EXCLUDED.settled_gmv,
+             ad_spend = EXCLUDED.ad_spend
+           RETURNING *`,
+          [
+            scope.tenantId,
+            b.contentId.trim(),
+            b.scheduleId ? Number(b.scheduleId) : null,
+            b.platformCode,
+            Number(b.shopId),
+            b.bizDate,
+            b.attributionChannel || 'in_site',
+            Number(b.attributionWindowHours || 168),
+            Number(b.views || 0),
+            Number(b.engagements || 0),
+            Number(b.searchBackCount || 0),
+            Number(b.attributedOrders || 0),
+            Number(b.attributedGmv || 0),
+            Number(b.settledGmv || 0),
+            Number(b.adSpend || 0),
+          ],
+        )
+        await writeAuditLog(client, {
+          request,
+          action: 'content.attribution.upsert',
+          resourceType: 'content_attribution_ledger',
+          resourceId: rows[0].id,
+          afterData: rows[0],
+        })
+        return { row: rows[0] }
+      })
+
+      if ('error' in outcome && outcome.error) {
+        return sendError(reply, outcome.error.code, outcome.error.msg)
+      }
+      return sendOk(reply, outcome.row, '内容归因数据已保存')
+    } catch (err) {
+      request.log.warn({ err }, 'content/attribution upsert failed')
+      return sendError(reply, 500, '保存内容归因数据失败')
     }
   })
 }

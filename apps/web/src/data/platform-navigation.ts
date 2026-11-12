@@ -47,10 +47,16 @@ export interface PlatformCapability {
 }
 
 /** 判断平台应使用哪种信息架构 */
-export function resolvePlatformMode(cap?: PlatformCapability | null): PlatformMode {
+export function resolvePlatformMode(
+  cap?: (PlatformCapability & { platformCode?: string }) | null,
+  platformCode?: string,
+): PlatformMode {
   if (!cap) return 'live'
-  // 直播能力最独特，优先
+  const code = platformCode || cap.platformCode
+  // 直播能力最独特，优先；小红书以内容种草为核心主模式；淘系/京东保持货架主模式并辅以内容中心入口
   if (cap.supportsLive) return 'live'
+  if (code === 'xiaohongshu') return 'content'
+  if (cap.supportsShelf) return 'shelf'
   if (cap.supportsContent) return 'content'
   return 'shelf'
 }
@@ -159,6 +165,7 @@ function buildLiveSections(platformCode?: string): NavSection[] {
       title: '直播运营',
       items: [
         { label: '多直播间总览', icon: Monitor, href: '/system/multi-room', module: 'system_multiroom' },
+        { label: '场次管理', icon: Radio, href: '/overview/sessions', module: 'session' },
         { label: '场次排品', href: '/ops/session-products', module: 'session_products' },
       ],
     },
@@ -228,6 +235,9 @@ function buildLiveSections(platformCode?: string): NavSection[] {
           icon: Zap,
           module: 'ops',
           children: [
+            { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
+            { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
+            { label: '会员与私域', href: '/ops/members', module: 'members' },
             { label: '问题库', href: '/ops/issue-library', module: 'ops' },
             { label: '目标达成', href: '/ops/goal-tracking', module: 'ops' },
             { label: '经营成本核算', href: '/ops/costs', module: 'ops' },
@@ -247,6 +257,7 @@ function buildLiveSections(platformCode?: string): NavSection[] {
           icon: Clapperboard,
           module: 'content',
           children: [
+            { label: '内容排产与归因', href: '/content/schedule', module: 'content_schedule' },
             { label: '视频创作', href: '/content/video-create', module: 'content' },
             { label: '视频数据', href: '/content/video-data', module: 'content' },
             { label: '生成服务配置', href: '/content/center-config', module: 'content' },
@@ -294,10 +305,14 @@ function buildShelfSections(platformCode?: string): NavSection[] {
                 { label: '商品与渠道结构', href: '/shop/taobao/product-channel' },
                 { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
                 { label: '万相台投放对账', href: '/shop/taobao/ad-reconciliation' },
+                { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
+                { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
                 { label: '投放 ROI 分析', href: '/bi/roi' },
               ]
             : [
                 { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
+                { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
+                { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
                 { label: '投放 ROI 分析', href: '/bi/roi' },
               ],
         },
@@ -339,6 +354,8 @@ function buildShelfSections(platformCode?: string): NavSection[] {
             { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
             { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
             { label: '达人合作与佣金', href: '/ops/kol', module: 'kol' },
+            { label: '会员与私域', href: '/ops/members', module: 'members' },
+            ...(isTaobaoFamily || isJd ? [{ label: '内容排产与归因', href: '/content/schedule', module: 'content_schedule' }] : []),
             { label: '目标达成', href: '/ops/goal-tracking', module: 'ops' },
             { label: '经营成本核算', href: '/ops/costs', module: 'ops' },
             { label: '活动管理', href: '/system/promotions', module: 'system_promotions' },
@@ -367,8 +384,10 @@ function buildContentSections(): NavSection[] {
           module: 'content',
           children: [
             { label: '种草转化链路', href: '/shop/xiaohongshu/conversion', module: 'content' },
+            { label: '内容排产与归因', href: '/content/schedule', module: 'content_schedule' },
             { label: '笔记数据', href: '/content/video-data', module: 'content' },
-            { label: '搜索分析', href: '/shop/xiaohongshu/conversion', module: 'content' },
+            { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
+            { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
           ],
         },
         {
@@ -463,6 +482,7 @@ function buildSystemSection(): NavSection {
         ],
       },
       { label: '异常中心', icon: AlertTriangle, href: '/system/alerts', module: 'system_alerts' },
+      { label: '2026 合规风控', icon: Shield, href: '/system/compliance', module: 'compliance' },
     ],
   }
 }

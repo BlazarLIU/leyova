@@ -752,3 +752,4 @@ CREATE POLICY p_audit_logs_select ON public.audit_logs
   );
 
 COMMIT;
+

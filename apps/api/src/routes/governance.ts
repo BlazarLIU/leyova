@@ -327,5 +327,177 @@ export async function governanceRoutes(app: FastifyInstance) {
       return sendError(reply, 500, err.message)
     }
   })
+
+  // ── 13. entity_aliases 跨平台商品/主播/达人主体映射 CRUD ──
+  app.get<{
+    Querystring: { entityType?: string; platform?: string }
+  }>('/api/v1/governance/entity-aliases', { preHandler: [requireAuth] }, async (request, reply) => {
+    const { entityType, platform } = request.query || {}
+    const params: any[] = []
+    const conds: string[] = []
+    if (entityType) {
+      params.push(entityType)
+      conds.push(`ea.entity_type = $${params.length}`)
+    }
+    if (platform) {
+      params.push(platform)
+      conds.push(`ea.source_platform = $${params.length}`)
+    }
+    const whereSql = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
+    const { rows } = await pool.query(
+      `SELECT ea.*, p.platform_name, u.real_name AS approved_by_name
+       FROM public.entity_aliases ea
+       LEFT JOIN public.system_platform_configs p ON p.platform_code = ea.source_platform
+       LEFT JOIN public.users u ON u.id = ea.approved_by
+       ${whereSql}
+       ORDER BY ea.id DESC LIMIT 200`,
+      params,
+    )
+    return sendOk(reply, rows)
+  })
+
+  app.post<{
+    Body: {
+      entityType: string
+      sourcePlatform: string
+      externalId: string
+      externalName?: string
+      internalId: number
+      internalCode?: string
+      validFrom?: string
+      validTo?: string
+    }
+  }>('/api/v1/governance/entity-aliases', {
+    preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator', 'finance'])],
+  }, async (request, reply) => {
+    const b = request.body || ({} as any)
+    if (!b.entityType || !b.sourcePlatform || !b.externalId || !b.internalId) {
+      return sendError(reply, 400, '缺少必要参数 (entityType, sourcePlatform, externalId, internalId)')
+    }
+    const actor = (request as any).user
+    const { rows } = await pool.query(
+      `INSERT INTO public.entity_aliases
+         (entity_type, source_platform, external_id, external_name, internal_id, internal_code, valid_from, valid_to, approved_by)
+       VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7::date, '2020-01-01'::date), COALESCE($8::date, '2099-12-31'::date), $9)
+       ON CONFLICT (entity_type, source_platform, external_id, valid_from) DO UPDATE SET
+         external_name = EXCLUDED.external_name,
+         internal_id = EXCLUDED.internal_id,
+         internal_code = EXCLUDED.internal_code,
+         valid_to = EXCLUDED.valid_to,
+         approved_by = EXCLUDED.approved_by
+       RETURNING *`,
+      [
+        b.entityType.trim(),
+        b.sourcePlatform.trim(),
+        b.externalId.trim(),
+        b.externalName || '',
+        Number(b.internalId),
+        b.internalCode || '',
+        b.validFrom || null,
+        b.validTo || null,
+        actor?.id || null,
+      ],
+    )
+    await writeAuditLog(pool, {
+      request,
+      action: 'governance.entity_alias.upsert',
+      resourceType: 'entity_aliases',
+      resourceId: rows[0].id,
+      afterData: rows[0],
+    })
+    return sendOk(reply, rows[0], '实体别名映射已保存')
+  })
+
+  app.delete<{ Params: { id: string } }>('/api/v1/governance/entity-aliases/:id', {
+    preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])],
+  }, async (request, reply) => {
+    const id = Number(request.params.id)
+    if (!Number.isInteger(id) || id <= 0) return sendError(reply, 400, '无效 ID')
+    const before = await pool.query('SELECT * FROM public.entity_aliases WHERE id = $1', [id])
+    if (before.rows.length === 0) return sendError(reply, 404, '映射记录不存在')
+    await pool.query('DELETE FROM public.entity_aliases WHERE id = $1', [id])
+    await writeAuditLog(pool, {
+      request,
+      action: 'governance.entity_alias.delete',
+      resourceType: 'entity_aliases',
+      resourceId: id,
+      beforeData: before.rows[0],
+    })
+    return sendOk(reply, { deleted: true, id })
+  })
+
+  // ── 14. field_mapping_rules 可配置字段映射规则 CRUD ──
+  app.get<{
+    Querystring: { platform?: string; datasetType?: string }
+  }>('/api/v1/governance/field-mappings', { preHandler: [requireAuth] }, async (request, reply) => {
+    const { platform, datasetType } = request.query || {}
+    const params: any[] = []
+    const conds: string[] = []
+    if (platform) {
+      params.push(platform)
+      conds.push(`source_platform = $${params.length}`)
+    }
+    if (datasetType) {
+      params.push(datasetType)
+      conds.push(`dataset_type = $${params.length}`)
+    }
+    const whereSql = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
+    const { rows } = await pool.query(
+      `SELECT * FROM public.field_mapping_rules ${whereSql} ORDER BY source_platform, dataset_type, version DESC, id ASC`,
+      params,
+    )
+    return sendOk(reply, rows)
+  })
+
+  app.post<{
+    Body: {
+      mappingCode: string
+      version?: number
+      sourcePlatform: string
+      datasetType: string
+      sourceField: string
+      canonicalField: string
+      transform?: string
+      required?: boolean
+      approvalStatus?: string
+    }
+  }>('/api/v1/governance/field-mappings', {
+    preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])],
+  }, async (request, reply) => {
+    const b = request.body || ({} as any)
+    if (!b.mappingCode || !b.sourcePlatform || !b.datasetType || !b.sourceField || !b.canonicalField) {
+      return sendError(reply, 400, '缺少必要参数')
+    }
+    const { rows } = await pool.query(
+      `INSERT INTO public.field_mapping_rules
+         (mapping_code, version, source_platform, dataset_type, source_field, canonical_field, transform, required, approval_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (source_platform, dataset_type, mapping_code, version, source_field) DO UPDATE SET
+         canonical_field = EXCLUDED.canonical_field,
+         transform = EXCLUDED.transform,
+         required = EXCLUDED.required,
+         approval_status = EXCLUDED.approval_status
+       RETURNING *`,
+      [
+        b.mappingCode.trim(),
+        Number(b.version || 1),
+        b.sourcePlatform.trim(),
+        b.datasetType.trim(),
+        b.sourceField.trim(),
+        b.canonicalField.trim(),
+        b.transform || 'identity',
+        Boolean(b.required),
+        b.approvalStatus || 'approved',
+      ],
+    )
+    await writeAuditLog(pool, {
+      request,
+      action: 'governance.field_mapping.upsert',
+      resourceType: 'field_mapping_rules',
+      resourceId: rows[0].id,
+      afterData: rows[0],
+    })
+    return sendOk(reply, rows[0], '字段映射规则已保存')
+  })
 }
 

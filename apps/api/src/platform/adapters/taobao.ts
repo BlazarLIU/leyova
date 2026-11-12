@@ -9,9 +9,9 @@ export class TaobaoAdapter implements PlatformAdapter {
     return {
       supportsLive: false,
       supportsShelf: true,
-      supportsContent: false,
+      supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: true,
+      supportsAutoSync: false,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -43,9 +43,9 @@ export class TmallAdapter implements PlatformAdapter {
     return {
       supportsLive: false,
       supportsShelf: true,
-      supportsContent: false,
+      supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: true,
+      supportsAutoSync: false,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, User, Moon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, User, Moon, AlertCircle, RefreshCw } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { api } from '@/services/api'
@@ -33,19 +33,30 @@ export function AttendancePage() {
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [data, setData] = useState<AttendanceResponse>(() => createEmptyAttendance(now.getFullYear(), now.getMonth() + 1))
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const loadAttendance = useCallback(() => {
+    setLoading(true)
+    setError(null)
     api.get<AttendanceResponse>('/attendance', { year, month })
       .then((res) => {
         if (res && res.anchors) {
           setData(res)
+        } else {
+          setData(createEmptyAttendance(year, month))
         }
       })
-      .catch(() => {
-        // 使用默认数据
-        setData(generateMockData(year, month))
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : '考勤数据加载失败，请检查后端服务状态或权限')
+        setData(createEmptyAttendance(year, month))
       })
+      .finally(() => setLoading(false))
   }, [year, month])
+
+  useEffect(() => {
+    loadAttendance()
+  }, [loadAttendance])
 
   const daysInMonth = new Date(year, month, 0).getDate()
   const dates: DateInfo[] = Array.from({ length: daysInMonth }, (_, i) => {
@@ -137,6 +148,23 @@ export function AttendancePage() {
           </CardBody>
         </Card>
       </motion.div>
+
+      {error && (
+        <div className="flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+          <span className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {error}
+          </span>
+          <button
+            onClick={loadAttendance}
+            disabled={loading}
+            className="flex items-center gap-1.5 rounded-lg border border-rose-400/30 bg-rose-500/15 px-3 py-1 text-xs font-medium text-rose-200 hover:bg-rose-500/25 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            重试
+          </button>
+        </div>
+      )}
 
       {/* Attendance table */}
       <motion.div
@@ -410,30 +438,4 @@ export function AttendancePage() {
       </div>
     </div>
   )
-}
-function generateMockData(year: number, month: number): AttendanceResponse {
-  const daysInMonth = new Date(year, month, 0).getDate()
-  const dates: DateInfo[] = Array.from({ length: daysInMonth }, (_, i) => {
-    const day = i + 1
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    const weekdayIdx = new Date(year, month - 1, day).getDay()
-    return {
-      date: dateStr,
-      day,
-      weekday: WEEKDAYS[weekdayIdx],
-      isWeekend: weekdayIdx === 0 || weekdayIdx === 6,
-    }
-  })
-
-  return {
-    year,
-    month,
-    daysInMonth,
-    dates,
-    anchors: [],
-    operators: [],
-    attendanceData: {},
-    anchorStats: [],
-    operatorStats: [],
-  }
 }

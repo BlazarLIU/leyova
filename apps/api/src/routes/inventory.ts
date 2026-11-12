@@ -421,3 +421,4 @@ export async function inventoryRoutes(app: FastifyInstance) {
     }
   })
 }
+

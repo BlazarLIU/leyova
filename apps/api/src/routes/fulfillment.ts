@@ -307,42 +307,42 @@ export async function fulfillmentRoutes(app: FastifyInstance) {
     '/api/v1/fulfillment/waybills/:id/dispatch',
     { preHandler: [requireRole(writeRoles)] },
     async (request, reply) => {
-    const body = request.body as {
-      waybillNo?: string
-      carrierCode?: string
-      shippedAt?: string
-      pickupAt?: string
-      signedAt?: string
-    }
-    try {
-      const existing = await pool.query(`SELECT * FROM fact_fulfillment_waybill WHERE id = $1`, [Number(request.params.id)])
-      if (existing.rows.length === 0) return sendError(reply, 404, '运单记录不存在')
-      const cur = existing.rows[0]
+      const body = request.body as {
+        waybillNo?: string
+        carrierCode?: string
+        shippedAt?: string
+        pickupAt?: string
+        signedAt?: string
+      }
+      try {
+        const existing = await pool.query(`SELECT * FROM fact_fulfillment_waybill WHERE id = $1`, [Number(request.params.id)])
+        if (existing.rows.length === 0) return sendError(reply, 404, '运单记录不存在')
+        const cur = existing.rows[0]
 
-      const { rows: rules } = await pool.query<SlaRuleRow>(
-        `SELECT * FROM platform_sla_config WHERE platform_code = $1`,
-        [cur.platform_code],
-      )
+        const { rows: rules } = await pool.query<SlaRuleRow>(
+          `SELECT * FROM platform_sla_config WHERE platform_code = $1`,
+          [cur.platform_code],
+        )
 
-      const shippedAt = body?.shippedAt ? new Date(body.shippedAt) : (cur.shipped_at ? new Date(cur.shipped_at) : (body?.waybillNo ? new Date() : null))
-      const pickupAt = body?.pickupAt ? new Date(body.pickupAt) : (cur.pickup_at ? new Date(cur.pickup_at) : null)
-      const signedAt = body?.signedAt ? new Date(body.signedAt) : (cur.signed_at ? new Date(cur.signed_at) : null)
+        const shippedAt = body?.shippedAt ? new Date(body.shippedAt) : (cur.shipped_at ? new Date(cur.shipped_at) : (body?.waybillNo ? new Date() : null))
+        const pickupAt = body?.pickupAt ? new Date(body.pickupAt) : (cur.pickup_at ? new Date(cur.pickup_at) : null)
+        const signedAt = body?.signedAt ? new Date(body.signedAt) : (cur.signed_at ? new Date(cur.signed_at) : null)
 
-      const evalRes = evaluateWaybillSla(
-        {
-          platformCode: cur.platform_code,
-          orderAmount: Number(cur.order_amount),
-          isCustomPresale: Boolean(cur.is_custom_presale),
-          paidAt: new Date(cur.paid_at),
-          shippedAt,
-          pickupAt,
-          signedAt,
-        },
-        rules,
-      )
+        const evalRes = evaluateWaybillSla(
+          {
+            platformCode: cur.platform_code,
+            orderAmount: Number(cur.order_amount),
+            isCustomPresale: Boolean(cur.is_custom_presale),
+            paidAt: new Date(cur.paid_at),
+            shippedAt,
+            pickupAt,
+            signedAt,
+          },
+          rules,
+        )
 
-      const { rows } = await pool.query(
-        `UPDATE fact_fulfillment_waybill
+        const { rows } = await pool.query(
+          `UPDATE fact_fulfillment_waybill
          SET waybill_no = COALESCE($1, waybill_no),
              carrier_code = COALESCE($2, carrier_code),
              shipped_at = $3,
@@ -356,24 +356,24 @@ export async function fulfillmentRoutes(app: FastifyInstance) {
              updated_at = NOW()
          WHERE id = $11
          RETURNING *`,
-        [
-          body?.waybillNo?.trim() || null,
-          body?.carrierCode?.trim() || null,
-          shippedAt,
-          pickupAt,
-          signedAt,
-          evalRes.fulfillmentStatus,
-          evalRes.isShipDelayed,
-          evalRes.isFakeShipRisk,
-          evalRes.estimatedPenaltyAmount,
-          evalRes.slaRiskReason,
-          Number(request.params.id),
-        ],
-      )
-      return sendOk(reply, rows[0])
-    } catch (err) {
-      request.log.error({ err }, 'Failed to update waybill dispatch')
-      return sendError(reply, 500, '更新运单节点失败')
-    }
-  })
+          [
+            body?.waybillNo?.trim() || null,
+            body?.carrierCode?.trim() || null,
+            shippedAt,
+            pickupAt,
+            signedAt,
+            evalRes.fulfillmentStatus,
+            evalRes.isShipDelayed,
+            evalRes.isFakeShipRisk,
+            evalRes.estimatedPenaltyAmount,
+            evalRes.slaRiskReason,
+            Number(request.params.id),
+          ],
+        )
+        return sendOk(reply, rows[0])
+      } catch (err) {
+        request.log.error({ err }, 'Failed to update waybill dispatch')
+        return sendError(reply, 500, '更新运单节点失败')
+      }
+    })
 }

@@ -10,7 +10,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
     const pool = getPool()
     try {
       const { rows } = await pool.query(`
-        SELECT 
+        SELECT
           r.id,
           r.name AS "ruleName",
           r.shop_id AS "shopId",

@@ -52,7 +52,7 @@ export async function systemRoutes(app: FastifyInstance) {
                 m.name,
                 m.icon,
                 m.sort_order,
-                COALESCE(ARRAY_AGG(rm.role_code ORDER BY rm.role_code) FILTER (WHERE rm.role_code IS NOT NULL), '{}'::varchar[]) AS visible_to
+                COALESCE(ARRAY_AGG(rm.role_code ORDER BY rm.role_code) FILTER (WHERE rm.role_code IS NOT NULL), '{}'::varchar[]) AS assigned_roles
          FROM system_modules m
          LEFT JOIN role_modules rm ON rm.module_code = m.code
          GROUP BY m.code, m.name, m.icon, m.sort_order
@@ -172,9 +172,9 @@ export async function systemRoutes(app: FastifyInstance) {
       }
       const hash = bcrypt.hashSync(password, 10)
       const role = body.role || 'employee'
-      const validRoles = ['super_admin', 'admin', 'operator', 'finance', 'hrbp', 'employee', 'ops_director', 'ops_staff', 'controller', 'manager']
+      const validRoles = ['super_admin', 'admin', 'operator', 'finance', 'hrbp', 'employee', 'ad_buyer', 'ops_director', 'ops_staff', 'controller', 'manager']
       if (!validRoles.includes(role)) {
-        return sendError(reply, 400, '角色不合法，可选角色：系统管理员(super_admin)、管理员(admin)、运营(operator)、财务(finance)、HRBP(hrbp)、员工(employee)')
+        return sendError(reply, 400, '角色不合法，可选角色：系统管理员(super_admin)、管理员(admin)、运营(operator)、投放专员(ad_buyer)、财务(finance)、HRBP(hrbp)、员工(employee)')
       }
       if (!canManageTargetUser(actor.role, undefined, role)) {
         return sendError(reply, 403, '仅超级管理员可创建 super_admin 账号')

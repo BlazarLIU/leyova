@@ -183,6 +183,7 @@ const roleLabels: Record<string, string> = {
   super_admin: '👑 系统管理员',
   admin: '🏢 管理员 (总监)',
   operator: '🚀 运营 (操盘手)',
+  ad_buyer: '🎯 投放专员',
   finance: '💰 财务主管',
   hrbp: '👥 HRBP',
   employee: '🎙️ 员工 (主播/中控)',

@@ -245,17 +245,17 @@ export async function kolRoutes(app: FastifyInstance) {
     '/api/v1/kol/cooperations/:id/settle',
     { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] },
     async (request, reply) => {
-    const body = request.body as {
-      settlementStatus?: 'confirmed' | 'paid' | 'disputed'
-      commissionAmount?: number
-      remark?: string
-    }
-    if (!body?.settlementStatus) {
-      return sendError(reply, 400, '必须提供结算状态')
-    }
-    try {
-      const { rows } = await pool.query(
-        `UPDATE fact_kol_cooperation
+      const body = request.body as {
+        settlementStatus?: 'confirmed' | 'paid' | 'disputed'
+        commissionAmount?: number
+        remark?: string
+      }
+      if (!body?.settlementStatus) {
+        return sendError(reply, 400, '必须提供结算状态')
+      }
+      try {
+        const { rows } = await pool.query(
+          `UPDATE fact_kol_cooperation
          SET settlement_status = $1,
              commission_amount = COALESCE($2, commission_amount),
              settled_at = CASE WHEN $1 = 'paid' THEN NOW() ELSE settled_at END,
@@ -263,18 +263,18 @@ export async function kolRoutes(app: FastifyInstance) {
              updated_at = NOW()
          WHERE id = $4
          RETURNING *`,
-        [
-          body.settlementStatus,
-          body.commissionAmount !== undefined ? Number(body.commissionAmount) : null,
-          body.remark?.trim() ?? null,
-          Number(request.params.id),
-        ],
-      )
-      if (rows.length === 0) return sendError(reply, 404, '达人合作记录不存在')
-      return sendOk(reply, rows[0])
-    } catch (err) {
-      request.log.error({ err }, 'Failed to settle KOL commission')
-      return sendError(reply, 500, '结算达人佣金失败')
-    }
-  })
+          [
+            body.settlementStatus,
+            body.commissionAmount !== undefined ? Number(body.commissionAmount) : null,
+            body.remark?.trim() ?? null,
+            Number(request.params.id),
+          ],
+        )
+        if (rows.length === 0) return sendError(reply, 404, '达人合作记录不存在')
+        return sendOk(reply, rows[0])
+      } catch (err) {
+        request.log.error({ err }, 'Failed to settle KOL commission')
+        return sendError(reply, 500, '结算达人佣金失败')
+      }
+    })
 }

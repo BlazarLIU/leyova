@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
 import { api } from '@/services/api'
+import { EntityAliasPanel } from '@/components/data/EntityAliasPanel'
 
 const fadeIn = {
   initial: { opacity: 0, y: 12 },
@@ -60,7 +61,7 @@ function SeverityBadge({ severity }: { severity: string }) {
 }
 
 export function DataQualityPage() {
-  const [activeTab, setActiveTab] = useState<'batches' | 'workbench' | 'reconciliation' | 'platforms' | 'ingest'>('batches')
+  const [activeTab, setActiveTab] = useState<'batches' | 'workbench' | 'reconciliation' | 'platforms' | 'ingest' | 'aliases'>('batches')
   const [batches, setBatches] = useState<any[]>([])
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -334,6 +335,18 @@ export function DataQualityPage() {
         >
           <UploadCloud className="w-4 h-4" />
           双轨数据接入测试 (API / 手工文件)
+        </button>
+        <button
+          onClick={() => setActiveTab('aliases')}
+          className={cn(
+            'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
+            activeTab === 'aliases'
+              ? 'border-orbit-primary text-orbit-primary'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          )}
+        >
+          <Key className="w-4 h-4" />
+          实体别名与字段映射
         </button>
       </div>
 
@@ -955,6 +968,13 @@ export function DataQualityPage() {
               {uploadStatusMsg}
             </div>
           )}
+        </motion.div>
+      )}
+
+      {/* ── TAB 6: 实体别名与字段映射 ── */}
+      {activeTab === 'aliases' && (
+        <motion.div {...fadeIn}>
+          <EntityAliasPanel />
         </motion.div>
       )}
     </div>
