@@ -54,4 +54,5 @@ export async function closePool() {
 
 export { dbPlugin }
 export default fp(dbPlugin, { name: 'db' })
-export { withRlsContext, resolveUserRlsScope, type ResolvedRlsScope } from './rls.js'
+export { withRlsContext, withRlsPool, resolveUserRlsScope, type ResolvedRlsScope } from './rls.js'
+export type { DbExecutor } from './audit.js'

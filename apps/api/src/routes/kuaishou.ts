@@ -4,7 +4,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { canAccessAdSpend, requireAuth } from '../lib/guard.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
 import {
@@ -26,17 +26,26 @@ function defaultRange(from?: string, to?: string) {
 }
 
 export async function kuaishouRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
-  async function resolveKsShop(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+  async function runKsShopQuery<T>(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+    fn: (shopId: number, client: any) => Promise<T>,
+    requireAdSpend = false,
+  ) {
     const user = await requireAuth(request, reply)
-    if (!user) return null
-    const check = await assertShopPlatform(pool, request.params.id, 'kuaishou')
-    if (!check.ok || !check.shop) {
-      sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
-      return null
+    if (!user) return
+    if (requireAdSpend && !canAccessAdSpend(user)) {
+      return sendError(reply, 403, '当前角色无权查看磁力金牛投放 ROI 数据')
     }
-    return { user, shopId: check.shop.id }
+    const result = await withRlsContext(request, async (client) => {
+      const check = await assertShopPlatform(client, request.params.id, 'kuaishou')
+      if (!check.ok || !check.shop) return { shopError: check }
+      return { data: await fn(check.shop.id, client) }
+    })
+    if ('shopError' in result && result.shopError) {
+      return sendError(reply, result.shopError.statusCode || 400, result.shopError.message || '店铺校验失败')
+    }
+    return sendOk(reply, result.data)
   }
 
   // ── GET /api/v1/kuaishou/shop/:id/traffic-split ── 公私域拆分
@@ -45,11 +54,8 @@ export async function kuaishouRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveKsShop(request, reply)
-      if (!ctx) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getKsTrafficSplit(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runKsShopQuery(request, reply, (shopId, client) => getKsTrafficSplit(shopId, r.from, r.to, client))
     } catch (err: any) {
       request.log.error({ err }, 'ks traffic split failed')
       return sendError(reply, 500, `获取公私域拆分失败：${err?.message || err}`)
@@ -62,11 +68,8 @@ export async function kuaishouRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveKsShop(request, reply)
-      if (!ctx) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getKsIndirectGmv(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runKsShopQuery(request, reply, (shopId, client) => getKsIndirectGmv(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取间接成交失败：${err?.message || err}`)
     }
@@ -78,11 +81,8 @@ export async function kuaishouRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveKsShop(request, reply)
-      if (!ctx) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getKsFansTeam(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runKsShopQuery(request, reply, (shopId, client) => getKsFansTeam(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取粉丝团数据失败：${err?.message || err}`)
     }
@@ -94,14 +94,8 @@ export async function kuaishouRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveKsShop(request, reply)
-      if (!ctx) return
-      if (!canAccessAdSpend(ctx.user)) {
-        return sendError(reply, 403, '当前角色无权查看磁力金牛投放 ROI 数据')
-      }
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getKsAdRoi(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runKsShopQuery(request, reply, (shopId, client) => getKsAdRoi(shopId, r.from, r.to, client), true)
     } catch (err: any) {
       return sendError(reply, 500, `获取 ROI 分析失败：${err?.message || err}`)
     }

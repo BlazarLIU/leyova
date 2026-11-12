@@ -8,7 +8,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireRole } from '../lib/guard.js'
 import {
   convertFindingsToTasks,
@@ -20,8 +20,6 @@ import {
 const ANALYSIS_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance']
 
 export async function closureRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   // ── POST /api/v1/analysis/tasks/convert ──
   app.post<{
     Body: {
@@ -42,27 +40,33 @@ export async function closureRoutes(app: FastifyInstance) {
 
       // 批量模式
       if (Array.isArray(b.actions) && b.actions.length > 0) {
-        const created = await convertAllActions(
-          b.actions,
-          { runId: b.runId, sourceQuestion: b.sourceQuestion, assignee: b.assignee, priority: b.priority },
-          pool,
+        const actionsList = b.actions
+        const created = await withRlsContext(request, (client) =>
+          convertAllActions(
+            actionsList,
+            { runId: b.runId, sourceQuestion: b.sourceQuestion, assignee: b.assignee, priority: b.priority },
+            client,
+          ),
         )
         return sendOk(reply, { created, count: created.length }, `已创建 ${created.length} 个改进任务`)
       }
 
       // 单条模式
       if (!b.title) return sendError(reply, 400, '缺少任务标题（title）或行动建议数组（actions）')
-      const task = await convertFindingsToTasks(
-        {
-          runId: b.runId,
-          title: b.title,
-          description: b.description,
-          assignee: b.assignee,
-          priority: b.priority,
-          dueDate: b.dueDate,
-          sourceQuestion: b.sourceQuestion,
-        },
-        pool,
+      const taskTitle = b.title
+      const task = await withRlsContext(request, (client) =>
+        convertFindingsToTasks(
+          {
+            runId: b.runId,
+            title: taskTitle,
+            description: b.description,
+            assignee: b.assignee,
+            priority: b.priority,
+            dueDate: b.dueDate,
+            sourceQuestion: b.sourceQuestion,
+          },
+          client,
+        ),
       )
       return sendOk(reply, task, '改进任务已创建')
     } catch (err: any) {
@@ -82,13 +86,15 @@ export async function closureRoutes(app: FastifyInstance) {
       let where = `WHERE source = 'ai_analysis'`
       if (status) { where += ` AND status = $1`; params.push(status) }
 
-      const { rows } = await pool.query(
-        `SELECT id, title, description, assignee, priority, status, progress,
-                due_date, source_id, created_at
-           FROM improvement_tasks
-           ${where}
-          ORDER BY created_at DESC LIMIT ${lim}`,
-        params,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT id, title, description, assignee, priority, status, progress,
+                  due_date, source_id, created_at
+             FROM improvement_tasks
+             ${where}
+            ORDER BY created_at DESC LIMIT ${lim}`,
+          params,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -111,14 +117,16 @@ export async function closureRoutes(app: FastifyInstance) {
       }
 
       const user = (request as any).user
-      const report = await generateReviewReport(
-        {
-          timeRange: b.timeRange,
-          filters: b.filters,
-          role: user?.role,
-          userId: user?.id,
-        },
-        pool,
+      const report = await withRlsContext(request, (client) =>
+        generateReviewReport(
+          {
+            timeRange: b.timeRange,
+            filters: b.filters,
+            role: user?.role,
+            userId: user?.id,
+          },
+          client,
+        ),
       )
 
       let archive = null

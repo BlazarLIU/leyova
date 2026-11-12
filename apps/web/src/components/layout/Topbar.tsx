@@ -58,8 +58,12 @@ const routeLabels: Record<string, string> = {
   '/ops/net-roi': '全域投放与T+7净ROI',
   '/ops/search-keywords': '搜索词卡位',
   '/ops/members': '会员与私域',
+  '/content/video-create': '视频创作',
+  '/content/video-data': '视频数据',
   '/content/schedule': '内容排产与归因',
-  '/system/compliance': '2026 合规风控',
+  '/content/center-config': '生成服务配置',
+  '/content/config': '生成服务配置',
+  '/system/compliance': '合规风控',
 }
 
 type Notification = { id: string; text: string; time: string; unread: boolean }
@@ -105,7 +109,7 @@ const ROUTE_MODULE_REQUIREMENTS: Record<string, string> = {
   '/system/config': 'system_config',
   '/system/platforms': 'system_users',
   '/system/users': 'system_users',
-  '/system/audit-logs': 'system_users',
+  '/system/audit-logs': 'audit_logs',
   '/system/dict': 'system_dict',
   '/system/alerts': 'system_alerts',
   '/system/tasks': 'system_tasks',

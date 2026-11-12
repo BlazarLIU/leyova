@@ -10,7 +10,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool, withRlsContext } from '../lib/db.js'
+import { withRlsContext, type DbExecutor } from '../lib/db.js'
 import { canAccessAdSpend, requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
@@ -20,14 +20,12 @@ const PROVIDER_WRITE_ROLES = ['super_admin', 'admin', 'ops_director']
 const CONTENT_WORK_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator']
 
 export async function contentRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   /** 按 id 取 provider 配置 */
-  const loadProvider = async (providerId?: number | null) => {
+  const loadProvider = async (executor: DbExecutor, providerId?: number | null) => {
     const sql = providerId
       ? `SELECT * FROM content_providers WHERE id = $1`
       : `SELECT * FROM content_providers WHERE is_enabled = true ORDER BY is_default DESC, id LIMIT 1`
-    const { rows } = await pool.query(sql, providerId ? [providerId] : [])
+    const { rows } = await executor.query(sql, providerId ? [providerId] : [])
     if (rows.length === 0) return null
     const p = rows[0]
     const info: ProviderInfo = {
@@ -43,13 +41,13 @@ export async function contentRoutes(app: FastifyInstance) {
   // ═══════════════════════════════════════════════════════════════
 
   // ── GET /api/v1/content/providers ──
-  app.get('/api/v1/content/providers', async (_request, reply) => {
+  app.get('/api/v1/content/providers', async (request, reply) => {
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT id, name, provider_type, base_url, is_enabled, is_default,
                 capabilities, last_checked_at, last_check_result, created_at
            FROM content_providers ORDER BY is_default DESC, id`,
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       return sendError(reply, 500, '获取生成服务列表失败')
@@ -64,21 +62,24 @@ export async function contentRoutes(app: FastifyInstance) {
       const { name, providerType = 'comfyui', baseUrl, apiKey, isDefault } = request.body || {}
       if (!name || !baseUrl) return sendError(reply, 400, '缺少必要参数 (name, baseUrl)')
 
-      if (isDefault) {
-        await pool.query(`UPDATE content_providers SET is_default = false`)
-      }
-      const { rows } = await pool.query(
-        `INSERT INTO content_providers (name, provider_type, base_url, api_key, is_default)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [name, providerType, baseUrl, apiKey || null, !!isDefault],
-      )
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'content_provider.create',
-        resourceType: 'content_provider',
-        resourceId: rows[0]?.id,
-        afterData: { id: rows[0]?.id, name, providerType, baseUrl, isDefault: !!isDefault },
-        request,
+      const { rows } = await withRlsContext(request, async (client) => {
+        if (isDefault) {
+          await client.query(`UPDATE content_providers SET is_default = false`)
+        }
+        const res = await client.query(
+          `INSERT INTO content_providers (name, provider_type, base_url, api_key, is_default)
+           VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+          [name, providerType, baseUrl, apiKey || null, !!isDefault],
+        )
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'content_provider.create',
+          resourceType: 'content_provider',
+          resourceId: res.rows[0]?.id,
+          afterData: { id: res.rows[0]?.id, name, providerType, baseUrl, isDefault: !!isDefault },
+          request,
+        })
+        return res
       })
       return sendOk(reply, rows[0], '生成服务已保存')
     } catch (err) {
@@ -96,10 +97,6 @@ export async function contentRoutes(app: FastifyInstance) {
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
       const b = request.body || {}
 
-      if (b.isDefault) {
-        await pool.query(`UPDATE content_providers SET is_default = false WHERE id <> $1`, [id])
-      }
-
       const sets: string[] = []
       const vals: any[] = [id]
       let i = 2
@@ -110,19 +107,27 @@ export async function contentRoutes(app: FastifyInstance) {
       if (b.isDefault !== undefined) { sets.push(`is_default = $${i++}`); vals.push(b.isDefault) }
       sets.push('updated_at = now()')
 
-      const { rows } = await pool.query(
-        `UPDATE content_providers SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
-        vals,
-      )
-      if (rows.length === 0) return sendError(reply, 404, '生成服务不存在')
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'content_provider.update',
-        resourceType: 'content_provider',
-        resourceId: id,
-        afterData: { id, name: b.name, baseUrl: b.baseUrl, isEnabled: b.isEnabled, isDefault: b.isDefault },
-        request,
+      const { rows } = await withRlsContext(request, async (client) => {
+        if (b.isDefault) {
+          await client.query(`UPDATE content_providers SET is_default = false WHERE id <> $1`, [id])
+        }
+        const res = await client.query(
+          `UPDATE content_providers SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
+          vals,
+        )
+        if (res.rows.length > 0) {
+          await writeAuditLog(client, {
+            actorUserId: (request as any).user?.id,
+            action: 'content_provider.update',
+            resourceType: 'content_provider',
+            resourceId: id,
+            afterData: { id, name: b.name, baseUrl: b.baseUrl, isEnabled: b.isEnabled, isDefault: b.isDefault },
+            request,
+          })
+        }
+        return res
       })
+      if (rows.length === 0) return sendError(reply, 404, '生成服务不存在')
       return sendOk(reply, rows[0], '更新成功')
     } catch (err) {
       return sendError(reply, 500, '更新生成服务失败')
@@ -134,13 +139,15 @@ export async function contentRoutes(app: FastifyInstance) {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
-      await pool.query(`DELETE FROM content_providers WHERE id = $1`, [id])
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'content_provider.delete',
-        resourceType: 'content_provider',
-        resourceId: id,
-        request,
+      await withRlsContext(request, async (client) => {
+        await client.query(`DELETE FROM content_providers WHERE id = $1`, [id])
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'content_provider.delete',
+          resourceType: 'content_provider',
+          resourceId: id,
+          request,
+        })
       })
       return sendOk(reply, { deleted: true }, '已删除')
     } catch (err) {
@@ -153,14 +160,14 @@ export async function contentRoutes(app: FastifyInstance) {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
-      const loaded = await loadProvider(id)
+      const loaded = await withRlsContext(request, (client) => loadProvider(client, id))
       if (!loaded) return sendError(reply, 404, '生成服务不存在')
 
       const health = await loaded.provider.checkHealth()
-      await pool.query(
+      await withRlsContext(request, (client) => client.query(
         `UPDATE content_providers SET last_checked_at = now(), last_check_result = $1 WHERE id = $2`,
         [health.ok ? 'ok' : 'failed', id],
-      )
+      ))
       return sendOk(reply, health, health.ok ? '连接正常' : '连接失败')
     } catch (err: any) {
       return sendError(reply, 500, err?.message || '测试连接失败')
@@ -172,7 +179,7 @@ export async function contentRoutes(app: FastifyInstance) {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
-      const loaded = await loadProvider(id)
+      const loaded = await withRlsContext(request, (client) => loadProvider(client, id))
       if (!loaded) return sendError(reply, 404, '生成服务不存在')
       const info = await loaded.provider.getObjectInfo()
       return sendOk(reply, info)
@@ -185,14 +192,14 @@ export async function contentRoutes(app: FastifyInstance) {
   // Projects
   // ═══════════════════════════════════════════════════════════════
 
-  app.get('/api/v1/content/projects', async (_request, reply) => {
+  app.get('/api/v1/content/projects', async (request, reply) => {
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT p.*,
                 (SELECT count(*) FROM content_tasks t WHERE t.project_id = p.id)::int AS task_count,
                 (SELECT count(*) FROM content_assets a WHERE a.project_id = p.id)::int AS asset_count
            FROM content_projects p ORDER BY p.created_at DESC`,
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       return sendError(reply, 500, '获取项目列表失败')
@@ -205,11 +212,11 @@ export async function contentRoutes(app: FastifyInstance) {
     try {
       const { name, description, platformCode, shopId } = request.body || {}
       if (!name) return sendError(reply, 400, '缺少项目名称')
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `INSERT INTO content_projects (name, description, platform_code, shop_id)
          VALUES ($1, $2, $3, $4) RETURNING *`,
         [name, description || '', platformCode || null, shopId || null],
-      )
+      ))
       return sendOk(reply, rows[0], '项目已创建')
     } catch (err) {
       return sendError(reply, 500, '创建项目失败')
@@ -233,14 +240,14 @@ export async function contentRoutes(app: FastifyInstance) {
       const where = conds.length ? `WHERE ${conds.join(' AND ')}` : ''
       const lim = Math.min(parseInt(limit || '50', 10) || 50, 200)
 
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT t.*, p.name AS project_name
            FROM content_tasks t
            LEFT JOIN content_projects p ON p.id = t.project_id
            ${where}
           ORDER BY t.created_at DESC LIMIT ${lim}`,
         params,
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       return sendError(reply, 500, '获取任务列表失败')
@@ -260,7 +267,7 @@ export async function contentRoutes(app: FastifyInstance) {
     try {
       const { projectId, providerId, taskType = 'text2video', prompt, workflow } = request.body || {}
 
-      const loaded = await loadProvider(providerId)
+      const loaded = await withRlsContext(request, (client) => loadProvider(client, providerId))
       if (!loaded) {
         // 没有配置任何生成服务 → 明确提示，不静默失败
         return sendError(reply, 400, '未配置生成服务，请先在「中心配置」中添加 ComfyUI 地址或启用 Mock 模式')
@@ -270,25 +277,25 @@ export async function contentRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '缺少 ComfyUI workflow JSON（请在「中心配置」中保存 workflow 模板）')
       }
 
-      const ins = await pool.query(
+      const ins = await withRlsContext(request, (client) => client.query(
         `INSERT INTO content_tasks (project_id, provider_id, task_type, status, prompt, workflow, started_at)
          VALUES ($1, $2, $3, 'running', $4, $5, now()) RETURNING *`,
         [projectId || null, loaded.row.id, taskType, prompt || '', JSON.stringify(workflow)],
-      )
+      ))
       const task = ins.rows[0]
 
       try {
         const result = await loaded.provider.submit(workflow)
-        await pool.query(
+        await withRlsContext(request, (client) => client.query(
           `UPDATE content_tasks SET comfy_prompt_id = $1 WHERE id = $2`,
           [result.promptId, task.id],
-        )
+        ))
         return sendOk(reply, { ...task, comfy_prompt_id: result.promptId }, '任务已提交')
       } catch (submitErr: any) {
-        await pool.query(
+        await withRlsContext(request, (client) => client.query(
           `UPDATE content_tasks SET status = 'failed', error_message = $1, completed_at = now() WHERE id = $2`,
           [String(submitErr?.message || submitErr).slice(0, 1000), task.id],
-        )
+        ))
         return sendError(reply, 502, `提交到生成服务失败：${submitErr?.message || submitErr}`)
       }
     } catch (err) {
@@ -302,50 +309,51 @@ export async function contentRoutes(app: FastifyInstance) {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的任务 ID')
 
-      const { rows } = await pool.query(`SELECT * FROM content_tasks WHERE id = $1`, [id])
-      if (rows.length === 0) return sendError(reply, 404, '任务不存在')
-      const task = rows[0]
-
-      // 已完成/失败的任务直接返回
-      if (task.status === 'completed' || task.status === 'failed') {
-        return sendOk(reply, task)
-      }
-      if (!task.comfy_prompt_id) {
-        return sendOk(reply, task)
-      }
-
-      const loaded = await loadProvider(task.provider_id)
-      if (!loaded) return sendOk(reply, task)
+      const initial = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(`SELECT * FROM content_tasks WHERE id = $1`, [id])
+        if (rows.length === 0) return { notFound: true as const }
+        const task = rows[0]
+        if (task.status === 'completed' || task.status === 'failed' || !task.comfy_prompt_id) {
+          return { notFound: false as const, task, loaded: null }
+        }
+        const loaded = await loadProvider(client, task.provider_id)
+        return { notFound: false as const, task, loaded }
+      })
+      if (initial.notFound) return sendError(reply, 404, '任务不存在')
+      if (!initial.loaded) return sendOk(reply, initial.task)
+      const { task, loaded } = initial
 
       const progress = await loaded.provider.poll(task.comfy_prompt_id)
 
-      if (progress.status === 'completed') {
-        const outputUrl = progress.outputUrls[0] || null
-        await pool.query(
-          `UPDATE content_tasks
-              SET status = 'completed', progress = 100, output_url = $1,
-                  output_assets = $2, completed_at = now()
-            WHERE id = $3`,
-          [outputUrl, JSON.stringify(progress.outputUrls), id],
-        )
-        // 产物入库
-        for (const url of progress.outputUrls) {
-          await pool.query(
-            `INSERT INTO content_assets (project_id, task_id, asset_type, name, url, provider)
-             VALUES ($1, $2, 'video', $3, $4, $5)`,
-            [task.project_id, id, url.split('/').pop() || 'output', url, loaded.row.provider_type],
+      const after = await withRlsContext(request, async (client) => {
+        if (progress.status === 'completed') {
+          const outputUrl = progress.outputUrls[0] || null
+          await client.query(
+            `UPDATE content_tasks
+                SET status = 'completed', progress = 100, output_url = $1,
+                    output_assets = $2, completed_at = now()
+              WHERE id = $3`,
+            [outputUrl, JSON.stringify(progress.outputUrls), id],
           )
+          // 产物入库
+          for (const url of progress.outputUrls) {
+            await client.query(
+              `INSERT INTO content_assets (project_id, task_id, asset_type, name, url, provider)
+               VALUES ($1, $2, 'video', $3, $4, $5)`,
+              [task.project_id, id, url.split('/').pop() || 'output', url, loaded.row.provider_type],
+            )
+          }
+        } else if (progress.status === 'failed') {
+          await client.query(
+            `UPDATE content_tasks SET status = 'failed', error_message = $1, completed_at = now() WHERE id = $2`,
+            [progress.error || '生成失败', id],
+          )
+        } else {
+          await client.query(`UPDATE content_tasks SET progress = $1 WHERE id = $2`, [progress.progress, id])
         }
-      } else if (progress.status === 'failed') {
-        await pool.query(
-          `UPDATE content_tasks SET status = 'failed', error_message = $1, completed_at = now() WHERE id = $2`,
-          [progress.error || '生成失败', id],
-        )
-      } else {
-        await pool.query(`UPDATE content_tasks SET progress = $1 WHERE id = $2`, [progress.progress, id])
-      }
 
-      const after = await pool.query(`SELECT * FROM content_tasks WHERE id = $1`, [id])
+        return client.query(`SELECT * FROM content_tasks WHERE id = $1`, [id])
+      })
       return sendOk(reply, after.rows[0])
     } catch (err: any) {
       return sendError(reply, 500, err?.message || '查询任务失败')
@@ -362,12 +370,12 @@ export async function contentRoutes(app: FastifyInstance) {
     try {
       const { projectId, limit } = request.query
       const lim = Math.min(parseInt(limit || '50', 10) || 50, 200)
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT * FROM content_assets
           ${projectId ? 'WHERE project_id = $1' : ''}
           ORDER BY created_at DESC LIMIT ${lim}`,
         projectId ? [parseInt(projectId, 10)] : [],
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       return sendError(reply, 500, '获取素材列表失败')
@@ -390,7 +398,7 @@ export async function contentRoutes(app: FastifyInstance) {
       const where = conds.length ? `WHERE ${conds.join(' AND ')}` : ''
       const lim = Math.min(parseInt(limit || '100', 10) || 100, 500)
 
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT v.*, p.platform_name, s.shop_name
            FROM video_metrics v
            LEFT JOIN system_platform_configs p ON p.platform_code = v.platform_code
@@ -398,7 +406,7 @@ export async function contentRoutes(app: FastifyInstance) {
            ${where}
           ORDER BY v.biz_date DESC, v.plays DESC LIMIT ${lim}`,
         params,
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       return sendError(reply, 500, '获取视频数据失败')
@@ -431,7 +439,7 @@ export async function contentRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '缺少必要参数 (platformCode, bizDate, videoId)')
       }
 
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `INSERT INTO video_metrics
            (biz_date, platform_code, shop_id, video_id, title, content_type,
             impressions, plays, complete_rate, likes, comments, shares, collects,
@@ -456,7 +464,7 @@ export async function contentRoutes(app: FastifyInstance) {
           b.likes || 0, b.comments || 0, b.shares || 0, b.collects || 0,
           b.attributedGmv || 0, b.source || 'manual',
         ],
-      )
+      ))
       return sendOk(reply, rows[0], '视频数据已保存')
     } catch (err) {
       return sendError(reply, 500, '保存视频数据失败')
@@ -645,42 +653,46 @@ export async function contentRoutes(app: FastifyInstance) {
     }
 
     try {
-      const parentRes = await pool.query('SELECT * FROM public.content_assets WHERE id = $1', [parentId])
-      const parent = parentRes.rows[0]
-      if (!parent) return sendError(reply, 404, '母版素材不存在')
+      const derived = await withRlsContext(request, async (client) => {
+        const parentRes = await client.query('SELECT * FROM public.content_assets WHERE id = $1', [parentId])
+        const parent = parentRes.rows[0]
+        if (!parent) return null
 
-      const derivedName = b.name?.trim() || `${parent.name} [${b.targetPlatform}分发版]`
-      const { rows } = await pool.query(
-        `INSERT INTO public.content_assets
-           (project_id, task_id, asset_type, name, url, local_path, size_bytes, duration_seconds,
-            provider, extra, tenant_id, parent_asset_id, source_platform, distribution_status, compliance_status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'ready', $14)
-         RETURNING *`,
-        [
-          parent.project_id,
-          parent.task_id,
-          parent.asset_type,
-          derivedName,
-          parent.url,
-          parent.local_path,
-          parent.size_bytes,
-          parent.duration_seconds,
-          parent.provider,
-          parent.extra || '{}',
-          parent.tenant_id || 1,
-          parentId,
-          b.targetPlatform,
-          b.complianceStatus || 'pending',
-        ],
-      )
-      await writeAuditLog(pool, {
-        request,
-        action: 'content.asset.derive',
-        resourceType: 'content_assets',
-        resourceId: rows[0].id,
-        afterData: rows[0],
+        const derivedName = b.name?.trim() || `${parent.name} [${b.targetPlatform}分发版]`
+        const { rows } = await client.query(
+          `INSERT INTO public.content_assets
+             (project_id, task_id, asset_type, name, url, local_path, size_bytes, duration_seconds,
+              provider, extra, tenant_id, parent_asset_id, source_platform, distribution_status, compliance_status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'ready', $14)
+           RETURNING *`,
+          [
+            parent.project_id,
+            parent.task_id,
+            parent.asset_type,
+            derivedName,
+            parent.url,
+            parent.local_path,
+            parent.size_bytes,
+            parent.duration_seconds,
+            parent.provider,
+            parent.extra || '{}',
+            parent.tenant_id || 1,
+            parentId,
+            b.targetPlatform,
+            b.complianceStatus || 'pending',
+          ],
+        )
+        await writeAuditLog(client, {
+          request,
+          action: 'content.asset.derive',
+          resourceType: 'content_assets',
+          resourceId: rows[0].id,
+          afterData: rows[0],
+        })
+        return rows[0]
       })
-      return sendOk(reply, rows[0], '已派生多端适配版本')
+      if (!derived) return sendError(reply, 404, '母版素材不存在')
+      return sendOk(reply, derived, '已派生多端适配版本')
     } catch (err) {
       request.log.warn({ err }, 'content/assets derive failed')
       return sendError(reply, 500, '派生多平台素材失败')

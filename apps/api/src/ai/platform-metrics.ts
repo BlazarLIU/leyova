@@ -13,8 +13,7 @@
  *   - 每张平台扩展表单独作为一个 FactSource
  */
 
-import type { Pool } from 'pg'
-import { getPool } from '../lib/db.js'
+import { getPool, type DbExecutor } from '../lib/db.js'
 import { canAccessCost } from '../lib/guard.js'
 
 const COST_SENSITIVE_PLATFORM_METRICS = new Set(['jd_gross_margin', 'jd_margin_rate'])
@@ -248,7 +247,7 @@ export interface PlatformQueryResult {
  */
 export async function queryPlatformMetrics(
   input: PlatformQueryInput,
-  pool?: Pool,
+  pool?: DbExecutor,
   access?: PlatformAccessOptions,
 ): Promise<PlatformQueryResult> {
   const p = pool || getPool()

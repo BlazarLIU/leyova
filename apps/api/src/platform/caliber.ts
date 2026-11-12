@@ -11,7 +11,7 @@
  *   - 因此提供 assertComparable()，口径不可比时返回明确警告而非静默混合
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 
 export interface CaliberConfig {
@@ -43,7 +43,7 @@ export interface CaliberInfo {
 
 /** 读取全部口径配置 */
 export async function listCaliberConfig(
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<Array<CaliberConfig & { amount_type_name: string; is_comparable: boolean }>> {
   const p = pool || getPool()
   const { rows } = await p.query(`
@@ -63,7 +63,7 @@ export async function listCaliberConfig(
 export async function getDefaultCaliber(
   platformCode: string,
   metricCode = 'gmv',
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<CaliberInfo | null> {
   const p = pool || getPool()
   const { rows } = await p.query(`
@@ -96,7 +96,7 @@ export async function getCaliberByType(
   platformCode: string,
   amountType: string,
   metricCode = 'gmv',
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<CaliberInfo | null> {
   const p = pool || getPool()
   const { rows } = await p.query(`
@@ -139,7 +139,7 @@ export interface ComparabilityResult {
 export async function checkComparability(
   platformCodes: string[],
   metricCode = 'gmv',
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<ComparabilityResult> {
   const p = pool || getPool()
 
@@ -220,7 +220,7 @@ function buildSuggestion(metas: Array<{ code: string; name: string }>): string {
 }
 
 /** 口径字典（供前端展示解释） */
-export async function listAmountTypes(pool?: Pool): Promise<AmountTypeMeta[]> {
+export async function listAmountTypes(pool?: DbExecutor): Promise<AmountTypeMeta[]> {
   const p = pool || getPool()
   const { rows } = await p.query(
     `SELECT code, name, description, is_comparable FROM amount_type_dict ORDER BY code`,

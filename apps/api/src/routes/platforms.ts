@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool, withRlsContext } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { getUserAllowedPlatforms, requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 import { platformRegistry } from '../platform/index.js'
@@ -19,16 +19,14 @@ function redactShopForAudit(row: any) {
 }
 
 export async function platformRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   // ── GET /api/v1/platforms ── 获取所有平台列表（含全局开关、能力声明与权限状态）
   app.get('/api/v1/platforms', { preHandler: [requireAuth] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = (request as any).user
-      const permittedPlatforms = await getUserAllowedPlatforms(pool, user)
 
-      const { rows } = await withRlsContext(request, (client) =>
-        client.query(`
+      const { permittedPlatforms, rows } = await withRlsContext(request, async (client) => {
+        const permitted = await getUserAllowedPlatforms(client, user)
+        const res = await client.query(`
           SELECT 
             p.platform_code, 
             p.platform_name, 
@@ -53,7 +51,8 @@ export async function platformRoutes(app: FastifyInstance) {
           FROM system_platform_configs p
           ORDER BY p.sort_order ASC
         `)
-      )
+        return { permittedPlatforms: permitted, rows: res.rows }
+      })
 
       const result = rows.map((row: any) => {
         const capabilities = platformRegistry.getCapabilities(row.platform_code)
@@ -88,11 +87,6 @@ export async function platformRoutes(app: FastifyInstance) {
       const { code } = request.params
       const { is_enabled, sort_order, api_config } = request.body || {}
 
-      const beforeRes = await pool.query('SELECT * FROM system_platform_configs WHERE platform_code = $1', [code])
-      if (beforeRes.rows.length === 0) {
-        return sendError(reply, 404, '平台不存在')
-      }
-
       const updates: string[] = []
       const values: any[] = [code]
       let idx = 2
@@ -123,17 +117,26 @@ export async function platformRoutes(app: FastifyInstance) {
         RETURNING *
       `
 
-      const { rows } = await pool.query(sql, values)
-      await writeAuditLog(pool, {
-        request,
-        action: 'platform.config.update',
-        resourceType: 'system_platform_configs',
-        resourceId: code,
-        beforeData: beforeRes.rows[0],
-        afterData: rows[0],
-      })
+      const outcome = await withRlsContext(request, async (client) => {
+        const beforeRes = await client.query('SELECT * FROM system_platform_configs WHERE platform_code = $1', [code])
+        if (beforeRes.rows.length === 0) return { notFound: true as const }
 
-      return sendOk(reply, rows[0], '平台配置更新成功')
+        const { rows } = await client.query(sql, values)
+        await writeAuditLog(client, {
+          request,
+          action: 'platform.config.update',
+          resourceType: 'system_platform_configs',
+          resourceId: code,
+          beforeData: beforeRes.rows[0],
+          afterData: rows[0],
+        })
+        return { notFound: false as const, row: rows[0] }
+      })
+      if (outcome.notFound) {
+        return sendError(reply, 404, '平台不存在')
+      }
+
+      return sendOk(reply, outcome.row, '平台配置更新成功')
     } catch (err) {
       request.log.error({ err }, 'Failed to update platform config')
       return sendError(reply, 500, '更新平台配置失败')
@@ -164,7 +167,7 @@ export async function platformRoutes(app: FastifyInstance) {
   // ── GET /api/v1/platforms/permissions ── 获取角色-平台权限矩阵
   app.get('/api/v1/platforms/permissions', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const { rows } = await pool.query(`
+      const { rows } = await withRlsContext(request, (client) => client.query(`
         SELECT 
           rpp.id,
           rpp.role_id,
@@ -177,7 +180,7 @@ export async function platformRoutes(app: FastifyInstance) {
         JOIN roles r ON r.id = rpp.role_id
         JOIN system_platform_configs spc ON spc.platform_code = rpp.platform_code
         ORDER BY r.id, spc.sort_order
-      `)
+      `))
       return sendOk(reply, rows)
     } catch (err) {
       request.log.error({ err }, 'Failed to fetch platform permissions')
@@ -201,41 +204,45 @@ export async function platformRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '缺少必要参数 (roleId, platformCode)')
       }
 
-      const roleRes = await pool.query('SELECT code FROM roles WHERE id = $1', [roleId])
-      if (roleRes.rows.length === 0) {
-        return sendError(reply, 404, '目标角色不存在')
-      }
-      if (roleRes.rows[0].code === 'super_admin' && actor.role !== 'super_admin') {
-        return sendError(reply, 403, '仅系统超级管理员可调整 super_admin 平台权限')
-      }
+      const outcome = await withRlsContext(request, async (client) => {
+        const roleRes = await client.query('SELECT code FROM roles WHERE id = $1', [roleId])
+        if (roleRes.rows.length === 0) return { error: { code: 404, msg: '目标角色不存在' } }
+        if (roleRes.rows[0].code === 'super_admin' && actor.role !== 'super_admin') {
+          return { error: { code: 403, msg: '仅系统超级管理员可调整 super_admin 平台权限' } }
+        }
 
-      const beforeRes = await pool.query(
-        'SELECT * FROM role_platform_permissions WHERE role_id = $1 AND platform_code = $2',
-        [roleId, platformCode]
-      )
+        const beforeRes = await client.query(
+          'SELECT * FROM role_platform_permissions WHERE role_id = $1 AND platform_code = $2',
+          [roleId, platformCode]
+        )
 
-      if (isPermitted) {
-        await pool.query(`
-          INSERT INTO role_platform_permissions (role_id, platform_code, allowed_modules)
-          VALUES ($1, $2, $3)
-          ON CONFLICT (role_id, platform_code)
-          DO UPDATE SET allowed_modules = EXCLUDED.allowed_modules
-        `, [roleId, platformCode, allowedModules || []])
-      } else {
-        await pool.query(`
-          DELETE FROM role_platform_permissions
-          WHERE role_id = $1 AND platform_code = $2
-        `, [roleId, platformCode])
-      }
+        if (isPermitted) {
+          await client.query(`
+            INSERT INTO role_platform_permissions (role_id, platform_code, allowed_modules)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (role_id, platform_code)
+            DO UPDATE SET allowed_modules = EXCLUDED.allowed_modules
+          `, [roleId, platformCode, allowedModules || []])
+        } else {
+          await client.query(`
+            DELETE FROM role_platform_permissions
+            WHERE role_id = $1 AND platform_code = $2
+          `, [roleId, platformCode])
+        }
 
-      await writeAuditLog(pool, {
-        request,
-        action: 'platform.permission.update',
-        resourceType: 'role_platform_permissions',
-        resourceId: `${roleId}:${platformCode}`,
-        beforeData: beforeRes.rows[0] ?? null,
-        afterData: { roleId, roleCode: roleRes.rows[0].code, platformCode, isPermitted, allowedModules: allowedModules || [] },
+        await writeAuditLog(client, {
+          request,
+          action: 'platform.permission.update',
+          resourceType: 'role_platform_permissions',
+          resourceId: `${roleId}:${platformCode}`,
+          beforeData: beforeRes.rows[0] ?? null,
+          afterData: { roleId, roleCode: roleRes.rows[0].code, platformCode, isPermitted, allowedModules: allowedModules || [] },
+        })
+        return { error: null }
       })
+      if (outcome.error) {
+        return sendError(reply, outcome.error.code, outcome.error.msg)
+      }
 
       return sendOk(reply, { success: true }, '角色平台权限更新成功')
     } catch (err) {
@@ -255,29 +262,34 @@ export async function platformRoutes(app: FastifyInstance) {
       if (!adapter) return sendError(reply, 404, `未注册平台适配器: ${code}`)
 
       const shopId = request.query.shopId ? Number(request.query.shopId) : 0
-      let storedAppKey = ''
-      let oauthBaseUrl: string | undefined
+      const credLookup = await withRlsContext(request, async (client) => {
+        let key = ''
+        let baseUrl: string | undefined
 
-      if (shopId > 0) {
-        const shopRes = await pool.query(
-          `SELECT auth_token_info FROM dim_shop WHERE id = $1 AND platform_code = $2`,
-          [shopId, code],
-        )
-        if (shopRes.rows.length === 0) return sendError(reply, 404, '店铺不存在或不属于该平台')
-        const info = shopRes.rows[0].auth_token_info || {}
-        storedAppKey = decryptCredential(String(info.appKey || ''))
-        oauthBaseUrl = info.oauthBaseUrl
-      }
+        if (shopId > 0) {
+          const shopRes = await client.query(
+            `SELECT auth_token_info FROM dim_shop WHERE id = $1 AND platform_code = $2`,
+            [shopId, code],
+          )
+          if (shopRes.rows.length === 0) return { notFound: true as const }
+          const info = shopRes.rows[0].auth_token_info || {}
+          key = decryptCredential(String(info.appKey || ''))
+          baseUrl = info.oauthBaseUrl
+        }
 
-      if (!storedAppKey) {
-        const cfgRes = await pool.query(
-          `SELECT api_config FROM system_platform_configs WHERE platform_code = $1`,
-          [code],
-        )
-        const apiConfig = cfgRes.rows[0]?.api_config || {}
-        storedAppKey = decryptCredential(String(apiConfig.appKey || ''))
-        if (!oauthBaseUrl && apiConfig.oauthBaseUrl) oauthBaseUrl = apiConfig.oauthBaseUrl
-      }
+        if (!key) {
+          const cfgRes = await client.query(
+            `SELECT api_config FROM system_platform_configs WHERE platform_code = $1`,
+            [code],
+          )
+          const apiConfig = cfgRes.rows[0]?.api_config || {}
+          key = decryptCredential(String(apiConfig.appKey || ''))
+          if (!baseUrl && apiConfig.oauthBaseUrl) baseUrl = apiConfig.oauthBaseUrl
+        }
+        return { notFound: false as const, storedAppKey: key, oauthBaseUrl: baseUrl }
+      })
+      if (credLookup.notFound) return sendError(reply, 404, '店铺不存在或不属于该平台')
+      const { storedAppKey, oauthBaseUrl } = credLookup
 
       const appKey = (request.query.appKey || storedAppKey || '').trim()
       if (!appKey || appKey.startsWith('mock_') || appKey.startsWith('demo_')) {
@@ -327,10 +339,10 @@ export async function platformRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '缺少必要参数 (shopId, code)')
       }
 
-      const shopRes = await pool.query(
+      const shopRes = await withRlsContext(request, (client) => client.query(
         `SELECT id, platform_code, shop_name, auth_status, auth_token_info FROM dim_shop WHERE id = $1 AND platform_code = $2`,
         [shopId, platformCode],
-      )
+      ))
       if (shopRes.rows.length === 0) return sendError(reply, 404, '店铺不存在或不属于该平台')
 
       const beforeRow = shopRes.rows[0]
@@ -365,27 +377,29 @@ export async function platformRoutes(app: FastifyInstance) {
         ...(oauthBaseUrl ? { oauthBaseUrl } : {}),
       }
 
-      const updated = await pool.query(
-        `UPDATE dim_shop
-            SET auth_status = 'authorized',
-                auth_token_info = $1::jsonb,
-                updated_at = now()
-          WHERE id = $2
-        RETURNING id, platform_code, shop_name, auth_status`,
-        [JSON.stringify(encryptedInfo), shopId],
-      )
+      await withRlsContext(request, async (client) => {
+        const updated = await client.query(
+          `UPDATE dim_shop
+              SET auth_status = 'authorized',
+                  auth_token_info = $1::jsonb,
+                  updated_at = now()
+            WHERE id = $2
+          RETURNING id, platform_code, shop_name, auth_status`,
+          [JSON.stringify(encryptedInfo), shopId],
+        )
 
-      await writeAuditLog(pool, {
-        request,
-        action: 'platform.shop.oauth_bind',
-        resourceType: 'dim_shop',
-        resourceId: String(shopId),
-        beforeData: redactShopForAudit(beforeRow),
-        afterData: {
-          ...updated.rows[0],
-          appKeyMasked: maskCredential(appKey),
-          accessTokenMasked: maskCredential(tokenBundle.accessToken),
-        },
+        await writeAuditLog(client, {
+          request,
+          action: 'platform.shop.oauth_bind',
+          resourceType: 'dim_shop',
+          resourceId: String(shopId),
+          beforeData: redactShopForAudit(beforeRow),
+          afterData: {
+            ...updated.rows[0],
+            appKeyMasked: maskCredential(appKey),
+            accessTokenMasked: maskCredential(tokenBundle.accessToken),
+          },
+        })
       })
 
       return sendOk(reply, {
@@ -425,69 +439,74 @@ export async function platformRoutes(app: FastifyInstance) {
       const adapter = governancePlatformRegistry.get(platformCode)
       if (!adapter) return sendError(reply, 404, `未注册平台适配器: ${platformCode}`)
 
-      const shopRes = await pool.query(
-        `SELECT id, platform_code, shop_name, auth_status, auth_token_info FROM dim_shop WHERE id = $1 AND platform_code = $2`,
-        [shopId, platformCode],
-      )
-      if (shopRes.rows.length === 0) return sendError(reply, 404, '店铺不存在或不属于该平台')
-
-      const beforeRow = shopRes.rows[0]
-      const prevInfo = beforeRow.auth_token_info || {}
       const body = request.body || {}
       const nextStatus = body.authStatus || 'authorized'
 
-      const plainKey = body.appKey !== undefined ? body.appKey.trim() : decryptCredential(String(prevInfo.appKey || ''))
-      const plainSecret = body.appSecret !== undefined ? body.appSecret.trim() : decryptCredential(String(prevInfo.appSecret || ''))
-      const plainToken = body.accessToken !== undefined ? body.accessToken.trim() : decryptCredential(String(prevInfo.accessToken || ''))
-      const plainRefresh = body.refreshToken !== undefined ? body.refreshToken.trim() : decryptCredential(String(prevInfo.refreshToken || ''))
+      const outcome = await withRlsContext(request, async (client) => {
+        const shopRes = await client.query(
+          `SELECT id, platform_code, shop_name, auth_status, auth_token_info FROM dim_shop WHERE id = $1 AND platform_code = $2`,
+          [shopId, platformCode],
+        )
+        if (shopRes.rows.length === 0) return { error: { code: 404, msg: '店铺不存在或不属于该平台' } }
 
-      const hasMock = [plainKey, plainSecret, plainToken].some((v) => v.startsWith('mock_') || v.startsWith('demo_'))
-      if (nextStatus === 'authorized' && (!plainKey || !plainSecret || !plainToken || hasMock)) {
-        return sendError(reply, 400, '启用 authorized 状态必须提供非占位的真实 appKey、appSecret 与 accessToken')
-      }
+        const beforeRow = shopRes.rows[0]
+        const prevInfo = beforeRow.auth_token_info || {}
 
-      const encryptedInfo = nextStatus === 'manual_only'
-        ? {}
-        : {
-            ...prevInfo,
-            appKey: plainKey,
-            appSecret: encryptCredential(plainSecret),
-            accessToken: encryptCredential(plainToken),
-            ...(plainRefresh ? { refreshToken: encryptCredential(plainRefresh) } : {}),
-            ...(body.gatewayBaseUrl !== undefined ? { gatewayBaseUrl: body.gatewayBaseUrl } : {}),
-            ...(body.oauthBaseUrl !== undefined ? { oauthBaseUrl: body.oauthBaseUrl } : {}),
-            updatedAt: new Date().toISOString(),
-          }
+        const plainKey = body.appKey !== undefined ? body.appKey.trim() : decryptCredential(String(prevInfo.appKey || ''))
+        const plainSecret = body.appSecret !== undefined ? body.appSecret.trim() : decryptCredential(String(prevInfo.appSecret || ''))
+        const plainToken = body.accessToken !== undefined ? body.accessToken.trim() : decryptCredential(String(prevInfo.accessToken || ''))
+        const plainRefresh = body.refreshToken !== undefined ? body.refreshToken.trim() : decryptCredential(String(prevInfo.refreshToken || ''))
 
-      const updated = await pool.query(
-        `UPDATE dim_shop
-            SET auth_status = $1,
-                auth_token_info = $2::jsonb,
-                updated_at = now()
-          WHERE id = $3
-        RETURNING id, platform_code, shop_name, auth_status`,
-        [nextStatus, JSON.stringify(encryptedInfo), shopId],
-      )
+        const hasMock = [plainKey, plainSecret, plainToken].some((v) => v.startsWith('mock_') || v.startsWith('demo_'))
+        if (nextStatus === 'authorized' && (!plainKey || !plainSecret || !plainToken || hasMock)) {
+          return { error: { code: 400, msg: '启用 authorized 状态必须提供非占位的真实 appKey、appSecret 与 accessToken' } }
+        }
 
-      await writeAuditLog(pool, {
-        request,
-        action: 'platform.shop.credentials.update',
-        resourceType: 'dim_shop',
-        resourceId: String(shopId),
-        beforeData: redactShopForAudit(beforeRow),
-        afterData: {
-          ...updated.rows[0],
-          appKeyMasked: plainKey ? maskCredential(plainKey) : '',
-          accessTokenMasked: plainToken ? maskCredential(plainToken) : '',
-        },
+        const encryptedInfo = nextStatus === 'manual_only'
+          ? {}
+          : {
+              ...prevInfo,
+              appKey: plainKey,
+              appSecret: encryptCredential(plainSecret),
+              accessToken: encryptCredential(plainToken),
+              ...(plainRefresh ? { refreshToken: encryptCredential(plainRefresh) } : {}),
+              ...(body.gatewayBaseUrl !== undefined ? { gatewayBaseUrl: body.gatewayBaseUrl } : {}),
+              ...(body.oauthBaseUrl !== undefined ? { oauthBaseUrl: body.oauthBaseUrl } : {}),
+              updatedAt: new Date().toISOString(),
+            }
+
+        const updated = await client.query(
+          `UPDATE dim_shop
+              SET auth_status = $1,
+                  auth_token_info = $2::jsonb,
+                  updated_at = now()
+            WHERE id = $3
+          RETURNING id, platform_code, shop_name, auth_status`,
+          [nextStatus, JSON.stringify(encryptedInfo), shopId],
+        )
+
+        await writeAuditLog(client, {
+          request,
+          action: 'platform.shop.credentials.update',
+          resourceType: 'dim_shop',
+          resourceId: String(shopId),
+          beforeData: redactShopForAudit(beforeRow),
+          afterData: {
+            ...updated.rows[0],
+            appKeyMasked: plainKey ? maskCredential(plainKey) : '',
+            accessTokenMasked: plainToken ? maskCredential(plainToken) : '',
+          },
+        })
+        return { error: null, plainKey, plainToken }
       })
+      if (outcome.error) return sendError(reply, outcome.error.code, outcome.error.msg)
 
       return sendOk(reply, {
         shopId,
         platformCode,
         authStatus: nextStatus,
-        appKeyMasked: plainKey ? maskCredential(plainKey) : '',
-        accessTokenMasked: plainToken ? maskCredential(plainToken) : '',
+        appKeyMasked: outcome.plainKey ? maskCredential(outcome.plainKey) : '',
+        accessTokenMasked: outcome.plainToken ? maskCredential(outcome.plainToken) : '',
       }, '店铺 API 凭证状态更新成功')
     } catch (err) {
       request.log.error({ err }, 'Failed to update shop credentials')

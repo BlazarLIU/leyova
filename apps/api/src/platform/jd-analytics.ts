@@ -19,7 +19,7 @@
  *   ⚠️ 京东售后考核最严：24h 兜底 + 48h 延迟发货 + 9-23 点客服响应
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 import { getDefaultCaliber } from '../platform/caliber.js'
 
@@ -52,7 +52,7 @@ export async function getJdModeBreakdown(
   from: string,
   to: string,
   platformCodes: string[] = ['jd'],
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<{
   range: { from: string; to: string }
   modes: JdModeBreakdown[]
@@ -215,7 +215,7 @@ export async function getJdStoreRating(
   from: string,
   to: string,
   platformCodes: string[] = ['jd'],
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<JdStoreRating> {
   const p = pool || getPool()
 
@@ -228,19 +228,23 @@ export async function getJdStoreRating(
   const threshold = Number(slaRes.rows[0]?.threshold_hours || 48)
   const slaNote = slaRes.rows[0]?.penalty_note || '近 30 天延迟发货超 48h 订单量，计入店铺星级减分'
 
-  // 订单状态分布（用于估算履约表现）
-  const orderRes = await p.query(
-    `SELECT status_code, COUNT(*)::int AS n
-       FROM order_facts
+  // 订单与物流履约状态分布（从 fact_fulfillment_waybill 实时计算）
+  const waybillRes = await p.query(
+    `SELECT fulfillment_status,
+            COUNT(*)::int AS n,
+            COUNT(*) FILTER (WHERE is_ship_delayed)::int AS delayed_cnt
+       FROM fact_fulfillment_waybill
       WHERE platform_code = ANY($1::text[])
-        AND biz_date BETWEEN $2::date AND $3::date
-      GROUP BY status_code`,
+        AND paid_at::date BETWEEN $2::date AND $3::date
+      GROUP BY fulfillment_status`,
     [platformCodes, from, to],
   )
-  const statusMap = new Map<string, number>()
-  for (const r of orderRes.rows) statusMap.set(r.status_code, Number(r.n))
+  let delayedCount = 0
+  for (const r of waybillRes.rows) {
+    delayedCount += Number(r.delayed_cnt || 0)
+  }
 
-  // COD 占比：从交易数据里无法直接得到，需订单表有标记
+  // COD 占比：需在订单事实源标记 COD 支付方式
   return {
     range: { from, to },
     dimensions: {
@@ -250,7 +254,7 @@ export async function getJdStoreRating(
       afterSale: { score: null, note: '售后服务评分，审核兜底 24h / 收货兜底 24h' },
     },
     delayedShipments: {
-      count: 0,
+      count: delayedCount,
       thresholdHours: threshold,
       note: slaNote,
     },
@@ -278,7 +282,7 @@ export async function getJdFulfillment(
   from: string,
   to: string,
   platformCodes: string[] = ['jd'],
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<JdFulfillment> {
   const p = pool || getPool()
 
@@ -294,11 +298,18 @@ export async function getJdFulfillment(
             COALESCE(sub.n, 0)::int AS n
        FROM order_status_config os
        LEFT JOIN (
-         SELECT status_code, COUNT(*)::int AS n
-           FROM order_facts
+         SELECT CASE fulfillment_status
+                  WHEN 'pending_ship' THEN 'paid'
+                  WHEN 'shipped_no_pickup' THEN 'shipped'
+                  WHEN 'in_transit' THEN 'shipped'
+                  WHEN 'signed' THEN 'completed'
+                  ELSE fulfillment_status
+                END AS status_code,
+                COUNT(*)::int AS n
+           FROM fact_fulfillment_waybill
           WHERE platform_code = ANY($1::text[])
-            AND biz_date BETWEEN $2::date AND $3::date
-          GROUP BY status_code
+            AND paid_at::date BETWEEN $2::date AND $3::date
+          GROUP BY 1
        ) sub ON sub.status_code = os.status_code
       WHERE os.platform_code = 'jd'
       ORDER BY os.sort_order`,
@@ -334,7 +345,7 @@ export interface JdCaliberNote {
 /** 京东口径说明（含 COD 与 30 天归因） */
 export async function getJdCaliber(
   platformCode = 'jd',
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<JdCaliberNote | null> {
   const c = await getDefaultCaliber(platformCode, 'gmv', pool)
   if (!c) return null

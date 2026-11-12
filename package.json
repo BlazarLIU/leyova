@@ -18,6 +18,7 @@
     "build": "pnpm -F @leyova/api build && pnpm -F @leyova/web build && pnpm -F @leyova/mcp-server build",
     "start:api": "pnpm -F @leyova/api start",
     "start:mcp": "pnpm -F @leyova/mcp-server start",
+    "check:guardrails": "node scripts/check-guardrails.mjs",
     "test": "pnpm -F @leyova/api test"
   }
 }

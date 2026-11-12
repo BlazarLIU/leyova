@@ -1,12 +1,11 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import type { Pool } from 'pg'
-import { getPool } from '../lib/db.js'
+import { withRlsContext, type DbExecutor } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { sendOk, sendError } from '../lib/http.js'
 
 /** 查询库存概况与列表，同时复用于 /api/v1/system/inventory 与 /api/v1/inventory/* */
 export async function queryInventoryProducts(
-  pool: Pool,
+  executor: DbExecutor,
   filters: { keyword?: string; category?: string; platformCode?: string; lowStockOnly?: boolean } = {},
 ) {
   const conds: string[] = []
@@ -32,7 +31,7 @@ export async function queryInventoryProducts(
 
   const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
 
-  const { rows } = await pool.query(
+  const { rows } = await executor.query(
     `SELECT
        p.id,
        p.spu_code,
@@ -96,7 +95,6 @@ export async function queryInventoryProducts(
 }
 
 export async function inventoryRoutes(app: FastifyInstance) {
-  const pool = getPool()
   const writeRoles = ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff']
 
   // ── GET /api/v1/inventory/overview ── 全渠道库存与商品概况
@@ -104,27 +102,30 @@ export async function inventoryRoutes(app: FastifyInstance) {
     const user = await requireAuth(request, reply)
     if (!user) return
     try {
-      const { rows } = await pool.query(`
-        SELECT
-          COUNT(DISTINCT p.id)::int AS total_skus,
-          COUNT(DISTINCT p.spu_code)::int AS total_spus,
-          COALESCE(SUM(s.on_hand_qty), 0)::int AS total_on_hand,
-          COALESCE(SUM(s.locked_qty), 0)::int AS total_locked,
-          COALESCE(SUM(s.in_transit_qty), 0)::int AS total_in_transit,
-          COALESCE(SUM(s.available_qty), 0)::int AS total_available,
-          COUNT(*) FILTER (WHERE s.available_qty < s.safety_stock)::int AS low_stock_count,
-          COALESCE(SUM(s.on_hand_qty * p.unit_cost), 0)::numeric(14,2) AS total_stock_value
-        FROM dim_product p
-        LEFT JOIN fact_inventory_stock s ON s.product_id = p.id
-        WHERE p.status = 'active'
-      `)
-      const { rows: mappingStats } = await pool.query(`
-        SELECT platform_code, COUNT(*)::int AS mapped_skus
-        FROM dim_sku_mapping
-        WHERE is_active = true
-        GROUP BY platform_code
-        ORDER BY mapped_skus DESC
-      `)
+      const { rows, mappingStats } = await withRlsContext(request, async (client) => {
+        const res = await client.query(`
+          SELECT
+            COUNT(DISTINCT p.id)::int AS total_skus,
+            COUNT(DISTINCT p.spu_code)::int AS total_spus,
+            COALESCE(SUM(s.on_hand_qty), 0)::int AS total_on_hand,
+            COALESCE(SUM(s.locked_qty), 0)::int AS total_locked,
+            COALESCE(SUM(s.in_transit_qty), 0)::int AS total_in_transit,
+            COALESCE(SUM(s.available_qty), 0)::int AS total_available,
+            COUNT(*) FILTER (WHERE s.available_qty < s.safety_stock)::int AS low_stock_count,
+            COALESCE(SUM(s.on_hand_qty * p.unit_cost), 0)::numeric(14,2) AS total_stock_value
+          FROM dim_product p
+          LEFT JOIN fact_inventory_stock s ON s.product_id = p.id
+          WHERE p.status = 'active'
+        `)
+        const mRes = await client.query(`
+          SELECT platform_code, COUNT(*)::int AS mapped_skus
+          FROM dim_sku_mapping
+          WHERE is_active = true
+          GROUP BY platform_code
+          ORDER BY mapped_skus DESC
+        `)
+        return { rows: res.rows, mappingStats: mRes.rows }
+      })
       const sum = rows[0] || {}
       return sendOk(reply, {
         totalSkus: Number(sum.total_skus || 0),
@@ -151,12 +152,14 @@ export async function inventoryRoutes(app: FastifyInstance) {
     if (!user) return
     try {
       const { keyword, category, platformCode, lowStockOnly } = request.query
-      const list = await queryInventoryProducts(pool, {
-        keyword,
-        category,
-        platformCode,
-        lowStockOnly: lowStockOnly === 'true' || lowStockOnly === '1',
-      })
+      const list = await withRlsContext(request, (client) =>
+        queryInventoryProducts(client, {
+          keyword,
+          category,
+          platformCode,
+          lowStockOnly: lowStockOnly === 'true' || lowStockOnly === '1',
+        }),
+      )
       return sendOk(reply, list)
     } catch (err) {
       request.log.error({ err }, 'Failed to query inventory products')
@@ -183,55 +186,52 @@ export async function inventoryRoutes(app: FastifyInstance) {
       return sendError(reply, 400, 'SPU编码、SKU编码和商品名称不能为空')
     }
 
-    const client = await pool.connect()
     try {
-      await client.query('BEGIN')
-      const insertProd = await client.query(
-        `INSERT INTO dim_product
-           (spu_code, sku_code, product_name, category, brand_name, unit_cost, retail_price, safety_stock)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         RETURNING id, spu_code, sku_code, product_name`,
-        [
-          body.spuCode.trim(),
-          body.skuCode.trim(),
-          body.productName.trim(),
-          body.category?.trim() || '通用服饰',
-          body.brandName?.trim() || 'Leyova自营',
-          Number(body.unitCost || 0),
-          Number(body.retailPrice || 0),
-          Math.max(0, Number(body.safetyStock ?? 20)),
-        ],
-      )
-      const product = insertProd.rows[0]
-      const initialQty = Math.max(0, Math.trunc(Number(body.initialQty || 0)))
-      const whCode = body.warehouseCode?.trim() || 'MAIN_WH'
-      const whName = body.warehouseName?.trim() || '华东中心仓'
-      const safetyStock = Math.max(0, Math.trunc(Number(body.safetyStock ?? 20)))
-
-      await client.query(
-        `INSERT INTO fact_inventory_stock
-           (product_id, warehouse_code, warehouse_name, on_hand_qty, locked_qty, in_transit_qty, safety_stock)
-         VALUES ($1, $2, $3, $4, 0, 0, $5)
-         ON CONFLICT (product_id, warehouse_code) DO NOTHING`,
-        [product.id, whCode, whName, initialQty, safetyStock],
-      )
-      if (initialQty > 0) {
-        await client.query(
-          `INSERT INTO fact_inventory_ledger
-             (product_id, warehouse_code, change_type, delta_qty, before_on_hand, after_on_hand, ref_type, ref_id, operator_id, remark)
-           VALUES ($1, $2, 'inbound', $3, 0, $3, 'init_stock', $4, $5, '建档期初入库')`,
-          [product.id, whCode, initialQty, product.sku_code, request.user?.id || null],
+      const product = await withRlsContext(request, async (client) => {
+        const insertProd = await client.query(
+          `INSERT INTO dim_product
+             (spu_code, sku_code, product_name, category, brand_name, unit_cost, retail_price, safety_stock)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           RETURNING id, spu_code, sku_code, product_name`,
+          [
+            body.spuCode!.trim(),
+            body.skuCode!.trim(),
+            body.productName!.trim(),
+            body.category?.trim() || '通用服饰',
+            body.brandName?.trim() || 'Leyova自营',
+            Number(body.unitCost || 0),
+            Number(body.retailPrice || 0),
+            Math.max(0, Number(body.safetyStock ?? 20)),
+          ],
         )
-      }
-      await client.query('COMMIT')
+        const prod = insertProd.rows[0]
+        const initialQty = Math.max(0, Math.trunc(Number(body.initialQty || 0)))
+        const whCode = body.warehouseCode?.trim() || 'MAIN_WH'
+        const whName = body.warehouseName?.trim() || '华东中心仓'
+        const safetyStock = Math.max(0, Math.trunc(Number(body.safetyStock ?? 20)))
+
+        await client.query(
+          `INSERT INTO fact_inventory_stock
+             (product_id, warehouse_code, warehouse_name, on_hand_qty, locked_qty, in_transit_qty, safety_stock)
+           VALUES ($1, $2, $3, $4, 0, 0, $5)
+           ON CONFLICT (product_id, warehouse_code) DO NOTHING`,
+          [prod.id, whCode, whName, initialQty, safetyStock],
+        )
+        if (initialQty > 0) {
+          await client.query(
+            `INSERT INTO fact_inventory_ledger
+               (product_id, warehouse_code, change_type, delta_qty, before_on_hand, after_on_hand, ref_type, ref_id, operator_id, remark)
+             VALUES ($1, $2, 'inbound', $3, 0, $3, 'init_stock', $4, $5, '建档期初入库')`,
+            [prod.id, whCode, initialQty, prod.sku_code, request.user?.id || null],
+          )
+        }
+        return prod
+      })
       return sendOk(reply, { id: Number(product.id), spuCode: product.spu_code, skuCode: product.sku_code, productName: product.product_name })
     } catch (err: any) {
-      await client.query('ROLLBACK')
       if (err?.code === '23505') return sendError(reply, 409, 'SKU编码已存在，请勿重复创建')
       request.log.error({ err }, 'Failed to create inventory product')
       return sendError(reply, 500, '创建商品档案失败')
-    } finally {
-      client.release()
     }
   })
 
@@ -249,24 +249,26 @@ export async function inventoryRoutes(app: FastifyInstance) {
       return sendError(reply, 400, '商品ID、平台、店铺、平台商品ID和平台SKU ID均为必填项')
     }
     try {
-      const { rows } = await pool.query(
-        `INSERT INTO dim_sku_mapping
-           (product_id, platform_code, shop_id, platform_item_id, platform_sku_id, platform_sku_name, is_active)
-         VALUES ($1, $2, $3, $4, $5, $6, true)
-         ON CONFLICT (platform_code, shop_id, platform_sku_id) DO UPDATE
-         SET product_id = EXCLUDED.product_id,
-             platform_item_id = EXCLUDED.platform_item_id,
-             platform_sku_name = EXCLUDED.platform_sku_name,
-             is_active = true
-         RETURNING id, product_id, platform_code, shop_id, platform_item_id, platform_sku_id`,
-        [
-          Number(body.productId),
-          body.platformCode.trim(),
-          Number(body.shopId),
-          body.platformItemId.trim(),
-          body.platformSkuId.trim(),
-          body.platformSkuName?.trim() || '',
-        ],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO dim_sku_mapping
+             (product_id, platform_code, shop_id, platform_item_id, platform_sku_id, platform_sku_name, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6, true)
+           ON CONFLICT (platform_code, shop_id, platform_sku_id) DO UPDATE
+           SET product_id = EXCLUDED.product_id,
+               platform_item_id = EXCLUDED.platform_item_id,
+               platform_sku_name = EXCLUDED.platform_sku_name,
+               is_active = true
+           RETURNING id, product_id, platform_code, shop_id, platform_item_id, platform_sku_id`,
+          [
+            Number(body.productId),
+            body.platformCode!.trim(),
+            Number(body.shopId),
+            body.platformItemId!.trim(),
+            body.platformSkuId!.trim(),
+            body.platformSkuName?.trim() || '',
+          ],
+        ),
       )
       return sendOk(reply, rows[0])
     } catch (err) {
@@ -293,103 +295,97 @@ export async function inventoryRoutes(app: FastifyInstance) {
     }
 
     const whCode = body.warehouseCode?.trim() || 'MAIN_WH'
-    const client = await pool.connect()
     try {
-      await client.query('BEGIN')
-      let stockRes = await client.query(
-        `SELECT id, on_hand_qty, locked_qty, safety_stock
-         FROM fact_inventory_stock
-         WHERE product_id = $1 AND warehouse_code = $2
-         FOR UPDATE`,
-        [Number(body.productId), whCode],
-      )
-      if (stockRes.rows.length === 0) {
-        const prodRes = await client.query(`SELECT safety_stock FROM dim_product WHERE id = $1`, [Number(body.productId)])
-        if (prodRes.rows.length === 0) {
-          await client.query('ROLLBACK')
-          return sendError(reply, 404, '商品不存在')
-        }
-        stockRes = await client.query(
-          `INSERT INTO fact_inventory_stock (product_id, warehouse_code, warehouse_name, on_hand_qty, locked_qty, safety_stock)
-           VALUES ($1, $2, $3, 0, 0, $4)
-           RETURNING id, on_hand_qty, locked_qty, safety_stock`,
-          [Number(body.productId), whCode, whCode === 'MAIN_WH' ? '华东中心仓' : whCode, prodRes.rows[0].safety_stock],
+      const outcome = await withRlsContext(request, async (client) => {
+        let stockRes = await client.query(
+          `SELECT id, on_hand_qty, locked_qty, safety_stock
+           FROM fact_inventory_stock
+           WHERE product_id = $1 AND warehouse_code = $2
+           FOR UPDATE`,
+          [Number(body.productId), whCode],
         )
+        if (stockRes.rows.length === 0) {
+          const prodRes = await client.query(`SELECT safety_stock FROM dim_product WHERE id = $1`, [Number(body.productId)])
+          if (prodRes.rows.length === 0) return { errorStatus: 404, errorMsg: '商品不存在' }
+          stockRes = await client.query(
+            `INSERT INTO fact_inventory_stock (product_id, warehouse_code, warehouse_name, on_hand_qty, locked_qty, safety_stock)
+             VALUES ($1, $2, $3, 0, 0, $4)
+             RETURNING id, on_hand_qty, locked_qty, safety_stock`,
+            [Number(body.productId), whCode, whCode === 'MAIN_WH' ? '华东中心仓' : whCode, prodRes.rows[0].safety_stock],
+          )
+        }
+
+        const cur = stockRes.rows[0]
+        const beforeOnHand = Number(cur.on_hand_qty)
+        const beforeLocked = Number(cur.locked_qty)
+        let afterOnHand = beforeOnHand
+        let afterLocked = beforeLocked
+        let deltaOnHand = 0
+
+        if (changeType === 'inbound' || changeType === 'return_in') {
+          const absQty = Math.abs(qty)
+          afterOnHand = beforeOnHand + absQty
+          deltaOnHand = absQty
+        } else if (changeType === 'outbound') {
+          const absQty = Math.abs(qty)
+          if (beforeOnHand < absQty) {
+            return { errorStatus: 400, errorMsg: `在库库存不足（当前在库 ${beforeOnHand}，试图出库 ${absQty}）` }
+          }
+          afterOnHand = beforeOnHand - absQty
+          afterLocked = Math.max(0, beforeLocked - Math.min(beforeLocked, absQty))
+          deltaOnHand = -absQty
+        } else if (changeType === 'lock') {
+          const absQty = Math.abs(qty)
+          if (beforeOnHand - beforeLocked < absQty) {
+            return { errorStatus: 400, errorMsg: `可用库存不足（当前可用 ${beforeOnHand - beforeLocked}）` }
+          }
+          afterLocked = beforeLocked + absQty
+          deltaOnHand = 0
+        } else if (changeType === 'unlock') {
+          const absQty = Math.abs(qty)
+          afterLocked = Math.max(0, beforeLocked - absQty)
+          deltaOnHand = 0
+        } else if (changeType === 'adjust') {
+          afterOnHand = beforeOnHand + qty
+          if (afterOnHand < beforeLocked) {
+            return { errorStatus: 400, errorMsg: `盘点调整后在库(${afterOnHand})不能低于已锁库存(${beforeLocked})` }
+          }
+          deltaOnHand = qty
+        }
+
+        const updated = await client.query(
+          `UPDATE fact_inventory_stock
+           SET on_hand_qty = $1, locked_qty = $2, updated_at = NOW()
+           WHERE id = $3
+           RETURNING on_hand_qty, locked_qty, available_qty, safety_stock`,
+          [afterOnHand, afterLocked, cur.id],
+        )
+        await client.query(
+          `INSERT INTO fact_inventory_ledger
+             (product_id, warehouse_code, change_type, delta_qty, before_on_hand, after_on_hand, ref_type, ref_id, operator_id, remark)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          [
+            Number(body.productId),
+            whCode,
+            changeType,
+            changeType === 'lock' ? Math.abs(qty) : changeType === 'unlock' ? -Math.abs(qty) : deltaOnHand,
+            beforeOnHand,
+            afterOnHand,
+            body.refType?.trim() || 'manual_adjust',
+            body.refId?.trim() || '',
+            request.user?.id || null,
+            body.remark?.trim() || '',
+          ],
+        )
+        return { row: updated.rows[0] }
+      })
+      if ('errorStatus' in outcome && outcome.errorStatus) {
+        return sendError(reply, outcome.errorStatus, outcome.errorMsg!)
       }
-
-      const cur = stockRes.rows[0]
-      const beforeOnHand = Number(cur.on_hand_qty)
-      const beforeLocked = Number(cur.locked_qty)
-      let afterOnHand = beforeOnHand
-      let afterLocked = beforeLocked
-      let deltaOnHand = 0
-
-      if (changeType === 'inbound' || changeType === 'return_in') {
-        const absQty = Math.abs(qty)
-        afterOnHand = beforeOnHand + absQty
-        deltaOnHand = absQty
-      } else if (changeType === 'outbound') {
-        const absQty = Math.abs(qty)
-        if (beforeOnHand < absQty) {
-          await client.query('ROLLBACK')
-          return sendError(reply, 400, `在库库存不足（当前在库 ${beforeOnHand}，试图出库 ${absQty}）`)
-        }
-        afterOnHand = beforeOnHand - absQty
-        afterLocked = Math.max(0, beforeLocked - Math.min(beforeLocked, absQty))
-        deltaOnHand = -absQty
-      } else if (changeType === 'lock') {
-        const absQty = Math.abs(qty)
-        if (beforeOnHand - beforeLocked < absQty) {
-          await client.query('ROLLBACK')
-          return sendError(reply, 400, `可用库存不足（当前可用 ${beforeOnHand - beforeLocked}）`)
-        }
-        afterLocked = beforeLocked + absQty
-        deltaOnHand = 0
-      } else if (changeType === 'unlock') {
-        const absQty = Math.abs(qty)
-        afterLocked = Math.max(0, beforeLocked - absQty)
-        deltaOnHand = 0
-      } else if (changeType === 'adjust') {
-        afterOnHand = beforeOnHand + qty
-        if (afterOnHand < beforeLocked) {
-          await client.query('ROLLBACK')
-          return sendError(reply, 400, `盘点调整后在库(${afterOnHand})不能低于已锁库存(${beforeLocked})`)
-        }
-        deltaOnHand = qty
-      }
-
-      const updated = await client.query(
-        `UPDATE fact_inventory_stock
-         SET on_hand_qty = $1, locked_qty = $2, updated_at = NOW()
-         WHERE id = $3
-         RETURNING on_hand_qty, locked_qty, available_qty, safety_stock`,
-        [afterOnHand, afterLocked, cur.id],
-      )
-      await client.query(
-        `INSERT INTO fact_inventory_ledger
-           (product_id, warehouse_code, change_type, delta_qty, before_on_hand, after_on_hand, ref_type, ref_id, operator_id, remark)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-        [
-          Number(body.productId),
-          whCode,
-          changeType,
-          changeType === 'lock' ? Math.abs(qty) : changeType === 'unlock' ? -Math.abs(qty) : deltaOnHand,
-          beforeOnHand,
-          afterOnHand,
-          body.refType?.trim() || 'manual_adjust',
-          body.refId?.trim() || '',
-          request.user?.id || null,
-          body.remark?.trim() || '',
-        ],
-      )
-      await client.query('COMMIT')
-      return sendOk(reply, updated.rows[0])
+      return sendOk(reply, outcome.row)
     } catch (err) {
-      await client.query('ROLLBACK')
       request.log.error({ err }, 'Inventory stock adjustment failed')
       return sendError(reply, 500, '库存调账失败')
-    } finally {
-      client.release()
     }
   })
 
@@ -404,15 +400,17 @@ export async function inventoryRoutes(app: FastifyInstance) {
       const lim = Math.min(Number(limit || 50) || 50, 200)
       const params: any[] = []
       const where = productId ? (params.push(Number(productId)), 'WHERE l.product_id = $1') : ''
-      const { rows } = await pool.query(
-        `SELECT l.*, p.sku_code, p.product_name, u.real_name AS operator_name
-         FROM fact_inventory_ledger l
-         JOIN dim_product p ON p.id = l.product_id
-         LEFT JOIN users u ON u.id = l.operator_id
-         ${where}
-         ORDER BY l.created_at DESC, l.id DESC
-         LIMIT ${lim}`,
-        params,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT l.*, p.sku_code, p.product_name, u.real_name AS operator_name
+           FROM fact_inventory_ledger l
+           JOIN dim_product p ON p.id = l.product_id
+           LEFT JOIN users u ON u.id = l.operator_id
+           ${where}
+           ORDER BY l.created_at DESC, l.id DESC
+           LIMIT ${lim}`,
+          params,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {

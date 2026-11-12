@@ -12,8 +12,7 @@
  *   - LLM 不可用：走内置规则剧本（S1-S6），保证系统可用
  */
 
-import type { Pool } from 'pg'
-import { getPool } from '../lib/db.js'
+import { getPool, type DbExecutor } from '../lib/db.js'
 import {
   queryMetric, comparePeriods, drillDown, detectAnomalies, forecastTrend,
   METRIC_REGISTRY, listMetrics, listDimensions,
@@ -100,7 +99,7 @@ async function runTool(
   toolName: string,
   input: any,
   scope: string[] | null,
-  pool: Pool,
+  pool: DbExecutor,
   role?: string,
 ): Promise<{ output: any; rowCount: number }> {
   const access = role ? { role } : undefined
@@ -910,10 +909,28 @@ function synthesizeConclusion(
 // 主流程
 // ---------------------------------------------------------------------------
 
+async function withOptionalSavepoint<T>(
+  executor: DbExecutor,
+  name: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const isTxClient = 'release' in executor
+  if (!isTxClient) return fn()
+  await executor.query(`SAVEPOINT ${name}`)
+  try {
+    const res = await fn()
+    await executor.query(`RELEASE SAVEPOINT ${name}`)
+    return res
+  } catch (err) {
+    await executor.query(`ROLLBACK TO SAVEPOINT ${name}`)
+    throw err
+  }
+}
+
 export async function runAnalysis(
   req: AnalysisRequest,
   scope: string[] | null,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<AnalysisResult> {
   const p = pool || getPool()
   const started = Date.now()
@@ -938,7 +955,9 @@ export async function runAnalysis(
   for (const call of calls) {
     const t0 = Date.now()
     try {
-      const { output, rowCount } = await runTool(call.tool, call.input, scope, p, req.role)
+      const { output, rowCount } = await withOptionalSavepoint(p, `sp_ai_step_${seq + 1}`, () =>
+        runTool(call.tool, call.input, scope, p, req.role),
+      )
       steps.push({
         seq: ++seq,
         role: 'executor',
@@ -1005,41 +1024,43 @@ export async function runAnalysis(
   // ── 落库（runs + steps）──
   let runId: number | null = null
   try {
-    const ins = await p.query(
-      `INSERT INTO ai_analysis_runs
-         (conversation_id, user_id, mode, question, plan, status, verdict, duration_ms, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now()) RETURNING id`,
-      [
-        req.conversationId || null,
-        req.userId || null,
-        mode,
-        req.question,
-        JSON.stringify({ mode, calls: calls.map((c) => ({ tool: c.tool, purpose: c.purpose })) }),
-        verification.passed ? 'completed' : 'needs_review',
-        JSON.stringify({ verification, findings: conclusion.findings.length }),
-        durationMs,
-      ],
-    )
-    runId = ins.rows[0].id
-    for (const step of steps) {
-      await p.query(
-        `INSERT INTO ai_analysis_steps
-           (run_id, seq, role, tool_name, input, output_ref, row_count, duration_ms, status, error)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    await withOptionalSavepoint(p, 'sp_ai_persist', async () => {
+      const ins = await p.query(
+        `INSERT INTO ai_analysis_runs
+           (conversation_id, user_id, mode, question, plan, status, verdict, duration_ms, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now()) RETURNING id`,
         [
-          runId,
-          step.seq,
-          step.role,
-          step.toolName,
-          JSON.stringify(step.input),
-          JSON.stringify(step.outputRef ?? null).slice(0, 100000),
-          step.rowCount,
-          step.durationMs,
-          step.status,
-          step.error || null,
+          req.conversationId || null,
+          req.userId || null,
+          mode,
+          req.question,
+          JSON.stringify({ mode, calls: calls.map((c) => ({ tool: c.tool, purpose: c.purpose })) }),
+          verification.passed ? 'completed' : 'needs_review',
+          JSON.stringify({ verification, findings: conclusion.findings.length }),
+          durationMs,
         ],
       )
-    }
+      runId = ins.rows[0].id
+      for (const step of steps) {
+        await p.query(
+          `INSERT INTO ai_analysis_steps
+             (run_id, seq, role, tool_name, input, output_ref, row_count, duration_ms, status, error)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+          [
+            runId,
+            step.seq,
+            step.role,
+            step.toolName,
+            JSON.stringify(step.input),
+            JSON.stringify(step.outputRef ?? null).slice(0, 100000),
+            step.rowCount,
+            step.durationMs,
+            step.status,
+            step.error || null,
+          ],
+        )
+      }
+    })
   } catch (err) {
     console.warn('[orchestrator] failed to persist analysis run/steps:', (err as Error)?.message || err)
   }

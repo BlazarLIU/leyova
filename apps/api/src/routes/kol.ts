@@ -1,10 +1,9 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { sendOk, sendError } from '../lib/http.js'
 
 export async function kolRoutes(app: FastifyInstance) {
-  const pool = getPool()
   const opsRoles = ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff']
 
   // ── GET /api/v1/kol/overview ── 外部达人合作效果与佣金台账总览
@@ -12,29 +11,32 @@ export async function kolRoutes(app: FastifyInstance) {
     const user = await requireAuth(request, reply)
     if (!user) return
     try {
-      const { rows } = await pool.query(`
-        SELECT
-          (SELECT COUNT(*)::int FROM dim_kol WHERE status = 'active') AS active_kols,
-          COUNT(c.id)::int AS total_coops,
-          COALESCE(SUM(c.pit_fee), 0)::numeric(14,2) AS total_pit_fee,
-          COALESCE(SUM(c.gmv), 0)::numeric(14,2) AS total_gmv,
-          COALESCE(SUM(c.net_gmv), 0)::numeric(14,2) AS total_net_gmv,
-          COALESCE(SUM(c.commission_amount), 0)::numeric(14,2) AS total_commission,
-          COALESCE(SUM(c.commission_amount) FILTER (WHERE c.settlement_status IN ('pending', 'confirmed')), 0)::numeric(14,2) AS unpaid_commission
-        FROM fact_kol_cooperation c
-      `)
-      const { rows: byPlatform } = await pool.query(`
-        SELECT
-          c.platform_code,
-          p.platform_name,
-          COUNT(c.id)::int AS coop_count,
-          COALESCE(SUM(c.net_gmv), 0)::numeric(14,2) AS net_gmv,
-          COALESCE(SUM(c.pit_fee + c.commission_amount), 0)::numeric(14,2) AS total_cost
-        FROM fact_kol_cooperation c
-        JOIN system_platform_configs p ON p.platform_code = c.platform_code
-        GROUP BY c.platform_code, p.platform_name
-        ORDER BY net_gmv DESC
-      `)
+      const { rows, byPlatform } = await withRlsContext(request, async (client) => {
+        const res = await client.query(`
+          SELECT
+            (SELECT COUNT(*)::int FROM dim_kol WHERE status = 'active') AS active_kols,
+            COUNT(c.id)::int AS total_coops,
+            COALESCE(SUM(c.pit_fee), 0)::numeric(14,2) AS total_pit_fee,
+            COALESCE(SUM(c.gmv), 0)::numeric(14,2) AS total_gmv,
+            COALESCE(SUM(c.net_gmv), 0)::numeric(14,2) AS total_net_gmv,
+            COALESCE(SUM(c.commission_amount), 0)::numeric(14,2) AS total_commission,
+            COALESCE(SUM(c.commission_amount) FILTER (WHERE c.settlement_status IN ('pending', 'confirmed')), 0)::numeric(14,2) AS unpaid_commission
+          FROM fact_kol_cooperation c
+        `)
+        const pRes = await client.query(`
+          SELECT
+            c.platform_code,
+            p.platform_name,
+            COUNT(c.id)::int AS coop_count,
+            COALESCE(SUM(c.net_gmv), 0)::numeric(14,2) AS net_gmv,
+            COALESCE(SUM(c.pit_fee + c.commission_amount), 0)::numeric(14,2) AS total_cost
+          FROM fact_kol_cooperation c
+          JOIN system_platform_configs p ON p.platform_code = c.platform_code
+          GROUP BY c.platform_code, p.platform_name
+          ORDER BY net_gmv DESC
+        `)
+        return { rows: res.rows, byPlatform: pRes.rows }
+      })
       const s = rows[0] || {}
       const totalCost = Number(s.total_pit_fee || 0) + Number(s.total_commission || 0)
       const totalNetGmv = Number(s.total_net_gmv || 0)
@@ -77,20 +79,22 @@ export async function kolRoutes(app: FastifyInstance) {
       if (tier) { conds.push(`k.tier = $${idx++}`); params.push(tier) }
       const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
 
-      const { rows } = await pool.query(
-        `SELECT
-           k.*,
-           p.platform_name,
-           COUNT(c.id)::int AS coop_count,
-           COALESCE(SUM(c.net_gmv), 0)::numeric(14,2) AS cumulative_net_gmv,
-           COALESCE(SUM(c.pit_fee + c.commission_amount), 0)::numeric(14,2) AS cumulative_cost
-         FROM dim_kol k
-         JOIN system_platform_configs p ON p.platform_code = k.platform_code
-         LEFT JOIN fact_kol_cooperation c ON c.kol_id = k.id
-         ${where}
-         GROUP BY k.id, p.platform_name
-         ORDER BY cumulative_net_gmv DESC, k.fans_count DESC`,
-        params,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT
+             k.*,
+             p.platform_name,
+             COUNT(c.id)::int AS coop_count,
+             COALESCE(SUM(c.net_gmv), 0)::numeric(14,2) AS cumulative_net_gmv,
+             COALESCE(SUM(c.pit_fee + c.commission_amount), 0)::numeric(14,2) AS cumulative_cost
+           FROM dim_kol k
+           JOIN system_platform_configs p ON p.platform_code = k.platform_code
+           LEFT JOIN fact_kol_cooperation c ON c.kol_id = k.id
+           ${where}
+           GROUP BY k.id, p.platform_name
+           ORDER BY cumulative_net_gmv DESC, k.fans_count DESC`,
+          params,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -116,22 +120,24 @@ export async function kolRoutes(app: FastifyInstance) {
       return sendError(reply, 400, '达人名称和平台编码不能为空')
     }
     try {
-      const { rows } = await pool.query(
-        `INSERT INTO dim_kol
-           (kol_name, platform_code, platform_uid, tier, fans_count, category, contact_info, default_commission_rate, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         RETURNING *`,
-        [
-          body.kolName.trim(),
-          body.platformCode.trim(),
-          body.platformUid?.trim() || '',
-          body.tier || 'waist',
-          Math.max(0, Math.trunc(Number(body.fansCount || 0))),
-          body.category?.trim() || '时尚穿搭',
-          body.contactInfo?.trim() || '',
-          Number(body.defaultCommissionRate ?? 0.15),
-          body.notes?.trim() || '',
-        ],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO dim_kol
+             (kol_name, platform_code, platform_uid, tier, fans_count, category, contact_info, default_commission_rate, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           RETURNING *`,
+          [
+            body.kolName!.trim(),
+            body.platformCode!.trim(),
+            body.platformUid?.trim() || '',
+            body.tier || 'waist',
+            Math.max(0, Math.trunc(Number(body.fansCount || 0))),
+            body.category?.trim() || '时尚穿搭',
+            body.contactInfo?.trim() || '',
+            Number(body.defaultCommissionRate ?? 0.15),
+            body.notes?.trim() || '',
+          ],
+        ),
       )
       return sendOk(reply, rows[0])
     } catch (err: any) {
@@ -157,26 +163,28 @@ export async function kolRoutes(app: FastifyInstance) {
       if (kolId) { conds.push(`c.kol_id = $${idx++}`); params.push(Number(kolId)) }
       const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
 
-      const { rows } = await pool.query(
-        `SELECT
-           c.*,
-           k.kol_name,
-           k.tier AS kol_tier,
-           p.platform_name,
-           sh.shop_name,
-           pr.sku_code,
-           pr.product_name,
-           CASE WHEN (c.pit_fee + c.commission_amount) > 0
-                THEN ROUND(c.net_gmv / (c.pit_fee + c.commission_amount), 2)
-                ELSE NULL END AS roi
-         FROM fact_kol_cooperation c
-         JOIN dim_kol k ON k.id = c.kol_id
-         JOIN system_platform_configs p ON p.platform_code = c.platform_code
-         JOIN dim_shop sh ON sh.id = c.shop_id
-         LEFT JOIN dim_product pr ON pr.id = c.product_id
-         ${where}
-         ORDER BY c.publish_date DESC, c.id DESC`,
-        params,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT
+             c.*,
+             k.kol_name,
+             k.tier AS kol_tier,
+             p.platform_name,
+             sh.shop_name,
+             pr.sku_code,
+             pr.product_name,
+             CASE WHEN (c.pit_fee + c.commission_amount) > 0
+                  THEN ROUND(c.net_gmv / (c.pit_fee + c.commission_amount), 2)
+                  ELSE NULL END AS roi
+           FROM fact_kol_cooperation c
+           JOIN dim_kol k ON k.id = c.kol_id
+           JOIN system_platform_configs p ON p.platform_code = c.platform_code
+           JOIN dim_shop sh ON sh.id = c.shop_id
+           LEFT JOIN dim_product pr ON pr.id = c.product_id
+           ${where}
+           ORDER BY c.publish_date DESC, c.id DESC`,
+          params,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -211,27 +219,29 @@ export async function kolRoutes(app: FastifyInstance) {
       const netGmv = Math.max(0, gmv - refundAmount)
       const commissionAmount = Number((netGmv * commissionRate).toFixed(2))
 
-      const { rows } = await pool.query(
-        `INSERT INTO fact_kol_cooperation
-           (kol_id, platform_code, shop_id, product_id, coop_type, campaign_name, publish_date,
-            pit_fee, commission_rate, gmv, refund_amount, commission_amount, settlement_status, remark)
-         VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, $10, $11, $12, 'pending', $13)
-         RETURNING *`,
-        [
-          Number(body.kolId),
-          body.platformCode.trim(),
-          Number(body.shopId),
-          body.productId ? Number(body.productId) : null,
-          body.coopType || 'live_slot',
-          body.campaignName.trim(),
-          body.publishDate || new Date().toISOString().slice(0, 10),
-          Math.max(0, Number(body.pitFee || 0)),
-          commissionRate,
-          gmv,
-          refundAmount,
-          commissionAmount,
-          body.remark?.trim() || '',
-        ],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO fact_kol_cooperation
+             (kol_id, platform_code, shop_id, product_id, coop_type, campaign_name, publish_date,
+              pit_fee, commission_rate, gmv, refund_amount, commission_amount, settlement_status, remark)
+           VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, $10, $11, $12, 'pending', $13)
+           RETURNING *`,
+          [
+            Number(body.kolId),
+            body.platformCode!.trim(),
+            Number(body.shopId),
+            body.productId ? Number(body.productId) : null,
+            body.coopType || 'live_slot',
+            body.campaignName!.trim(),
+            body.publishDate || new Date().toISOString().slice(0, 10),
+            Math.max(0, Number(body.pitFee || 0)),
+            commissionRate,
+            gmv,
+            refundAmount,
+            commissionAmount,
+            body.remark?.trim() || '',
+          ],
+        ),
       )
       return sendOk(reply, rows[0])
     } catch (err) {
@@ -254,21 +264,23 @@ export async function kolRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '必须提供结算状态')
       }
       try {
-        const { rows } = await pool.query(
-          `UPDATE fact_kol_cooperation
-         SET settlement_status = $1,
-             commission_amount = COALESCE($2, commission_amount),
-             settled_at = CASE WHEN $1 = 'paid' THEN NOW() ELSE settled_at END,
-             remark = COALESCE($3, remark),
-             updated_at = NOW()
-         WHERE id = $4
-         RETURNING *`,
-          [
-            body.settlementStatus,
-            body.commissionAmount !== undefined ? Number(body.commissionAmount) : null,
-            body.remark?.trim() ?? null,
-            Number(request.params.id),
-          ],
+        const { rows } = await withRlsContext(request, (client) =>
+          client.query(
+            `UPDATE fact_kol_cooperation
+           SET settlement_status = $1,
+               commission_amount = COALESCE($2, commission_amount),
+               settled_at = CASE WHEN $1 = 'paid' THEN NOW() ELSE settled_at END,
+               remark = COALESCE($3, remark),
+               updated_at = NOW()
+           WHERE id = $4
+           RETURNING *`,
+            [
+              body.settlementStatus,
+              body.commissionAmount !== undefined ? Number(body.commissionAmount) : null,
+              body.remark?.trim() ?? null,
+              Number(request.params.id),
+            ],
+          ),
         )
         if (rows.length === 0) return sendError(reply, 404, '达人合作记录不存在')
         return sendOk(reply, rows[0])

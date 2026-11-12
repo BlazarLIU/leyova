@@ -10,19 +10,17 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireRole } from '../lib/guard.js'
 
 export async function dictRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   // ── GET /api/v1/system/dict ──
-  app.get('/api/v1/system/dict', async (_request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/system/dict', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT id, code, name, item_count, status, created_at, updated_at
            FROM dict_items ORDER BY code`,
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       return sendError(reply, 500, '获取字典失败')
@@ -37,15 +35,19 @@ export async function dictRoutes(app: FastifyInstance) {
       const { code, name, itemCount, status } = request.body || ({} as any)
       if (!code || !name) return sendError(reply, 400, '缺少必要参数 (code, name)')
 
-      const exists = await pool.query('SELECT 1 FROM dict_items WHERE code = $1', [code])
-      if (exists.rows.length > 0) return sendError(reply, 409, '字典编码已存在')
+      const outcome = await withRlsContext(request, async (client) => {
+        const exists = await client.query('SELECT 1 FROM dict_items WHERE code = $1', [code])
+        if (exists.rows.length > 0) return { conflict: true as const }
 
-      const { rows } = await pool.query(
-        `INSERT INTO dict_items (code, name, item_count, status)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [code, name, itemCount ?? 0, status || '启用'],
-      )
-      return sendOk(reply, rows[0], '字典已创建')
+        const { rows } = await client.query(
+          `INSERT INTO dict_items (code, name, item_count, status)
+           VALUES ($1, $2, $3, $4) RETURNING *`,
+          [code, name, itemCount ?? 0, status || '启用'],
+        )
+        return { conflict: false as const, row: rows[0] }
+      })
+      if (outcome.conflict) return sendError(reply, 409, '字典编码已存在')
+      return sendOk(reply, outcome.row, '字典已创建')
     } catch (err) {
       return sendError(reply, 500, '创建字典失败')
     }
@@ -70,10 +72,10 @@ export async function dictRoutes(app: FastifyInstance) {
       if (sets.length === 0) return sendError(reply, 400, '没有需要更新的字段')
       sets.push('updated_at = now()')
 
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `UPDATE dict_items SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
         vals,
-      )
+      ))
       if (rows.length === 0) return sendError(reply, 404, '字典不存在')
       return sendOk(reply, rows[0], '更新成功')
     } catch (err) {
@@ -86,7 +88,7 @@ export async function dictRoutes(app: FastifyInstance) {
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
-      await pool.query('DELETE FROM dict_items WHERE id = $1', [id])
+      await withRlsContext(request, (client) => client.query('DELETE FROM dict_items WHERE id = $1', [id]))
       return sendOk(reply, { deleted: true }, '已删除')
     } catch (err) {
       return sendError(reply, 500, '删除字典失败')

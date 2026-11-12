@@ -14,7 +14,7 @@
 | 业务领域 | 7 大平台直播电商与全渠道货架运营数据分析 |
 | 技术栈 | React 19 + Fastify 5 + PostgreSQL 18 |
 | 部署方式 | PM2 进程管理 (`leyova-api:8788`, `leyova-web:5513`, `leyova-mcp:9101`) |
-| 数据规模与隔离 | 146 张逻辑表 / 222 张物理表（含分区），29 张启用 PostgreSQL RLS |
+| 数据规模与隔离 | 143 张逻辑表 / 219 张物理表（含分区），28 张启用 PostgreSQL RLS |
 
 ---
 
@@ -99,7 +99,8 @@
 |------|---------|------|
 | `/content/video-create` | VideoCreatePage | 视频创作 |
 | `/content/video-data` | VideoDataPage | 视频数据 |
-| `/content/config` | ContentConfigPage | 中心配置 |
+| `/content/schedule` | ContentSchedulePage | 内容排产与归因 |
+| `/content/center-config` | ContentCenterConfigPage | 生成服务配置（`/content/config` 重定向至此） |
 
 ### 3.7 商业智能模块 (BI)
 
@@ -720,7 +721,7 @@ reconciliation_runs + publish_reversals
 
 ## 十二、核心设计要点
 
-1. **单一数据库**：PostgreSQL 18（146 张逻辑表 / 222 张含月分区的物理表，29 张启用 RLS 行级隔离，增量迁移 100~118）
+1. **单一数据库**：PostgreSQL 18（143 张逻辑表 / 219 张含月分区的物理表，28 张启用 RLS 行级隔离，增量迁移 100~119）
 2. **多维 RBAC + RLS**：应用层角色权限矩阵 + `leyova_app` 角色 PostgreSQL 行级策略双重纵深防御，支持品牌商只读与成本/投流脱敏
 3. **双轨数据治理底座**：未授权/`manual_only` 店铺 fail-closed 拦截，CSV/XLSX 与 OpenAPI 统一落 `raw_records → clean_records → canonical_*`，支持财务级余数归底分摊与原子冲正
 4. **AI 集成**：4 阶受控 AI 编排器 + 语义层按角色裁剪投流/成本敏感指标 + HMAC 签名 MCP 服务通信

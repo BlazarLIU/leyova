@@ -11,7 +11,25 @@
  *   - 无法识别平台/店铺时拒绝落库，避免脏数据污染事实表
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/db.js'
+
+async function withOptionalSavepoint<T>(
+  executor: DbExecutor,
+  spName: string,
+  fn: () => Promise<T>,
+  fallback: T,
+): Promise<T> {
+  const inTx = 'release' in executor
+  if (inTx) await executor.query(`SAVEPOINT ${spName}`)
+  try {
+    const res = await fn()
+    if (inTx) await executor.query(`RELEASE SAVEPOINT ${spName}`)
+    return res
+  } catch {
+    if (inTx) await executor.query(`ROLLBACK TO SAVEPOINT ${spName}`)
+    return fallback
+  }
+}
 
 /** 标准交易字段 → 候选列名（按优先级，支持模糊包含匹配） */
 export const TRADE_COLUMN_ALIASES: Record<string, string[]> = {
@@ -177,7 +195,7 @@ export interface ManualIngestResult {
  * 落库：清洗后的行 → 事实表 + ingest_sync_jobs 记录
  */
 export async function ingestManualFacts(
-  pool: Pool,
+  pool: DbExecutor,
   params: {
     platformCode: string
     shopId: number
@@ -201,49 +219,56 @@ export async function ingestManualFacts(
   const jobId: number = jobIns.rows[0].id
 
   // 读取该平台的默认成交口径（京东含COD、快手含间接成交等）
-  let amountType = 'gross_paid'
-  try {
-    const calRes = await pool.query(
-      `SELECT amount_type FROM platform_caliber_config
-        WHERE platform_code = $1 AND metric_code = 'gmv'
-        ORDER BY is_default DESC LIMIT 1`,
-      [platformCode],
-    )
-    if (calRes.rows.length > 0) amountType = calRes.rows[0].amount_type
-  } catch {
-    // 表不存在时用默认值
-  }
+  const amountType = await withOptionalSavepoint(
+    pool,
+    'sp_manual_caliber',
+    async () => {
+      const calRes = await pool.query(
+        `SELECT amount_type FROM platform_caliber_config
+          WHERE platform_code = $1 AND metric_code = 'gmv'
+          ORDER BY is_default DESC LIMIT 1`,
+        [platformCode],
+      )
+      return calRes.rows.length > 0 ? calRes.rows[0].amount_type : 'gross_paid'
+    },
+    'gross_paid',
+  )
 
+  const inTx = 'release' in pool
+  if (inTx) await pool.query('SAVEPOINT sp_manual_ingest')
   try {
     const mapped = mapRowsToStandard(rows, dataType, defaultBizDate)
 
     // 渠道名 → 通用渠道编码映射（来自 platform_source_mapping）
-    try {
-      const { rows: mapRows } = await pool.query(
-        `SELECT raw_source, source_code, match_type
-           FROM platform_source_mapping
-          WHERE platform_code = ANY($1::text[])
-          ORDER BY priority DESC`,
-        [[platformCode, platformCode === 'tmall' ? 'taobao' : platformCode]],
-      )
-      const exact = new Map<string, string>()
-      const contains: Array<{ raw: string; code: string }> = []
-      for (const m of mapRows) {
-        if (m.match_type === 'exact') exact.set(m.raw_source, m.source_code)
-        else contains.push({ raw: m.raw_source, code: m.source_code })
-      }
-      for (const row of mapped.rows) {
-        const ch = row.channelName
-        if (exact.has(ch)) {
-          row.sourceCode = exact.get(ch)!
-        } else {
-          const hit = contains.find((c) => ch.includes(c.raw) || c.raw.includes(ch))
-          if (hit) row.sourceCode = hit.code
+    await withOptionalSavepoint(
+      pool,
+      'sp_manual_source_map',
+      async () => {
+        const { rows: mapRows } = await pool.query(
+          `SELECT raw_source, source_code, match_type
+             FROM platform_source_mapping
+            WHERE platform_code = ANY($1::text[])
+            ORDER BY priority DESC`,
+          [[platformCode, platformCode === 'tmall' ? 'taobao' : platformCode]],
+        )
+        const exact = new Map<string, string>()
+        const contains: Array<{ raw: string; code: string }> = []
+        for (const m of mapRows) {
+          if (m.match_type === 'exact') exact.set(m.raw_source, m.source_code)
+          else contains.push({ raw: m.raw_source, code: m.source_code })
         }
-      }
-    } catch {
-      // 映射表不存在时忽略，sourceCode 保持 null
-    }
+        for (const row of mapped.rows) {
+          const ch = row.channelName
+          if (exact.has(ch)) {
+            row.sourceCode = exact.get(ch)!
+          } else {
+            const hit = contains.find((c) => ch.includes(c.raw) || c.raw.includes(ch))
+            if (hit) row.sourceCode = hit.code
+          }
+        }
+      },
+      undefined,
+    )
 
     const bizDates = mapped.rows.map((r) => r.bizDate).sort()
     const watermarkFrom = bizDates[0] ?? null
@@ -326,6 +351,7 @@ export async function ingestManualFacts(
       [inserted, mapped.rejected.length, watermarkFrom, watermarkTo, jobId],
     )
 
+    if (inTx) await pool.query('RELEASE SAVEPOINT sp_manual_ingest')
     return {
       jobId,
       insertedRows: inserted,
@@ -334,6 +360,7 @@ export async function ingestManualFacts(
       sampleRejections: mapped.rejected.slice(0, 20),
     }
   } catch (err: any) {
+    if (inTx) await pool.query('ROLLBACK TO SAVEPOINT sp_manual_ingest')
     await pool.query(
       `UPDATE ingest_sync_jobs SET status = 'failed', error_summary = $1, completed_at = now() WHERE id = $2`,
       [String(err?.message || err).slice(0, 1000), jobId],

@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/db.js'
 
 export interface BusinessLiveSummaryParams {
   date?: string
@@ -52,7 +52,7 @@ export function extractBusinessDate(message: string): string | null {
 }
 
 export async function queryBusinessLiveSummary(
-  pool: Pool,
+  pool: DbExecutor,
   params: BusinessLiveSummaryParams
 ): Promise<BusinessLiveSummary | null> {
   const conditions: string[] = []

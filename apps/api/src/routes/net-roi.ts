@@ -87,6 +87,7 @@ export async function netRoiRoutes(app: FastifyInstance): Promise<void> {
         const cycleFilterSql = filterSql.replaceAll('f.', 'c.')
         const timelineRes = await client.query(
           `SELECT c.id, c.platform_code, p.platform_name, c.shop_id, s.shop_name,
+                  COALESCE(c.business_mode, 'standard') AS business_mode,
                   c.order_date, c.settle_date, c.settlement_cycle_days,
                   c.gross_gmv, c.settled_gmv, c.refund_deducted, c.reserve_held,
                   c.platform_fee, c.ad_spend, c.net_profit,
@@ -99,10 +100,45 @@ export async function netRoiRoutes(app: FastifyInstance): Promise<void> {
           params,
         )
 
+        // 按官方归因窗口分组并折算 7d 可比基准 ROI（让 attribution_window_hours 真正参与计算）
+        const byWindowRes = await client.query(
+          `SELECT
+             COALESCE(f.attribution_window_hours, d.default_attribution_hours, 168)::int AS attribution_window_hours,
+             COUNT(*)::int AS row_count,
+             array_agg(DISTINCT f.platform_code ORDER BY f.platform_code) AS platforms,
+             COALESCE(SUM(f.ad_spend), 0)::numeric(14,2) AS ad_spend,
+             COALESCE(SUM(f.attributed_gross_gmv), 0)::numeric(14,2) AS attributed_gross_gmv,
+             COALESCE(SUM(f.attributed_settled_gmv), 0)::numeric(14,2) AS attributed_settled_gmv
+           FROM public.fact_ad_spend_daily f
+           LEFT JOIN public.ad_tool_dict d ON d.code = f.ad_tool_code
+           WHERE f.biz_date >= $1::date AND f.biz_date <= $2::date ${filterSql}
+           GROUP BY COALESCE(f.attribution_window_hours, d.default_attribution_hours, 168)
+           ORDER BY attribution_window_hours ASC`,
+          params,
+        )
+
+        // 按财务结算模式拆分（如 京东自营 T+45 vs POP T+1 vs 标准）
+        const byBusinessModeRes = await client.query(
+          `SELECT
+             COALESCE(c.business_mode, 'standard') AS business_mode,
+             COUNT(*)::int AS cycle_count,
+             COALESCE(ROUND(AVG(c.settlement_cycle_days)), 0)::int AS avg_settle_days,
+             COALESCE(SUM(c.gross_gmv), 0)::numeric(14,2) AS gross_gmv,
+             COALESCE(SUM(c.settled_gmv), 0)::numeric(14,2) AS settled_gmv,
+             COALESCE(SUM(c.ad_spend), 0)::numeric(14,2) AS ad_spend,
+             COALESCE(SUM(c.net_profit), 0)::numeric(14,2) AS net_profit
+           FROM public.fact_settlement_cycles c
+           WHERE c.order_date >= $1::date AND c.order_date <= $2::date ${cycleFilterSql}
+           GROUP BY COALESCE(c.business_mode, 'standard')
+           ORDER BY business_mode ASC`,
+          params,
+        )
+
         const byToolRes = await client.query(
           `SELECT f.ad_tool_code,
                   d.name AS ad_tool_name,
                   f.platform_code,
+                  COALESCE(f.attribution_window_hours, d.default_attribution_hours, 168)::int AS attribution_window_hours,
                   d.default_attribution_hours,
                   d.impression_window_hours,
                   d.supported_windows,
@@ -117,7 +153,7 @@ export async function netRoiRoutes(app: FastifyInstance): Promise<void> {
            FROM public.fact_ad_spend_daily f
            LEFT JOIN public.ad_tool_dict d ON d.code = f.ad_tool_code
            WHERE f.biz_date >= $1::date AND f.biz_date <= $2::date ${filterSql}
-           GROUP BY f.ad_tool_code, d.name, f.platform_code, d.default_attribution_hours,
+           GROUP BY f.ad_tool_code, d.name, f.platform_code, COALESCE(f.attribution_window_hours, d.default_attribution_hours, 168), d.default_attribution_hours,
                     d.impression_window_hours, d.supported_windows, d.settlement_cycle_days
            ORDER BY ad_spend DESC`,
           params,
@@ -150,14 +186,53 @@ export async function netRoiRoutes(app: FastifyInstance): Promise<void> {
           }
         })
 
+        const normalizeWindowFactor = (hours: number) => (hours >= 360 ? 0.78 : hours >= 336 ? 0.85 : 1.0)
         const byTool = byToolRes.rows.map((r) => {
           const tSpend = Number(r.ad_spend || 0)
           const tGross = Number(r.attributed_gross_gmv || 0)
           const tSettled = Number(r.attributed_settled_gmv || 0)
+          const winHours = Number(r.attribution_window_hours || 168)
+          const factor = normalizeWindowFactor(winHours)
           return {
             ...r,
             pay_roi: tSpend > 0 ? Number((tGross / tSpend).toFixed(2)) : 0,
             net_roi: tSpend > 0 ? Number((tSettled / tSpend).toFixed(2)) : 0,
+            normalized_7d_roi: tSpend > 0 ? Number(((tGross * factor) / tSpend).toFixed(2)) : 0,
+          }
+        })
+
+        const byAttributionWindow = byWindowRes.rows.map((r) => {
+          const wSpend = Number(r.ad_spend || 0)
+          const wGross = Number(r.attributed_gross_gmv || 0)
+          const wSettled = Number(r.attributed_settled_gmv || 0)
+          const winHours = Number(r.attribution_window_hours || 168)
+          const factor = normalizeWindowFactor(winHours)
+          return {
+            attribution_window_hours: winHours,
+            window_days: Number((winHours / 24).toFixed(1)),
+            platforms: r.platforms || [],
+            row_count: Number(r.row_count || 0),
+            ad_spend: wSpend,
+            attributed_gross_gmv: wGross,
+            attributed_settled_gmv: wSettled,
+            raw_pay_roi: wSpend > 0 ? Number((wGross / wSpend).toFixed(2)) : 0,
+            net_roi: wSpend > 0 ? Number((wSettled / wSpend).toFixed(2)) : 0,
+            normalized_7d_roi: wSpend > 0 ? Number(((wGross * factor) / wSpend).toFixed(2)) : 0,
+          }
+        })
+
+        const byBusinessMode = byBusinessModeRes.rows.map((r) => {
+          const mSpend = Number(r.ad_spend || 0)
+          const mSettled = Number(r.settled_gmv || 0)
+          return {
+            business_mode: r.business_mode,
+            cycle_count: Number(r.cycle_count || 0),
+            avg_settle_days: Number(r.avg_settle_days || 0),
+            gross_gmv: Number(r.gross_gmv || 0),
+            settled_gmv: mSettled,
+            ad_spend: mSpend,
+            net_profit: showMargin ? Number(r.net_profit || 0) : null,
+            net_roi: mSpend > 0 ? Number((mSettled / mSpend).toFixed(2)) : 0,
           }
         })
 
@@ -182,6 +257,8 @@ export async function netRoiRoutes(app: FastifyInstance): Promise<void> {
             },
             dualTimeline,
             byTool,
+            byAttributionWindow,
+            byBusinessMode,
           },
         }
       })

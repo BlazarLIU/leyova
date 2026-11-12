@@ -3,6 +3,7 @@ import { Undo2, ShieldCheck, Clock, Plus, RefreshCw } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { useShops } from '@/hooks/useShops'
 import { api } from '@/services/api'
 
 interface AfterSaleTicket {
@@ -74,9 +75,10 @@ export function AfterSalesPage() {
   const [showModal, setShowModal] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
+  const { getShopsByPlatform, getDefaultShopId } = useShops()
   const [form, setForm] = useState({
     platformCode: 'kuaishou',
-    shopId: '6',
+    shopId: '',
     sourceOrderId: '',
     refundType: 'only_refund',
     refundAmount: '229',
@@ -84,6 +86,13 @@ export function AfterSalesPage() {
     reasonDetail: '',
     shopExperienceScore: '4.76',
   })
+
+  useEffect(() => {
+    const nextShopId = getDefaultShopId(form.platformCode, form.shopId)
+    if (nextShopId && nextShopId !== form.shopId) {
+      setForm((prev) => ({ ...prev, shopId: nextShopId }))
+    }
+  }, [form.platformCode, form.shopId, getDefaultShopId])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -329,8 +338,8 @@ export function AfterSalesPage() {
                 <select
                   value={form.platformCode}
                   onChange={(e) => {
-                    const mapShop: Record<string, string> = { douyin: '1', taobao: '2', tmall: '3', jd: '4', pdd: '5', kuaishou: '6', xiaohongshu: '7' }
-                    setForm({ ...form, platformCode: e.target.value, shopId: mapShop[e.target.value] || '1' })
+                    const nextPlatform = e.target.value
+                    setForm({ ...form, platformCode: nextPlatform, shopId: getDefaultShopId(nextPlatform) })
                   }}
                   className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
                 >
@@ -339,9 +348,23 @@ export function AfterSalesPage() {
                   <option value="douyin">抖音</option>
                   <option value="jd">京东 (24h兜底)</option>
                   <option value="taobao">淘宝</option>
+                  <option value="tmall">天猫</option>
                 </select>
-                <input required placeholder="原订单号" value={form.sourceOrderId} onChange={(e) => setForm({ ...form, sourceOrderId: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <select
+                  required
+                  value={form.shopId}
+                  onChange={(e) => setForm({ ...form, shopId: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                >
+                  {getShopsByPlatform(form.platformCode).map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                  {getShopsByPlatform(form.platformCode).length === 0 && (
+                    <option value="">暂无可用店铺</option>
+                  )}
+                </select>
               </div>
+              <input required placeholder="原订单号" value={form.sourceOrderId} onChange={(e) => setForm({ ...form, sourceOrderId: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
               <div className="grid grid-cols-2 gap-3">
                 <select value={form.refundType} onChange={(e) => setForm({ ...form, refundType: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
                   <option value="only_refund">仅退款</option>

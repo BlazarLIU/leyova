@@ -9,7 +9,7 @@
  *   - DSR：三项评分，最近 180 天滚动
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 import { getDefaultCaliber } from '../platform/caliber.js'
 
@@ -52,7 +52,7 @@ export async function getTaobaoShopMetrics(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<TaobaoShopMetrics | null> {
   const p = pool || getPool()
 
@@ -145,7 +145,7 @@ export async function getTaobaoProductStructure(
   from: string,
   to: string,
   limit = 50,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<Array<{
   skuCode: string
   payAmount: number
@@ -191,7 +191,7 @@ export async function getTaobaoChannelSplit(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<Array<{ level1: string; level2: string; gmv: number; visitors: number; share: number }>> {
   const p = pool || getPool()
   const { rows } = await p.query(
@@ -232,7 +232,7 @@ export async function getTaobaoAdReconciliation(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<{
   adPlatform: { spend: number; gmv: number; roi: number }
   merchant: { gmv: number; roi: number }
@@ -244,33 +244,29 @@ export async function getTaobaoAdReconciliation(
 
   const adRes = await p.query(
     `SELECT
-       COALESCE(SUM(ad_spend), 0)::numeric AS spend,
-       COALESCE(SUM(ad_gmv), 0)::numeric   AS ad_gmv
-     FROM fact_ad_daily
+       COALESCE(SUM(ad_spend), 0)::numeric             AS spend,
+       COALESCE(SUM(attributed_gross_gmv), 0)::numeric AS ad_gmv
+     FROM fact_ad_spend_daily
      WHERE shop_id = $1 AND biz_date BETWEEN $2::date AND $3::date`,
     [shopId, from, to],
   )
 
   const tradeRes = await p.query(
     `SELECT COALESCE(SUM(f.gmv), 0)::numeric AS gmv
-       FROM fact_trade_daily f
-       LEFT JOIN platform_caliber_config pcc
-         ON pcc.platform_code = f.platform_code
-        AND pcc.metric_code = 'gmv'
-        AND pcc.is_default = true
+       FROM v_fact_trade_default f
       WHERE f.shop_id = $1
-        AND f.biz_date BETWEEN $2::date AND $3::date
-        AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`,
+        AND f.biz_date BETWEEN $2::date AND $3::date`,
     [shopId, from, to],
   )
 
   const toolRes = await p.query(
     `SELECT
-       COALESCE(ad_tool, '未标注') AS tool,
-       COALESCE(SUM(ad_spend), 0)::numeric AS spend,
-       COALESCE(SUM(ad_gmv), 0)::numeric   AS ad_gmv
-     FROM fact_ad_daily
-     WHERE shop_id = $1 AND biz_date BETWEEN $2::date AND $3::date
+       COALESCE(d.name, f.ad_tool_code, '未标注')        AS tool,
+       COALESCE(SUM(f.ad_spend), 0)::numeric             AS spend,
+       COALESCE(SUM(f.attributed_gross_gmv), 0)::numeric AS ad_gmv
+     FROM fact_ad_spend_daily f
+     LEFT JOIN ad_tool_dict d ON d.code = f.ad_tool_code
+     WHERE f.shop_id = $1 AND f.biz_date BETWEEN $2::date AND $3::date
      GROUP BY 1 ORDER BY ad_gmv DESC`,
     [shopId, from, to],
   )
@@ -312,7 +308,7 @@ export async function getTaobaoAdReconciliation(
  */
 export async function getTaobaoDsrStatus(
   shopId: number,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<{
   dsr: { descriptionMatch: number | null; serviceAttitude: number | null; logisticsService: number | null }
   window: string

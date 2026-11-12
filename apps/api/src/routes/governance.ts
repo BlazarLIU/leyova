@@ -14,7 +14,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext, withRlsPool } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 import {
@@ -28,14 +28,6 @@ import {
 } from '../modules/data-governance/index.js'
 
 export async function governanceRoutes(app: FastifyInstance) {
-  const pool = getPool()
-  const ingestionService = new IngestionService(pool)
-  const cleanerService = new CleanerService(pool)
-  const validationService = new ValidationService(pool)
-  const reconciliationService = new ReconciliationService(pool)
-  const reviewService = new ReviewService(pool)
-  const publishingService = new PublishingService(pool)
-
   // ── 1. GET /api/v1/governance/platforms/specs ── 7 大主流电商平台 API 技术规范
   app.get('/api/v1/governance/platforms/specs', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -85,7 +77,7 @@ export async function governanceRoutes(app: FastifyInstance) {
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `
       params.push(parseInt(limit), parseInt(offset))
-      const { rows } = await pool.query(sql, params)
+      const { rows } = await withRlsContext(request, (client) => client.query(sql, params))
 
       return sendOk(reply, {
         list: rows,
@@ -104,7 +96,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   }>, reply: FastifyReply) => {
     try {
       const batchId = parseInt(request.params.id)
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT b.*, s.shop_name,
                 f.original_filename, f.file_size_bytes, f.sha256 as file_sha256
          FROM import_batches b
@@ -112,7 +104,7 @@ export async function governanceRoutes(app: FastifyInstance) {
          LEFT JOIN import_files f ON f.batch_id = b.id
          WHERE b.id = $1`,
         [batchId]
-      )
+      ))
       if (rows.length === 0) {
         return sendError(reply, 404, '批次不存在')
       }
@@ -128,13 +120,15 @@ export async function governanceRoutes(app: FastifyInstance) {
   }>('/api/v1/governance/ingest/api', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const user = (request as any).user
-      const result = await ingestionService.ingestFromApi({
-        platformCode: request.body.platformCode,
-        shopId: Number(request.body.shopId),
-        datasetType: request.body.datasetType,
-        sinceTime: request.body.sinceTime,
-        userId: user?.id,
-      })
+      const result = await withRlsPool(request, (rlsPool) =>
+        new IngestionService(rlsPool).ingestFromApi({
+          platformCode: request.body.platformCode,
+          shopId: Number(request.body.shopId),
+          datasetType: request.body.datasetType,
+          sinceTime: request.body.sinceTime,
+          userId: user?.id,
+        })
+      )
       return sendOk(reply, result)
     } catch (err: any) {
       request.log.error({ err }, 'OpenAPI ingest failed')
@@ -157,15 +151,17 @@ export async function governanceRoutes(app: FastifyInstance) {
       const datasetType = (fields.datasetType?.value || 'orders') as 'orders' | 'refunds'
       const user = (request as any).user
 
-      const result = await ingestionService.ingestFromFile({
-        platformCode,
-        shopId,
-        datasetType,
-        fileBuffer,
-        originalFilename: data.filename,
-        mimeType: data.mimetype,
-        userId: user?.id,
-      })
+      const result = await withRlsPool(request, (rlsPool) =>
+        new IngestionService(rlsPool).ingestFromFile({
+          platformCode,
+          shopId,
+          datasetType,
+          fileBuffer,
+          originalFilename: data.filename,
+          mimeType: data.mimetype,
+          userId: user?.id,
+        })
+      )
 
       return sendOk(reply, result)
     } catch (err: any) {
@@ -180,7 +176,9 @@ export async function governanceRoutes(app: FastifyInstance) {
   }>('/api/v1/governance/batches/:id/clean', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
-      const result = await cleanerService.cleanBatch(batchId)
+      const result = await withRlsPool(request, (rlsPool) =>
+        new CleanerService(rlsPool).cleanBatch(batchId)
+      )
       return sendOk(reply, result)
     } catch (err: any) {
       return sendError(reply, 500, err.message)
@@ -194,23 +192,29 @@ export async function governanceRoutes(app: FastifyInstance) {
   }>('/api/v1/governance/batches/:id/validate', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
-      let runId = request.body?.cleaningRunId
-      if (!runId) {
-        const { rows } = await pool.query(
-          `SELECT id FROM cleaning_runs WHERE batch_id = $1 ORDER BY id DESC LIMIT 1`,
-          [batchId]
-        )
-        if (rows.length === 0) {
-          return sendError(reply, 400, '该批次尚未执行过清洗，请先执行清洗')
+      const outcome = await withRlsPool(request, async (rlsPool) => {
+        let runId = request.body?.cleaningRunId
+        if (!runId) {
+          const { rows } = await rlsPool.query(
+            `SELECT id FROM cleaning_runs WHERE batch_id = $1 ORDER BY id DESC LIMIT 1`,
+            [batchId]
+          )
+          if (rows.length === 0) {
+            return { missingRun: true as const }
+          }
+          runId = Number(rows[0].id)
         }
-        runId = Number(rows[0].id)
-      }
 
-      const result = await validationService.validateCleaningRun(runId, {
-        controlTotalAmount: request.body?.controlTotalAmount,
-        tolerance: request.body?.tolerance,
+        const result = await new ValidationService(rlsPool).validateCleaningRun(runId, {
+          controlTotalAmount: request.body?.controlTotalAmount,
+          tolerance: request.body?.tolerance,
+        })
+        return { missingRun: false as const, result }
       })
-      return sendOk(reply, result)
+      if (outcome.missingRun) {
+        return sendError(reply, 400, '该批次尚未执行过清洗，请先执行清洗')
+      }
+      return sendOk(reply, outcome.result)
     } catch (err: any) {
       return sendError(reply, 500, err.message)
     }
@@ -222,7 +226,9 @@ export async function governanceRoutes(app: FastifyInstance) {
   }>, reply: FastifyReply) => {
     try {
       const batchId = parseInt(request.params.id)
-      const issues = await reviewService.getBatchIssues(batchId)
+      const issues = await withRlsPool(request, (rlsPool) =>
+        new ReviewService(rlsPool).getBatchIssues(batchId)
+      )
       return sendOk(reply, issues)
     } catch (err: any) {
       return sendError(reply, 500, err.message)
@@ -237,19 +243,22 @@ export async function governanceRoutes(app: FastifyInstance) {
     try {
       const issueId = parseInt(request.params.id)
       const user = (request as any).user
-      const result = await reviewService.resolveIssue({
-        issueId,
-        reviewerId: user.id,
-        decision: request.body.decision,
-        reason: request.body.reason,
-        fixedValues: request.body.fixedValues,
-      })
-      await writeAuditLog(pool, {
-        request,
-        action: 'governance.issue.resolve',
-        resourceType: 'data_quality_issues',
-        resourceId: issueId,
-        afterData: { decision: request.body.decision, reason: request.body.reason },
+      const result = await withRlsPool(request, async (rlsPool) => {
+        const res = await new ReviewService(rlsPool).resolveIssue({
+          issueId,
+          reviewerId: user.id,
+          decision: request.body.decision,
+          reason: request.body.reason,
+          fixedValues: request.body.fixedValues,
+        })
+        await writeAuditLog(rlsPool, {
+          request,
+          action: 'governance.issue.resolve',
+          resourceType: 'data_quality_issues',
+          resourceId: issueId,
+          afterData: { decision: request.body.decision, reason: request.body.reason },
+        })
+        return res
       })
       return sendOk(reply, result)
     } catch (err: any) {
@@ -264,14 +273,16 @@ export async function governanceRoutes(app: FastifyInstance) {
   }>('/api/v1/governance/batches/:id/reconcile', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator', 'finance'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
-      const results = await reconciliationService.reconcileBatch({
-        batchId,
-        controlTotals: {
-          expectedRowCount: request.body?.expectedRowCount,
-          expectedTotalAmount: request.body?.expectedTotalAmount,
-          tolerance: request.body?.tolerance,
-        },
-      })
+      const results = await withRlsPool(request, (rlsPool) =>
+        new ReconciliationService(rlsPool).reconcileBatch({
+          batchId,
+          controlTotals: {
+            expectedRowCount: request.body?.expectedRowCount,
+            expectedTotalAmount: request.body?.expectedTotalAmount,
+            tolerance: request.body?.tolerance,
+          },
+        })
+      )
       return sendOk(reply, results)
     } catch (err: any) {
       return sendError(reply, 500, err.message)
@@ -286,18 +297,21 @@ export async function governanceRoutes(app: FastifyInstance) {
     try {
       const batchId = parseInt(request.params.id)
       const user = (request as any).user
-      const result = await publishingService.publishBatch({
-        batchId,
-        userId: user.id,
-        policyVersion: request.body?.policyVersion,
-        allowPartial: request.body?.allowPartial,
-      })
-      await writeAuditLog(pool, {
-        request,
-        action: 'governance.batch.publish',
-        resourceType: 'import_batches',
-        resourceId: batchId,
-        afterData: result,
+      const result = await withRlsPool(request, async (rlsPool) => {
+        const res = await new PublishingService(rlsPool).publishBatch({
+          batchId,
+          userId: user.id,
+          policyVersion: request.body?.policyVersion,
+          allowPartial: request.body?.allowPartial,
+        })
+        await writeAuditLog(rlsPool, {
+          request,
+          action: 'governance.batch.publish',
+          resourceType: 'import_batches',
+          resourceId: batchId,
+          afterData: res,
+        })
+        return res
       })
       return sendOk(reply, result)
     } catch (err: any) {
@@ -314,13 +328,16 @@ export async function governanceRoutes(app: FastifyInstance) {
     try {
       const publishRunId = parseInt(request.params.id)
       const user = (request as any).user
-      const result = await publishingService.reverseBatch(publishRunId, request.body.reason, user.id)
-      await writeAuditLog(pool, {
-        request,
-        action: 'governance.publish.reverse',
-        resourceType: 'publish_runs',
-        resourceId: publishRunId,
-        afterData: { reason: request.body.reason, result },
+      const result = await withRlsPool(request, async (rlsPool) => {
+        const res = await new PublishingService(rlsPool).reverseBatch(publishRunId, request.body.reason, user.id)
+        await writeAuditLog(rlsPool, {
+          request,
+          action: 'governance.publish.reverse',
+          resourceType: 'publish_runs',
+          resourceId: publishRunId,
+          afterData: { reason: request.body.reason, result: res },
+        })
+        return res
       })
       return sendOk(reply, result)
     } catch (err: any) {
@@ -344,7 +361,7 @@ export async function governanceRoutes(app: FastifyInstance) {
       conds.push(`ea.source_platform = $${params.length}`)
     }
     const whereSql = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
-    const { rows } = await pool.query(
+    const { rows } = await withRlsContext(request, (client) => client.query(
       `SELECT ea.*, p.platform_name, u.real_name AS approved_by_name
        FROM public.entity_aliases ea
        LEFT JOIN public.system_platform_configs p ON p.platform_code = ea.source_platform
@@ -352,7 +369,7 @@ export async function governanceRoutes(app: FastifyInstance) {
        ${whereSql}
        ORDER BY ea.id DESC LIMIT 200`,
       params,
-    )
+    ))
     return sendOk(reply, rows)
   })
 
@@ -375,35 +392,38 @@ export async function governanceRoutes(app: FastifyInstance) {
       return sendError(reply, 400, '缺少必要参数 (entityType, sourcePlatform, externalId, internalId)')
     }
     const actor = (request as any).user
-    const { rows } = await pool.query(
-      `INSERT INTO public.entity_aliases
-         (entity_type, source_platform, external_id, external_name, internal_id, internal_code, valid_from, valid_to, approved_by)
-       VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7::date, '2020-01-01'::date), COALESCE($8::date, '2099-12-31'::date), $9)
-       ON CONFLICT (entity_type, source_platform, external_id, valid_from) DO UPDATE SET
-         external_name = EXCLUDED.external_name,
-         internal_id = EXCLUDED.internal_id,
-         internal_code = EXCLUDED.internal_code,
-         valid_to = EXCLUDED.valid_to,
-         approved_by = EXCLUDED.approved_by
-       RETURNING *`,
-      [
-        b.entityType.trim(),
-        b.sourcePlatform.trim(),
-        b.externalId.trim(),
-        b.externalName || '',
-        Number(b.internalId),
-        b.internalCode || '',
-        b.validFrom || null,
-        b.validTo || null,
-        actor?.id || null,
-      ],
-    )
-    await writeAuditLog(pool, {
-      request,
-      action: 'governance.entity_alias.upsert',
-      resourceType: 'entity_aliases',
-      resourceId: rows[0].id,
-      afterData: rows[0],
+    const { rows } = await withRlsContext(request, async (client) => {
+      const res = await client.query(
+        `INSERT INTO public.entity_aliases
+           (entity_type, source_platform, external_id, external_name, internal_id, internal_code, valid_from, valid_to, approved_by)
+         VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7::date, '2020-01-01'::date), COALESCE($8::date, '2099-12-31'::date), $9)
+         ON CONFLICT (entity_type, source_platform, external_id, valid_from) DO UPDATE SET
+           external_name = EXCLUDED.external_name,
+           internal_id = EXCLUDED.internal_id,
+           internal_code = EXCLUDED.internal_code,
+           valid_to = EXCLUDED.valid_to,
+           approved_by = EXCLUDED.approved_by
+         RETURNING *`,
+        [
+          b.entityType.trim(),
+          b.sourcePlatform.trim(),
+          b.externalId.trim(),
+          b.externalName || '',
+          Number(b.internalId),
+          b.internalCode || '',
+          b.validFrom || null,
+          b.validTo || null,
+          actor?.id || null,
+        ],
+      )
+      await writeAuditLog(client, {
+        request,
+        action: 'governance.entity_alias.upsert',
+        resourceType: 'entity_aliases',
+        resourceId: res.rows[0].id,
+        afterData: res.rows[0],
+      })
+      return res
     })
     return sendOk(reply, rows[0], '实体别名映射已保存')
   })
@@ -413,16 +433,20 @@ export async function governanceRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     const id = Number(request.params.id)
     if (!Number.isInteger(id) || id <= 0) return sendError(reply, 400, '无效 ID')
-    const before = await pool.query('SELECT * FROM public.entity_aliases WHERE id = $1', [id])
-    if (before.rows.length === 0) return sendError(reply, 404, '映射记录不存在')
-    await pool.query('DELETE FROM public.entity_aliases WHERE id = $1', [id])
-    await writeAuditLog(pool, {
-      request,
-      action: 'governance.entity_alias.delete',
-      resourceType: 'entity_aliases',
-      resourceId: id,
-      beforeData: before.rows[0],
+    const found = await withRlsContext(request, async (client) => {
+      const before = await client.query('SELECT * FROM public.entity_aliases WHERE id = $1', [id])
+      if (before.rows.length === 0) return false
+      await client.query('DELETE FROM public.entity_aliases WHERE id = $1', [id])
+      await writeAuditLog(client, {
+        request,
+        action: 'governance.entity_alias.delete',
+        resourceType: 'entity_aliases',
+        resourceId: id,
+        beforeData: before.rows[0],
+      })
+      return true
     })
+    if (!found) return sendError(reply, 404, '映射记录不存在')
     return sendOk(reply, { deleted: true, id })
   })
 
@@ -442,10 +466,10 @@ export async function governanceRoutes(app: FastifyInstance) {
       conds.push(`dataset_type = $${params.length}`)
     }
     const whereSql = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
-    const { rows } = await pool.query(
+    const { rows } = await withRlsContext(request, (client) => client.query(
       `SELECT * FROM public.field_mapping_rules ${whereSql} ORDER BY source_platform, dataset_type, version DESC, id ASC`,
       params,
-    )
+    ))
     return sendOk(reply, rows)
   })
 
@@ -468,34 +492,37 @@ export async function governanceRoutes(app: FastifyInstance) {
     if (!b.mappingCode || !b.sourcePlatform || !b.datasetType || !b.sourceField || !b.canonicalField) {
       return sendError(reply, 400, '缺少必要参数')
     }
-    const { rows } = await pool.query(
-      `INSERT INTO public.field_mapping_rules
-         (mapping_code, version, source_platform, dataset_type, source_field, canonical_field, transform, required, approval_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       ON CONFLICT (source_platform, dataset_type, mapping_code, version, source_field) DO UPDATE SET
-         canonical_field = EXCLUDED.canonical_field,
-         transform = EXCLUDED.transform,
-         required = EXCLUDED.required,
-         approval_status = EXCLUDED.approval_status
-       RETURNING *`,
-      [
-        b.mappingCode.trim(),
-        Number(b.version || 1),
-        b.sourcePlatform.trim(),
-        b.datasetType.trim(),
-        b.sourceField.trim(),
-        b.canonicalField.trim(),
-        b.transform || 'identity',
-        Boolean(b.required),
-        b.approvalStatus || 'approved',
-      ],
-    )
-    await writeAuditLog(pool, {
-      request,
-      action: 'governance.field_mapping.upsert',
-      resourceType: 'field_mapping_rules',
-      resourceId: rows[0].id,
-      afterData: rows[0],
+    const { rows } = await withRlsContext(request, async (client) => {
+      const res = await client.query(
+        `INSERT INTO public.field_mapping_rules
+           (mapping_code, version, source_platform, dataset_type, source_field, canonical_field, transform, required, approval_status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (source_platform, dataset_type, mapping_code, version, source_field) DO UPDATE SET
+           canonical_field = EXCLUDED.canonical_field,
+           transform = EXCLUDED.transform,
+           required = EXCLUDED.required,
+           approval_status = EXCLUDED.approval_status
+         RETURNING *`,
+        [
+          b.mappingCode.trim(),
+          Number(b.version || 1),
+          b.sourcePlatform.trim(),
+          b.datasetType.trim(),
+          b.sourceField.trim(),
+          b.canonicalField.trim(),
+          b.transform || 'identity',
+          Boolean(b.required),
+          b.approvalStatus || 'approved',
+        ],
+      )
+      await writeAuditLog(client, {
+        request,
+        action: 'governance.field_mapping.upsert',
+        resourceType: 'field_mapping_rules',
+        resourceId: res.rows[0].id,
+        afterData: res.rows[0],
+      })
+      return res
     })
     return sendOk(reply, rows[0], '字段映射规则已保存')
   })

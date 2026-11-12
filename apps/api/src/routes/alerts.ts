@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { sendOk, sendError } from '../lib/http.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
@@ -7,9 +7,8 @@ import { writeAuditLog } from '../lib/audit.js'
 export async function alertRulesRoutes(app: FastifyInstance) {
   // ── GET /api/v1/alerts/rules ── 获取自定义指标告警规则列表
   app.get('/api/v1/alerts/rules', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(`
+      const { rows } = await withRlsContext(request, (client) => client.query(`
         SELECT
           r.id,
           r.name AS "ruleName",
@@ -29,7 +28,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
         LEFT JOIN public.dim_shop s ON r.shop_id = s.id
         LEFT JOIN public.system_platform_configs sp ON r.platform_code = sp.platform_code
         ORDER BY r.id DESC
-      `)
+      `))
 
       return sendOk(reply, rows)
     } catch (err: any) {
@@ -40,7 +39,6 @@ export async function alertRulesRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/alerts/rules ── 创建告警规则
   app.post('/api/v1/alerts/rules', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     const {
       ruleName,
       shopId,
@@ -58,7 +56,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
     }
 
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `
         INSERT INTO public.alert_rules (
           name, shop_id, platform_code, metric, condition, threshold, notify_channels, severity, enabled
@@ -77,7 +75,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
           severity,
           isActive,
         ]
-      )
+      ))
 
       return sendOk(reply, rows[0], '告警规则创建成功')
     } catch (err: any) {
@@ -88,7 +86,6 @@ export async function alertRulesRoutes(app: FastifyInstance) {
 
   // ── PUT /api/v1/alerts/rules/:id ── 更新规则
   app.put('/api/v1/alerts/rules/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     const { id } = request.params as { id: string }
     const { ruleName, condition, threshold, notifyChannels, severity, isActive } = request.body as any
 
@@ -123,7 +120,7 @@ export async function alertRulesRoutes(app: FastifyInstance) {
       }
 
       const sql = `UPDATE public.alert_rules SET ${updates.join(', ')} WHERE id = $1 RETURNING *`
-      const { rows } = await pool.query(sql, params)
+      const { rows } = await withRlsContext(request, (client) => client.query(sql, params))
 
       if (rows.length === 0) {
         return sendError(reply, 404, '规则不存在')
@@ -138,21 +135,25 @@ export async function alertRulesRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/alerts/rules/:id ── 删除规则
   app.delete('/api/v1/alerts/rules/:id', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     const { id } = request.params as { id: string }
     try {
-      const beforeRes = await pool.query('SELECT * FROM public.alert_rules WHERE id = $1', [Number(id)])
-      const { rowCount } = await pool.query('DELETE FROM public.alert_rules WHERE id = $1', [Number(id)])
+      const { rowCount } = await withRlsContext(request, async (client) => {
+        const beforeRes = await client.query('SELECT * FROM public.alert_rules WHERE id = $1', [Number(id)])
+        const delRes = await client.query('DELETE FROM public.alert_rules WHERE id = $1', [Number(id)])
+        if ((delRes.rowCount ?? 0) > 0) {
+          await writeAuditLog(client, {
+            request,
+            action: 'alerts.rule.delete',
+            resourceType: 'alert_rules',
+            resourceId: id,
+            beforeData: beforeRes.rows[0] ?? null,
+          })
+        }
+        return delRes
+      })
       if (rowCount === 0) {
         return sendError(reply, 404, '规则不存在')
       }
-      await writeAuditLog(pool, {
-        request,
-        action: 'alerts.rule.delete',
-        resourceType: 'alert_rules',
-        resourceId: id,
-        beforeData: beforeRes.rows[0] ?? null,
-      })
       return sendOk(reply, { success: true }, '告警规则已删除')
     } catch (err: any) {
       request.log.error(err, 'Failed to delete alert rule')
@@ -207,7 +208,6 @@ export async function alertRulesRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/alerts/events ── 查询告警事件列表（支持状态过滤与分页）
   app.get('/api/v1/alerts/events', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
     const { status, limit = '50', offset = '0' } = request.query as any
 
     try {
@@ -231,9 +231,14 @@ export async function alertRulesRoutes(app: FastifyInstance) {
         ORDER BY event_time DESC, id DESC
         LIMIT $${params.length - 1} OFFSET $${params.length}
       `
-      const { rows } = await pool.query(query, params)
-
-      const countRes = await pool.query(`SELECT count(*)::int as total FROM public.alert_events ${whereClause}`, conds.length > 0 ? [status] : [])
+      const { rows, countRes } = await withRlsContext(request, async (client) => {
+        const listRes = await client.query(query, params)
+        const cntRes = await client.query(
+          `SELECT count(*)::int as total FROM public.alert_events ${whereClause}`,
+          conds.length > 0 ? [status] : []
+        )
+        return { rows: listRes.rows, countRes: cntRes }
+      })
 
       return sendOk(reply, {
         total: countRes.rows[0]?.total || 0,
@@ -247,7 +252,6 @@ export async function alertRulesRoutes(app: FastifyInstance) {
 
   // ── PUT /api/v1/alerts/events/:id/status ── 推进/解决单条告警事件
   app.put('/api/v1/alerts/events/:id/status', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
-    const pool = getPool()
     const { id } = request.params as { id: string }
     const { status } = request.body as { status: 'pending' | 'processing' | 'resolved' }
 
@@ -256,13 +260,13 @@ export async function alertRulesRoutes(app: FastifyInstance) {
     }
 
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `UPDATE public.alert_events
          SET status = $1, updated_at = NOW()
          WHERE id = $2
          RETURNING id, severity, title, status, updated_at`,
         [status, Number(id)]
-      )
+      ))
 
       if (rows.length === 0) {
         return sendError(reply, 404, '告警事件不存在')
@@ -277,18 +281,20 @@ export async function alertRulesRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/alerts/events/resolve-all ── 一键闭环所有待处理告警
   app.post('/api/v1/alerts/events/resolve-all', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rowCount } = await pool.query(
-        `UPDATE public.alert_events
-         SET status = 'resolved', updated_at = NOW()
-         WHERE status IN ('pending', 'processing')`
-      )
-      await writeAuditLog(pool, {
-        request,
-        action: 'alerts.events.resolve_all',
-        resourceType: 'alert_events',
-        afterData: { resolvedCount: rowCount },
+      const { rowCount } = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `UPDATE public.alert_events
+           SET status = 'resolved', updated_at = NOW()
+           WHERE status IN ('pending', 'processing')`
+        )
+        await writeAuditLog(client, {
+          request,
+          action: 'alerts.events.resolve_all',
+          resourceType: 'alert_events',
+          afterData: { resolvedCount: res.rowCount },
+        })
+        return res
       })
       return sendOk(reply, { resolvedCount: rowCount }, `已一键闭环 ${rowCount} 条未决告警事件`)
     } catch (err: any) {

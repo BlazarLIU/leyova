@@ -11,15 +11,13 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { runAnalysis, type AnalysisMode } from '../ai/orchestrator.js'
 import { resolveScope, listMetrics, listDimensions } from '../ai/semantic-layer.js'
 import { listPlatformMetrics } from '../ai/platform-metrics.js'
 
 export async function analysisRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   // ── GET /api/v1/analysis/metrics ──
   app.get('/api/v1/analysis/metrics', async (request, reply) => {
     const user = await requireAuth(request, reply)
@@ -46,22 +44,23 @@ export async function analysisRoutes(app: FastifyInstance) {
       if (!question) return sendError(reply, 400, '问题不能为空')
 
       const user = (request as any).user
-      const scope = await resolveScope(pool, user?.role)
-
-      const result = await runAnalysis(
-        {
-          question,
-          mode: body.mode,
-          timeRange: body.timeRange,
-          filters: body.filters,
-          userId: user?.id,
-          conversationId: body.conversationId,
-          role: user?.role,
-          platformCode: body.platformCode || body.filters?.platform,
-        },
-        scope,
-        pool,
-      )
+      const result = await withRlsContext(request, async (client) => {
+        const scope = await resolveScope(client, user?.role)
+        return runAnalysis(
+          {
+            question,
+            mode: body.mode,
+            timeRange: body.timeRange,
+            filters: body.filters,
+            userId: user?.id,
+            conversationId: body.conversationId,
+            role: user?.role,
+            platformCode: body.platformCode || body.filters?.platform,
+          },
+          scope,
+          client,
+        )
+      })
 
       // 数字溯源未通过时，明确告知前端
       const message = result.verification.passed
@@ -98,13 +97,15 @@ export async function analysisRoutes(app: FastifyInstance) {
     try {
       const lim = Math.min(parseInt(request.query.limit || '30', 10) || 30, 100)
       const isPrivileged = user.role === 'super_admin' || user.role === 'admin'
-      const { rows } = await pool.query(
-        isPrivileged
-          ? `SELECT id, conversation_id, mode, question, status, verdict, duration_ms, created_at
-               FROM ai_analysis_runs ORDER BY created_at DESC LIMIT $1`
-          : `SELECT id, conversation_id, mode, question, status, verdict, duration_ms, created_at
-               FROM ai_analysis_runs WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`,
-        isPrivileged ? [lim] : [user.id, lim],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          isPrivileged
+            ? `SELECT id, conversation_id, mode, question, status, verdict, duration_ms, created_at
+                 FROM ai_analysis_runs ORDER BY created_at DESC LIMIT $1`
+            : `SELECT id, conversation_id, mode, question, status, verdict, duration_ms, created_at
+                 FROM ai_analysis_runs WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`,
+          isPrivileged ? [lim] : [user.id, lim],
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -120,19 +121,23 @@ export async function analysisRoutes(app: FastifyInstance) {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
 
-      const run = await pool.query(`SELECT * FROM ai_analysis_runs WHERE id = $1`, [id])
-      if (run.rows.length === 0) return sendError(reply, 404, '分析记录不存在')
       const isPrivileged = user.role === 'super_admin' || user.role === 'admin'
-      if (!isPrivileged && run.rows[0].user_id !== user.id) {
-        return sendError(reply, 403, '无权查看他人分析详情')
-      }
-
-      const steps = await pool.query(
-        `SELECT seq, role, tool_name, input, output_ref, row_count, duration_ms, status, error
-           FROM ai_analysis_steps WHERE run_id = $1 ORDER BY seq`,
-        [id],
-      )
-      return sendOk(reply, { run: run.rows[0], steps: steps.rows })
+      const outcome = await withRlsContext(request, async (client) => {
+        const run = await client.query(`SELECT * FROM ai_analysis_runs WHERE id = $1`, [id])
+        if (run.rows.length === 0) return { status: 404 as const }
+        if (!isPrivileged && run.rows[0].user_id !== user.id) {
+          return { status: 403 as const }
+        }
+        const steps = await client.query(
+          `SELECT seq, role, tool_name, input, output_ref, row_count, duration_ms, status, error
+             FROM ai_analysis_steps WHERE run_id = $1 ORDER BY seq`,
+          [id],
+        )
+        return { status: 200 as const, run: run.rows[0], steps: steps.rows }
+      })
+      if (outcome.status === 404) return sendError(reply, 404, '分析记录不存在')
+      if (outcome.status === 403) return sendError(reply, 403, '无权查看他人分析详情')
+      return sendOk(reply, { run: outcome.run, steps: outcome.steps })
     } catch (err) {
       return sendError(reply, 500, '获取分析详情失败')
     }

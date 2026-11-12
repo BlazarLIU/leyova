@@ -1,22 +1,21 @@
 import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
 import { sendOk } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireRole } from '../lib/guard.js'
 
 export async function personnelRoutes(app: FastifyInstance) {
   // ── GET /api/v1/personnel/anchors ──
   app.get('/api/v1/personnel/anchors', async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT a.id, a.name, a.level, a.status, COALESCE(ap.phone, '') AS phone,
                 COALESCE(ap.email, '') AS email, a.created_at AS "createdAt"
          FROM anchors a
          LEFT JOIN anchor_profiles ap ON ap.id = a.id
          WHERE a.status = 1
          ORDER BY a.id`
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       request.log.warn({ err }, 'personnel/anchors query failed')
@@ -26,14 +25,13 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/personnel/anchors ──
   app.post('/api/v1/personnel/anchors', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as { name?: string; level?: string; status?: number }
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `INSERT INTO anchors (name, level, status)
          VALUES ($1, $2, $3) RETURNING id, name, level, status, created_at`,
         [body.name || '新主播', body.level || 'B', body.status ?? 1]
-      )
+      ))
       if (rows.length === 0) return sendOk(reply, { error: '创建失败' })
       return sendOk(reply, rows[0])
     } catch (err) {
@@ -45,13 +43,12 @@ export async function personnelRoutes(app: FastifyInstance) {
   // ── DELETE /api/v1/personnel/anchors/:id ──
   // 软删除：仅标记 status=0，保留历史出勤数据
   app.delete('/api/v1/personnel/anchors/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      const result = await pool.query(
+      const result = await withRlsContext(request, (client) => client.query(
         'UPDATE anchors SET status = 0 WHERE id = $1',
         [parseInt(id)]
-      )
+      ))
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0 })
     } catch (err) {
       request.log.warn({ err }, 'personnel/anchors delete failed')
@@ -61,12 +58,11 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/personnel/operators ──
   app.get('/api/v1/personnel/operators', async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT id, name, employee_id AS "employeeId", status, created_at AS "createdAt"
          FROM operators WHERE status = 1 ORDER BY id`
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       request.log.warn({ err }, 'personnel/operators query failed')
@@ -76,13 +72,12 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/personnel/operators ──
   app.post('/api/v1/personnel/operators', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as { name?: string; employeeId?: string; status?: number }
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `INSERT INTO operators (name, employee_id, status)\n         VALUES ($1, $2, $3) RETURNING id, name, employee_id AS \"employeeId\", status, created_at AS \"createdAt\"`,
         [body.name || '新中控', body.employeeId || '', body.status ?? 1]
-      )
+      ))
       if (rows.length === 0) return sendOk(reply, { error: '创建失败' })
       return sendOk(reply, rows[0])
     } catch (err) {
@@ -93,14 +88,13 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── PUT /api/v1/personnel/anchors/:id ──
   app.put('/api/v1/personnel/anchors/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const body = request.body as { name?: string; level?: string; status?: number }
-      await pool.query(
+      await withRlsContext(request, (client) => client.query(
         `UPDATE anchors SET name = COALESCE($1, name), level = COALESCE($2, level), status = COALESCE($3, status) WHERE id = $4`,
         [body.name, body.level, body.status ?? null, parseInt(id)]
-      )
+      ))
       return sendOk(reply, { updated: true })
     } catch (err) {
       request.log.warn({ err }, 'personnel/anchors update failed')
@@ -111,13 +105,12 @@ export async function personnelRoutes(app: FastifyInstance) {
   // ── DELETE /api/v1/personnel/operators/:id ──
   // 软删除：仅标记 status=0，保留历史出勤数据
   app.delete('/api/v1/personnel/operators/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      const result = await pool.query(
+      const result = await withRlsContext(request, (client) => client.query(
         'UPDATE operators SET status = 0 WHERE id = $1',
         [parseInt(id)]
-      )
+      ))
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0 })
     } catch (err) {
       request.log.warn({ err }, 'personnel/operators delete failed')
@@ -127,14 +120,13 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── PUT /api/v1/personnel/operators/:id ──
   app.put('/api/v1/personnel/operators/:id', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const body = request.body as { name?: string; employeeId?: string; status?: number }
-      await pool.query(
+      await withRlsContext(request, (client) => client.query(
         `UPDATE operators SET name = COALESCE($1, name), employee_id = COALESCE($2, employee_id), status = COALESCE($3, status) WHERE id = $4`,
         [body.name, body.employeeId, body.status ?? null, parseInt(id)]
-      )
+      ))
       return sendOk(reply, { updated: true })
     } catch (err) {
       request.log.warn({ err }, 'personnel/operators update failed')
@@ -144,12 +136,11 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/personnel/managers ── (from users with role=manager)
   app.get('/api/v1/personnel/managers', { preHandler: [requireRole(['super_admin', 'admin', 'hrbp', 'ops_director'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT id, username, real_name AS "realName", status, created_at AS "createdAt"
          FROM users WHERE role IN ('admin', 'manager') AND status = 1 ORDER BY id`
-      )
+      ))
       return sendOk(reply, rows)
     } catch (err) {
       request.log.warn({ err }, 'personnel/managers query failed')
@@ -159,7 +150,6 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/personnel/managers ──
   app.post('/api/v1/personnel/managers', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as { username?: string; realName?: string; status?: number }
       const { env } = await import('../config/env.js')
@@ -167,10 +157,10 @@ export async function personnelRoutes(app: FastifyInstance) {
         return sendOk(reply, { error: '未配置默认密码（DEFAULT_USER_PASSWORD），无法创建账号' })
       }
       const hash = bcrypt.hashSync(env.DEFAULT_USER_PASSWORD, 10)
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `INSERT INTO users (username, password_hash, real_name, role, status)\n         VALUES ($1, $2, $3, 'ops_staff', $4) RETURNING id, username, real_name AS \"realName\", status, created_at AS \"createdAt\"`,
         [body.username || 'new_ops', hash, body.realName || '新运营', body.status ?? 1]
-      )
+      ))
       if (rows.length === 0) return sendOk(reply, { error: '创建失败' })
       return sendOk(reply, rows[0])
     } catch (err) {
@@ -181,13 +171,12 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/personnel/managers/:id ──
   app.delete('/api/v1/personnel/managers/:id', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      const result = await pool.query(
+      const result = await withRlsContext(request, (client) => client.query(
         `DELETE FROM users WHERE id = $1 AND role IN ('admin', 'manager')`,
         [parseInt(id)]
-      )
+      ))
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0 })
     } catch (err) {
       request.log.warn({ err }, 'personnel/managers delete failed')
@@ -197,7 +186,6 @@ export async function personnelRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/attendance ── (frontend: /attendance?year=&month=)
   app.get('/api/v1/attendance', async (request, reply) => {
-    const pool = getPool()
     try {
       const query = request.query as { year?: string; month?: string }
       const now = new Date()
@@ -206,28 +194,31 @@ export async function personnelRoutes(app: FastifyInstance) {
 
       const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
-      // Get all anchors（包括已离职的，确保历史数据仍可显示）
-      const anchorsRes = await pool.query('SELECT id, name FROM anchors ORDER BY name')
-      // Get all operators（包括已离职的，确保历史数据仍可显示）
-      const operatorsRes = await pool.query('SELECT id, name FROM operators ORDER BY name')
-
       // Sessions for the selected month
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`
       const endDate = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`
 
-      // 个人达成数据来源：人工登记表（独立模块）
-      // 字段映射：biz_date → date, return_amount → return_amount,
-      //           gsv 无对应（人工登记不记 gsv），用 0 占位保持下游逻辑不变
-      const sessionsRes = await pool.query(
-        `SELECT s.id, s.anchor_id, s.operator_id, s.biz_date::text AS date,
-                s.duration_min, s.start_time::text, s.gmv,
-                0::numeric AS gsv, s.return_amount
-         FROM live_registrations s
-         WHERE s.biz_date >= $1::date AND s.biz_date <= $2::date
-           AND s.status <> 'cancelled'
-         ORDER BY s.biz_date`,
-        [startDate, endDate]
-      )
+      const { anchorsRes, operatorsRes, sessionsRes } = await withRlsContext(request, async (client) => {
+        // Get all anchors（包括已离职的，确保历史数据仍可显示）
+        const aRes = await client.query('SELECT id, name FROM anchors ORDER BY name')
+        // Get all operators（包括已离职的，确保历史数据仍可显示）
+        const oRes = await client.query('SELECT id, name FROM operators ORDER BY name')
+
+        // 个人达成数据来源：人工登记表（独立模块）
+        // 字段映射：biz_date → date, return_amount → return_amount,
+        //           gsv 无对应（人工登记不记 gsv），用 0 占位保持下游逻辑不变
+        const sRes = await client.query(
+          `SELECT s.id, s.anchor_id, s.operator_id, s.biz_date::text AS date,
+                  s.duration_min, s.start_time::text, s.gmv,
+                  0::numeric AS gsv, s.return_amount
+           FROM live_registrations s
+           WHERE s.biz_date >= $1::date AND s.biz_date <= $2::date
+             AND s.status <> 'cancelled'
+           ORDER BY s.biz_date`,
+          [startDate, endDate]
+        )
+        return { anchorsRes: aRes, operatorsRes: oRes, sessionsRes: sRes }
+      })
 
       // Build attendance data map
       const attendanceData: Record<string, Record<string, { duration: number; count: number; nightShift: boolean }>> = {}

@@ -155,3 +155,98 @@ export async function withRlsContext<T>(
   }
 }
 
+async function applyRlsConfig(
+  client: PoolClient,
+  scope: ResolvedRlsScope,
+  localOnly: boolean
+): Promise<void> {
+  await client.query(localOnly ? 'SET LOCAL ROLE leyova_app' : 'SET ROLE leyova_app')
+  await client.query(
+    `SELECT
+      set_config('app.user_id', $1, $11),
+      set_config('app.user_role', $2, $11),
+      set_config('app.user_type', $3, $11),
+      set_config('app.tenant_id', $4, $11),
+      set_config('app.anchor_id', $5, $11),
+      set_config('app.brand_client_id', $6, $11),
+      set_config('app.can_view_cost', $7, $11),
+      set_config('app.can_view_anchors', $8, $11),
+      set_config('app.allowed_project_ids', $9, $11),
+      set_config('app.allowed_platforms', $10, $11)`,
+    [
+      scope.userId ? String(scope.userId) : '',
+      scope.role,
+      scope.userType,
+      String(scope.tenantId),
+      scope.anchorId ? String(scope.anchorId) : '',
+      scope.brandClientId ? String(scope.brandClientId) : '',
+      scope.canViewCost ? 'true' : 'false',
+      scope.canViewAnchors ? 'true' : 'false',
+      scope.allowedProjectIds.join(','),
+      scope.allowedPlatforms === null ? '*' : scope.allowedPlatforms.join(','),
+      localOnly,
+    ]
+  )
+}
+
+/**
+ * 为内部自行管理 Pool.connect() 事务的多阶段服务（如 data-governance）提供
+ * 强制注入 PostgreSQL RLS 角色与会话上下文的 Pool 代理。
+ */
+export async function withRlsPool<T>(
+  requestOrUser: FastifyRequest | AuthUser | null | undefined,
+  fn: (scopedPool: Pool, scope: ResolvedRlsScope) => Promise<T>,
+  pool: Pool = getPool()
+): Promise<T> {
+  const user = extractUser(requestOrUser)
+  const scope = await resolveUserRlsScope(pool, user)
+  const cleanups: Promise<void>[] = []
+
+  const scopedPool = new Proxy(pool, {
+    get(target, prop, receiver) {
+      if (prop === 'query') {
+        return (...args: any[]) =>
+          withRlsContext(requestOrUser, (client) => (client.query as any)(...args), pool)
+      }
+      if (prop === 'connect') {
+        return async () => {
+          const client = await target.connect()
+          const originalRelease = client.release.bind(client)
+          let released = false
+          try {
+            await applyRlsConfig(client, scope, false)
+          } catch (err) {
+            await client.query('RESET ALL').catch(() => {})
+            originalRelease()
+            throw err
+          }
+          client.release = (destroyOrErr?: boolean | Error) => {
+            if (released) return
+            released = true
+            const cleanup = client
+              .query('ROLLBACK')
+              .catch(() => {})
+              .then(() => client.query('RESET ALL'))
+              .catch(() => {})
+              .then(() => {
+                originalRelease(destroyOrErr)
+              })
+            cleanups.push(cleanup)
+          }
+          return client
+        }
+      }
+      const val = Reflect.get(target, prop, receiver)
+      return typeof val === 'function' ? val.bind(target) : val
+    },
+  })
+
+  try {
+    return await fn(scopedPool, scope)
+  } finally {
+    if (cleanups.length > 0) {
+      await Promise.allSettled(cleanups)
+    }
+  }
+}
+

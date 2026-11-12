@@ -60,7 +60,6 @@ const XhsConversionPage = lazyPage(() => import('@/pages/shop/xiaohongshu/XhsCon
 const VideoCreatePage = lazyPage(() => import('@/pages/content/VideoCreatePage'), 'VideoCreatePage')
 const VideoDataPage = lazyPage(() => import('@/pages/content/VideoDataPage'), 'VideoDataPage')
 const ContentSchedulePage = lazyPage(() => import('@/pages/content/ContentSchedulePage'), 'ContentSchedulePage')
-const ContentConfigPage = lazyPage(() => import('@/pages/content/ContentConfigPage'), 'ContentConfigPage')
 const ContentCenterConfigPage = lazyPage(() => import('@/pages/content/ContentCenterConfigPage'), 'ContentCenterConfigPage')
 
 // 商业智能
@@ -153,7 +152,6 @@ export default function App() {
           <Route path="/overview/cockpit" element={<RequireAccess module="overview"><CockpitPage /></RequireAccess>} />
           <Route path="/overview/live-monitor" element={<RequireAccess module="overview"><LiveMonitorPage /></RequireAccess>} />
           <Route path="/overview/sessions" element={<RequireAccess module="session"><SessionsPage /></RequireAccess>} />
-          <Route path="/ops/sessions" element={<RequireAccess module="session"><SessionsPage /></RequireAccess>} />
           <Route path="/overview/analytics" element={<RequireAccess module="overview"><AnalyticsPage /></RequireAccess>} />
 
           {/* ===== 直播管理 ===== */}
@@ -192,14 +190,14 @@ export default function App() {
           <Route path="/shop/xiaohongshu/conversion" element={<RequireAccess module="content"><XhsConversionPage /></RequireAccess>} />
           <Route path="/system/platforms" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><PlatformManagementPage /></RequireAccess>} />
           <Route path="/system/users" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><UsersPage /></RequireAccess>} />
-          <Route path="/system/audit-logs" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><AuditLogsPage /></RequireAccess>} />
+          <Route path="/system/audit-logs" element={<RequireAccess roles={['super_admin', 'admin']} module="audit_logs"><AuditLogsPage /></RequireAccess>} />
           <Route path="/system/dict" element={<RequireAccess roles={['super_admin']} module="system_dict"><DictPage /></RequireAccess>} />
 
           {/* ===== 内容中心 ===== */}
           <Route path="/content/video-create" element={<RequireAccess module="content"><VideoCreatePage /></RequireAccess>} />
           <Route path="/content/video-data" element={<RequireAccess module="content"><VideoDataPage /></RequireAccess>} />
           <Route path="/content/schedule" element={<RequireAccess module="content_schedule"><ContentSchedulePage /></RequireAccess>} />
-          <Route path="/content/config" element={<RequireAccess module="content"><ContentConfigPage /></RequireAccess>} />
+          <Route path="/content/config" element={<Navigate to="/content/center-config" replace />} />
 
           {/* ===== 商业智能 ===== */}
           <Route path="/bi/dashboard" element={<RequireAccess module="bi"><BiDashboardPage /></RequireAccess>} />

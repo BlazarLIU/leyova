@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk } from '../lib/http.js'
-import { getPool, withRlsContext } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 
@@ -31,17 +31,18 @@ export async function sessionRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/sessions ── 创建场次
   app.post('/api/v1/sessions', { preHandler: [requireRole(SESSION_WRITE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as {
         title?: string; roomId?: number; anchorId?: number
         date?: string; startTime?: string; endTime?: string
       }
-      const { rows } = await pool.query(
-        `INSERT INTO live_sessions (room_id, anchor_id, date, start_time, end_time, title, status, gmv, orders)
-         VALUES ($1, $2, $3::date, $4::time, $5::time, $6, 'scheduled', 0, 0)
-         RETURNING *`,
-        [body.roomId, body.anchorId, body.date, body.startTime, body.endTime, body.title || '']
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO live_sessions (room_id, anchor_id, date, start_time, end_time, title, status, gmv, orders)
+           VALUES ($1, $2, $3::date, $4::time, $5::time, $6, 'scheduled', 0, 0)
+           RETURNING *`,
+          [body.roomId, body.anchorId, body.date, body.startTime, body.endTime, body.title || ''],
+        ),
       )
       return sendOk(reply, { session: rows[0] }, '场次创建成功')
     } catch (err) {
@@ -55,7 +56,6 @@ export async function sessionRoutes(app: FastifyInstance) {
 
   // ── PATCH /api/v1/sessions/:id ── 更新场次
   app.patch('/api/v1/sessions/:id', { preHandler: [requireRole(SESSION_WRITE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const body = request.body as Partial<{
@@ -64,7 +64,6 @@ export async function sessionRoutes(app: FastifyInstance) {
         gmv: number; orders: number
       }>
 
-      // Build dynamic SET clause
       const fields: string[] = []
       const values: any[] = []
       let idx = 1
@@ -84,9 +83,11 @@ export async function sessionRoutes(app: FastifyInstance) {
       }
 
       values.push(id)
-      const { rows } = await pool.query(
-        `UPDATE live_sessions SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
-        values
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `UPDATE live_sessions SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+          values,
+        ),
       )
       if (rows.length === 0) return reply.code(404).send({ success: false, message: '场次不存在' })
       return sendOk(reply, { session: rows[0] }, '更新成功')
@@ -99,26 +100,30 @@ export async function sessionRoutes(app: FastifyInstance) {
   // ── POST /api/v1/sessions/:id/finalize ── 完结场次
   app.post('/api/v1/sessions/:id/finalize', { preHandler: [requireRole(SESSION_WRITE_ROLES)] }, async (request, reply) => {
     const user = (request as any).user
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const body = request.body as { gmv?: number; orders?: number }
-      const { rows } = await pool.query(
-        `UPDATE live_sessions
-         SET status = 'completed', gmv = COALESCE($1, gmv), orders = COALESCE($2, orders), end_time = CURRENT_TIME
-         WHERE id = $3 AND status != 'completed'
-         RETURNING *`,
-        [body.gmv, body.orders, id]
-      )
-      if (rows.length === 0) return reply.code(404).send({ success: false, message: '场次不存在或已完结' })
-      await writeAuditLog(pool, {
-        actorUserId: user?.id,
-        action: 'session.finalize',
-        resourceType: 'live_session',
-        resourceId: id,
-        afterData: rows[0],
-        request,
+      const { rows } = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `UPDATE live_sessions
+           SET status = 'completed', gmv = COALESCE($1, gmv), orders = COALESCE($2, orders), end_time = CURRENT_TIME
+           WHERE id = $3 AND status != 'completed'
+           RETURNING *`,
+          [body.gmv, body.orders, id],
+        )
+        if (res.rows.length > 0) {
+          await writeAuditLog(client, {
+            actorUserId: user?.id,
+            action: 'session.finalize',
+            resourceType: 'live_session',
+            resourceId: id,
+            afterData: res.rows[0],
+            request,
+          })
+        }
+        return res
       })
+      if (rows.length === 0) return reply.code(404).send({ success: false, message: '场次不存在或已完结' })
       return sendOk(reply, { session: rows[0] }, '场次已完结')
     } catch (err) {
       request.log.warn({ err }, 'POST /sessions/:id/finalize failed')

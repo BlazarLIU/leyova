@@ -4,7 +4,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireAuth } from '../lib/guard.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
 import {
@@ -26,17 +26,22 @@ function defaultRange(from?: string, to?: string) {
 }
 
 export async function pddRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
-  async function resolvePddShop(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+  async function runPddShopQuery<T>(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+    fn: (shopId: number, client: any) => Promise<T>,
+  ) {
     const user = await requireAuth(request, reply)
-    if (!user) return null
-    const check = await assertShopPlatform(pool, request.params.id, 'pdd')
-    if (!check.ok || !check.shop) {
-      sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
-      return null
+    if (!user) return
+    const result = await withRlsContext(request, async (client) => {
+      const check = await assertShopPlatform(client, request.params.id, 'pdd')
+      if (!check.ok || !check.shop) return { shopError: check }
+      return { data: await fn(check.shop.id, client) }
+    })
+    if ('shopError' in result && result.shopError) {
+      return sendError(reply, result.shopError.statusCode || 400, result.shopError.message || '店铺校验失败')
     }
-    return check.shop.id
+    return sendOk(reply, result.data)
   }
 
   // ── GET /api/v1/pdd/shop/:id/group-funnel ── 成团漏斗
@@ -45,11 +50,8 @@ export async function pddRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = await resolvePddShop(request, reply)
-      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getPddGroupFunnel(shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runPddShopQuery(request, reply, (shopId, client) => getPddGroupFunnel(shopId, r.from, r.to, client))
     } catch (err: any) {
       request.log.error({ err }, 'pdd group funnel failed')
       return sendError(reply, 500, `获取成团漏斗失败：${err?.message || err}`)
@@ -62,11 +64,8 @@ export async function pddRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = await resolvePddShop(request, reply)
-      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getPddCaliberCompare(shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runPddShopQuery(request, reply, (shopId, client) => getPddCaliberCompare(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取口径对账失败：${err?.message || err}`)
     }
@@ -78,11 +77,8 @@ export async function pddRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = await resolvePddShop(request, reply)
-      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getPddRefundAnalysis(shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runPddShopQuery(request, reply, (shopId, client) => getPddRefundAnalysis(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取售后分析失败：${err?.message || err}`)
     }
@@ -94,11 +90,8 @@ export async function pddRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = await resolvePddShop(request, reply)
-      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getPddStoreHealth(shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runPddShopQuery(request, reply, (shopId, client) => getPddStoreHealth(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取店铺健康度失败：${err?.message || err}`)
     }

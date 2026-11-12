@@ -17,7 +17,7 @@
  *   4. ROI 没有统一口径：过程用 AIPS 人群资产，结果用种草联盟跨平台归因
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 import { getDefaultCaliber } from '../platform/caliber.js'
 
@@ -61,7 +61,7 @@ export async function getXhsNoteBoard(
   shopId: number | null,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<XhsNoteBoard> {
   const p = pool || getPool()
 
@@ -162,7 +162,7 @@ export async function getXhsSearchAnalysis(
   shopId: number | null,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<XhsSearchAnalysis> {
   const p = pool || getPool()
 
@@ -230,7 +230,7 @@ export async function getXhsConversionFunnel(
   shopId: number | null,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<XhsConversionFunnel> {
   const p = pool || getPool()
 
@@ -316,7 +316,7 @@ export async function getXhsOnOffsite(
   shopId: number | null,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<XhsOnOffsite> {
   const p = pool || getPool()
 

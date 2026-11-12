@@ -78,7 +78,7 @@ export async function aggregateShopDaily(
      ) t
      LEFT JOIN (
         SELECT biz_date, platform_code, shop_id, SUM(ad_spend) AS spend_sum
-          FROM fact_ad_daily
+          FROM fact_ad_spend_daily
          WHERE biz_date = $1::date
          GROUP BY biz_date, platform_code, shop_id
      ) a ON a.biz_date = t.biz_date AND a.platform_code = t.platform_code AND a.shop_id = t.shop_id
@@ -110,43 +110,19 @@ export async function aggregateShopDaily(
 }
 
 /**
- * 聚合某月：agg_shop_daily → agg_platform_monthly
+ * 刷新月度平台汇总物化视图（agg_shop_daily → agg_platform_monthly）
  * ym 格式 'YYYY-MM'
  */
 export async function aggregatePlatformMonthly(
   pool: Pool,
   ym: string,
 ): Promise<{ ym: string; platformRows: number }> {
-  const { rowCount } = await pool.query(
-    `INSERT INTO agg_platform_monthly (
-        year_month, platform_code,
-        total_gmv, total_refund_amount, net_sales, total_ad_spend, overall_roi, updated_at
-     )
-     SELECT
-        to_char(biz_date, 'YYYY-MM') AS ym,
-        platform_code,
-        SUM(total_gmv),
-        SUM(total_refund_amount),
-        SUM(net_sales),
-        SUM(total_ad_spend),
-        CASE WHEN SUM(total_ad_spend) > 0
-             THEN ROUND(SUM(total_gmv) / SUM(total_ad_spend), 2)
-             ELSE 0 END,
-        now()
-     FROM agg_shop_daily
-     WHERE to_char(biz_date, 'YYYY-MM') = $1
-     GROUP BY to_char(biz_date, 'YYYY-MM'), platform_code
-     ON CONFLICT (year_month, platform_code)
-     DO UPDATE SET
-        total_gmv           = EXCLUDED.total_gmv,
-        total_refund_amount = EXCLUDED.total_refund_amount,
-        net_sales           = EXCLUDED.net_sales,
-        total_ad_spend      = EXCLUDED.total_ad_spend,
-        overall_roi         = EXCLUDED.overall_roi,
-        updated_at          = now()`,
+  await pool.query('REFRESH MATERIALIZED VIEW CONCURRENTLY public.agg_platform_monthly')
+  const { rows } = await pool.query<{ cnt: number }>(
+    `SELECT COUNT(*)::int AS cnt FROM public.agg_platform_monthly WHERE year_month = $1`,
     [ym],
   )
-  return { ym, platformRows: rowCount ?? 0 }
+  return { ym, platformRows: rows[0]?.cnt ?? 0 }
 }
 
 /** 批量回填一个日期区间（日聚合 + 涉及的月份聚合） */
@@ -210,4 +186,34 @@ export async function runFactAggregation(): Promise<{
     '[agg-facts] aggregation completed',
   )
   return { dates: result.days, months: result.months }
+}
+
+/** Manual backfill entry invoked by admin maintenance endpoint outside RLS transactions. */
+export async function runManualAggregate(opts: {
+  from?: string
+  to?: string
+  date?: string
+  month?: string
+}) {
+  const pool = getPool()
+  if (opts.date) {
+    const day = await aggregateShopDaily(pool, opts.date)
+    const ym = opts.date.slice(0, 7)
+    const month = await aggregatePlatformMonthly(pool, ym)
+    return { mode: 'single-day' as const, day, month }
+  }
+  if (opts.month) {
+    const month = await aggregatePlatformMonthly(pool, opts.month)
+    return { mode: 'single-month' as const, month }
+  }
+  const range = await aggregateRange(pool, opts.from!, opts.to!)
+  return {
+    mode: 'range' as const,
+    from: opts.from,
+    to: opts.to,
+    daysProcessed: range.days.length,
+    monthsProcessed: range.months.length,
+    days: range.days,
+    months: range.months,
+  }
 }

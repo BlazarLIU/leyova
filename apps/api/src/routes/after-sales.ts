@@ -1,23 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import type { PoolClient } from 'pg'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { sendOk, sendError } from '../lib/http.js'
-
-/** 确保 canonical_refund_events 对应月份分区存在，避免跨月创建售后单报错 */
-async function ensureRefundMonthPartition(client: PoolClient, dateStr: string) {
-  const ym = dateStr.slice(0, 7)
-  if (!/^\d{4}-\d{2}$/.test(ym)) return
-  const partName = `canonical_refund_events_y${ym.replace('-', '')}`
-  const startDate = `${ym}-01`
-  const d = new Date(`${startDate}T00:00:00Z`)
-  d.setUTCMonth(d.getUTCMonth() + 1)
-  const endDate = d.toISOString().slice(0, 10)
-  await client.query(
-    `CREATE TABLE IF NOT EXISTS public.${partName} PARTITION OF public.canonical_refund_events
-     FOR VALUES FROM ('${startDate}') TO ('${endDate}')`,
-  )
-}
+import { ensureRefundMonthPartition } from '../lib/partitions.js'
 
 /** 根据平台规则计算售后审单截点与仅退款自治保护标志 */
 function computeAfterSaleSla(
@@ -51,7 +36,6 @@ function computeAfterSaleSla(
 }
 
 export async function afterSalesRoutes(app: FastifyInstance) {
-  const pool = getPool()
   const writeRoles = ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff']
 
   // ── GET /api/v1/after-sales/overview ── 售后归因矩阵与超时倒计时风险总览
@@ -59,36 +43,39 @@ export async function afterSalesRoutes(app: FastifyInstance) {
     const user = await requireAuth(request, reply)
     if (!user) return
     try {
-      const { rows: summaryRows } = await pool.query(`
-        SELECT
-          COUNT(*)::int AS total_tickets,
-          COUNT(*) FILTER (WHERE ticket_status IN ('pending_audit', 'waiting_return'))::int AS open_tickets,
-          COUNT(*) FILTER (
-            WHERE ticket_status IN ('pending_audit', 'waiting_return')
-              AND audit_deadline_at IS NOT NULL
-              AND audit_deadline_at <= NOW() + INTERVAL '6 hours'
-          )::int AS timeout_risk_count,
-          COUNT(*) FILTER (WHERE autonomy_protected = true)::int AS autonomy_protected_count,
-          COALESCE(SUM(refund_amount), 0)::numeric(14,2) AS total_refund_amount
-        FROM fact_after_sale_tickets
-      `)
+      const { summaryRows, reasonRows, canonicalStats } = await withRlsContext(request, async (client) => {
+        const sRes = await client.query(`
+          SELECT
+            COUNT(*)::int AS total_tickets,
+            COUNT(*) FILTER (WHERE ticket_status IN ('pending_audit', 'waiting_return'))::int AS open_tickets,
+            COUNT(*) FILTER (
+              WHERE ticket_status IN ('pending_audit', 'waiting_return')
+                AND audit_deadline_at IS NOT NULL
+                AND audit_deadline_at <= NOW() + INTERVAL '6 hours'
+            )::int AS timeout_risk_count,
+            COUNT(*) FILTER (WHERE autonomy_protected = true)::int AS autonomy_protected_count,
+            COALESCE(SUM(refund_amount), 0)::numeric(14,2) AS total_refund_amount
+          FROM fact_after_sale_tickets
+        `)
 
-      const { rows: reasonRows } = await pool.query(`
-        SELECT
-          reason_category,
-          COUNT(*)::int AS ticket_count,
-          COALESCE(SUM(refund_amount), 0)::numeric(14,2) AS refund_amount
-        FROM fact_after_sale_tickets
-        GROUP BY reason_category
-        ORDER BY refund_amount DESC, ticket_count DESC
-      `)
+        const rRes = await client.query(`
+          SELECT
+            reason_category,
+            COUNT(*)::int AS ticket_count,
+            COALESCE(SUM(refund_amount), 0)::numeric(14,2) AS refund_amount
+          FROM fact_after_sale_tickets
+          GROUP BY reason_category
+          ORDER BY refund_amount DESC, ticket_count DESC
+        `)
 
-      const { rows: canonicalStats } = await pool.query(`
-        SELECT
-          COUNT(*)::int AS canonical_refund_rows,
-          COALESCE(SUM(refund_amount), 0)::numeric(14,2) AS canonical_refund_amount
-        FROM canonical_refund_events
-      `)
+        const cRes = await client.query(`
+          SELECT
+            COUNT(*)::int AS canonical_refund_rows,
+            COALESCE(SUM(refund_amount), 0)::numeric(14,2) AS canonical_refund_amount
+          FROM canonical_refund_events
+        `)
+        return { summaryRows: sRes.rows, reasonRows: rRes.rows, canonicalStats: cRes.rows }
+      })
 
       const s = summaryRows[0] || {}
       const totalAmt = Number(s.total_refund_amount || 0) || 1
@@ -130,28 +117,30 @@ export async function afterSalesRoutes(app: FastifyInstance) {
       if (refundType) { conds.push(`t.refund_type = $${idx++}`); params.push(refundType) }
       const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
 
-      const { rows } = await pool.query(
-        `SELECT
-           t.*,
-           p.platform_name,
-           sh.shop_name,
-           pr.sku_code,
-           pr.product_name,
-           u.real_name AS assignee_name,
-           CASE WHEN t.audit_deadline_at IS NOT NULL
-                THEN ROUND(EXTRACT(EPOCH FROM (t.audit_deadline_at - NOW())) / 3600.0, 1)
-                ELSE NULL END AS remaining_hours
-         FROM fact_after_sale_tickets t
-         JOIN system_platform_configs p ON p.platform_code = t.platform_code
-         JOIN dim_shop sh ON sh.id = t.shop_id
-         LEFT JOIN dim_product pr ON pr.id = t.product_id
-         LEFT JOIN users u ON u.id = t.assignee_id
-         ${where}
-         ORDER BY
-           CASE WHEN t.ticket_status IN ('pending_audit', 'waiting_return') THEN 0 ELSE 1 END,
-           t.audit_deadline_at ASC NULLS LAST,
-           t.id DESC`,
-        params,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT
+             t.*,
+             p.platform_name,
+             sh.shop_name,
+             pr.sku_code,
+             pr.product_name,
+             u.real_name AS assignee_name,
+             CASE WHEN t.audit_deadline_at IS NOT NULL
+                  THEN ROUND(EXTRACT(EPOCH FROM (t.audit_deadline_at - NOW())) / 3600.0, 1)
+                  ELSE NULL END AS remaining_hours
+           FROM fact_after_sale_tickets t
+           JOIN system_platform_configs p ON p.platform_code = t.platform_code
+           JOIN dim_shop sh ON sh.id = t.shop_id
+           LEFT JOIN dim_product pr ON pr.id = t.product_id
+           LEFT JOIN users u ON u.id = t.assignee_id
+           ${where}
+           ORDER BY
+             CASE WHEN t.ticket_status IN ('pending_audit', 'waiting_return') THEN 0 ELSE 1 END,
+             t.audit_deadline_at ASC NULLS LAST,
+             t.id DESC`,
+          params,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -179,84 +168,81 @@ export async function afterSalesRoutes(app: FastifyInstance) {
       return sendError(reply, 400, '平台、店铺、订单号、退款类型及原因归因为必填项')
     }
 
-    const client = await pool.connect()
     try {
-      await client.query('BEGIN')
       const platformCode = body.platformCode.trim()
       const appliedAt = body.appliedAt ? new Date(body.appliedAt) : new Date()
       const bizDateStr = appliedAt.toISOString().slice(0, 10)
-      const ticketNo = `AS-${bizDateStr.replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`
-      const sourceRefundId = body.sourceRefundId?.trim() || `RFD-${Date.now()}`
-      const score = Number(body.shopExperienceScore ?? 4.78)
+      await ensureRefundMonthPartition(bizDateStr)
 
-      const { rows: rules } = await client.query(
-        `SELECT sla_type, threshold_hours, autonomy_min_score FROM platform_sla_config WHERE platform_code = $1`,
-        [platformCode],
-      )
-      const { auditDeadlineAt, autonomyProtected } = computeAfterSaleSla(
-        platformCode,
-        body.refundType,
-        score,
-        appliedAt,
-        rules,
-      )
+      const ticket = await withRlsContext(request, async (client) => {
+        const ticketNo = `AS-${bizDateStr.replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`
+        const sourceRefundId = body.sourceRefundId?.trim() || `RFD-${Date.now()}`
+        const score = Number(body.shopExperienceScore ?? 4.78)
 
-      const inserted = await client.query(
-        `INSERT INTO fact_after_sale_tickets
-           (ticket_no, platform_code, shop_id, source_order_id, source_refund_id, product_id,
-            refund_type, refund_amount, reason_category, reason_detail, ticket_status,
-            shop_experience_score, autonomy_protected, audit_deadline_at, applied_at, assignee_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending_audit', $11, $12, $13, $14, $15)
-         RETURNING *`,
-        [
-          ticketNo,
+        const { rows: rules } = await client.query(
+          `SELECT sla_type, threshold_hours, autonomy_min_score FROM platform_sla_config WHERE platform_code = $1`,
+          [platformCode],
+        )
+        const { auditDeadlineAt, autonomyProtected } = computeAfterSaleSla(
           platformCode,
-          Number(body.shopId),
-          body.sourceOrderId.trim(),
-          sourceRefundId,
-          body.productId ? Number(body.productId) : null,
-          body.refundType,
-          Number(body.refundAmount || 0),
-          body.reasonCategory,
-          body.reasonDetail?.trim() || '',
+          body.refundType!,
           score,
-          autonomyProtected,
-          auditDeadlineAt,
           appliedAt,
-          request.user?.id || null,
-        ],
-      )
+          rules,
+        )
 
-      await ensureRefundMonthPartition(client, bizDateStr)
-      await client.query(
-        `INSERT INTO canonical_refund_events
-           (biz_date, source_platform, store_id, source_refund_id, source_order_id, refund_type,
-            refund_amount, refund_status, refunded_at_source, maturity_status)
-         VALUES ($1::date, $2, $3, $4, $5, $6, $7, 'pending_audit', $8, 'PENDING')
-         ON CONFLICT (biz_date, source_platform, store_id, source_refund_id) DO UPDATE
-         SET refund_amount = EXCLUDED.refund_amount,
-             refund_type = EXCLUDED.refund_type,
-             refund_status = EXCLUDED.refund_status`,
-        [
-          bizDateStr,
-          platformCode,
-          Number(body.shopId),
-          sourceRefundId,
-          body.sourceOrderId.trim(),
-          body.refundType,
-          Number(body.refundAmount || 0),
-          appliedAt,
-        ],
-      )
+        const inserted = await client.query(
+          `INSERT INTO fact_after_sale_tickets
+             (ticket_no, platform_code, shop_id, source_order_id, source_refund_id, product_id,
+              refund_type, refund_amount, reason_category, reason_detail, ticket_status,
+              shop_experience_score, autonomy_protected, audit_deadline_at, applied_at, assignee_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending_audit', $11, $12, $13, $14, $15)
+           RETURNING *`,
+          [
+            ticketNo,
+            platformCode,
+            Number(body.shopId),
+            body.sourceOrderId!.trim(),
+            sourceRefundId,
+            body.productId ? Number(body.productId) : null,
+            body.refundType,
+            Number(body.refundAmount || 0),
+            body.reasonCategory,
+            body.reasonDetail?.trim() || '',
+            score,
+            autonomyProtected,
+            auditDeadlineAt,
+            appliedAt,
+            request.user?.id || null,
+          ],
+        )
 
-      await client.query('COMMIT')
-      return sendOk(reply, inserted.rows[0])
+        await client.query(
+          `INSERT INTO canonical_refund_events
+             (biz_date, source_platform, store_id, source_refund_id, source_order_id, refund_type,
+              refund_amount, refund_status, refunded_at_source, maturity_status)
+           VALUES ($1::date, $2, $3, $4, $5, $6, $7, 'pending_audit', $8, 'PENDING')
+           ON CONFLICT (biz_date, source_platform, store_id, source_refund_id) DO UPDATE
+           SET refund_amount = EXCLUDED.refund_amount,
+               refund_type = EXCLUDED.refund_type,
+               refund_status = EXCLUDED.refund_status`,
+          [
+            bizDateStr,
+            platformCode,
+            Number(body.shopId),
+            sourceRefundId,
+            body.sourceOrderId!.trim(),
+            body.refundType,
+            Number(body.refundAmount || 0),
+            appliedAt,
+          ],
+        )
+        return inserted.rows[0]
+      })
+      return sendOk(reply, ticket)
     } catch (err) {
-      await client.query('ROLLBACK')
       request.log.error({ err }, 'Failed to create after-sale ticket')
       return sendError(reply, 500, '创建售后工单失败')
-    } finally {
-      client.release()
     }
   })
 
@@ -273,47 +259,44 @@ export async function afterSalesRoutes(app: FastifyInstance) {
       return sendError(reply, 400, '必须提供目标处理状态')
     }
 
-    const client = await pool.connect()
     try {
-      await client.query('BEGIN')
       const isFinal = ['approved', 'rejected', 'closed'].includes(body.ticketStatus)
-      const { rows } = await client.query(
-        `UPDATE fact_after_sale_tickets
-         SET ticket_status = $1,
-             resolution_note = COALESCE($2, resolution_note),
-             resolved_at = CASE WHEN $3 THEN NOW() ELSE resolved_at END,
-             assignee_id = COALESCE(assignee_id, $4),
-             updated_at = NOW()
-         WHERE id = $5
-         RETURNING *`,
-        [
-          body.ticketStatus,
-          body.resolutionNote?.trim() ?? null,
-          isFinal,
-          request.user?.id || null,
-          Number(request.params.id),
-        ],
-      )
-      if (rows.length === 0) {
-        await client.query('ROLLBACK')
+      const result = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(
+          `UPDATE fact_after_sale_tickets
+           SET ticket_status = $1,
+               resolution_note = COALESCE($2, resolution_note),
+               resolved_at = CASE WHEN $3 THEN NOW() ELSE resolved_at END,
+               assignee_id = COALESCE(assignee_id, $4),
+               updated_at = NOW()
+           WHERE id = $5
+           RETURNING *`,
+          [
+            body.ticketStatus,
+            body.resolutionNote?.trim() ?? null,
+            isFinal,
+            request.user?.id || null,
+            Number(request.params.id),
+          ],
+        )
+        if (rows.length === 0) return { notFound: true as const }
+        const t = rows[0]
+        await client.query(
+          `UPDATE canonical_refund_events
+           SET refund_status = $1,
+               maturity_status = $2
+           WHERE source_platform = $3 AND store_id = $4 AND source_refund_id = $5`,
+          [t.ticket_status, isFinal ? 'FINAL' : 'PENDING', t.platform_code, t.shop_id, t.source_refund_id],
+        )
+        return { ticket: t }
+      })
+      if ('notFound' in result && result.notFound) {
         return sendError(reply, 404, '售后工单不存在')
       }
-      const t = rows[0]
-      await client.query(
-        `UPDATE canonical_refund_events
-         SET refund_status = $1,
-             maturity_status = $2
-         WHERE source_platform = $3 AND store_id = $4 AND source_refund_id = $5`,
-        [t.ticket_status, isFinal ? 'FINAL' : 'PENDING', t.platform_code, t.shop_id, t.source_refund_id],
-      )
-      await client.query('COMMIT')
-      return sendOk(reply, t)
+      return sendOk(reply, result.ticket)
     } catch (err) {
-      await client.query('ROLLBACK')
       request.log.error({ err }, 'Failed to handle after-sale ticket')
       return sendError(reply, 500, '处理售后工单失败')
-    } finally {
-      client.release()
     }
   })
 }

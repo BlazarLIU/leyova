@@ -65,6 +65,7 @@ describe('HTTP API & RBAC 回归测试', () => {
   let operatorUser: TempAccount
   let brandViewer: TempAccount
   let financeUser: TempAccount
+  let adminUser: TempAccount
 
   before(async () => {
     app = await buildApp({ logger: false })
@@ -74,7 +75,8 @@ describe('HTTP API & RBAC 回归测试', () => {
     operatorUser = await createTempAccount('operator', 'agency_staff', 1)
     brandViewer = await createTempAccount('brand_viewer', 'brand_viewer', 1)
     financeUser = await createTempAccount('finance', 'agency_staff', 1)
-    createdUserIds.push(adBuyer.userId, operatorUser.userId, brandViewer.userId, financeUser.userId)
+    adminUser = await createTempAccount('admin', 'agency_staff', 1)
+    createdUserIds.push(adBuyer.userId, operatorUser.userId, brandViewer.userId, financeUser.userId, adminUser.userId)
   })
 
   after(async () => {
@@ -357,7 +359,7 @@ describe('HTTP API & RBAC 回归测试', () => {
       null,
       { role: 'ad_buyer' },
     )
-    assert.ok(q.sql.includes('fact_ad_daily'))
+    assert.ok(q.sql.includes('fact_ad_spend_daily'))
 
     const sig = signMcpUserId(42, 'unit-test-secret')
     assert.equal(verifyMcpUserSig(42, sig, 'unit-test-secret'), true)
@@ -365,5 +367,115 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(verifyMcpUserSig(42, sig, 'wrong-secret'), false)
     assert.equal(timingSafeTokenEqual('abc123', 'abc123'), true)
     assert.equal(timingSafeTokenEqual('abc123', 'abc124'), false)
+  })
+
+  test('Round 2 修复验证：/bi/roi 与 /bi/refund 返回真实指标，/net-roi/overview 含归因窗口与经营模式维度', async () => {
+    const roiRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/bi/roi?period=30d',
+      headers: { cookie: adBuyer.cookie },
+    })
+    assert.equal(roiRes.statusCode, 200)
+    const roiData = roiRes.json().data
+    assert.equal(typeof roiData.overall_roi, 'number')
+    assert.ok(Array.isArray(roiData.channels))
+    assert.ok(Array.isArray(roiData.chartData))
+
+    const refundRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/bi/refund?period=30d',
+      headers: { cookie: operatorUser.cookie },
+    })
+    assert.equal(refundRes.statusCode, 200)
+    const refundData = refundRes.json().data
+    assert.equal(typeof refundData.total_refund, 'number')
+    assert.equal(typeof refundData.refund_rate, 'number')
+    assert.ok(Array.isArray(refundData.reasons))
+    assert.ok(Array.isArray(refundData.records))
+
+    const netRoiRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/net-roi/overview',
+      headers: { cookie: adBuyer.cookie },
+    })
+    assert.equal(netRoiRes.statusCode, 200)
+    const netRoiData = netRoiRes.json().data
+    assert.ok(Array.isArray(netRoiData.byAttributionWindow))
+    assert.ok(Array.isArray(netRoiData.byBusinessMode))
+
+    const winDictRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/net-roi/attribution-windows',
+      headers: { cookie: adBuyer.cookie },
+    })
+    assert.equal(winDictRes.statusCode, 200)
+    assert.ok(Array.isArray(winDictRes.json().data))
+
+    const promoRulesRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/promotions/rules',
+      headers: { cookie: operatorUser.cookie },
+    })
+    assert.equal(promoRulesRes.statusCode, 200)
+    assert.ok(Array.isArray(promoRulesRes.json().data))
+  })
+
+  test('Round 2 全路由 RLS 转换后冒烟与角色模块权限配置闭环', async () => {
+    const rlsPaths = [
+      '/api/v1/after-sales/overview',
+      '/api/v1/fulfillment/overview',
+      '/api/v1/jd/mode-breakdown',
+      '/api/v1/alerts/rules',
+      '/api/v1/review/overview',
+      '/api/v1/ai/sessions',
+      '/api/v1/system/modules',
+    ]
+    for (const url of rlsPaths) {
+      const res = await app.inject({
+        method: 'GET',
+        url,
+        headers: { cookie: operatorUser.cookie },
+      })
+      assert.equal(res.statusCode, 200, `${url} should return 200 under RLS context`)
+      assert.equal(res.json().success, true)
+    }
+
+    const forbiddenRolePut = await app.inject({
+      method: 'PUT',
+      url: '/api/v1/system/roles/modules',
+      headers: { cookie: operatorUser.cookie },
+      payload: { roleCode: 'employee', moduleCodes: ['overview'] },
+    })
+    assert.equal(forbiddenRolePut.statusCode, 403)
+
+    const rolesBeforeRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/system/roles',
+      headers: { cookie: adminUser.cookie },
+    })
+    assert.equal(rolesBeforeRes.statusCode, 200)
+    const rolesList = rolesBeforeRes.json().data as Array<{ code: string; modules: string[] }>
+    const targetRole = rolesList.find((r) => r.code === 'employee')
+    assert.ok(targetRole, 'employee role must exist')
+    const originalModules = [...(targetRole?.modules || [])]
+
+    try {
+      const nextModules = Array.from(new Set([...originalModules, 'personal_achievement']))
+      const putRes = await app.inject({
+        method: 'PUT',
+        url: '/api/v1/system/roles/modules',
+        headers: { cookie: adminUser.cookie },
+        payload: { roleCode: 'employee', moduleCodes: nextModules },
+      })
+      assert.equal(putRes.statusCode, 200)
+      assert.equal(putRes.json().data.updated, true)
+    } finally {
+      await app.inject({
+        method: 'PUT',
+        url: '/api/v1/system/roles/modules',
+        headers: { cookie: adminUser.cookie },
+        payload: { roleCode: 'employee', moduleCodes: originalModules },
+      })
+    }
   })
 })

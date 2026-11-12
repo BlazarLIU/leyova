@@ -7,8 +7,7 @@
  *   - 生成结构化复盘报告（Markdown）
  */
 
-import type { Pool } from 'pg'
-import { getPool } from '../lib/db.js'
+import { getPool, type DbExecutor } from '../lib/db.js'
 import { uploadToKnowledgeBaseStrict } from '../lib/kb-client.js'
 import { resolveScope } from './semantic-layer.js'
 import { runAnalysis, type AnalysisMode } from './orchestrator.js'
@@ -41,7 +40,7 @@ export interface ConvertedTask {
 /** 把一条行动建议转成改进任务 */
 export async function convertFindingsToTasks(
   input: ConvertToTaskInput,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<ConvertedTask> {
   const p = pool || getPool()
   const priority = input.priority || 'medium'
@@ -78,7 +77,7 @@ export async function convertFindingsToTasks(
 export async function convertAllActions(
   actions: string[],
   meta: { runId?: number; sourceQuestion?: string; assignee?: string; priority?: 'high' | 'medium' | 'low' },
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<ConvertedTask[]> {
   const out: ConvertedTask[] = []
   for (const a of actions) {
@@ -126,7 +125,7 @@ export async function generateReviewReport(
     userId?: number
     filters?: { platform?: string; shopId?: number }
   },
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<ReviewReport> {
   const p = pool || getPool()
   const scope = await resolveScope(p, input.role)

@@ -18,7 +18,7 @@
  */
 
 import type { Pool } from 'pg'
-import { getPool } from '../lib/db.js'
+import { getPool, type DbExecutor } from '../lib/db.js'
 import { logger } from '../lib/logger.js'
 import { ensurePartitionsForRange } from '../cron/manage-partitions.js'
 
@@ -33,7 +33,7 @@ export interface BridgeResult {
 }
 
 async function checkLegacyData(
-  pool: Pool,
+  pool: DbExecutor,
 ): Promise<{ ok: boolean; minDate: string | null; maxDate: string | null; count: number }> {
   try {
     const { rows } = await pool.query(

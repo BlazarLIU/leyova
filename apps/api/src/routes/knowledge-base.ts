@@ -10,7 +10,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 import {
@@ -31,15 +31,13 @@ const CONFIG_KEYS = [
 ]
 
 export async function knowledgeBaseRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   // ── GET /api/v1/kb/config ── 读取配置（apiKey 脱敏）
-  app.get('/api/v1/kb/config', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (_request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/kb/config', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const { rows } = await pool.query(
+      const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT config_key, config_value FROM ai_config WHERE config_key = ANY($1::text[])`,
         [CONFIG_KEYS],
-      )
+      ))
       const map: Record<string, string> = {}
       for (const r of rows) map[r.config_key] = r.config_value
 
@@ -93,32 +91,35 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
 
       if (upserts.length === 0) return sendError(reply, 400, '没有需要更新的字段')
 
-      for (const [k, v] of upserts) {
-        await pool.query(
-          `INSERT INTO ai_config (config_key, config_value)
-           VALUES ($1, $2)
-           ON CONFLICT (config_key) DO UPDATE SET config_value = EXCLUDED.config_value, updated_at = now()`,
-          [k, v],
-        )
-      }
+      await withRlsContext(request, async (client) => {
+        for (const [k, v] of upserts) {
+          await client.query(
+            `INSERT INTO ai_config (config_key, config_value)
+             VALUES ($1, $2)
+             ON CONFLICT (config_key) DO UPDATE SET config_value = EXCLUDED.config_value, updated_at = now()`,
+            [k, v],
+          )
+        }
+
+        await writeAuditLog(client, {
+          request,
+          action: 'kb.config.update',
+          resourceType: 'ai_config',
+          resourceId: 'kb',
+          afterData: {
+            provider: b.provider,
+            baseUrl: b.baseUrl,
+            datasetIds: b.datasetIds,
+            topK: b.topK,
+            similarityThreshold: b.similarityThreshold,
+            apiKeyUpdated: Boolean(b.apiKey && b.apiKey !== '' && !b.apiKey.includes('****')),
+          },
+        })
+      })
 
       // 配置已变更，主动失效缓存后再读回最新值
       invalidateKbConfigCache()
       const cfg = await getKbConfig()
-      await writeAuditLog(pool, {
-        request,
-        action: 'kb.config.update',
-        resourceType: 'ai_config',
-        resourceId: 'kb',
-        afterData: {
-          provider: cfg.provider,
-          baseUrl: cfg.baseUrl,
-          datasetIds: cfg.datasetIds,
-          topK: cfg.topK,
-          similarityThreshold: cfg.similarityThreshold,
-          apiKeyUpdated: Boolean(b.apiKey && b.apiKey !== '' && !b.apiKey.includes('****')),
-        },
-      })
       return sendOk(reply, {
         provider: cfg.provider,
         baseUrl: cfg.baseUrl,

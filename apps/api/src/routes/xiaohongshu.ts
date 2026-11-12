@@ -4,7 +4,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { requireAuth } from '../lib/guard.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
 import {
@@ -27,18 +27,26 @@ function defaultRange(from?: string, to?: string) {
 }
 
 export async function xiaohongshuRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
-  async function resolveOptionalXhsShop(request: FastifyRequest<{ Querystring: { shopId?: string } }>, reply: FastifyReply): Promise<{ ok: boolean; shopId: number | null }> {
+  async function runOptionalXhsQuery<T>(
+    request: FastifyRequest<{ Querystring: { shopId?: string } }>,
+    reply: FastifyReply,
+    fn: (shopId: number | null, client: any) => Promise<T>,
+  ) {
     const user = await requireAuth(request, reply)
-    if (!user) return { ok: false, shopId: null }
-    if (!request.query.shopId) return { ok: true, shopId: null }
-    const check = await assertShopPlatform(pool, request.query.shopId, 'xiaohongshu')
-    if (!check.ok || !check.shop) {
-      sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
-      return { ok: false, shopId: null }
+    if (!user) return
+    const result = await withRlsContext(request, async (client) => {
+      let shopId: number | null = null
+      if (request.query.shopId) {
+        const check = await assertShopPlatform(client, request.query.shopId, 'xiaohongshu')
+        if (!check.ok || !check.shop) return { shopError: check }
+        shopId = check.shop.id
+      }
+      return { data: await fn(shopId, client) }
+    })
+    if ('shopError' in result && result.shopError) {
+      return sendError(reply, result.shopError.statusCode || 400, result.shopError.message || '店铺校验失败')
     }
-    return { ok: true, shopId: check.shop.id }
+    return sendOk(reply, result.data)
   }
 
   // ── GET /api/v1/xiaohongshu/notes ── 笔记经营看板
@@ -46,11 +54,8 @@ export async function xiaohongshuRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string; shopId?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveOptionalXhsShop(request, reply)
-      if (!ctx.ok) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getXhsNoteBoard(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runOptionalXhsQuery(request, reply, (shopId, client) => getXhsNoteBoard(shopId, r.from, r.to, client))
     } catch (err: any) {
       request.log.error({ err }, 'xhs note board failed')
       return sendError(reply, 500, `获取笔记看板失败：${err?.message || err}`)
@@ -62,11 +67,8 @@ export async function xiaohongshuRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string; shopId?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveOptionalXhsShop(request, reply)
-      if (!ctx.ok) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getXhsSearchAnalysis(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runOptionalXhsQuery(request, reply, (shopId, client) => getXhsSearchAnalysis(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取搜索分析失败：${err?.message || err}`)
     }
@@ -77,11 +79,8 @@ export async function xiaohongshuRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string; shopId?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveOptionalXhsShop(request, reply)
-      if (!ctx.ok) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getXhsConversionFunnel(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runOptionalXhsQuery(request, reply, (shopId, client) => getXhsConversionFunnel(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取转化链路失败：${err?.message || err}`)
     }
@@ -92,11 +91,8 @@ export async function xiaohongshuRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string; shopId?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveOptionalXhsShop(request, reply)
-      if (!ctx.ok) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getXhsOnOffsite(ctx.shopId, r.from, r.to)
-      return sendOk(reply, data)
+      return await runOptionalXhsQuery(request, reply, (shopId, client) => getXhsOnOffsite(shopId, r.from, r.to, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取站内外拆分失败：${err?.message || err}`)
     }

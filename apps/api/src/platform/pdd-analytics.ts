@@ -8,7 +8,7 @@
  *   4. 仅退款占比全平台最高
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 import { getDefaultCaliber } from '../platform/caliber.js'
 
@@ -35,7 +35,7 @@ export async function getPddGroupFunnel(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<PddGroupFunnel> {
   const p = pool || getPool()
 
@@ -107,7 +107,7 @@ export async function getPddCaliberCompare(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<PddCaliberCompare> {
   const p = pool || getPool()
 
@@ -181,6 +181,7 @@ export interface PddRefundAnalysis {
     amountType: string
     amountTypeName: string
     displayNote: string
+    note: string
   } | null
 }
 
@@ -189,7 +190,7 @@ export async function getPddRefundAnalysis(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<PddRefundAnalysis> {
   const p = pool || getPool()
 
@@ -249,6 +250,7 @@ export async function getPddRefundAnalysis(
       amountType: caliber.amountType,
       amountTypeName: caliber.amountTypeName,
       displayNote: caliber.displayNote,
+      note: '拼多多退款率分母为 paid_order_count（已成团订单数），而非零售 GMV；跨平台横向对比请参考语义层 refund_rate 口径',
     } : null,
   }
 }
@@ -275,15 +277,15 @@ export async function getPddStoreHealth(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<PddStoreHealth> {
   const p = pool || getPool()
 
   const adRes = await p.query(
     `SELECT
-       COALESCE(SUM(ad_spend), 0)::numeric AS spend,
-       COALESCE(SUM(ad_gmv), 0)::numeric   AS gmv
-     FROM fact_ad_daily
+       COALESCE(SUM(ad_spend), 0)::numeric             AS spend,
+       COALESCE(SUM(attributed_gross_gmv), 0)::numeric AS gmv
+     FROM fact_ad_spend_daily
      WHERE shop_id = $1
        AND platform_code = 'pdd'
        AND biz_date BETWEEN $2::date AND $3::date`,

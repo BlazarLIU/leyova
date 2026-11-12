@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { getPool, withRlsContext } from '../../lib/db.js'
+import { withRlsContext } from '../../lib/db.js'
 import { sendOk, sendError } from '../../lib/http.js'
 import { requireAuth, requireRole } from '../../lib/guard.js'
 import { writeAuditLog } from '../../lib/audit.js'
@@ -145,7 +145,6 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/agency/clients/:id/users ── 为品牌自播开通专属登录账号
   app.post('/api/v1/agency/clients/:id/users', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
-    const pool = getPool()
     const user = (request as any).user
     const tenantId = user?.tenantId || 1
     const { id } = request.params as { id: string }
@@ -156,52 +155,40 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
     }
 
     try {
-      const dupRes = await pool.query('SELECT 1 FROM public.users WHERE username = $1', [String(username).trim()])
-      if (dupRes.rows.length > 0) {
-        return sendError(reply, 409, '用户名已存在')
-      }
-
-      // 验证客户归属与项目范围（使用 RLS 上下文）
-      const clientRes = await withRlsContext(request, (client) =>
-        client.query(
-          'SELECT id, brand_name FROM public.agency_clients WHERE id = $1 AND tenant_id = $2',
-          [Number(id), tenantId]
-        )
-      )
-      if (clientRes.rows.length === 0) {
-        return sendError(reply, 404, '客户不存在')
-      }
-
-      const validProjectIds: number[] = Array.isArray(projectIds)
-        ? projectIds.map((p: any) => Number(p)).filter((n: number) => Number.isFinite(n) && n > 0)
-        : []
-      if (validProjectIds.length > 0) {
-        const pCheck = await withRlsContext(request, (client) =>
-          client.query(
-            'SELECT id FROM public.agency_projects WHERE id = ANY($1) AND client_id = $2 AND tenant_id = $3',
-            [validProjectIds, Number(id), tenantId]
-          )
-        )
-        if (pCheck.rows.length !== validProjectIds.length) {
-          return sendError(reply, 400, '部分授权项目不属于当前品牌客户或不存在')
-        }
-      }
-
-      // bcrypt 哈希密码
       const hashedPassword = bcrypt.hashSync(password, 10)
+      const outcome = await withRlsContext(request, async (client) => {
+        const dupRes = await client.query('SELECT 1 FROM public.users WHERE username = $1', [String(username).trim()])
+        if (dupRes.rows.length > 0) return { status: 409, message: '用户名已存在' }
 
-      // 创建用户并写入 brand_viewer_permissions 与审计日志
-      const userRes = await pool.query(
-        `
-        INSERT INTO public.users (username, password_hash, real_name, role, status, tenant_id, user_type)
-        VALUES ($1, $2, $3, 'brand_viewer', 1, $4, 'brand_viewer')
-        RETURNING id, username, real_name, user_type
-        `,
-        [String(username).trim(), hashedPassword, name || `${clientRes.rows[0].brand_name}代表`, tenantId]
-      )
-      const createdUser = userRes.rows[0]
+        const clientRes = await client.query(
+          'SELECT id, brand_name FROM public.agency_clients WHERE id = $1 AND tenant_id = $2',
+          [Number(id), tenantId],
+        )
+        if (clientRes.rows.length === 0) return { status: 404, message: '客户不存在' }
 
-      await withRlsContext(request, async (client) => {
+        const validProjectIds: number[] = Array.isArray(projectIds)
+          ? projectIds.map((p: any) => Number(p)).filter((n: number) => Number.isFinite(n) && n > 0)
+          : []
+        if (validProjectIds.length > 0) {
+          const pCheck = await client.query(
+            'SELECT id FROM public.agency_projects WHERE id = ANY($1) AND client_id = $2 AND tenant_id = $3',
+            [validProjectIds, Number(id), tenantId],
+          )
+          if (pCheck.rows.length !== validProjectIds.length) {
+            return { status: 400, message: '部分授权项目不属于当前品牌客户或不存在' }
+          }
+        }
+
+        const userRes = await client.query(
+          `
+          INSERT INTO public.users (username, password_hash, real_name, role, status, tenant_id, user_type)
+          VALUES ($1, $2, $3, 'brand_viewer', 1, $4, 'brand_viewer')
+          RETURNING id, username, real_name, user_type
+          `,
+          [String(username).trim(), hashedPassword, name || `${clientRes.rows[0].brand_name}代表`, tenantId],
+        )
+        const createdUser = userRes.rows[0]
+
         await client.query(
           `
           INSERT INTO public.brand_viewer_permissions 
@@ -212,7 +199,7 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
                         can_view_cost = EXCLUDED.can_view_cost,
                         can_view_anchors = EXCLUDED.can_view_anchors
           `,
-          [createdUser.id, tenantId, Number(id), validProjectIds, Boolean(canViewCost), Boolean(canViewAnchors)]
+          [createdUser.id, tenantId, Number(id), validProjectIds, Boolean(canViewCost), Boolean(canViewAnchors)],
         )
         await writeAuditLog(client, {
           request,
@@ -227,14 +214,22 @@ export async function agencyClientsRoutes(app: FastifyInstance) {
             canViewCost: Boolean(canViewCost),
           },
         })
+        return {
+          createdUser,
+          validProjectIds,
+        }
       })
 
+      if ('status' in outcome && outcome.status) {
+        return sendError(reply, outcome.status, outcome.message!)
+      }
+
       return sendOk(reply, {
-        userId: createdUser.id,
-        username: createdUser.username,
-        realName: createdUser.real_name,
+        userId: outcome.createdUser!.id,
+        username: outcome.createdUser!.username,
+        realName: outcome.createdUser!.real_name,
         clientId: Number(id),
-        allowedProjects: validProjectIds,
+        allowedProjects: outcome.validProjectIds,
         userType: 'brand_viewer',
       }, '品牌自播专属登录账号开通成功')
     } catch (err: any) {

@@ -20,7 +20,10 @@ interface Account {
 const ROLE_LABEL: Record<string, string> = {
   super_admin: '👑 系统管理员',
   admin: '🏢 管理员 (总监)',
+  ops_director: '🧭 运营总监',
   operator: '🚀 运营 (操盘手)',
+  ops_staff: '📋 运营专员',
+  controller: '🎛️ 直播中控',
   ad_buyer: '🎯 投放专员',
   finance: '💰 财务主管',
   hrbp: '👥 HRBP',
@@ -30,7 +33,10 @@ const ROLE_LABEL: Record<string, string> = {
 const ROLE_BADGE_VARIANT: Record<string, 'danger' | 'warning' | 'success' | 'info' | 'neutral'> = {
   super_admin: 'danger',
   admin: 'warning',
+  ops_director: 'warning',
   operator: 'info',
+  ops_staff: 'info',
+  controller: 'neutral',
   ad_buyer: 'info',
   finance: 'success',
   hrbp: 'warning',

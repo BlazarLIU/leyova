@@ -4,7 +4,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { canAccessAdSpend, requireAuth } from '../lib/guard.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
 import {
@@ -27,17 +27,28 @@ function defaultRange(from?: string, to?: string) {
 }
 
 export async function taobaoRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
-  async function resolveTaobaoShop(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+  async function runTaobaoShopQuery<T>(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+    fn: (shopId: number, client: any) => Promise<T>,
+    requireAdSpend = false,
+  ) {
     const user = await requireAuth(request, reply)
-    if (!user) return null
-    const check = await assertShopPlatform(pool, request.params.id, ['taobao', 'tmall'])
-    if (!check.ok || !check.shop) {
-      sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
-      return null
+    if (!user) return
+    if (requireAdSpend && !canAccessAdSpend(user)) {
+      return sendError(reply, 403, '当前角色无权查看万相台投放消耗对账数据')
     }
-    return { user, shopId: check.shop.id }
+    const result = await withRlsContext(request, async (client) => {
+      const check = await assertShopPlatform(client, request.params.id, ['taobao', 'tmall'])
+      if (!check.ok || !check.shop) return { shopError: check }
+      const data = await fn(check.shop.id, client)
+      return { data }
+    })
+    if ('shopError' in result && result.shopError) {
+      return sendError(reply, result.shopError.statusCode || 400, result.shopError.message || '店铺校验失败')
+    }
+    if (result.data === null) return sendError(reply, 404, '店铺不存在')
+    return sendOk(reply, result.data)
   }
 
   // ── GET /api/v1/taobao/shop/:id/metrics ── 店铺经营指标
@@ -46,12 +57,8 @@ export async function taobaoRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveTaobaoShop(request, reply)
-      if (!ctx) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getTaobaoShopMetrics(ctx.shopId, r.from, r.to)
-      if (!data) return sendError(reply, 404, '店铺不存在')
-      return sendOk(reply, data)
+      return await runTaobaoShopQuery(request, reply, (shopId, client) => getTaobaoShopMetrics(shopId, r.from, r.to, client))
     } catch (err: any) {
       request.log.error({ err }, 'taobao shop metrics failed')
       return sendError(reply, 500, `获取店铺指标失败：${err?.message || err}`)
@@ -64,12 +71,12 @@ export async function taobaoRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string; limit?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveTaobaoShop(request, reply)
-      if (!ctx) return
       const r = defaultRange(request.query.from, request.query.to)
       const limit = parseInt(request.query.limit || '50', 10) || 50
-      const data = await getTaobaoProductStructure(ctx.shopId, r.from, r.to, limit)
-      return sendOk(reply, { range: r, products: data, count: data.length })
+      return await runTaobaoShopQuery(request, reply, async (shopId, client) => {
+        const products = await getTaobaoProductStructure(shopId, r.from, r.to, limit, client)
+        return { range: r, products, count: products.length }
+      })
     } catch (err: any) {
       return sendError(reply, 500, `获取商品结构失败：${err?.message || err}`)
     }
@@ -81,11 +88,11 @@ export async function taobaoRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveTaobaoShop(request, reply)
-      if (!ctx) return
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getTaobaoChannelSplit(ctx.shopId, r.from, r.to)
-      return sendOk(reply, { range: r, channels: data })
+      return await runTaobaoShopQuery(request, reply, async (shopId, client) => {
+        const channels = await getTaobaoChannelSplit(shopId, r.from, r.to, client)
+        return { range: r, channels }
+      })
     } catch (err: any) {
       return sendError(reply, 500, `获取渠道结构失败：${err?.message || err}`)
     }
@@ -97,14 +104,11 @@ export async function taobaoRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveTaobaoShop(request, reply)
-      if (!ctx) return
-      if (!canAccessAdSpend(ctx.user)) {
-        return sendError(reply, 403, '当前角色无权查看万相台投放消耗对账数据')
-      }
       const r = defaultRange(request.query.from, request.query.to)
-      const data = await getTaobaoAdReconciliation(ctx.shopId, r.from, r.to)
-      return sendOk(reply, { range: r, ...data })
+      return await runTaobaoShopQuery(request, reply, async (shopId, client) => {
+        const data = await getTaobaoAdReconciliation(shopId, r.from, r.to, client)
+        return { range: r, ...data }
+      }, true)
     } catch (err: any) {
       return sendError(reply, 500, `获取投放对账失败：${err?.message || err}`)
     }
@@ -115,10 +119,7 @@ export async function taobaoRoutes(app: FastifyInstance) {
     Params: { id: string }
   }>, reply: FastifyReply) => {
     try {
-      const ctx = await resolveTaobaoShop(request, reply)
-      if (!ctx) return
-      const data = await getTaobaoDsrStatus(ctx.shopId)
-      return sendOk(reply, data)
+      return await runTaobaoShopQuery(request, reply, (shopId, client) => getTaobaoDsrStatus(shopId, client))
     } catch (err: any) {
       return sendError(reply, 500, `获取 DSR 失败：${err?.message || err}`)
     }

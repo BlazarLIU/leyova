@@ -13,7 +13,7 @@
  *   5. 官方明确：磁力金牛（投流口径）与生意通（经营口径）不可直接对比
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 import { getDefaultCaliber } from '../platform/caliber.js'
 
@@ -34,7 +34,7 @@ export async function getKsTrafficSplit(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<KsTrafficSplit> {
   const p = pool || getPool()
 
@@ -114,16 +114,16 @@ export async function getKsIndirectGmv(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<KsIndirectGmv> {
   const p = pool || getPool()
 
-  // 优先从投放事实表读直接/间接拆分
+  // 优先从投放事实表 fact_ad_spend_daily 读直接/间接拆分
   const adRes = await p.query(
     `SELECT
        COALESCE(SUM(direct_gmv), 0)::numeric   AS direct_gmv,
        COALESCE(SUM(indirect_gmv), 0)::numeric AS indirect_gmv
-     FROM fact_ad_daily
+     FROM fact_ad_spend_daily
      WHERE shop_id = $1
        AND platform_code = 'kuaishou'
        AND biz_date BETWEEN $2::date AND $3::date`,
@@ -198,7 +198,7 @@ export async function getKsFansTeam(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<KsFansTeam> {
   const p = pool || getPool()
 
@@ -272,18 +272,18 @@ export async function getKsAdRoi(
   shopId: number,
   from: string,
   to: string,
-  pool?: Pool,
+  pool?: DbExecutor,
 ): Promise<KsAdRoi> {
   const p = pool || getPool()
 
   const adRes = await p.query(
     `SELECT
-       COALESCE(SUM(ad_spend), 0)::numeric     AS spend,
-       COALESCE(SUM(ad_gmv), 0)::numeric       AS ad_gmv,
-       COALESCE(SUM(direct_gmv), 0)::numeric   AS direct_gmv,
-       COALESCE(SUM(indirect_gmv), 0)::numeric AS indirect_gmv,
-       COALESCE(SUM(net_gmv), 0)::numeric      AS net_gmv
-     FROM fact_ad_daily
+       COALESCE(SUM(ad_spend), 0)::numeric                                          AS spend,
+       COALESCE(SUM(attributed_gross_gmv), 0)::numeric                              AS ad_gmv,
+       COALESCE(SUM(direct_gmv), 0)::numeric                                        AS direct_gmv,
+       COALESCE(SUM(indirect_gmv), 0)::numeric                                      AS indirect_gmv,
+       COALESCE(SUM(NULLIF(net_gmv, 0)), SUM(attributed_settled_gmv), 0)::numeric   AS net_gmv
+     FROM fact_ad_spend_daily
      WHERE shop_id = $1
        AND platform_code = 'kuaishou'
        AND biz_date BETWEEN $2::date AND $3::date`,

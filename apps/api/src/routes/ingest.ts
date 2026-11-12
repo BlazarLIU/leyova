@@ -12,7 +12,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import * as XLSX from 'xlsx'
 import { createHash } from 'node:crypto'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext, withRlsPool } from '../lib/db.js'
 import { requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 import { runSyncJob, runPlatformSync, type SyncDataType } from '../ingest/sync-job.js'
@@ -180,7 +180,6 @@ function headerFingerprint(headers: string[]): string {
 }
 
 export async function ingestRoutes(app: FastifyInstance) {
-  const pool = getPool()
 
   // ═══════════════════════════════════════════════════════════════
   // ① 官方 OpenAPI 同步
@@ -199,9 +198,12 @@ export async function ingestRoutes(app: FastifyInstance) {
       const { platformCode, shopId, dataType = 'trade', since } = request.body || {}
       if (!platformCode) return sendError(reply, 400, '缺少 platformCode')
 
-      const results = shopId
-        ? [await runSyncJob(pool, platformCode, shopId, dataType, since)]
-        : await runPlatformSync(pool, platformCode, dataType, since)
+      const results = await withRlsPool(request, async (rlsPool) => {
+        const res = shopId
+          ? [await runSyncJob(rlsPool, platformCode, shopId, dataType, since)]
+          : await runPlatformSync(rlsPool, platformCode, dataType, since)
+        return res
+      })
 
       const summary = {
         total: results.length,
@@ -209,13 +211,15 @@ export async function ingestRoutes(app: FastifyInstance) {
         skipped: results.filter((r) => r.status === 'skipped').length,
         failed: results.filter((r) => r.status === 'failed').length,
       }
-      await writeAuditLog(pool, {
-        request,
-        action: 'ingest.sync',
-        resourceType: 'ingest_sync_jobs',
-        resourceId: `${platformCode}:${shopId ?? 'all'}`,
-        afterData: { platformCode, shopId, dataType, summary },
-      })
+      await withRlsContext(request, (client) =>
+        writeAuditLog(client, {
+          request,
+          action: 'ingest.sync',
+          resourceType: 'ingest_sync_jobs',
+          resourceId: `${platformCode}:${shopId ?? 'all'}`,
+          afterData: { platformCode, shopId, dataType, summary },
+        }),
+      )
       return sendOk(reply, { summary, results }, '同步任务已执行')
     } catch (err) {
       request.log.error({ err }, 'Failed to run ingest sync')
@@ -237,15 +241,17 @@ export async function ingestRoutes(app: FastifyInstance) {
       const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
       const lim = Math.min(parseInt(limit || '50', 10) || 50, 200)
 
-      const { rows } = await pool.query(
-        `SELECT j.*, s.shop_name, p.platform_name
-           FROM ingest_sync_jobs j
-           LEFT JOIN dim_shop s ON s.id = j.shop_id
-           LEFT JOIN system_platform_configs p ON p.platform_code = j.platform_code
-           ${where}
-          ORDER BY j.started_at DESC
-          LIMIT ${lim}`,
-        params,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT j.*, s.shop_name, p.platform_name
+             FROM ingest_sync_jobs j
+             LEFT JOIN dim_shop s ON s.id = j.shop_id
+             LEFT JOIN system_platform_configs p ON p.platform_code = j.platform_code
+             ${where}
+            ORDER BY j.started_at DESC
+            LIMIT ${lim}`,
+          params,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -255,18 +261,20 @@ export async function ingestRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/ingest/stats ── 接入总览统计
-  app.get('/api/v1/ingest/stats', async (_request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/ingest/stats', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const { rows } = await pool.query(`
-        SELECT platform_code,
-               count(*) FILTER (WHERE status = 'completed') AS completed,
-               count(*) FILTER (WHERE status = 'failed') AS failed,
-               count(*) FILTER (WHERE status = 'running') AS running,
-               COALESCE(sum(success_rows), 0) AS total_success_rows,
-               max(completed_at) AS last_completed_at
-          FROM ingest_sync_jobs
-         GROUP BY platform_code
-         ORDER BY platform_code`)
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(`
+          SELECT platform_code,
+                 count(*) FILTER (WHERE status = 'completed') AS completed,
+                 count(*) FILTER (WHERE status = 'failed') AS failed,
+                 count(*) FILTER (WHERE status = 'running') AS running,
+                 COALESCE(sum(success_rows), 0) AS total_success_rows,
+                 max(completed_at) AS last_completed_at
+            FROM ingest_sync_jobs
+           GROUP BY platform_code
+           ORDER BY platform_code`),
+      )
       return sendOk(reply, rows)
     } catch (err) {
       return sendError(reply, 500, '获取接入统计失败')
@@ -290,22 +298,26 @@ export async function ingestRoutes(app: FastifyInstance) {
         required: field === 'biz_date',
       }))
 
-      let savedMappings: any[] = []
-      if (platform) {
-        const r = await pool.query(
-          `SELECT id, template_code, platform_code, file_header_fingerprint, column_mappings, created_at
-             FROM upload_column_mappings WHERE platform_code = $1 ORDER BY id DESC`,
-          [platform],
-        )
-        savedMappings = r.rows
-      }
+      const { savedMappings, ruleSets } = await withRlsContext(request, async (client) => {
+        let saved: any[] = []
+        if (platform) {
+          const r = await client.query(
+            `SELECT id, template_code, platform_code, file_header_fingerprint, column_mappings, created_at
+               FROM upload_column_mappings WHERE platform_code = $1 ORDER BY id DESC`,
+            [platform],
+          )
+          saved = r.rows
+        }
 
-      const ruleSets = platform
-        ? (await pool.query(
-          `SELECT id, name, description, is_system, rules FROM clean_rule_sets WHERE platform_code = $1 ORDER BY is_system DESC, id`,
-          [platform],
-        )).rows
-        : []
+        const rules = platform
+          ? (await client.query(
+            `SELECT id, name, description, is_system, rules FROM clean_rule_sets WHERE platform_code = $1 ORDER BY is_system DESC, id`,
+            [platform],
+          )).rows
+          : []
+
+        return { savedMappings: saved, ruleSets: rules }
+      })
 
       return sendOk(reply, { fields, savedMappings, ruleSets })
     } catch (err) {
@@ -329,14 +341,16 @@ export async function ingestRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '缺少必要参数 (platformCode, headers, columnMappings)')
       }
       const fp = headerFingerprint(headers)
-      const { rows } = await pool.query(
-        `INSERT INTO upload_column_mappings
-           (template_code, platform_code, file_header_fingerprint, column_mappings)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (platform_code, file_header_fingerprint)
-         DO UPDATE SET column_mappings = EXCLUDED.column_mappings, template_code = EXCLUDED.template_code
-         RETURNING *`,
-        [templateCode || 'custom', platformCode, fp, JSON.stringify(columnMappings)],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO upload_column_mappings
+             (template_code, platform_code, file_header_fingerprint, column_mappings)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (platform_code, file_header_fingerprint)
+           DO UPDATE SET column_mappings = EXCLUDED.column_mappings, template_code = EXCLUDED.template_code
+           RETURNING *`,
+          [templateCode || 'custom', platformCode, fp, JSON.stringify(columnMappings)],
+        ),
       )
       return sendOk(reply, rows[0], '列映射已保存')
     } catch (err) {
@@ -353,9 +367,11 @@ export async function ingestRoutes(app: FastifyInstance) {
       const { platformCode, headers } = request.body || {}
       if (!platformCode || !Array.isArray(headers)) return sendError(reply, 400, '缺少必要参数')
       const fp = headerFingerprint(headers)
-      const { rows } = await pool.query(
-        `SELECT * FROM upload_column_mappings WHERE platform_code = $1 AND file_header_fingerprint = $2`,
-        [platformCode, fp],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT * FROM upload_column_mappings WHERE platform_code = $1 AND file_header_fingerprint = $2`,
+          [platformCode, fp],
+        ),
       )
       return sendOk(reply, { fingerprint: fp, existing: rows[0] || null })
     } catch (err) {
@@ -421,18 +437,27 @@ export async function ingestRoutes(app: FastifyInstance) {
         })
       }
 
-      // 清洗预演
+      // 清洗预演 + 映射查询（在流式解析完成后进入 RLS 上下文）
+      const fp = headerFingerprint(headers)
+      const { ruleRows, existingRows } = await withRlsContext(request, async (client) => {
+        const rsRows = ruleSetId
+          ? (await client.query(`SELECT rules FROM clean_rule_sets WHERE id = $1`, [ruleSetId])).rows
+          : []
+        const exRows = (await client.query(
+          `SELECT * FROM upload_column_mappings WHERE platform_code = $1 AND file_header_fingerprint = $2`,
+          [platformCode, fp],
+        )).rows
+        return { ruleRows: rsRows, existingRows: exRows }
+      })
+
       let cleanReport: any = null
       let cleanedRows = workingRows
-      if (ruleSetId) {
-        const rs = await pool.query(`SELECT rules FROM clean_rule_sets WHERE id = $1`, [ruleSetId])
-        if (rs.rows.length > 0) {
-          const rules = rs.rows[0].rules || []
-          const out = executeCleaningPipeline(workingRows, rules, { maxDiffSamples: 30 })
-          cleanedRows = out.cleanedRows
-          cleanReport = out.report
-        }
-      } else {
+      if (ruleSetId && ruleRows.length > 0) {
+        const rules = ruleRows[0].rules || []
+        const out = executeCleaningPipeline(workingRows, rules, { maxDiffSamples: 30 })
+        cleanedRows = out.cleanedRows
+        cleanReport = out.report
+      } else if (!ruleSetId) {
         // 即使没有规则集，也返回一个基础统计
         cleanReport = {
           inputRowsCount: workingRows.length,
@@ -448,12 +473,6 @@ export async function ingestRoutes(app: FastifyInstance) {
       // 映射建议 + 试映射
       const mapped = mapRowsToStandard(cleanedRows, dataType, bizDate || undefined)
 
-      const fp = headerFingerprint(headers)
-      const existing = await pool.query(
-        `SELECT * FROM upload_column_mappings WHERE platform_code = $1 AND file_header_fingerprint = $2`,
-        [platformCode, fp],
-      )
-
       const result = {
         fileName,
         platformCode,
@@ -461,7 +480,7 @@ export async function ingestRoutes(app: FastifyInstance) {
         headers,
         totalRows: rows.length,
         fingerprint: fp,
-        savedMapping: existing.rows[0] || null,
+        savedMapping: existingRows[0] || null,
         suggestedMapping: appliedMapping || mapped.mapping,
         cleanReport,
         mappedPreview: mapped.rows.slice(0, 20),
@@ -523,12 +542,6 @@ export async function ingestRoutes(app: FastifyInstance) {
       if (!platformCode) return sendError(reply, 400, '缺少 platform_code')
       if (!shopId) return sendError(reply, 400, '缺少 shop_id')
 
-      const shopCheck = await pool.query(
-        `SELECT id FROM dim_shop WHERE id = $1 AND platform_code = $2`,
-        [shopId, platformCode],
-      )
-      if (shopCheck.rows.length === 0) return sendError(reply, 400, '店铺不存在或不属于该平台')
-
       const { rows } = parseFileToRows(fileBuffer, fileName)
       if (rows.length === 0) return sendError(reply, 400, '文件解析后没有数据行')
 
@@ -543,62 +556,85 @@ export async function ingestRoutes(app: FastifyInstance) {
         })
       }
 
-      if (ruleSetId) {
-        const rs = await pool.query(`SELECT rules FROM clean_rule_sets WHERE id = $1`, [ruleSetId])
-        if (rs.rows.length === 0) return sendError(reply, 404, '清洗规则集不存在')
-        const out = executeCleaningPipeline(workingRows, rs.rows[0].rules || [])
-        workingRows = out.cleanedRows
+      const ext = fileName.split('.').pop()?.toLowerCase() || 'xlsx'
+      const prep = await withRlsContext(request, async (client) => {
+        const shopCheck = await client.query(
+          `SELECT id FROM dim_shop WHERE id = $1 AND platform_code = $2`,
+          [shopId, platformCode],
+        )
+        if (shopCheck.rows.length === 0) {
+          return { errStatus: 400 as const, errMsg: '店铺不存在或不属于该平台' }
+        }
+
+        let cleaned = workingRows
+        if (ruleSetId) {
+          const rs = await client.query(`SELECT rules FROM clean_rule_sets WHERE id = $1`, [ruleSetId])
+          if (rs.rows.length === 0) {
+            return { errStatus: 404 as const, errMsg: '清洗规则集不存在' }
+          }
+          const out = executeCleaningPipeline(workingRows, rs.rows[0].rules || [])
+          cleaned = out.cleanedRows
+        }
+
+        const uploadIns = await client.query<{ id: number }>(
+          `INSERT INTO data_uploads
+             (file_name, file_type, file_size, status, row_count, data_type, business_date, platform_code, clean_rule_set_id)
+           VALUES ($1, $2, $3, 'processing', $4, $5, $6, $7, $8)
+           RETURNING id`,
+          [
+            fileName,
+            ext.slice(0, 50),
+            `${Math.max(1, Math.round(fileBuffer.length / 1024))}KB`,
+            cleaned.length,
+            dataType,
+            bizDate || null,
+            platformCode,
+            ruleSetId ?? null,
+          ],
+        )
+        return { uploadId: uploadIns.rows[0]?.id ?? null, cleanedRows: cleaned }
+      })
+
+      if ('errStatus' in prep && prep.errStatus !== undefined) {
+        return sendError(reply, prep.errStatus, prep.errMsg)
       }
 
-      const ext = fileName.split('.').pop()?.toLowerCase() || 'xlsx'
-      const uploadIns = await pool.query<{ id: number }>(
-        `INSERT INTO data_uploads
-           (file_name, file_type, file_size, status, row_count, data_type, business_date, platform_code, clean_rule_set_id)
-         VALUES ($1, $2, $3, 'processing', $4, $5, $6, $7, $8)
-         RETURNING id`,
-        [
-          fileName,
-          ext.slice(0, 50),
-          `${Math.max(1, Math.round(fileBuffer.length / 1024))}KB`,
-          workingRows.length,
-          dataType,
-          bizDate || null,
-          platformCode,
-          ruleSetId ?? null,
-        ],
-      )
-      const uploadId = uploadIns.rows[0]?.id ?? null
-
+      const { uploadId, cleanedRows } = prep
       try {
-        const result = await ingestManualFacts(pool, {
-          platformCode,
-          shopId,
-          dataType,
-          rows: workingRows,
-          defaultBizDate: bizDate || undefined,
-          cleanRuleSetId: ruleSetId,
-          uploadId,
-        })
+        const result = await withRlsContext(request, async (client) => {
+          const res = await ingestManualFacts(client, {
+            platformCode,
+            shopId,
+            dataType,
+            rows: cleanedRows,
+            defaultBizDate: bizDate || undefined,
+            cleanRuleSetId: ruleSetId,
+            uploadId,
+          })
 
-        if (uploadId) {
-          await pool.query(
-            `UPDATE data_uploads SET status = 'completed', row_count = $1 WHERE id = $2`,
-            [result.insertedRows, uploadId],
-          )
-        }
+          if (uploadId) {
+            await client.query(
+              `UPDATE data_uploads SET status = 'completed', row_count = $1 WHERE id = $2`,
+              [res.insertedRows, uploadId],
+            )
+          }
+          return res
+        })
 
         return sendOk(reply, {
           ...result,
           uploadId,
           fileName,
           inputRows: rows.length,
-          cleanedRows: workingRows.length,
+          cleanedRows: cleanedRows.length,
         }, `导入完成：成功 ${result.insertedRows} 行，拒绝 ${result.rejectedRows} 行`)
       } catch (err) {
         if (uploadId) {
-          await pool.query(
-            `UPDATE data_uploads SET status = 'failed', error_message = $1 WHERE id = $2`,
-            [String((err as Error)?.message || err).slice(0, 500), uploadId],
+          await withRlsContext(request, (client) =>
+            client.query(
+              `UPDATE data_uploads SET status = 'failed', error_message = $1 WHERE id = $2`,
+              [String((err as Error)?.message || err).slice(0, 500), uploadId],
+            ),
           ).catch(() => {})
         }
         throw err
@@ -700,14 +736,16 @@ export async function ingestRoutes(app: FastifyInstance) {
       const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
       const lim = Math.min(parseInt(limit || '100', 10) || 100, 500)
 
-      const { rows } = await pool.query(
-        `SELECT f.*, s.shop_name
-           FROM fact_trade_daily f
-           LEFT JOIN dim_shop s ON s.id = f.shop_id
-           ${where}
-          ORDER BY f.biz_date DESC, f.id DESC
-          LIMIT ${lim}`,
-        params,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT f.*, s.shop_name
+             FROM fact_trade_daily f
+             LEFT JOIN dim_shop s ON s.id = f.shop_id
+             ${where}
+            ORDER BY f.biz_date DESC, f.id DESC
+            LIMIT ${lim}`,
+          params,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {

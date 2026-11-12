@@ -29,25 +29,25 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
   app.get<{
     Querystring: { platform?: string; promotionId?: string }
   }>('/api/v1/promotions/rules', { preHandler: [requireAuth] }, async (request, reply) => {
-    const { platform, promotionId } = request.query || {}
+    const { platform, shopId } = request.query as { platform?: string; shopId?: string }
     try {
       const rows = await withRlsContext(request, async (client) => {
         const params: any[] = []
-        const conds: string[] = []
+        const conds: string[] = ['r.is_active = true']
         if (platform) {
           params.push(platform)
           conds.push(`r.platform_code = $${params.length}`)
         }
-        if (promotionId) {
-          params.push(Number(promotionId))
-          conds.push(`r.promotion_id = $${params.length}`)
+        if (shopId) {
+          params.push(Number(shopId))
+          conds.push(`r.shop_id = $${params.length}`)
         }
         const whereSql = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
         const res = await client.query(
-          `SELECT r.*, p.name AS promotion_name, pc.platform_name
-           FROM public.promotion_rules r
-           LEFT JOIN public.promotions p ON p.id = r.promotion_id
+          `SELECT r.*, pc.platform_name, s.shop_name
+           FROM public.pricing_rules r
            LEFT JOIN public.system_platform_configs pc ON pc.platform_code = r.platform_code
+           LEFT JOIN public.dim_shop s ON s.id = r.shop_id
            ${whereSql}
            ORDER BY r.rule_layer ASC, r.id ASC`,
           params,
@@ -56,14 +56,14 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
       })
       return sendOk(reply, rows)
     } catch (err) {
-      request.log.warn({ err }, 'promotions/rules query failed')
-      return sendError(reply, 500, '查询大促叠加规则失败')
+      request.log.warn({ err }, 'pricing_rules query failed')
+      return sendError(reply, 500, '查询价格叠加规则失败')
     }
   })
 
   app.post<{
     Body: {
-      promotionId?: number | null
+      shopId?: number | null
       platformCode: string
       ruleLayer: number
       ruleName: string
@@ -89,14 +89,14 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
         const merchantRatio = Number(b.merchantCostRatio ?? 1)
         const platformRatio = Number(b.platformCostRatio ?? Math.max(0, 1 - merchantRatio))
         const res = await client.query(
-          `INSERT INTO public.promotion_rules
-             (tenant_id, promotion_id, platform_code, rule_layer, rule_name, discount_mode,
+          `INSERT INTO public.pricing_rules
+             (tenant_id, shop_id, platform_code, rule_layer, rule_name, discount_mode,
               discount_value, is_exclusive, merchant_cost_ratio, platform_cost_ratio, note)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
            RETURNING *`,
           [
             scope.tenantId,
-            b.promotionId ? Number(b.promotionId) : null,
+            b.shopId ? Number(b.shopId) : null,
             b.platformCode,
             layer,
             b.ruleName.trim(),
@@ -110,17 +110,17 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
         )
         await writeAuditLog(client, {
           request,
-          action: 'promotion_rule.create',
-          resourceType: 'promotion_rules',
+          action: 'pricing_rule.create',
+          resourceType: 'pricing_rules',
           resourceId: res.rows[0].id,
           afterData: res.rows[0],
         })
         return res.rows[0]
       })
-      return sendOk(reply, row, '大促规则已保存')
+      return sendOk(reply, row, '价格叠加规则已保存')
     } catch (err) {
-      request.log.warn({ err }, 'promotions/rules create failed')
-      return sendError(reply, 500, '保存大促叠加规则失败')
+      request.log.warn({ err }, 'pricing_rules create failed')
+      return sendError(reply, 500, '保存价格叠加规则失败')
     }
   })
 
@@ -134,13 +134,13 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
       }
       try {
         const deleted = await withRlsContext(request, async (client) => {
-          const beforeRes = await client.query('SELECT * FROM public.promotion_rules WHERE id = $1', [id])
+          const beforeRes = await client.query('SELECT * FROM public.pricing_rules WHERE id = $1', [id])
           if (beforeRes.rows.length === 0) return null
-          await client.query('DELETE FROM public.promotion_rules WHERE id = $1', [id])
+          await client.query('DELETE FROM public.pricing_rules WHERE id = $1', [id])
           await writeAuditLog(client, {
             request,
-            action: 'promotion_rule.delete',
-            resourceType: 'promotion_rules',
+            action: 'pricing_rule.delete',
+            resourceType: 'pricing_rules',
             resourceId: id,
             beforeData: beforeRes.rows[0],
           })
@@ -149,8 +149,8 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
         if (!deleted) return sendError(reply, 404, '规则不存在或无权删除')
         return sendOk(reply, { deleted: true, id })
       } catch (err) {
-        request.log.warn({ err }, 'promotions/rules delete failed')
-        return sendError(reply, 500, '删除大促规则失败')
+        request.log.warn({ err }, 'pricing_rules delete failed')
+        return sendError(reply, 500, '删除价格叠加规则失败')
       }
     },
   )
@@ -159,7 +159,7 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
   app.post<{
     Body: {
       platformCode?: string
-      promotionId?: number
+      shopId?: number
       retailPrice: number
       costPrice?: number
       platformFeeRate?: number
@@ -179,14 +179,14 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
       if (rules.length === 0) {
         rules = await withRlsContext(request, async (client) => {
           const params: any[] = []
-          const conds: string[] = []
+          const conds: string[] = ['is_active = true']
           if (b.platformCode) {
             params.push(b.platformCode)
             conds.push(`platform_code = $${params.length}`)
           }
-          if (b.promotionId) {
-            params.push(Number(b.promotionId))
-            conds.push(`promotion_id = $${params.length}`)
+          if (b.shopId) {
+            params.push(Number(b.shopId))
+            conds.push(`(shop_id IS NULL OR shop_id = $${params.length})`)
           }
           const whereSql = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
           const res = await client.query(
@@ -195,7 +195,7 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
                     is_exclusive AS "isExclusive",
                     merchant_cost_ratio::float8 AS "merchantCostRatio",
                     platform_cost_ratio::float8 AS "platformCostRatio"
-             FROM public.promotion_rules
+             FROM public.pricing_rules
              ${whereSql}
              ORDER BY rule_layer ASC, id ASC`,
             params,

@@ -1,8 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool, withRlsContext } from '../lib/db.js'
+import { withRlsContext, type DbExecutor } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
+import { getAnchorCapabilitiesAndRankings, getAnchorCapabilityHistory } from '../services/anchor-ranking.js'
 
 export async function anchorRoutes(app: FastifyInstance) {
   // ── GET /api/v1/anchors/list ──
@@ -89,9 +90,8 @@ export async function anchorRoutes(app: FastifyInstance) {
     if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
       return sendError(reply, 403, '仅可查看本人关联主播档案')
     }
-    const pool = getPool()
     try {
-      const result = await pool.query<{
+      const result = await withRlsContext(request, (client) => client.query<{
         id: number; name: string; level: string; followers: number
         join_date: string; email: string; phone: string; tags: string[]
       }>(
@@ -101,7 +101,7 @@ export async function anchorRoutes(app: FastifyInstance) {
          LEFT JOIN anchor_profiles ap ON ap.id = a.id
          WHERE a.id = $1 AND a.status = 1`,
         [parseInt(id)]
-      )
+      ))
       const r = result.rows[0]
       if (!r) return sendOk(reply, { id, name: '未知主播' })
       return sendOk(reply, {
@@ -124,7 +124,8 @@ export async function anchorRoutes(app: FastifyInstance) {
       return sendError(reply, 403, '仅可查看本人关联主播档案')
     }
     request.params = { id }
-    return sendOk(reply, await getAnchorDetail(parseInt(id)))
+    const detail = await withRlsContext(request, (client) => getAnchorDetail(parseInt(id), client))
+    return sendOk(reply, detail)
   })
 
   // ── GET /api/v1/anchors/profile/:id/performance ──
@@ -134,50 +135,52 @@ export async function anchorRoutes(app: FastifyInstance) {
     if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
       return sendError(reply, 403, '仅可查看本人关联主播绩效数据')
     }
-    const pool = getPool()
     try {
-      const stats = await pool.query<{
-        avg_gmv: string; avg_viewers: number; avg_conversion: number; session_count: number
-      }>(
-        `SELECT COALESCE(AVG(gmv), 0) AS avg_gmv,
-                COALESCE(AVG(online_peak), 0)::int AS avg_viewers,
-                0 AS avg_conversion,
-                COUNT(*)::int AS session_count
-         FROM session_anchor_metrics WHERE anchor_id = $1`,
-        [parseInt(id)]
-      )
+      const { stats, monthly, recent } = await withRlsContext(request, async (client) => {
+        const stats = await client.query<{
+          avg_gmv: string; avg_viewers: number; avg_conversion: number; session_count: number
+        }>(
+          `SELECT COALESCE(AVG(gmv), 0) AS avg_gmv,
+                  COALESCE(AVG(online_peak), 0)::int AS avg_viewers,
+                  0 AS avg_conversion,
+                  COUNT(*)::int AS session_count
+           FROM session_anchor_metrics WHERE anchor_id = $1`,
+          [parseInt(id)]
+        )
+        const monthly = await client.query(
+          `SELECT to_char(date, 'YYYY-MM') AS month,
+                  COUNT(*)::int AS session_count,
+                  COALESCE(SUM(duration_min), 0)::int AS total_duration_min,
+                  COALESCE(SUM(gmv), 0) AS total_gmv,
+                  COALESCE(AVG(gmv_per_hour), 0) AS avg_gmv_per_hour,
+                  COALESCE(MAX(online_peak), 0)::int AS max_online_peak,
+                  COALESCE(AVG(avg_online), 0)::int AS avg_avg_online,
+                  COALESCE(AVG(avg_item_price), 0) AS avg_avg_item_price,
+                  COALESCE(AVG(exposure_view_rate), 0) AS avg_exposure_view_rate,
+                  COALESCE(AVG(retention_rate), 0) AS avg_retention_rate,
+                  COALESCE(AVG(interaction_rate), 0) AS avg_interaction_rate,
+                  COALESCE(SUM(new_fans), 0)::int AS total_new_fans,
+                  COALESCE(AVG(view_follow_rate), 0) AS avg_view_follow_rate,
+                  COALESCE(SUM(new_group_members), 0)::int AS total_new_group_members,
+                  COALESCE(AVG(uv_value), 0) AS avg_uv_value
+           FROM session_anchor_metrics WHERE anchor_id = $1
+           GROUP BY month ORDER BY month DESC LIMIT 6`,
+          [parseInt(id)]
+        )
+        const recent = await client.query(
+          `SELECT id, title, date::text, duration_min, gmv, gmv_per_hour,
+                  online_peak, avg_online, avg_item_price, exposure_view_rate,
+                  retention_rate, interaction_rate, new_fans, view_follow_rate,
+                  new_group_members, uv_value
+           FROM session_anchor_metrics
+           WHERE anchor_id = $1
+           ORDER BY date DESC
+           LIMIT 10`,
+          [parseInt(id)]
+        )
+        return { stats, monthly, recent }
+      })
       const s = stats.rows[0]
-      const monthly = await pool.query(
-        `SELECT to_char(date, 'YYYY-MM') AS month,
-                COUNT(*)::int AS session_count,
-                COALESCE(SUM(duration_min), 0)::int AS total_duration_min,
-                COALESCE(SUM(gmv), 0) AS total_gmv,
-                COALESCE(AVG(gmv_per_hour), 0) AS avg_gmv_per_hour,
-                COALESCE(MAX(online_peak), 0)::int AS max_online_peak,
-                COALESCE(AVG(avg_online), 0)::int AS avg_avg_online,
-                COALESCE(AVG(avg_item_price), 0) AS avg_avg_item_price,
-                COALESCE(AVG(exposure_view_rate), 0) AS avg_exposure_view_rate,
-                COALESCE(AVG(retention_rate), 0) AS avg_retention_rate,
-                COALESCE(AVG(interaction_rate), 0) AS avg_interaction_rate,
-                COALESCE(SUM(new_fans), 0)::int AS total_new_fans,
-                COALESCE(AVG(view_follow_rate), 0) AS avg_view_follow_rate,
-                COALESCE(SUM(new_group_members), 0)::int AS total_new_group_members,
-                COALESCE(AVG(uv_value), 0) AS avg_uv_value
-         FROM session_anchor_metrics WHERE anchor_id = $1
-         GROUP BY month ORDER BY month DESC LIMIT 6`,
-        [parseInt(id)]
-      )
-      const recent = await pool.query(
-        `SELECT id, title, date::text, duration_min, gmv, gmv_per_hour,
-                online_peak, avg_online, avg_item_price, exposure_view_rate,
-                retention_rate, interaction_rate, new_fans, view_follow_rate,
-                new_group_members, uv_value
-         FROM session_anchor_metrics
-         WHERE anchor_id = $1
-         ORDER BY date DESC
-         LIMIT 10`,
-        [parseInt(id)]
-      )
       return sendOk(reply, {
         stats: [
           { id: 'avg-gmv', label: '场均GMV', value: `¥${(parseFloat(s.avg_gmv) / 10000).toFixed(1)}万`, change: 12.5 },
@@ -233,14 +236,13 @@ export async function anchorRoutes(app: FastifyInstance) {
     }
     request.params = { id }
     // forward to profile performance
-    const result = await getAnchorPerformance(parseInt(id))
+    const result = await withRlsContext(request, (client) => getAnchorPerformance(parseInt(id), client))
     return sendOk(reply, result)
   })
 
   // ── GET /api/v1/anchors/my/performance ── 主播个人视角专属绩效看板
   // 修复 P0-9：严格要求会话鉴权，并按真实账号绑定关系定位主播档案，杜绝静默兜底 Anchor ID 1
   app.get('/api/v1/anchors/my/performance', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
     const user = (request as any).user
     const { anchorId } = request.query as { anchorId?: string }
 
@@ -252,25 +254,40 @@ export async function anchorRoutes(app: FastifyInstance) {
         aId = parseInt(anchorId, 10)
       } else if (user?.anchorId) {
         aId = user.anchorId
-      } else {
-        const found = await pool.query(
-          'SELECT id FROM public.anchors WHERE user_id = $1 OR name = $2 LIMIT 1',
-          [user?.id, user?.realName || user?.username]
-        )
-        if (found.rows.length > 0) {
-          aId = found.rows[0].id
+      }
+
+      const payload = await withRlsContext(request, async (client) => {
+        if (!aId) {
+          const found = await client.query(
+            'SELECT id FROM public.anchors WHERE user_id = $1 OR name = $2 LIMIT 1',
+            [user?.id, user?.realName || user?.username]
+          )
+          if (found.rows.length > 0) {
+            aId = found.rows[0].id
+          }
         }
-      }
 
-      if (!aId) {
-        return sendError(reply, 404, '当前登录账号未绑定主播档案，请联系管理员在系统管理中关联')
-      }
+        if (!aId) {
+          return { notBound: true as const }
+        }
 
-      const { anchorRes, statsRes, recentRes } = await withRlsContext(request, async (client) => {
         const aRes = await client.query(
-          'SELECT a.id, a.name, a.level, a.platform, a.platform_code, c.expression, c.interaction, c.conversion, c.professionalism, c.overall FROM public.anchors a LEFT JOIN public.anchor_capabilities c ON a.id = c.anchor_id WHERE a.id = $1',
+          `SELECT a.id, a.name, a.level, a.platform, a.platform_code,
+                  c.expression, c.interaction, c.conversion, c.professionalism, c.overall
+           FROM public.anchors a
+           LEFT JOIN LATERAL (
+             SELECT expression, interaction, conversion, professionalism, overall
+             FROM public.anchor_capabilities
+             WHERE anchor_id = a.id
+             ORDER BY evaluated_at DESC, id DESC
+             LIMIT 1
+           ) c ON true
+           WHERE a.id = $1`,
           [aId]
         )
+        if (aRes.rows.length === 0) {
+          return { notFound: true as const }
+        }
         const sRes = await client.query(
           `SELECT
              COUNT(*)::int AS "monthlySessions",
@@ -288,21 +305,24 @@ export async function anchorRoutes(app: FastifyInstance) {
            ORDER BY date DESC, id DESC LIMIT 8`,
           [aId]
         )
-        return { anchorRes: aRes, statsRes: sRes, recentRes: rRes }
+        const rankRes = await client.query(
+          `SELECT rank FROM (
+             SELECT anchor_id, RANK() OVER (ORDER BY COALESCE(SUM(gmv), 0) DESC) as rank
+             FROM public.live_sessions GROUP BY anchor_id
+           ) r WHERE r.anchor_id = $1`,
+          [aId]
+        )
+        return { anchorRes: aRes, statsRes: sRes, recentRes: rRes, rankRes }
       })
 
-      if (anchorRes.rows.length === 0) {
+      if ('notBound' in payload) {
+        return sendError(reply, 404, '当前登录账号未绑定主播档案，请联系管理员在系统管理中关联')
+      }
+      if ('notFound' in payload) {
         return sendError(reply, 404, '主播档案不存在或无权访问')
       }
+      const { anchorRes, statsRes, recentRes, rankRes } = payload
       const anchor = anchorRes.rows[0]
-
-      const rankRes = await pool.query(
-        `SELECT rank FROM (
-           SELECT anchor_id, RANK() OVER (ORDER BY COALESCE(SUM(gmv), 0) DESC) as rank
-           FROM public.live_sessions GROUP BY anchor_id
-         ) r WHERE r.anchor_id = $1`,
-        [aId]
-      )
       const rank = rankRes.rows[0]?.rank ? Number(rankRes.rows[0].rank) : 3
 
       return sendOk(reply, {
@@ -339,7 +359,6 @@ export async function anchorRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/anchors/training ──
   app.get('/api/v1/anchors/training', async (request, reply) => {
-    const pool = getPool()
     const query = request.query as { status?: string }
     try {
       let sql = `SELECT id, name, anchor_count, start_date, end_date, progress, status
@@ -350,7 +369,7 @@ export async function anchorRoutes(app: FastifyInstance) {
         params.push(query.status)
       }
       sql += ' ORDER BY id'
-      const result = await pool.query(sql, params)
+      const result = await withRlsContext(request, (client) => client.query(sql, params))
       return sendOk(reply, result.rows.map(r => ({
         id: String(r.id), name: r.name,
         anchorCount: r.anchor_count,
@@ -366,12 +385,11 @@ export async function anchorRoutes(app: FastifyInstance) {
   // Alias for frontend: /api/training/plans
   app.get('/api/v1/training/plans', async (request, reply) => {
     request.query = request.query
-    const pool = getPool()
     try {
-      const result = await pool.query(
+      const result = await withRlsContext(request, (client) => client.query(
         `SELECT id, name, anchor_count, start_date, end_date, progress, status
          FROM anchor_training_plans ORDER BY id`
-      )
+      ))
       return sendOk(reply, result.rows.map(r => ({
         id: String(r.id), name: r.name,
         anchorCount: r.anchor_count,
@@ -383,13 +401,12 @@ export async function anchorRoutes(app: FastifyInstance) {
   })
 
   // ── GET /api/v1/anchors/training/records ──
-  app.get('/api/v1/anchors/training/records', async (_request, reply) => {
-    const pool = getPool()
+  app.get('/api/v1/anchors/training/records', async (request, reply) => {
     try {
-      const result = await pool.query(
+      const result = await withRlsContext(request, (client) => client.query(
         `SELECT id, anchor_name, date, project, duration_hours, completion, score
          FROM anchor_training_records ORDER BY date DESC LIMIT 20`
-      )
+      ))
       return sendOk(reply, result.rows.map(r => ({
         id: String(r.id), date: r.date.toISOString().slice(0, 10),
         anchor: r.anchor_name, project: r.project,
@@ -399,13 +416,12 @@ export async function anchorRoutes(app: FastifyInstance) {
     } catch { return sendOk(reply, []) }
   })
   // Alias for frontend: /api/training/records
-  app.get('/api/v1/training/records', async (_request, reply) => {
-    const pool = getPool()
+  app.get('/api/v1/training/records', async (request, reply) => {
     try {
-      const result = await pool.query(
+      const result = await withRlsContext(request, (client) => client.query(
         `SELECT id, anchor_name, date, project, duration_hours, completion, score
          FROM anchor_training_records ORDER BY date DESC LIMIT 20`
-      )
+      ))
       return sendOk(reply, result.rows.map(r => ({
         id: String(r.id), date: r.date.toISOString().slice(0, 10),
         anchor: r.anchor_name, project: r.project,
@@ -417,7 +433,6 @@ export async function anchorRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/anchors/scripts ──
   app.get('/api/v1/anchors/scripts', async (request, reply) => {
-    const pool = getPool()
     const query = request.query as { category?: string }
     try {
       let sql = `SELECT id, category, title, scenario, content, usage_count, last_used
@@ -428,7 +443,7 @@ export async function anchorRoutes(app: FastifyInstance) {
         params.push(query.category)
       }
       sql += ' ORDER BY id'
-      const result = await pool.query(sql, params)
+      const result = await withRlsContext(request, (client) => client.query(sql, params))
       return sendOk(reply, result.rows.map(r => ({
         id: String(r.id), category: r.category, title: r.title,
         scenario: r.scenario, content: r.content,
@@ -439,12 +454,11 @@ export async function anchorRoutes(app: FastifyInstance) {
   })
   // Alias for frontend: /api/scripts/templates
   app.get('/api/v1/scripts/templates', async (request, reply) => {
-    const pool = getPool()
     try {
-      const result = await pool.query(
+      const result = await withRlsContext(request, (client) => client.query(
         `SELECT id, category, title, scenario, content, usage_count, last_used
          FROM anchor_script_templates ORDER BY id`
-      )
+      ))
       return sendOk(reply, result.rows.map(r => ({
         id: String(r.id), category: r.category, title: r.title,
         scenario: r.scenario, content: r.content,
@@ -456,25 +470,27 @@ export async function anchorRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/scripts/templates ──
   app.post('/api/v1/scripts/templates', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'hrbp', 'operator'])] }, async (request, reply) => {
-    const pool = getPool()
     const body = request.body as { category?: string; title?: string; scenario?: string; content?: string }
     if (!body.title?.trim()) {
       return reply.code(400).send({ success: false, message: '请输入话术标题' })
     }
     try {
-      const result = await pool.query(
-        `INSERT INTO anchor_script_templates (category, title, scenario, content)
-         VALUES ($1, $2, $3, $4) RETURNING id`,
-        [body.category || 'opening', body.title.trim(), body.scenario?.trim() || '', body.content?.trim() || '']
-      )
-      await writeAuditLog(pool, {
-        request,
-        action: 'anchors.script_template.create',
-        resourceType: 'anchor_script_templates',
-        resourceId: result.rows[0].id,
-        afterData: { id: result.rows[0].id, title: body.title.trim(), category: body.category || 'opening' },
+      const createdId = await withRlsContext(request, async (client) => {
+        const result = await client.query(
+          `INSERT INTO anchor_script_templates (category, title, scenario, content)
+           VALUES ($1, $2, $3, $4) RETURNING id`,
+          [body.category || 'opening', body.title!.trim(), body.scenario?.trim() || '', body.content?.trim() || '']
+        )
+        await writeAuditLog(client, {
+          request,
+          action: 'anchors.script_template.create',
+          resourceType: 'anchor_script_templates',
+          resourceId: result.rows[0].id,
+          afterData: { id: result.rows[0].id, title: body.title!.trim(), category: body.category || 'opening' },
+        })
+        return result.rows[0].id
       })
-      return sendOk(reply, { id: result.rows[0].id })
+      return sendOk(reply, { id: createdId })
     } catch {
       return reply.code(500).send({ success: false, message: '创建失败' })
     }
@@ -482,9 +498,8 @@ export async function anchorRoutes(app: FastifyInstance) {
 }
 
 // Helper to get anchor detail
-async function getAnchorDetail(id: number) {
-  const pool = getPool()
-  const result = await pool.query<{
+async function getAnchorDetail(id: number, executor: DbExecutor) {
+  const result = await executor.query<{
     id: number; name: string; level: string; followers: number
     join_date: string; email: string; phone: string; tags: string[]
   }>(
@@ -506,9 +521,8 @@ async function getAnchorDetail(id: number) {
 }
 
 // Helper to get anchor performance
-async function getAnchorPerformance(id: number) {
-  const pool = getPool()
-  const stats = await pool.query<{
+async function getAnchorPerformance(id: number, executor: DbExecutor) {
+  const stats = await executor.query<{
     avg_gmv: string; avg_viewers: number; avg_conversion: number; session_count: number
   }>(
     `SELECT COALESCE(AVG(gmv), 0) AS avg_gmv,
@@ -519,7 +533,7 @@ async function getAnchorPerformance(id: number) {
     [id]
   )
   const s = stats.rows[0]
-  const monthly = await pool.query(
+  const monthly = await executor.query(
     `SELECT to_char(date, 'YYYY-MM') AS month,
             COUNT(*)::int AS session_count,
             COALESCE(SUM(duration_min), 0)::int AS total_duration_min,
@@ -540,7 +554,7 @@ async function getAnchorPerformance(id: number) {
     [id]
   )
 
-  const recent = await pool.query(
+  const recent = await executor.query(
     `SELECT id, title, date::text, duration_min, gmv, gmv_per_hour,
             online_peak, avg_online, avg_item_price, exposure_view_rate,
             retention_rate, interaction_rate, new_fans, view_follow_rate,
@@ -553,7 +567,7 @@ async function getAnchorPerformance(id: number) {
   )
 
   // ── 对比数据 ──
-  const allMetrics = await pool.query(
+  const allMetrics = await executor.query(
     `SELECT date, gmv, online_peak FROM session_anchor_metrics
      WHERE anchor_id = $1 ORDER BY date ASC`,
     [id]
@@ -578,7 +592,7 @@ async function getAnchorPerformance(id: number) {
 
   if (totalCount > 0) {
     // 较上周
-    const weekComp = await pool.query(
+    const weekComp = await executor.query(
       `WITH wk AS (
         SELECT date_trunc('week', date)::date AS week_start,
                SUM(gmv::numeric) AS total_gmv,
@@ -601,7 +615,7 @@ async function getAnchorPerformance(id: number) {
     }
 
     // 较上月
-    const monthComp = await pool.query(
+    const monthComp = await executor.query(
       `WITH mo AS (
         SELECT date_trunc('month', date)::date AS month_start,
                SUM(gmv::numeric) AS total_gmv,
@@ -626,29 +640,21 @@ async function getAnchorPerformance(id: number) {
 
   const comparisons = { vsLastSession, vsLastWeek, vsLastMonth }
 
-  // ── 能力评分数据 ──
-  // 最新一次评估
-  let latestCapabilities = { expression: 0, interaction: 0, conversion: 0, professionalism: 0, overall: 0 }
-  const latestCap = await pool.query(
-    `SELECT expression, interaction, conversion, professionalism, overall
-     FROM anchor_capabilities
-     WHERE anchor_id = $1
-     ORDER BY evaluated_at DESC LIMIT 1`,
-    [id]
-  )
-  if (latestCap.rows.length > 0) {
-    latestCapabilities = latestCap.rows[0]
-  }
+  // ── 能力评分数据（统一通过 services/anchor-ranking.ts 读取最新一次评估与历史） ──
+  const capSummary = await getAnchorCapabilitiesAndRankings(executor, { anchorId: id })
+  const latestRow = capSummary.capabilities[0]
+  const latestCapabilities = latestRow
+    ? {
+        expression: latestRow.expression,
+        interaction: latestRow.interaction,
+        conversion: latestRow.conversion,
+        professionalism: latestRow.professionalism,
+        overall: latestRow.overall,
+      }
+    : { expression: 0, interaction: 0, conversion: 0, professionalism: 0, overall: 0 }
 
   // 能力评分历史（用于趋势图）
-  const capHistory = await pool.query(
-    `SELECT to_char(evaluated_at, 'YYYY-MM-DD') AS date,
-            expression, interaction, conversion, professionalism, overall
-     FROM anchor_capabilities
-     WHERE anchor_id = $1
-     ORDER BY evaluated_at ASC`,
-    [id]
-  )
+  const capHistory = await getAnchorCapabilityHistory(executor, id)
 
   return {
     stats: [
@@ -693,13 +699,6 @@ async function getAnchorPerformance(id: number) {
       uvValue: parseFloat(r.uv_value ?? '0'),
     })),
     capabilities: latestCapabilities,
-    capabilityHistory: capHistory.rows.map(r => ({
-      date: r.date,
-      expression: r.expression,
-      interaction: r.interaction,
-      conversion: r.conversion,
-      professionalism: r.professionalism,
-      overall: r.overall,
-    })),
+    capabilityHistory: capHistory,
   }
 }

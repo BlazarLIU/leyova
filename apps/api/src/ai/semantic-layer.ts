@@ -13,8 +13,7 @@
  * 所有数值由 PostgreSQL 聚合产生。
  */
 
-import type { Pool } from 'pg'
-import { getPool } from '../lib/db.js'
+import { getPool, type DbExecutor } from '../lib/db.js'
 import { canAccessAdSpend } from '../lib/guard.js'
 
 export interface MetricAccessOptions {
@@ -131,18 +130,18 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
     category: 'traffic', additive: false, source: 'traffic',
   },
 
-  // ── 投放指标（fact_ad_daily）──
+  // ── 投放指标（fact_ad_spend_daily）──
   ad_spend: {
     code: 'ad_spend', label: '投放花费', unit: '元',
     expr: 'COALESCE(SUM(f.ad_spend), 0)::numeric', category: 'ad', additive: true, source: 'ad',
   },
   ad_gmv: {
     code: 'ad_gmv', label: '投放成交额', unit: '元',
-    expr: 'COALESCE(SUM(f.ad_gmv), 0)::numeric', category: 'ad', additive: true, source: 'ad',
+    expr: 'COALESCE(SUM(f.attributed_gross_gmv), 0)::numeric', category: 'ad', additive: true, source: 'ad',
   },
   ad_roi: {
     code: 'ad_roi', label: '投放 ROI', unit: '',
-    expr: 'CASE WHEN SUM(f.ad_spend) > 0 THEN ROUND(SUM(f.ad_gmv) / SUM(f.ad_spend), 2) ELSE 0 END',
+    expr: 'CASE WHEN SUM(f.ad_spend) > 0 THEN ROUND(SUM(f.attributed_gross_gmv) / SUM(f.ad_spend), 2) ELSE 0 END',
     category: 'ad', additive: false, source: 'ad',
   },
   ad_impressions: {
@@ -155,7 +154,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
   },
   ad_cvr: {
     code: 'ad_cvr', label: '投放转化数', unit: '次',
-    expr: 'COALESCE(SUM(f.conversions), 0)::int', category: 'ad', additive: true, source: 'ad',
+    expr: 'COALESCE(SUM(f.attributed_orders), 0)::int', category: 'ad', additive: true, source: 'ad',
   },
 
   // ── 内容指标（fact_content_daily）──
@@ -247,7 +246,7 @@ export interface ScopeContext {
 }
 
 /** 解析用户可访问平台；admin/super_admin 返回 null 表示不限 */
-export async function resolveScope(pool: Pool, role?: string): Promise<string[] | null> {
+export async function resolveScope(pool: DbExecutor, role?: string): Promise<string[] | null> {
   if (!role || role === 'admin' || role === 'super_admin') return null
   const { rows } = await pool.query(
     `SELECT rpp.platform_code
@@ -292,7 +291,7 @@ export interface QueryMetricResult {
 const FACT_TABLE: Record<FactSource, string> = {
   trade: 'fact_trade_daily',
   traffic: 'fact_traffic_daily',
-  ad: 'fact_ad_daily',
+  ad: 'fact_ad_spend_daily',
   content: 'fact_content_daily',
 }
 
@@ -475,7 +474,7 @@ function toDateStr(v: any): string {
 export async function queryMetric(
   input: QueryMetricInput,
   scope: string[] | null,
-  pool?: Pool,
+  pool?: DbExecutor,
   access?: MetricAccessOptions,
 ): Promise<QueryMetricResult> {
   const p = pool || getPool()
@@ -526,7 +525,7 @@ export async function comparePeriods(
     filters?: QueryMetricInput['filters']
   },
   scope: string[] | null,
-  pool?: Pool,
+  pool?: DbExecutor,
   access?: MetricAccessOptions,
 ): Promise<{
   base: QueryMetricResult
@@ -574,7 +573,7 @@ export async function drillDown(
     topN?: number
   },
   scope: string[] | null,
-  pool?: Pool,
+  pool?: DbExecutor,
   access?: MetricAccessOptions,
 ): Promise<{
   dimension: string
@@ -643,7 +642,7 @@ export async function detectAnomalies(
     sensitivity?: number
   },
   scope: string[] | null,
-  pool?: Pool,
+  pool?: DbExecutor,
   access?: MetricAccessOptions,
 ): Promise<{
   metric: string
@@ -702,7 +701,7 @@ export async function forecastTrend(
     filters?: QueryMetricInput['filters']
   },
   scope: string[] | null,
-  pool?: Pool,
+  pool?: DbExecutor,
   access?: MetricAccessOptions,
 ): Promise<{
   metric: string

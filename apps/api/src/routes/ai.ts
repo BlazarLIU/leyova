@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext, withRlsPool, type DbExecutor } from '../lib/db.js'
 import { requireAuth } from '../lib/guard.js'
 import { env } from '../config/env.js'
 import {
@@ -64,74 +64,74 @@ export async function aiRoutes(app: FastifyInstance) {
   app.get('/api/v1/ai/daily-report', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const today = new Date().toISOString().slice(0, 10)
-      const { rows: todayStats } = await pool.query(
-        `SELECT
-           COALESCE(SUM(gmv), 0) AS total_gmv,
-           COALESCE(SUM(orders), 0) AS total_orders,
-           COALESCE(SUM(views), 0) AS total_views,
-           COALESCE(AVG(uv_value), 0) AS avg_uv_value,
-           COALESCE(AVG(interaction_rate), 0) AS avg_interaction_rate,
-           COALESCE(AVG(retention_rate), 0) AS avg_retention_rate,
-           COUNT(*) AS session_count
-         FROM live_sessions WHERE date = $1::date AND status = 'completed'`,
-        [today]
-      )
-      const ts = todayStats[0]
-
       const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-      const { rows: yestStats } = await pool.query(
-        `SELECT
-           COALESCE(SUM(gmv), 0) AS total_gmv,
-           COALESCE(SUM(orders), 0) AS total_orders,
-           COALESCE(SUM(views), 0) AS total_views,
-           COUNT(*) AS session_count
-         FROM live_sessions WHERE date = $1::date AND status = 'completed'`,
-        [yesterday]
-      )
-      const ys = yestStats[0]
+      const { ts, ys, anchorPerf, channelPerf, alerts } = await withRlsContext(request, async (client) => {
+        const { rows: todayStats } = await client.query(
+          `SELECT
+             COALESCE(SUM(gmv), 0) AS total_gmv,
+             COALESCE(SUM(orders), 0) AS total_orders,
+             COALESCE(SUM(views), 0) AS total_views,
+             COALESCE(AVG(uv_value), 0) AS avg_uv_value,
+             COALESCE(AVG(interaction_rate), 0) AS avg_interaction_rate,
+             COALESCE(AVG(retention_rate), 0) AS avg_retention_rate,
+             COUNT(*) AS session_count
+           FROM live_sessions WHERE date = $1::date AND status = 'completed'`,
+          [today],
+        )
+
+        const { rows: yestStats } = await client.query(
+          `SELECT
+             COALESCE(SUM(gmv), 0) AS total_gmv,
+             COALESCE(SUM(orders), 0) AS total_orders,
+             COALESCE(SUM(views), 0) AS total_views,
+             COUNT(*) AS session_count
+           FROM live_sessions WHERE date = $1::date AND status = 'completed'`,
+          [yesterday],
+        )
+
+        const { rows: anchors } = await client.query(
+          `SELECT a.name,
+                  COALESCE(ls.gmv, 0) AS gmv,
+                  COALESCE(ls.orders, 0) AS orders,
+                  COALESCE(ls.views, 0) AS views,
+                  COALESCE(ls.uv_value, 0) AS uv_value,
+                  COALESCE(ls.interaction_rate, 0) AS interaction_rate,
+                  COALESCE(ls.gpm, 0) AS gpm
+           FROM anchors a
+           LEFT JOIN live_sessions ls ON ls.anchor_id = a.id AND ls.date = $1::date AND ls.status = 'completed'
+           WHERE a.status = 1
+           ORDER BY ls.gmv DESC NULLS LAST`,
+          [today],
+        )
+
+        const { rows: channels } = await client.query(
+          `SELECT sc.channel,
+                  COALESCE(SUM(sc.views), 0) AS views,
+                  COALESCE(SUM(sc.orders), 0) AS orders,
+                  COALESCE(SUM(sc.gmv), 0) AS gmv,
+                  COALESCE(SUM(sc.ad_spend), 0) AS ad_spend,
+                  COALESCE(SUM(sc.gmv) / NULLIF(SUM(sc.ad_spend), 0), 0) AS roi
+           FROM session_channel_metrics sc
+           JOIN live_sessions s ON s.id = sc.session_id
+           WHERE s.date = $1::date
+           GROUP BY sc.channel
+           ORDER BY sc.channel`,
+          [today],
+        )
+
+        const { rows: alertRows } = await client.query(
+          `SELECT severity, title, description
+           FROM alert_events
+           WHERE status = 'pending'
+           ORDER BY event_time DESC LIMIT 3`,
+        )
+        return { ts: todayStats[0], ys: yestStats[0], anchorPerf: anchors, channelPerf: channels, alerts: alertRows }
+      })
       const gmvChange = ys.total_gmv > 0 ? ((ts.total_gmv - ys.total_gmv) / ys.total_gmv * 100).toFixed(1) : null
       const ordersChange = ys.total_orders > 0 ? ((ts.total_orders - ys.total_orders) / ys.total_orders * 100).toFixed(1) : null
       const viewsChange = ys.total_views > 0 ? ((ts.total_views - ys.total_views) / ys.total_views * 100).toFixed(1) : null
-
-      const { rows: anchorPerf } = await pool.query(
-        `SELECT a.name,
-                COALESCE(ls.gmv, 0) AS gmv,
-                COALESCE(ls.orders, 0) AS orders,
-                COALESCE(ls.views, 0) AS views,
-                COALESCE(ls.uv_value, 0) AS uv_value,
-                COALESCE(ls.interaction_rate, 0) AS interaction_rate,
-                COALESCE(ls.gpm, 0) AS gpm
-         FROM anchors a
-         LEFT JOIN live_sessions ls ON ls.anchor_id = a.id AND ls.date = $1::date AND ls.status = 'completed'
-         WHERE a.status = 1
-         ORDER BY ls.gmv DESC NULLS LAST`,
-        [today]
-      )
-
-      const { rows: channelPerf } = await pool.query(
-        `SELECT sc.channel,
-                COALESCE(SUM(sc.views), 0) AS views,
-                COALESCE(SUM(sc.orders), 0) AS orders,
-                COALESCE(SUM(sc.gmv), 0) AS gmv,
-                COALESCE(SUM(sc.ad_spend), 0) AS ad_spend,
-                COALESCE(SUM(sc.gmv) / NULLIF(SUM(sc.ad_spend), 0), 0) AS roi
-         FROM session_channel_metrics sc
-         JOIN live_sessions s ON s.id = sc.session_id
-         WHERE s.date = $1::date
-         GROUP BY sc.channel
-         ORDER BY sc.channel`,
-        [today]
-      )
-
-      const { rows: alerts } = await pool.query(
-        `SELECT severity, title, description
-         FROM alert_events
-         WHERE status = 'pending'
-         ORDER BY event_time DESC LIMIT 3`
-      )
 
       const lines: string[] = []
       lines.push(`# 📊 leyova 数据日报 · ${today}`)
@@ -217,11 +217,10 @@ export async function aiRoutes(app: FastifyInstance) {
   app.get('/api/v1/ai/sessions', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     const isAdmin = isAdminRole(user.role)
     try {
       const { text, params } = buildSessionsQuery(isAdmin, user.id)
-      const { rows } = await pool.query(text, params)
+      const { rows } = await withRlsContext(request, (client) => client.query(text, params))
       return sendOk(reply, rows)
     } catch (err) {
       request.log.warn({ err }, 'ai/sessions query failed')
@@ -233,7 +232,6 @@ export async function aiRoutes(app: FastifyInstance) {
   app.post('/api/v1/ai/chat', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const body = request.body as { message: string; conversationId?: string; thinkingEnabled?: boolean; planMode?: boolean; subagentEnabled?: boolean }
       const message = (body?.message || '').trim()
@@ -241,143 +239,125 @@ export async function aiRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '消息内容不能为空')
       }
 
-      const runOptions = {
-        thinkingEnabled: !!body?.thinkingEnabled,
-        planMode: !!body?.planMode,
-        subagentEnabled: !!body?.subagentEnabled,
-      }
+      const result = await withRlsPool(request, async (pool) => {
+        let convId = body.conversationId
 
-      let convId = body.conversationId
-
-      // 1. 如果传入已有 conversationId，必须校验归属
-      if (convId && convId !== 'default') {
-        const ownership = await assertConversationOwnership(pool, convId, user)
-        if (!ownership.ok) {
-          return sendError(reply, 403, '会话不可访问')
+        if (convId && convId !== 'default') {
+          const ownership = await assertConversationOwnership(pool, convId, user)
+          if (!ownership.ok) {
+            return { errStatus: 403 as const, errMsg: '会话不可访问' }
+          }
         }
-      }
 
-      // 2. 创建新会话（标题按字符截断，避免在 SQL_ASCII 库上 LEFT(...,50) 按字节截断中文导致无效 UTF-8）
-      if (!convId || convId === 'default') {
-        const title = message.slice(0, 50)
-        const { rows: convRows } = await pool.query(
-          `INSERT INTO ai_conversations (user_id, title, model_name, status)
-           VALUES ($1, $2, $3, 'active') RETURNING id`,
-          [user.id, title, env.DEERFLOW_MODEL]
-        )
-        convId = convRows[0]?.id?.toString()
-        if (!convId) {
-          return sendError(reply, 500, '创建会话失败')
+        if (!convId || convId === 'default') {
+          const title = message.slice(0, 50)
+          const { rows: convRows } = await pool.query(
+            `INSERT INTO ai_conversations (user_id, title, model_name, status)
+             VALUES ($1, $2, $3, 'active') RETURNING id`,
+            [user.id, title, env.DEERFLOW_MODEL],
+          )
+          convId = convRows[0]?.id?.toString()
+          if (!convId) {
+            return { errStatus: 500 as const, errMsg: '创建会话失败' }
+          }
+          await pool.query(
+            `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
+            [convId, toDeerFlowThreadId(convId)],
+          ).catch(() => {})
         }
-        // 记录 DeerFlow 线程 ID（leyova_<convId>，符合 DeerFlow 1-64 位命名约束）
+
         await pool.query(
-          `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
-          [convId, toDeerFlowThreadId(convId)]
-        ).catch(() => {}) // 兼容未执行 016 迁移的环境
-      }
-
-      // 3. 保存用户消息
-      await pool.query(
-        `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'user', $2)`,
-        [convId, message]
-      )
-      await pool.query('UPDATE ai_conversations SET updated_at = NOW() WHERE id = $1', [convId])
-
-      // 4. 加载最近会话历史（供 DeerFlow/OpenClaw 上下文）
-      const { rows: recentRows } = await pool.query(
-        `SELECT role, content FROM ai_messages
-         WHERE conversation_id = $1 AND role IN ('user', 'assistant')
-         ORDER BY created_at DESC
-         LIMIT 6`,
-        [convId]
-      )
-      const history = recentRows
-        .reverse()
-        .map((r: any) => ({ role: r.role as 'user' | 'assistant', content: r.content }))
-
-      // 5. 生成回复：OpenClaw 优先（主底座）→ DeerFlow 兜底 → 规则引擎兜底
-      // 从 ai_context_bindings 加载用户的外部服务绑定
-      const { rows: bindings } = await pool.query(
-        `SELECT openviking_account, openviking_user, anythingllm_workspace,
-                knowledge_role_workspace, knowledge_public_workspace
-         FROM ai_context_bindings
-         WHERE user_id = $1 AND scope_type = 'user' AND scope_id = $2
-         LIMIT 1`,
-        [user.id, `user:${user.id}`]
-      ).catch(() => ({ rows: [] as any[] }))
-
-      const scope: AiScopeContext = {
-        userId: user.id,
-        username: user.username,
-        role: user.role,
-        scopeType: 'user',
-        scopeId: `user:${user.id}`,
-        roomScope: [],
-        openvikingAccount: bindings[0]?.openviking_account || 'leyova',
-        openvikingUser: bindings[0]?.openviking_user || `leyova_${user.id}`,
-        anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'leyova-knowledge',
-        knowledgeRoleWorkspace: bindings[0]?.knowledge_role_workspace,
-        knowledgePublicWorkspace: bindings[0]?.knowledge_public_workspace,
-      }
-
-      // 5. 执行自研 Agentic Orchestrator (四阶受控编排：Planner → Executor → Critic → Reporter)
-      let replyText = ''
-      let provider = 'agentic-orchestrator'
-      let modelName = 'agentic-bi-v4'
-
-      try {
-        const analysisRes = await runAnalysis(
-          {
-            question: message,
-            role: user.role,
-            userId: user.id,
-            conversationId: Number(convId),
-          },
-          null,
-          pool
+          `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'user', $2)`,
+          [convId, message],
         )
-        replyText = formatAnalysisToMarkdown(analysisRes)
-      } catch (orchErr) {
-        request.log.warn({ orchErr }, 'Agentic runAnalysis failed, fallback to rule engine')
-        replyText = await generateDataDrivenReply(pool, message).catch(() => '')
-        provider = 'fallback'
-        modelName = 'rule-engine-fallback'
-      }
+        await pool.query('UPDATE ai_conversations SET updated_at = NOW() WHERE id = $1', [convId])
 
-      // 6. 保存 AI 回复
-      if (replyText) {
-        await pool.query(
-          `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
-          [convId, replyText]
-        )
-      }
+        const { rows: bindings } = await pool.query(
+          `SELECT openviking_account, openviking_user, anythingllm_workspace,
+                  knowledge_role_workspace, knowledge_public_workspace
+           FROM ai_context_bindings
+           WHERE user_id = $1 AND scope_type = 'user' AND scope_id = $2
+           LIMIT 1`,
+          [user.id, `user:${user.id}`],
+        ).catch(() => ({ rows: [] as any[] }))
 
-      // 7. 记录工具调用审计日志（兼容旧库：表不存在时静默跳过）
-      await logAiToolCall(pool, {
-        conversationId: Number(convId),
-        actorUserId: user.id,
-        scope,
-        toolName: provider === 'agentic-orchestrator'
-          ? 'orchestrator.chat'
-          : 'fallback.rule_engine',
-        riskLevel: 'read_only',
-        inputPayload: { message },
-        resultSummary: replyText.slice(0, 500),
-        modelName,
-        status: 'success',
+        const scope: AiScopeContext = {
+          userId: user.id,
+          username: user.username,
+          role: user.role,
+          scopeType: 'user',
+          scopeId: `user:${user.id}`,
+          roomScope: [],
+          openvikingAccount: bindings[0]?.openviking_account || 'leyova',
+          openvikingUser: bindings[0]?.openviking_user || `leyova_${user.id}`,
+          anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'leyova-knowledge',
+          knowledgeRoleWorkspace: bindings[0]?.knowledge_role_workspace,
+          knowledgePublicWorkspace: bindings[0]?.knowledge_public_workspace,
+        }
+
+        let replyText = ''
+        let provider = 'agentic-orchestrator'
+        let modelName = 'agentic-bi-v4'
+
+        try {
+          const analysisRes = await runAnalysis(
+            {
+              question: message,
+              role: user.role,
+              userId: user.id,
+              conversationId: Number(convId),
+            },
+            null,
+            pool,
+          )
+          replyText = formatAnalysisToMarkdown(analysisRes)
+        } catch (orchErr) {
+          request.log.warn({ orchErr }, 'Agentic runAnalysis failed, fallback to rule engine')
+          replyText = await generateDataDrivenReply(pool, message).catch(() => '')
+          provider = 'fallback'
+          modelName = 'rule-engine-fallback'
+        }
+
+        if (replyText) {
+          await pool.query(
+            `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
+            [convId, replyText],
+          )
+        }
+
+        await logAiToolCall(pool, {
+          conversationId: Number(convId),
+          actorUserId: user.id,
+          scope,
+          toolName: provider === 'agentic-orchestrator'
+            ? 'orchestrator.chat'
+            : 'fallback.rule_engine',
+          riskLevel: 'read_only',
+          inputPayload: { message },
+          resultSummary: replyText.slice(0, 500),
+          modelName,
+          status: 'success',
+        })
+
+        return {
+          reply: replyText,
+          conversationId: convId,
+          provider,
+          modelName,
+        }
       })
 
-      return sendOk(reply, {
-        reply: replyText,
-        conversationId: convId,
-        provider,
-        modelName,
-      })
+      if ('errStatus' in result && result.errStatus !== undefined) {
+        return sendError(reply, result.errStatus, result.errMsg)
+      }
+      return sendOk(reply, result)
     } catch (err) {
       request.log.warn({ err }, 'ai/chat POST failed')
       const message = (request.body as any)?.message || ''
-      const fallbackReply = await generateDataDrivenReply(getPool(), message).catch(() =>
-        `感谢您的提问：**"${message}"**\n\n这是 AI 助手的回复。当前数据库查询异常，稍后将自动恢复。`
+      const fallbackReply = await withRlsContext(request, (client) =>
+        generateDataDrivenReply(client, message),
+      ).catch(() =>
+        `感谢您的提问：**"${message}"**\n\n这是 AI 助手的回复。当前数据库查询异常，稍后将自动恢复。`,
       )
       return sendOk(reply, {
         reply: fallbackReply,
@@ -391,7 +371,6 @@ export async function aiRoutes(app: FastifyInstance) {
   app.post('/api/v1/ai/chat/stream', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const body = request.body as { message: string; conversationId?: string; thinkingEnabled?: boolean; planMode?: boolean; subagentEnabled?: boolean }
       const message = (body?.message || '').trim()
@@ -399,148 +378,101 @@ export async function aiRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '消息内容不能为空')
       }
 
-      const runOptions = {
-        thinkingEnabled: !!body?.thinkingEnabled,
-        planMode: !!body?.planMode,
-        subagentEnabled: !!body?.subagentEnabled,
-      }
+      const streamOutcome = await withRlsPool(request, async (pool) => {
+        let convId = body.conversationId
 
-      let convId = body.conversationId
-
-      // 1. 校验已有会话归属
-      if (convId && convId !== 'default') {
-        const ownership = await assertConversationOwnership(pool, convId, user)
-        if (!ownership.ok) {
-          return sendError(reply, 403, '会话不可访问')
-        }
-      }
-
-      // 2. 创建新会话（标题按字符截断，规避 SQL_ASCII 库上 LEFT(...,50) 按字节截断中文导致无效 UTF-8）
-      if (!convId || convId === 'default') {
-        const title = message.slice(0, 50)
-        const { rows: convRows } = await pool.query(
-          `INSERT INTO ai_conversations (user_id, title, model_name, status)
-           VALUES ($1, $2, $3, 'active') RETURNING id`,
-          [user.id, title, env.DEERFLOW_MODEL]
-        )
-        convId = convRows[0]?.id?.toString()
-        if (!convId) {
-          return sendError(reply, 500, '创建会话失败')
-        }
-        // 记录 DeerFlow 线程 ID（leyova_<convId>，符合 DeerFlow 1-64 位命名约束）
-        await pool.query(
-          `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
-          [convId, toDeerFlowThreadId(convId)]
-        ).catch(() => {}) // 兼容未执行 016 迁移的环境
-      }
-
-      // 3. 保存用户消息
-      await pool.query(
-        `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'user', $2)`,
-        [convId, message]
-      )
-      await pool.query('UPDATE ai_conversations SET updated_at = NOW() WHERE id = $1', [convId])
-
-      // 4. 加载历史
-      const { rows: recentRows } = await pool.query(
-        `SELECT role, content FROM ai_messages
-         WHERE conversation_id = $1 AND role IN ('user', 'assistant')
-         ORDER BY created_at DESC LIMIT 6`,
-        [convId]
-      )
-      const history = recentRows
-        .reverse()
-        .map((r: any) => ({ role: r.role as 'user' | 'assistant', content: r.content }))
-
-      // 5. 加载 scope 绑定
-      const { rows: bindings } = await pool.query(
-        `SELECT openviking_account, openviking_user, anythingllm_workspace,
-                knowledge_role_workspace, knowledge_public_workspace
-         FROM ai_context_bindings
-         WHERE user_id = $1 AND scope_type = 'user' AND scope_id = $2
-         LIMIT 1`,
-        [user.id, `user:${user.id}`]
-      ).catch(() => ({ rows: [] as any[] }))
-
-      const scope: AiScopeContext = {
-        userId: user.id,
-        username: user.username,
-        role: user.role,
-        scopeType: 'user',
-        scopeId: `user:${user.id}`,
-        roomScope: [],
-        openvikingAccount: bindings[0]?.openviking_account || 'leyova',
-        openvikingUser: bindings[0]?.openviking_user || `leyova_${user.id}`,
-        anythingllmWorkspace: bindings[0]?.anythingllm_workspace || 'leyova-knowledge',
-        knowledgeRoleWorkspace: bindings[0]?.knowledge_role_workspace,
-        knowledgePublicWorkspace: bindings[0]?.knowledge_public_workspace,
-      }
-
-      // 6. 设置 SSE 响应头
-      reply.raw.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      })
-
-      // 发送 conversationId
-      reply.raw.write(`data: ${JSON.stringify({ type: 'conversation', conversationId: convId })}\n\n`)
-
-      // 7. 执行自研 Agentic Orchestrator (四阶受控编排：Planner → Executor → Critic → Reporter)
-      let fullReply = ''
-      let provider = 'agentic-orchestrator'
-
-      try {
-        // 发送规划阶段工具指示
-        reply.raw.write(`data: ${JSON.stringify({ type: 'tool_call', tool: 'planner: 构建受控分析计划' })}\n\n`)
-
-        const analysisRes = await runAnalysis(
-          {
-            question: message,
-            role: user.role,
-            userId: user.id,
-            conversationId: Number(convId),
-          },
-          null,
-          pool
-        )
-
-        // 转发工具执行步骤指示条（前端实时高亮正在调用的语义工具）
-        for (const step of analysisRes.steps) {
-          if (step.role === 'executor') {
-            reply.raw.write(`data: ${JSON.stringify({ type: 'tool_call', tool: `${step.toolName}: 语义层精确取数` })}\n\n`)
+        if (convId && convId !== 'default') {
+          const ownership = await assertConversationOwnership(pool, convId, user)
+          if (!ownership.ok) {
+            return { errStatus: 403 as const, errMsg: '会话不可访问' }
           }
         }
 
-        fullReply = formatAnalysisToMarkdown(analysisRes)
+        if (!convId || convId === 'default') {
+          const title = message.slice(0, 50)
+          const { rows: convRows } = await pool.query(
+            `INSERT INTO ai_conversations (user_id, title, model_name, status)
+             VALUES ($1, $2, $3, 'active') RETURNING id`,
+            [user.id, title, env.DEERFLOW_MODEL],
+          )
+          convId = convRows[0]?.id?.toString()
+          if (!convId) {
+            return { errStatus: 500 as const, errMsg: '创建会话失败' }
+          }
+          await pool.query(
+            `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
+            [convId, toDeerFlowThreadId(convId)],
+          ).catch(() => {})
+        }
 
-        // 逐块流式推送经过 Critic 100% 验证的分析结论 Markdown
-        const chunks = fullReply.match(/[\s\S]{1,15}/g) || [fullReply]
-        for (const chunk of chunks) {
-          reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`)
+        await pool.query(
+          `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'user', $2)`,
+          [convId, message],
+        )
+        await pool.query('UPDATE ai_conversations SET updated_at = NOW() WHERE id = $1', [convId])
+
+        reply.raw.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        })
+
+        reply.raw.write(`data: ${JSON.stringify({ type: 'conversation', conversationId: convId })}\n\n`)
+
+        let fullReply = ''
+        let provider = 'agentic-orchestrator'
+
+        try {
+          reply.raw.write(`data: ${JSON.stringify({ type: 'tool_call', tool: 'planner: 构建受控分析计划' })}\n\n`)
+
+          const analysisRes = await runAnalysis(
+            {
+              question: message,
+              role: user.role,
+              userId: user.id,
+              conversationId: Number(convId),
+            },
+            null,
+            pool,
+          )
+
+          for (const step of analysisRes.steps) {
+            if (step.role === 'executor') {
+              reply.raw.write(`data: ${JSON.stringify({ type: 'tool_call', tool: `${step.toolName}: 语义层精确取数` })}\n\n`)
+            }
+          }
+
+          fullReply = formatAnalysisToMarkdown(analysisRes)
+
+          const chunks = fullReply.match(/[\s\S]{1,15}/g) || [fullReply]
+          for (const chunk of chunks) {
+            reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`)
+          }
+        } catch (orchErr) {
+          request.log.warn({ orchErr }, 'Agentic stream runAnalysis failed, fallback to rule engine')
+          provider = 'fallback'
+          fullReply = await generateDataDrivenReply(pool, message)
+          const chunks = fullReply.match(/[\s\S]{1,20}/g) || [fullReply]
+          for (const chunk of chunks) {
+            reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`)
+          }
         }
-      } catch (orchErr) {
-        request.log.warn({ orchErr }, 'Agentic stream runAnalysis failed, fallback to rule engine')
-        provider = 'fallback'
-        fullReply = await generateDataDrivenReply(pool, message)
-        const chunks = fullReply.match(/[\s\S]{1,20}/g) || [fullReply]
-        for (const chunk of chunks) {
-          reply.raw.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`)
-        }
+
+        await pool.query(
+          `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
+          [convId, fullReply],
+        )
+
+        reply.raw.write(`data: ${JSON.stringify({ type: 'done', provider, conversationId: convId })}\n\n`)
+        reply.raw.end()
+        return { streamed: true as const }
+      })
+
+      if ('errStatus' in streamOutcome && streamOutcome.errStatus !== undefined) {
+        return sendError(reply, streamOutcome.errStatus, streamOutcome.errMsg)
       }
-
-      // 8. 保存 AI 回复
-      await pool.query(
-        `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
-        [convId, fullReply]
-      )
-
-      // 9. 发送结束事件
-      reply.raw.write(`data: ${JSON.stringify({ type: 'done', provider, conversationId: convId })}\n\n`)
-      reply.raw.end()
     } catch (err) {
       request.log.warn({ err }, 'ai/chat/stream POST failed')
-      // 如果 SSE 已开始，只能发送错误事件
       if (reply.raw.headersSent) {
         reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: '生成回复失败' })}\n\n`)
         reply.raw.end()
@@ -554,21 +486,25 @@ export async function aiRoutes(app: FastifyInstance) {
   app.get('/api/v1/ai/messages/:conversationId', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const { conversationId } = request.params as { conversationId: string }
 
-      const ownership = await assertConversationOwnership(pool, conversationId, user)
-      if (!ownership.ok) {
-        return sendError(reply, 403, '会话不可访问')
+      const out = await withRlsContext(request, async (client) => {
+        const ownership = await assertConversationOwnership(client, conversationId, user)
+        if (!ownership.ok) {
+          return { errStatus: 403 as const, errMsg: '会话不可访问' }
+        }
+        const { rows } = await client.query(
+          `SELECT id, role, content, created_at FROM ai_messages
+           WHERE conversation_id = $1 ORDER BY created_at`,
+          [conversationId],
+        )
+        return { rows }
+      })
+      if ('errStatus' in out && out.errStatus !== undefined) {
+        return sendError(reply, out.errStatus, out.errMsg)
       }
-
-      const { rows } = await pool.query(
-        `SELECT id, role, content, created_at FROM ai_messages
-         WHERE conversation_id = $1 ORDER BY created_at`,
-        [conversationId]
-      )
-      return sendOk(reply, rows)
+      return sendOk(reply, out.rows)
     } catch (err) {
       request.log.warn({ err }, 'ai/messages query failed')
       return sendOk(reply, [])
@@ -579,19 +515,23 @@ export async function aiRoutes(app: FastifyInstance) {
   app.delete('/api/v1/ai/sessions/:conversationId', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const { conversationId } = request.params as { conversationId: string }
 
-      const ownership = await assertConversationOwnership(pool, conversationId, user)
-      if (!ownership.ok) {
-        return sendError(reply, 403, '会话不可访问')
+      const out = await withRlsContext(request, async (client) => {
+        const ownership = await assertConversationOwnership(client, conversationId, user)
+        if (!ownership.ok) {
+          return { errStatus: 403 as const, errMsg: '会话不可访问' }
+        }
+        await client.query(
+          `UPDATE ai_conversations SET status = 'deleted', updated_at = NOW() WHERE id = $1`,
+          [conversationId],
+        )
+        return { ok: true }
+      })
+      if ('errStatus' in out && out.errStatus !== undefined) {
+        return sendError(reply, out.errStatus, out.errMsg)
       }
-
-      await pool.query(
-        `UPDATE ai_conversations SET status = 'deleted', updated_at = NOW() WHERE id = $1`,
-        [conversationId]
-      )
       return sendOk(reply, { id: conversationId }, '会话已删除')
     } catch (err) {
       request.log.warn({ err }, 'DELETE ai/sessions/:id failed')
@@ -603,41 +543,46 @@ export async function aiRoutes(app: FastifyInstance) {
   app.get('/api/v1/ai/tool-logs', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const query = request.query as { conversationId?: string; limit?: string }
       const limit = Math.min(parseInt(query.limit || '50'), 200)
 
-      if (query.conversationId) {
-        const ownership = await assertConversationOwnership(pool, query.conversationId, user)
-        if (!ownership.ok) {
-          return sendError(reply, 403, '会话不可访问')
+      const out = await withRlsContext(request, async (client) => {
+        if (query.conversationId) {
+          const ownership = await assertConversationOwnership(client, query.conversationId, user)
+          if (!ownership.ok) {
+            return { errStatus: 403 as const, errMsg: '会话不可访问' }
+          }
+          const { rows } = await client.query(
+            `SELECT id, conversation_id, actor_user_id, scope_type, scope_id,
+                    skill_code, tool_name, risk_level, approval_status,
+                    duration_ms, status, error_code, model_name, created_at
+             FROM ai_tool_logs
+             WHERE conversation_id = $1
+             ORDER BY created_at DESC
+             LIMIT $2`,
+            [query.conversationId, limit],
+          )
+          return { rows }
         }
-        const { rows } = await pool.query(
+
+        const { rows } = await client.query(
           `SELECT id, conversation_id, actor_user_id, scope_type, scope_id,
                   skill_code, tool_name, risk_level, approval_status,
                   duration_ms, status, error_code, model_name, created_at
            FROM ai_tool_logs
-           WHERE conversation_id = $1
+           WHERE actor_user_id = $1
            ORDER BY created_at DESC
            LIMIT $2`,
-          [query.conversationId, limit]
+          [user.id, limit],
         )
-        return sendOk(reply, rows)
-      }
+        return { rows }
+      })
 
-      // 非管理员只能看自己的日志
-      const { rows } = await pool.query(
-        `SELECT id, conversation_id, actor_user_id, scope_type, scope_id,
-                skill_code, tool_name, risk_level, approval_status,
-                duration_ms, status, error_code, model_name, created_at
-         FROM ai_tool_logs
-         WHERE actor_user_id = $1
-         ORDER BY created_at DESC
-         LIMIT $2`,
-        [user.id, limit]
-      )
-      return sendOk(reply, rows)
+      if ('errStatus' in out && out.errStatus !== undefined) {
+        return sendError(reply, out.errStatus, out.errMsg)
+      }
+      return sendOk(reply, out.rows)
     } catch (err) {
       request.log.warn({ err }, 'ai/tool-logs query failed')
       return sendOk(reply, [])
@@ -648,18 +593,19 @@ export async function aiRoutes(app: FastifyInstance) {
   app.get('/api/v1/ai/pending-approvals', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
-        `SELECT t.id AS tool_log_id, t.tool_name, t.risk_level,
-                t.input_payload, t.result_summary, t.created_at,
-                a.id AS approval_id, a.status AS approval_status, a.expires_at
-         FROM ai_tool_logs t
-         JOIN ai_action_approvals a ON a.tool_log_id = t.id
-         WHERE t.actor_user_id = $1 AND a.status = 'pending'
-         ORDER BY t.created_at DESC
-         LIMIT 50`,
-        [user.id]
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT t.id AS tool_log_id, t.tool_name, t.risk_level,
+                  t.input_payload, t.result_summary, t.created_at,
+                  a.id AS approval_id, a.status AS approval_status, a.expires_at
+           FROM ai_tool_logs t
+           JOIN ai_action_approvals a ON a.tool_log_id = t.id
+           WHERE t.actor_user_id = $1 AND a.status = 'pending'
+           ORDER BY t.created_at DESC
+           LIMIT 50`,
+          [user.id],
+        ),
       )
       return sendOk(reply, rows)
     } catch {
@@ -671,83 +617,84 @@ export async function aiRoutes(app: FastifyInstance) {
   app.post('/api/v1/ai/approve/:toolLogId', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const { toolLogId } = request.params as { toolLogId: string }
       const logId = parseInt(toolLogId)
 
-      // 1. 查 tool_log 和 approval
-      const { rows } = await pool.query(
-        `SELECT t.id, t.actor_user_id, t.tool_name, t.input_payload,
-                a.id AS approval_id, a.status AS approval_status, a.expires_at
-         FROM ai_tool_logs t
-         JOIN ai_action_approvals a ON a.tool_log_id = t.id
-         WHERE t.id = $1 AND t.actor_user_id = $2`,
-        [logId, user.id]
-      )
+      const out = await withRlsPool(request, async (pool) => {
+        const { rows } = await pool.query(
+          `SELECT t.id, t.actor_user_id, t.tool_name, t.input_payload,
+                  a.id AS approval_id, a.status AS approval_status, a.expires_at
+           FROM ai_tool_logs t
+           JOIN ai_action_approvals a ON a.tool_log_id = t.id
+           WHERE t.id = $1 AND t.actor_user_id = $2`,
+          [logId, user.id],
+        )
 
-      const action = resolveApprovalAction(rows[0])
-      if (action.kind === 'not_found') {
-        return sendError(reply, 404, '审批请求不存在')
-      }
+        const action = resolveApprovalAction(rows[0])
+        if (action.kind === 'not_found') {
+          return { errStatus: 404 as const, errMsg: '审批请求不存在' }
+        }
 
-      const approval = rows[0]
-      if (action.kind === 'not_pending') {
-        return sendError(reply, 400, `审批状态为 ${action.status}，无法重复操作`)
-      }
+        const approval = rows[0]
+        if (action.kind === 'not_pending') {
+          return { errStatus: 400 as const, errMsg: `审批状态为 ${action.status}，无法重复操作` }
+        }
 
-      // 2. 检查是否过期
-      if (action.kind === 'expired') {
+        if (action.kind === 'expired') {
+          await pool.query(
+            `UPDATE ai_action_approvals SET status = 'expired' WHERE id = $1`,
+            [approval.approval_id],
+          )
+          await pool.query(
+            `UPDATE ai_tool_logs SET approval_status = 'expired' WHERE id = $1`,
+            [logId],
+          )
+          return { errStatus: 400 as const, errMsg: '审批已过期' }
+        }
+
         await pool.query(
-          `UPDATE ai_action_approvals SET status = 'expired' WHERE id = $1`,
-          [approval.approval_id]
+          `UPDATE ai_action_approvals
+           SET status = 'approved', approved_by = $2, approved_at = NOW(), executed_at = NOW()
+           WHERE id = $1`,
+          [approval.approval_id, user.id],
         )
         await pool.query(
-          `UPDATE ai_tool_logs SET approval_status = 'expired' WHERE id = $1`,
-          [logId]
+          `UPDATE ai_tool_logs SET approval_status = 'approved' WHERE id = $1`,
+          [logId],
         )
-        return sendError(reply, 400, '审批已过期')
-      }
 
-      // 3. 更新审批状态
-      await pool.query(
-        `UPDATE ai_action_approvals
-         SET status = 'approved', approved_by = $2, approved_at = NOW(), executed_at = NOW()
-         WHERE id = $1`,
-        [approval.approval_id, user.id]
-      )
-      await pool.query(
-        `UPDATE ai_tool_logs SET approval_status = 'approved' WHERE id = $1`,
-        [logId]
-      )
+        const { executeTool, getTool } = await import('../ai/tool-registry.js')
+        const tool = getTool(approval.tool_name)
+        if (!tool) {
+          return { errStatus: 500 as const, errMsg: `工具 ${approval.tool_name} 不存在` }
+        }
 
-      // 4. 执行工具（从 tool registry 获取）
-      const { executeTool, getTool } = await import('../ai/tool-registry.js')
-      const tool = getTool(approval.tool_name)
-      if (!tool) {
-        return sendError(reply, 500, `工具 ${approval.tool_name} 不存在`)
-      }
-
-      const { getPool } = await import('../lib/db.js')
-      const result = await executeTool(approval.tool_name, approval.input_payload, {
-        userId: user.id,
-        role: user.role,
-        scope: {
+        const result = await executeTool(approval.tool_name, approval.input_payload, {
           userId: user.id,
-          username: user.username,
           role: user.role,
-          scopeType: 'user' as const,
-          scopeId: `user:${user.id}`,
-          roomScope: [],
-        },
-        pool: getPool(),
+          scope: {
+            userId: user.id,
+            username: user.username,
+            role: user.role,
+            scopeType: 'user' as const,
+            scopeId: `user:${user.id}`,
+            roomScope: [],
+          },
+          pool,
+        })
+
+        return {
+          toolLogId: logId,
+          toolName: approval.tool_name,
+          result,
+        }
       })
 
-      return sendOk(reply, {
-        toolLogId: logId,
-        toolName: approval.tool_name,
-        result,
-      })
+      if ('errStatus' in out && out.errStatus !== undefined) {
+        return sendError(reply, out.errStatus, out.errMsg)
+      }
+      return sendOk(reply, out)
     } catch (err) {
       request.log.warn({ err }, 'POST ai/approve failed')
       return sendError(reply, 500, '审批执行失败')
@@ -758,40 +705,45 @@ export async function aiRoutes(app: FastifyInstance) {
   app.post('/api/v1/ai/reject/:toolLogId', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const { toolLogId } = request.params as { toolLogId: string }
       const logId = parseInt(toolLogId)
 
-      const { rows } = await pool.query(
-        `SELECT t.actor_user_id, a.id AS approval_id, a.status AS approval_status
-         FROM ai_tool_logs t
-         JOIN ai_action_approvals a ON a.tool_log_id = t.id
-         WHERE t.id = $1 AND t.actor_user_id = $2`,
-        [logId, user.id]
-      )
+      const out = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(
+          `SELECT t.actor_user_id, a.id AS approval_id, a.status AS approval_status
+           FROM ai_tool_logs t
+           JOIN ai_action_approvals a ON a.tool_log_id = t.id
+           WHERE t.id = $1 AND t.actor_user_id = $2`,
+          [logId, user.id],
+        )
 
-      const action = resolveRejectAction(rows[0])
-      if (action.kind === 'not_found') {
-        return sendError(reply, 404, '审批请求不存在')
+        const action = resolveRejectAction(rows[0])
+        if (action.kind === 'not_found') {
+          return { errStatus: 404 as const, errMsg: '审批请求不存在' }
+        }
+
+        if (action.kind === 'not_pending') {
+          return { errStatus: 400 as const, errMsg: `审批状态为 ${action.status}，无法操作` }
+        }
+
+        await client.query(
+          `UPDATE ai_action_approvals
+           SET status = 'rejected', approved_by = $2, approved_at = NOW()
+           WHERE id = $1`,
+          [rows[0].approval_id, user.id],
+        )
+        await client.query(
+          `UPDATE ai_tool_logs SET approval_status = 'rejected', status = 'rejected' WHERE id = $1`,
+          [logId],
+        )
+        return { toolLogId: logId, status: 'rejected' }
+      })
+
+      if ('errStatus' in out && out.errStatus !== undefined) {
+        return sendError(reply, out.errStatus, out.errMsg)
       }
-
-      if (action.kind === 'not_pending') {
-        return sendError(reply, 400, `审批状态为 ${action.status}，无法操作`)
-      }
-
-      await pool.query(
-        `UPDATE ai_action_approvals
-         SET status = 'rejected', approved_by = $2, approved_at = NOW()
-         WHERE id = $1`,
-        [rows[0].approval_id, user.id]
-      )
-      await pool.query(
-        `UPDATE ai_tool_logs SET approval_status = 'rejected', status = 'rejected' WHERE id = $1`,
-        [logId]
-      )
-
-      return sendOk(reply, { toolLogId: logId, status: 'rejected' })
+      return sendOk(reply, out)
     } catch (err) {
       request.log.warn({ err }, 'POST ai/reject failed')
       return sendError(reply, 500, '拒绝操作失败')
@@ -802,17 +754,18 @@ export async function aiRoutes(app: FastifyInstance) {
   app.get('/api/v1/ai/context-bindings', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
-        `SELECT id, scope_type, scope_id,
-                openviking_account, openviking_user, anythingllm_workspace,
-                knowledge_role_workspace, knowledge_public_workspace,
-                visibility, created_at, updated_at
-         FROM ai_context_bindings
-         WHERE user_id = $1
-         ORDER BY created_at ASC`,
-        [user.id]
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT id, scope_type, scope_id,
+                  openviking_account, openviking_user, anythingllm_workspace,
+                  knowledge_role_workspace, knowledge_public_workspace,
+                  visibility, created_at, updated_at
+           FROM ai_context_bindings
+           WHERE user_id = $1
+           ORDER BY created_at ASC`,
+          [user.id],
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -825,7 +778,6 @@ export async function aiRoutes(app: FastifyInstance) {
   app.post('/api/v1/ai/context-bindings', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const body = request.body as {
         scopeType?: string
@@ -851,23 +803,25 @@ export async function aiRoutes(app: FastifyInstance) {
         return sendError(reply, 403, '仅管理员可创建角色/全局范围的 AI 上下文绑定')
       }
 
-      const { rows } = await pool.query(
-        `INSERT INTO ai_context_bindings
-           (user_id, scope_type, scope_id,
-            openviking_account, openviking_user, anythingllm_workspace,
-            knowledge_role_workspace, knowledge_public_workspace, visibility)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         ON CONFLICT (user_id, scope_type, scope_id) DO UPDATE SET
-           openviking_account = EXCLUDED.openviking_account,
-           openviking_user = EXCLUDED.openviking_user,
-           anythingllm_workspace = EXCLUDED.anythingllm_workspace,
-           knowledge_role_workspace = EXCLUDED.knowledge_role_workspace,
-           knowledge_public_workspace = EXCLUDED.knowledge_public_workspace,
-           visibility = EXCLUDED.visibility,
-           updated_at = NOW()
-         RETURNING *`,
-        [user.id, scopeType, scopeId, openvikingAccount, openvikingUser,
-         anythingllmWorkspace, knowledgeRoleWorkspace, knowledgePublicWorkspace, visibility]
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO ai_context_bindings
+             (user_id, scope_type, scope_id,
+              openviking_account, openviking_user, anythingllm_workspace,
+              knowledge_role_workspace, knowledge_public_workspace, visibility)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT (user_id, scope_type, scope_id) DO UPDATE SET
+             openviking_account = EXCLUDED.openviking_account,
+             openviking_user = EXCLUDED.openviking_user,
+             anythingllm_workspace = EXCLUDED.anythingllm_workspace,
+             knowledge_role_workspace = EXCLUDED.knowledge_role_workspace,
+             knowledge_public_workspace = EXCLUDED.knowledge_public_workspace,
+             visibility = EXCLUDED.visibility,
+             updated_at = NOW()
+           RETURNING *`,
+          [user.id, scopeType, scopeId, openvikingAccount, openvikingUser,
+           anythingllmWorkspace, knowledgeRoleWorkspace, knowledgePublicWorkspace, visibility],
+        ),
       )
 
       return sendOk(reply, rows[0], '绑定已保存')
@@ -881,13 +835,14 @@ export async function aiRoutes(app: FastifyInstance) {
   app.delete('/api/v1/ai/context-bindings/:id', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
 
-      const { rowCount } = await pool.query(
-        `DELETE FROM ai_context_bindings WHERE id = $1 AND user_id = $2`,
-        [id, user.id]
+      const { rowCount } = await withRlsContext(request, (client) =>
+        client.query(
+          `DELETE FROM ai_context_bindings WHERE id = $1 AND user_id = $2`,
+          [id, user.id],
+        ),
       )
 
       if (rowCount === 0) {
@@ -906,7 +861,7 @@ export async function aiRoutes(app: FastifyInstance) {
 
 // ── 记录 AI 工具调用审计日志 ──
 async function logAiToolCall(
-  pool: any,
+  pool: DbExecutor,
   params: {
     conversationId: number
     actorUserId: number
@@ -945,7 +900,7 @@ async function logAiToolCall(
 }
 
 // ── 数据驱动回复（只读 fallback，OpenClaw 不可用时使用） ──
-async function generateDataDrivenReply(pool: any, message: string): Promise<string> {
+async function generateDataDrivenReply(pool: DbExecutor, message: string): Promise<string> {
   const msg = message.toLowerCase()
 
   if (msg.includes('主播') || msg.includes('排行') || msg.includes('主播排名')) {

@@ -12,9 +12,9 @@
 | `01_schema.sql` | 初始基线表结构：59 张基线表、129 个约束、55 个索引、162 个序列 | 必需（空库初始化） |
 | `02_seed.sql` | 基础数据：角色 / 权限 / 模块 / 管理员账号 / 系统配置 / 告警规则 / 目标模板 / 字典 | 必需 |
 | `03_demo_data.sql` | 演示数据：运营人员、主播、直播间、场次、各类指标、告警、任务、竞品、话术、培训、排期等 | 可选（只想看空系统可不执行） |
-| `migrations/` (`100`~`118`) | 增量演进迁移链（共 19 个 SQL）：多平台底座、数据治理分区、双轨代播、全链路业务域与 PostgreSQL RLS | 必需（`pnpm db:migrate`） |
+| `migrations/` (`100`~`119`) | 增量演进迁移链（共 20 个 SQL）：多平台底座、数据治理分区、双轨代播、全链路业务域、PostgreSQL RLS 与 Round 2 冗余表收敛 | 必需（`pnpm db:migrate`） |
 
-> 执行完整基线 + 全量迁移后，数据库共计 **146 张逻辑表**（含 139 张常规表与 7 张按月分区父表，共 **222 张物理表**），其中 **29 张表**启用了 `leyova_app` 角色下的 PostgreSQL RLS 行级安全策略。
+> 执行完整基线 + 全量迁移后，数据库共计 **143 张逻辑表**（含 136 张常规表与 7 张按月分区父表，共 **219 张物理表**），其中 **28 张表**启用了 `leyova_app` 角色下的 PostgreSQL RLS 行级安全策略（10 角色 / 41 模块）。
 
 ## 快速初始化
 
@@ -136,7 +136,7 @@ pm2 save
 
 ## 说明与限制
 
-- 表结构与 `apps/api/src/routes/*` 的 SQL 完全对应，空库导入 `01~03` 后需再执行 `pnpm db:migrate`（即 `node database/migrate.js`，记录于 `schema_migrations`）以同步全部 19 个增量迁移 (`100`~`118`)。
+- 表结构与 `apps/api/src/routes/*` 的 SQL 完全对应，空库导入 `01~03` 后需再执行 `pnpm db:migrate`（即 `node database/migrate.js`，记录于 `schema_migrations`）以同步全部 20 个增量迁移 (`100`~`119`)。
 - `raw_records`、`clean_records`、`canonical_orders`、`canonical_order_items`、`canonical_refund_events`、`fact_trade_daily`、`fact_traffic_daily` 均已纳入 `cron/manage-partitions.ts` 按月自动预建及 `DEFAULT` 分区兜底机制。
 - `apps/api/prisma/schema.prisma` 仅作参考，**不参与建表**，不要用 `prisma migrate` 初始化本项目。
 - `01_schema.sql` 由 PostgreSQL 18 导出的 DDL 清洗而来，移除了 `OWNER TO`、扩展依赖（`vector`）与事务超时等环境相关语句，可在 PostgreSQL 14+ 上直接执行。

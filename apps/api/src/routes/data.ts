@@ -12,7 +12,7 @@
 import type { FastifyInstance } from 'fastify'
 import * as XLSX from 'xlsx'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool } from '../lib/db.js'
+import { withRlsContext, type DbExecutor } from '../lib/db.js'
 import { requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 import { findDuplicateSession, buildDuplicateMessage } from '../lib/livereg-dedupe.js'
@@ -52,7 +52,7 @@ function parseXlsxWorkbook(buffer: Buffer): { template: string | null; rows: Wor
 
 // ── Helper: find session for a given date ──
 
-async function findSessionForDate(pool: any, date: string): Promise<number | null> {
+async function findSessionForDate(pool: DbExecutor, date: string): Promise<number | null> {
   const r = await pool.query(
     'SELECT id FROM live_sessions WHERE date = $1::date ORDER BY start_time ASC LIMIT 1',
     [date],
@@ -67,14 +67,15 @@ async function findSessionForDate(pool: any, date: string): Promise<number | nul
 export async function dataRoutes(app: FastifyInstance) {
   // ── GET /api/v1/data/tables ──
   app.get('/api/v1/data/tables', async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
-        `SELECT tablename AS name,
-                COALESCE((SELECT SUM(n_live_tup)::int FROM pg_stat_user_tables WHERE relname = t.tablename), 0) AS row_count
-         FROM pg_catalog.pg_tables t
-         WHERE schemaname = 'public' AND tablename NOT LIKE 'pg\\\\_%'
-         ORDER BY tablename`,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT tablename AS name,
+                  COALESCE((SELECT SUM(n_live_tup)::int FROM pg_stat_user_tables WHERE relname = t.tablename), 0) AS row_count
+           FROM pg_catalog.pg_tables t
+           WHERE schemaname = 'public' AND tablename NOT LIKE 'pg\\\\_%'
+           ORDER BY tablename`,
+        ),
       )
       return sendOk(
         reply,
@@ -96,11 +97,12 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/data/tables/:id/refresh ──
   app.post('/api/v1/data/tables/:id/refresh', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const safeTable = id.replace(/[^a-z0-9_]/gi, '')
-      if (safeTable) await pool.query(`ANALYZE "${safeTable}"`)
+      if (safeTable) {
+        await withRlsContext(request, (client) => client.query(`ANALYZE "${safeTable}"`))
+      }
       return sendOk(reply, { refreshed: true })
     } catch (err) {
       request.log.warn({ err }, 'data/tables refresh failed')
@@ -110,12 +112,13 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/data/uploads ──
   app.get('/api/v1/data/uploads', async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
-        `SELECT id, file_name, file_type, file_size, upload_time, status,
-                row_count, data_type, business_date::text, error_message
-         FROM data_uploads ORDER BY upload_time DESC`,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT id, file_name, file_type, file_size, upload_time, status,
+                  row_count, data_type, business_date::text, error_message
+           FROM data_uploads ORDER BY upload_time DESC`,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -127,13 +130,14 @@ export async function dataRoutes(app: FastifyInstance) {
   // ── GET /api/v1/data/uploads/:id/download ── 下载上传的文件
   app.get('/api/v1/data/uploads/:id/download', async (request, reply) => {
     const { id } = request.params as { id: string }
-    const pool = getPool()
     try {
       const fs = await import('node:fs')
       const path = await import('node:path')
-      const { rows } = await pool.query(
-        'SELECT file_name, source_path FROM data_uploads WHERE id = $1',
-        [parseInt(id)],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          'SELECT file_name, source_path FROM data_uploads WHERE id = $1',
+          [parseInt(id)],
+        ),
       )
       if (rows.length === 0) return reply.code(404).send({ success: false, message: '文件不存在' })
       const { file_name, source_path } = rows[0]
@@ -149,29 +153,31 @@ export async function dataRoutes(app: FastifyInstance) {
   // ── DELETE /api/v1/data/uploads/:id ── 删除上传记录和文件
   app.delete('/api/v1/data/uploads/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
     const { id } = request.params as { id: string }
-    const pool = getPool()
     try {
       const fs = await import('node:fs')
       const path = await import('node:path')
-      const { rows } = await pool.query(
-        'SELECT file_name, source_path FROM data_uploads WHERE id = $1',
-        [parseInt(id)],
-      )
-      if (rows.length === 0) return reply.code(404).send({ success: false, message: '记录不存在' })
-      const sourcePath = rows[0].source_path
-      if (sourcePath) {
-        const filePath = path.resolve('./uploads', sourcePath)
+      const deletedRow = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(
+          'SELECT file_name, source_path FROM data_uploads WHERE id = $1',
+          [parseInt(id)],
+        )
+        if (rows.length === 0) return null
+        await client.query('DELETE FROM data_uploads WHERE id = $1', [parseInt(id)])
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.upload.delete',
+          resourceType: 'data_upload',
+          resourceId: id,
+          beforeData: rows[0],
+          request,
+        })
+        return rows[0]
+      })
+      if (!deletedRow) return reply.code(404).send({ success: false, message: '记录不存在' })
+      if (deletedRow.source_path) {
+        const filePath = path.resolve('./uploads', deletedRow.source_path)
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
       }
-      await pool.query('DELETE FROM data_uploads WHERE id = $1', [parseInt(id)])
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.upload.delete',
-        resourceType: 'data_upload',
-        resourceId: id,
-        beforeData: rows[0],
-        request,
-      })
       return sendOk(reply, { message: '删除成功' })
     } catch (err) {
       request.log.warn({ err }, 'data/uploads/:id delete failed')
@@ -181,7 +187,6 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/data/upload-preview ──
   app.post('/api/v1/data/upload-preview', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const parts = request.parts()
       let fileBuffer: Buffer | null = null
@@ -207,68 +212,78 @@ export async function dataRoutes(app: FastifyInstance) {
         let { template, rows, workbook: parsedWorkbook } = parseXlsxWorkbook(fileBuffer)
         const businessDate = inferBusinessDate(fileName)
         const preview = buildPreview(template, rows, businessDate)
-
-        let sessionsForDate: { id: number; title: string; anchor_name: string }[] = []
-        let availableRooms: { id: number; name: string }[] = []
-        let anchorsMissingRooms: string[] = []
-
-        if (template === TEMPLATES.CHANNEL && businessDate) {
-          const s = await pool.query(
-            `SELECT s.id, s.title, COALESCE(a.name, '') AS anchor_name
-             FROM live_sessions s
-             LEFT JOIN anchors a ON a.id = s.anchor_id
-             WHERE s.date = $1::date ORDER BY s.start_time`,
-            [businessDate],
-          )
-          sessionsForDate = s.rows
+        const isFullSession = !template && detectFullSessionTemplate(fileName)
+        if (isFullSession) {
+          template = TEMPLATES.FULL_SESSION
         }
+        const sheetNames: string[] = isFullSession ? (parsedWorkbook?.SheetNames ?? []) : []
 
-        if (template === TEMPLATES.ANCHOR) {
-          // 查询所有可用直播间
-          const roomsRes = await pool.query('SELECT id, name FROM live_rooms WHERE status = $1 ORDER BY name', ['active'])
-          availableRooms = roomsRes.rows
+        const dbInfo = await withRlsContext(request, async (client) => {
+          let sessionsForDate: { id: number; title: string; anchor_name: string }[] = []
+          let availableRooms: { id: number; name: string }[] = []
+          let anchorsMissingRooms: string[] = []
+          let allAnchors: any[] = []
+          const unmatchedAnchors: string[] = []
 
-          // 查询所有已有主播（供手动匹配用）
-          const allAnchorsRes = await pool.query('SELECT id, name FROM anchors WHERE status = 1 ORDER BY name')
-          preview.allAnchors = allAnchorsRes.rows
-
-          // 提取唯一主播名，检查匹配情况
-          const anchorNames = [...new Set(rows.map(r => text(r['主播名称'])).filter(Boolean))]
-            .filter(n => !['整体', '较上周期', '同行同级优秀值'].includes(n))
-
-          preview.unmatchedAnchors = []
-          for (const name of anchorNames) {
-            const anchorRes = await pool.query('SELECT id FROM anchors WHERE name = $1 AND status = 1 LIMIT 1', [name])
-            if (anchorRes.rows.length === 0) {
-              preview.unmatchedAnchors.push(name)
-              // 未匹配的主播也需要分配直播间，加入锚点缺失列表
-              anchorsMissingRooms.push(name)
-              continue
-            }
-            const aid = anchorRes.rows[0].id
-            const roomRes = await pool.query(
-              'SELECT room_id FROM live_sessions WHERE anchor_id = $1 AND room_id IS NOT NULL LIMIT 1',
-              [aid],
+          if (template === TEMPLATES.CHANNEL && businessDate) {
+            const s = await client.query(
+              `SELECT s.id, s.title, COALESCE(a.name, '') AS anchor_name
+               FROM live_sessions s
+               LEFT JOIN anchors a ON a.id = s.anchor_id
+               WHERE s.date = $1::date ORDER BY s.start_time`,
+              [businessDate],
             )
-            if (roomRes.rows.length === 0) {
-              anchorsMissingRooms.push(name)
+            sessionsForDate = s.rows
+          }
+
+          if (template === TEMPLATES.ANCHOR) {
+            const roomsRes = await client.query('SELECT id, name FROM live_rooms WHERE status = $1 ORDER BY name', ['active'])
+            availableRooms = roomsRes.rows
+
+            const allAnchorsRes = await client.query('SELECT id, name FROM anchors WHERE status = 1 ORDER BY name')
+            allAnchors = allAnchorsRes.rows
+
+            const anchorNames = [...new Set(rows.map(r => text(r['主播名称'])).filter(Boolean))]
+              .filter(n => !['整体', '较上周期', '同行同级优秀值'].includes(n))
+
+            for (const name of anchorNames) {
+              const anchorRes = await client.query('SELECT id FROM anchors WHERE name = $1 AND status = 1 LIMIT 1', [name])
+              if (anchorRes.rows.length === 0) {
+                unmatchedAnchors.push(name)
+                anchorsMissingRooms.push(name)
+                continue
+              }
+              const aid = anchorRes.rows[0].id
+              const roomRes = await client.query(
+                'SELECT room_id FROM live_sessions WHERE anchor_id = $1 AND room_id IS NOT NULL LIMIT 1',
+                [aid],
+              )
+              if (roomRes.rows.length === 0) {
+                anchorsMissingRooms.push(name)
+              }
             }
           }
-        }
 
-        // ── 整场数据模板检测 ──
-        let isFullSession = false
-        let sheetNames: string[] = []
-        if (!template && detectFullSessionTemplate(fileName)) {
-          isFullSession = true
-          template = TEMPLATES.FULL_SESSION
-          sheetNames = parsedWorkbook?.SheetNames ?? []
-          // 返回所有直播间列表供选择
-          const roomsRes = await pool.query('SELECT id, name FROM live_rooms ORDER BY name')
-          availableRooms = roomsRes.rows
-        }
+          if (isFullSession) {
+            const roomsRes = await client.query('SELECT id, name FROM live_rooms ORDER BY name')
+            availableRooms = roomsRes.rows
+          }
 
-        return sendOk(reply, { ...preview, sessionsForDate, availableRooms, anchorsMissingRooms, fileType, fileName, isFullSession, sheetNames, allAnchors: (preview as any).allAnchors ?? [], unmatchedAnchors: (preview as any).unmatchedAnchors ?? [] })
+          return { sessionsForDate, availableRooms, anchorsMissingRooms, allAnchors, unmatchedAnchors }
+        })
+
+        return sendOk(reply, {
+          ...preview,
+          sessionsForDate: dbInfo.sessionsForDate,
+          availableRooms: dbInfo.availableRooms,
+          anchorsMissingRooms: dbInfo.anchorsMissingRooms,
+          fileType,
+          fileName,
+          isFullSession,
+          sheetNames,
+          allAnchors: template === TEMPLATES.ANCHOR ? dbInfo.allAnchors : ((preview as any).allAnchors ?? []),
+          unmatchedAnchors: template === TEMPLATES.ANCHOR ? dbInfo.unmatchedAnchors : ((preview as any).unmatchedAnchors ?? []),
+        })
       }
 
       if (fileType === 'csv') {
@@ -303,8 +318,6 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/data/uploads ──
   app.post('/api/v1/data/uploads', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
-    const user = (request as any).user
-    const pool = getPool()
     try {
       const parts = request.parts()
       let fileBuffer: Buffer | null = null
@@ -351,17 +364,11 @@ export async function dataRoutes(app: FastifyInstance) {
       const safeName = `${Date.now()}-${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`
       fs.writeFileSync(path.join(uploadDir, safeName), fileBuffer)
 
-      let importedRows = 0
-      let detectedType: string | null = null
-      let businessDate: string | null = null
-      let errorsList: string[] = []
-      let uploadId: number | null = null
-
       // ── XLSX ──
       if (fileType === 'xlsx' || fileType === 'xls') {
-        const { template, rows } = parseXlsxWorkbook(fileBuffer)
-        detectedType = template
-        businessDate = inferBusinessDate(fileName)
+        const { template, rows, workbook } = parseXlsxWorkbook(fileBuffer)
+        let detectedType: string | null = template
+        let businessDate: string | null = inferBusinessDate(fileName)
 
         // Anchor analysis
         if (detectedType === TEMPLATES.ANCHOR || targetTable === 'anchor_analysis') {
@@ -369,38 +376,34 @@ export async function dataRoutes(app: FastifyInstance) {
             return reply.code(400).send({ success: false, message: '\u65E0\u6CD5\u4ECE\u6587\u4EF6\u540D\u8BC6\u522B\u4E1A\u52A1\u65E5\u671F\uFF0C\u8BF7\u4F7F\u7528\u6807\u51C6\u6296\u97F3\u540E\u53F0\u5BFC\u51FA\u6587\u4EF6\u540D' })
           }
 
-          // 处理主播映射：创建新主播 或 预填充名称缓存
-          const anchorNameCache: NameCache = {}
-          for (const [excelName, mapping] of Object.entries(anchorMappings)) {
-            if (mapping === 'create') {
-              // 创建新主播
-              const insertRes = await pool.query(
-                'INSERT INTO anchors (name, level, status) VALUES ($1, $2, $3) RETURNING id',
-                [excelName, 'B', 1],
-              )
-              anchorNameCache[excelName] = { id: insertRes.rows[0].id }
-            } else if (typeof mapping === 'number') {
-              // 映射到已有主播
-              anchorNameCache[excelName] = { id: mapping }
+          const { uploadId, importedRows, errorsList } = await withRlsContext(request, async (client) => {
+            const anchorNameCache: NameCache = {}
+            for (const [excelName, mapping] of Object.entries(anchorMappings)) {
+              if (mapping === 'create') {
+                const insertRes = await client.query(
+                  'INSERT INTO anchors (name, level, status) VALUES ($1, $2, $3) RETURNING id',
+                  [excelName, 'B', 1],
+                )
+                anchorNameCache[excelName] = { id: insertRes.rows[0].id }
+              } else if (typeof mapping === 'number') {
+                anchorNameCache[excelName] = { id: mapping }
+              }
             }
-          }
 
-          const uploadResult = await pool.query(
-            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
-             VALUES ($1, $2, $3, 'processing', 0, 'anchor_analysis', $4::date, $5) RETURNING id`,
-            [fileName, fileType, String(fileSize), businessDate, safeName],
-          )
-          uploadId = uploadResult.rows[0].id
-
-          const result = await importAnchorAnalysis(pool, rows, businessDate, roomAssignments, anchorNameCache, uploadId)
-          importedRows = result.imported
-          errorsList = result.errors
-
-          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
-          await pool.query(
-            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
-            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
-          )
+            const uploadResult = await client.query(
+              `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
+               VALUES ($1, $2, $3, 'processing', 0, 'anchor_analysis', $4::date, $5) RETURNING id`,
+              [fileName, fileType, String(fileSize), businessDate, safeName],
+            )
+            const uid = uploadResult.rows[0].id
+            const result = await importAnchorAnalysis(client, rows, businessDate!, roomAssignments, anchorNameCache, uid)
+            const finalStatus = result.errors.length > 0 && result.imported === 0 ? 'failed' : 'completed'
+            await client.query(
+              `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+              [finalStatus, result.imported, result.errors.join('; ') || null, uid],
+            )
+            return { uploadId: uid, importedRows: result.imported, errorsList: result.errors }
+          })
 
           return sendOk(reply, {
             upload: { id: uploadId, file_name: fileName, data_type: 'anchor_analysis', business_date: businessDate },
@@ -414,34 +417,29 @@ export async function dataRoutes(app: FastifyInstance) {
 
         // Channel analysis
         if (detectedType === TEMPLATES.CHANNEL || targetTable === 'channel_analysis') {
-          if (!businessDate) {
-            businessDate = uploadBusinessDate || null
-          }
+          if (!businessDate) businessDate = uploadBusinessDate || null
           if (!businessDate) {
             return reply.code(400).send({ success: false, message: '\u65E0\u6CD5\u4ECE\u6587\u4EF6\u540D\u8BC6\u522B\u4E1A\u52A1\u65E5\u671F\uFF0C\u8BF7\u4F7F\u7528\u6807\u51C6\u6296\u97F3\u540E\u53F0\u5BFC\u51FA\u6587\u4EF6\u540D' })
           }
 
-          let sessionId = sessionIdOverride
-          if (!sessionId) {
-            sessionId = await findSessionForDate(pool, businessDate) || null
-          }
+          const { uploadId, sessionId, importedRows, errorsList } = await withRlsContext(request, async (client) => {
+            let sid = sessionIdOverride
+            if (!sid) sid = await findSessionForDate(client, businessDate!) || null
 
-          const uploadResult = await pool.query(
-            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
-             VALUES ($1, $2, $3, 'processing', 0, 'channel_analysis', $4::date, $5) RETURNING id`,
-            [fileName, fileType, String(fileSize), businessDate, safeName],
-          )
-          uploadId = uploadResult.rows[0].id
-
-          const result = await importChannelAnalysis(pool, rows, businessDate, sessionId, uploadId)
-          importedRows = result.imported
-          errorsList = result.errors
-
-          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
-          await pool.query(
-            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
-            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
-          )
+            const uploadResult = await client.query(
+              `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
+               VALUES ($1, $2, $3, 'processing', 0, 'channel_analysis', $4::date, $5) RETURNING id`,
+              [fileName, fileType, String(fileSize), businessDate, safeName],
+            )
+            const uid = uploadResult.rows[0].id
+            const result = await importChannelAnalysis(client, rows, businessDate!, sid, uid)
+            const finalStatus = result.errors.length > 0 && result.imported === 0 ? 'failed' : 'completed'
+            await client.query(
+              `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+              [finalStatus, result.imported, result.errors.join('; ') || null, uid],
+            )
+            return { uploadId: uid, sessionId: sid, importedRows: result.imported, errorsList: result.errors }
+          })
 
           return sendOk(reply, {
             upload: {
@@ -466,23 +464,21 @@ export async function dataRoutes(app: FastifyInstance) {
             return reply.code(400).send({ success: false, message: '\u8BF7\u9009\u62E9\u4E1A\u52A1\u65E5\u671F' })
           }
 
-          const workbook = XLSX.read(fileBuffer, { type: 'buffer', cellDates: true })
-          const uploadResult = await pool.query(
-            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
-             VALUES ($1, $2, $3, 'processing', 0, 'full_session', $4::date, $5) RETURNING id`,
-            [fileName, fileType, String(fileSize), uploadBusinessDate, safeName],
-          )
-          uploadId = uploadResult.rows[0].id
-
-          const result = await importFullSession(pool, workbook, uploadBusinessDate, selectedRoomId, uploadId!)
-          importedRows = result.imported
-          errorsList = result.errors
-
-          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
-          await pool.query(
-            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
-            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
-          )
+          const { uploadId, importedRows, errorsList } = await withRlsContext(request, async (client) => {
+            const uploadResult = await client.query(
+              `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, business_date, source_path)
+               VALUES ($1, $2, $3, 'processing', 0, 'full_session', $4::date, $5) RETURNING id`,
+              [fileName, fileType, String(fileSize), uploadBusinessDate, safeName],
+            )
+            const uid = uploadResult.rows[0].id
+            const result = await importFullSession(client, workbook, uploadBusinessDate, selectedRoomId!, uid!)
+            const finalStatus = result.errors.length > 0 && result.imported === 0 ? 'failed' : 'completed'
+            await client.query(
+              `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+              [finalStatus, result.imported, result.errors.join('; ') || null, uid],
+            )
+            return { uploadId: uid, importedRows: result.imported, errorsList: result.errors }
+          })
 
           return sendOk(reply, {
             upload: { id: uploadId, file_name: fileName, data_type: 'full_session', business_date: uploadBusinessDate, room_id: selectedRoomId },
@@ -500,31 +496,30 @@ export async function dataRoutes(app: FastifyInstance) {
         const content = fileBuffer.toString('utf-8')
         const { headers, rows } = parseCsv(content)
 
-        if (rows.length > 0) {
-          const uploadResult = await pool.query(
-            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, source_path)
-             VALUES ($1, $2, $3, 'processing', 0, 'live_sessions_csv', $4) RETURNING id`,
-            [fileName, fileType, String(fileSize), safeName],
-          )
-          uploadId = uploadResult.rows[0].id
-
-          const result = await importLiveSessionCsv(pool, headers, rows)
-          importedRows = result.imported
-          errorsList = result.errors
-
-          const finalStatus = errorsList.length > 0 && importedRows === 0 ? 'failed' : 'completed'
-          await pool.query(
-            `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
-            [finalStatus, importedRows, errorsList.join('; ') || null, uploadId],
-          )
-        } else {
-          const uploadResult = await pool.query(
-            `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, source_path)
-             VALUES ($1, $2, $3, 'completed', 0, 'live_sessions_csv', $4) RETURNING id`,
-            [fileName, fileType, String(fileSize), safeName],
-          )
-          uploadId = uploadResult.rows[0].id
-        }
+        const { uploadId, importedRows, errorsList } = await withRlsContext(request, async (client) => {
+          if (rows.length > 0) {
+            const uploadResult = await client.query(
+              `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, source_path)
+               VALUES ($1, $2, $3, 'processing', 0, 'live_sessions_csv', $4) RETURNING id`,
+              [fileName, fileType, String(fileSize), safeName],
+            )
+            const uid = uploadResult.rows[0].id
+            const result = await importLiveSessionCsv(client, headers, rows)
+            const finalStatus = result.errors.length > 0 && result.imported === 0 ? 'failed' : 'completed'
+            await client.query(
+              `UPDATE data_uploads SET status = $1, row_count = $2, error_message = $3 WHERE id = $4`,
+              [finalStatus, result.imported, result.errors.join('; ') || null, uid],
+            )
+            return { uploadId: uid, importedRows: result.imported, errorsList: result.errors }
+          } else {
+            const uploadResult = await client.query(
+              `INSERT INTO data_uploads (file_name, file_type, file_size, status, row_count, data_type, source_path)
+               VALUES ($1, $2, $3, 'completed', 0, 'live_sessions_csv', $4) RETURNING id`,
+              [fileName, fileType, String(fileSize), safeName],
+            )
+            return { uploadId: uploadResult.rows[0].id, importedRows: 0, errorsList: [] as string[] }
+          }
+        })
 
         return sendOk(reply, {
           upload: { id: uploadId, file_name: fileName, data_type: 'live_sessions_csv', row_count: importedRows },
@@ -545,10 +540,9 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/data/exports ──
   app.get('/api/v1/data/exports', async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
-        'SELECT * FROM data_exports ORDER BY requested_at DESC LIMIT 20',
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query('SELECT * FROM data_exports ORDER BY requested_at DESC LIMIT 20'),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -559,12 +553,13 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/data/exports ──
   app.post('/api/v1/data/exports', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as { exportName?: string; format?: string }
-      const { rows } = await pool.query(
-        `INSERT INTO data_exports (export_name, format, status) VALUES ($1, $2, 'completed') RETURNING *`,
-        [body.exportName || '\u6570\u636E\u5BFC\u51FA', body.format || 'xlsx'],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO data_exports (export_name, format, status) VALUES ($1, $2, 'completed') RETURNING *`,
+          [body.exportName || '\u6570\u636E\u5BFC\u51FA', body.format || 'xlsx'],
+        ),
       )
       if (rows.length === 0) return sendOk(reply, { error: '\u5BFC\u51FA\u5931\u8D25' })
       return sendOk(reply, rows[0])
@@ -576,25 +571,26 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/data/live ──
   app.get('/api/v1/data/live', async (request, reply) => {
-    const pool = getPool()
     try {
       // 登记数据管理：只读人工登记表（独立模块，不混入系统场次数据）
-      const { rows } = await pool.query(
-        `SELECT s.id, s.biz_date::text AS date,
-                s.anchor_id, s.room_id, s.operator_id,
-                a.name AS anchor_name,
-                r.name AS room_name,
-                o.name AS operator_name,
-                s.start_time::text, s.end_time::text,
-                s.duration_min AS duration,
-                s.title, s.gmv, s.return_amount AS refund_amount, s.status,
-                s.remark, s.entry_source, s.registered_at::text
-         FROM live_registrations s
-         LEFT JOIN anchors a ON a.id = s.anchor_id
-         LEFT JOIN live_rooms r ON r.id = s.room_id
-         LEFT JOIN operators o ON o.id = s.operator_id
-         ORDER BY s.biz_date DESC, s.start_time DESC
-         LIMIT 500`,
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT s.id, s.biz_date::text AS date,
+                  s.anchor_id, s.room_id, s.operator_id,
+                  a.name AS anchor_name,
+                  r.name AS room_name,
+                  o.name AS operator_name,
+                  s.start_time::text, s.end_time::text,
+                  s.duration_min AS duration,
+                  s.title, s.gmv, s.return_amount AS refund_amount, s.status,
+                  s.remark, s.entry_source, s.registered_at::text
+           FROM live_registrations s
+           LEFT JOIN anchors a ON a.id = s.anchor_id
+           LEFT JOIN live_rooms r ON r.id = s.room_id
+           LEFT JOIN operators o ON o.id = s.operator_id
+           ORDER BY s.biz_date DESC, s.start_time DESC
+           LIMIT 500`,
+        ),
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -605,17 +601,18 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/data/live/:id ──
   app.get('/api/v1/data/live/:id', async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      const { rows } = await pool.query(
-        `SELECT s.*, a.name AS anchor_name, r.name AS room_name, o.name AS operator_name
-         FROM live_registrations s
-         LEFT JOIN anchors a ON a.id = s.anchor_id
-         LEFT JOIN live_rooms r ON r.id = s.room_id
-         LEFT JOIN operators o ON o.id = s.operator_id
-         WHERE s.id = $1`,
-        [parseInt(id)],
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT s.*, a.name AS anchor_name, r.name AS room_name, o.name AS operator_name
+           FROM live_registrations s
+           LEFT JOIN anchors a ON a.id = s.anchor_id
+           LEFT JOIN live_rooms r ON r.id = s.room_id
+           LEFT JOIN operators o ON o.id = s.operator_id
+           WHERE s.id = $1`,
+          [parseInt(id)],
+        ),
       )
       return sendOk(reply, rows[0] ?? null)
     } catch (err) {
@@ -626,19 +623,21 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/data/live/:id ──
   app.delete('/api/v1/data/live/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      const result = await pool.query('DELETE FROM live_registrations WHERE id = $1 RETURNING id', [parseInt(id)])
-      if ((result.rowCount ?? 0) > 0) {
-        await writeAuditLog(pool, {
-          actorUserId: (request as any).user?.id,
-          action: 'data.live_registration.delete',
-          resourceType: 'live_registration',
-          resourceId: id,
-          request,
-        })
-      }
+      const result = await withRlsContext(request, async (client) => {
+        const res = await client.query('DELETE FROM live_registrations WHERE id = $1 RETURNING id', [parseInt(id)])
+        if ((res.rowCount ?? 0) > 0) {
+          await writeAuditLog(client, {
+            actorUserId: (request as any).user?.id,
+            action: 'data.live_registration.delete',
+            resourceType: 'live_registration',
+            resourceId: id,
+            request,
+          })
+        }
+        return res
+      })
       return sendOk(reply, { deleted: (result.rowCount ?? 0) > 0, id: parseInt(id) })
     } catch (err) {
       request.log.warn({ err }, 'data/live delete failed')
@@ -648,93 +647,94 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── PUT /api/v1/data/live/:id ──
   app.put('/api/v1/data/live/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const body = request.body as Record<string, any>
       const sessionId = parseInt(id)
 
-      // 读取当前登记记录（独立表 live_registrations）
-      const { rows: current } = await pool.query(
-        `SELECT room_id, anchor_id, biz_date::text AS date, start_time::text
-           FROM live_registrations WHERE id = $1`,
-        [sessionId],
-      )
+      const out = await withRlsContext(request, async (client) => {
+        const { rows: current } = await client.query(
+          `SELECT room_id, anchor_id, biz_date::text AS date, start_time::text
+             FROM live_registrations WHERE id = $1`,
+          [sessionId],
+        )
 
-      // 去重校验：同主播 + 同直播间 + 同日期 + 同开始时间（排除自身）
-      if (current[0]) {
-        const effective = {
-          room_id: body.roomId ?? current[0].room_id,
-          anchor_id: body.anchorId ?? current[0].anchor_id,
-          date: body.date ?? current[0].date,
-          start_time: body.startTime ?? current[0].start_time,
-        }
-        if (effective.date && effective.start_time) {
-          const dupRes = await pool.query(
-            `SELECT id FROM live_registrations
-              WHERE biz_date = $1::date
-                AND COALESCE(anchor_id, 0) = COALESCE($2, 0)
-                AND COALESCE(room_id, 0) = COALESCE($3, 0)
-                AND start_time = $4::time
-                AND status <> 'cancelled'
-                AND id <> $5
-              LIMIT 1`,
-            [effective.date, effective.anchor_id, effective.room_id, effective.start_time, sessionId],
-          )
-          if (dupRes.rows.length > 0) {
-            return sendError(reply, 409, `该主播在 ${effective.date} ${effective.start_time} 已有登记记录（ID: ${dupRes.rows[0].id}）`)
+        if (current[0]) {
+          const effective = {
+            room_id: body.roomId ?? current[0].room_id,
+            anchor_id: body.anchorId ?? current[0].anchor_id,
+            date: body.date ?? current[0].date,
+            start_time: body.startTime ?? current[0].start_time,
+          }
+          if (effective.date && effective.start_time) {
+            const dupRes = await client.query(
+              `SELECT id FROM live_registrations
+                WHERE biz_date = $1::date
+                  AND COALESCE(anchor_id, 0) = COALESCE($2, 0)
+                  AND COALESCE(room_id, 0) = COALESCE($3, 0)
+                  AND start_time = $4::time
+                  AND status <> 'cancelled'
+                  AND id <> $5
+                LIMIT 1`,
+              [effective.date, effective.anchor_id, effective.room_id, effective.start_time, sessionId],
+            )
+            if (dupRes.rows.length > 0) {
+              return { status: 409 as const, message: `该主播在 ${effective.date} ${effective.start_time} 已有登记记录（ID: ${dupRes.rows[0].id}）` }
+            }
           }
         }
-      }
 
-      // 更新人工登记表（字段与其结构对齐）
-      const result = await pool.query(
-        `UPDATE live_registrations SET
-           room_id       = COALESCE($1, room_id),
-           anchor_id     = COALESCE($2, anchor_id),
-           operator_id   = COALESCE($3, operator_id),
-           biz_date      = COALESCE($4::date, biz_date),
-           start_time    = COALESCE($5::time, start_time),
-           end_time      = COALESCE($6::time, end_time),
-           duration_min  = COALESCE($7, duration_min),
-           title         = COALESCE($8, title),
-           gmv           = COALESCE($9, gmv),
-           orders        = COALESCE($10, orders),
-           buyer_count   = COALESCE($11, buyer_count),
-           return_amount = COALESCE($12, return_amount),
-           remark        = COALESCE($13, remark),
-           status        = COALESCE($14, status),
-           updated_at    = NOW()
-         WHERE id = $15
-         RETURNING *`,
-        [
-          body.roomId ?? null,
-          body.anchorId ?? null,
-          body.operatorId ?? null,
-          body.date ?? null,
-          body.startTime ?? null,
-          body.endTime ?? null,
-          body.duration ?? null,
-          body.title ?? null,
-          body.gmv ?? null,
-          body.orders ?? null,
-          body.buyerCount ?? null,
-          body.returnAmount ?? null,
-          body.remark ?? null,
-          body.status ?? null,
-          sessionId,
-        ],
-      )
-      if (result.rows.length === 0) return sendError(reply, 404, '登记记录不存在')
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.live_registration.update',
-        resourceType: 'live_registration',
-        resourceId: sessionId,
-        afterData: result.rows[0],
-        request,
+        const result = await client.query(
+          `UPDATE live_registrations SET
+             room_id       = COALESCE($1, room_id),
+             anchor_id     = COALESCE($2, anchor_id),
+             operator_id   = COALESCE($3, operator_id),
+             biz_date      = COALESCE($4::date, biz_date),
+             start_time    = COALESCE($5::time, start_time),
+             end_time      = COALESCE($6::time, end_time),
+             duration_min  = COALESCE($7, duration_min),
+             title         = COALESCE($8, title),
+             gmv           = COALESCE($9, gmv),
+             orders        = COALESCE($10, orders),
+             buyer_count   = COALESCE($11, buyer_count),
+             return_amount = COALESCE($12, return_amount),
+             remark        = COALESCE($13, remark),
+             status        = COALESCE($14, status),
+             updated_at    = NOW()
+           WHERE id = $15
+           RETURNING *`,
+          [
+            body.roomId ?? null,
+            body.anchorId ?? null,
+            body.operatorId ?? null,
+            body.date ?? null,
+            body.startTime ?? null,
+            body.endTime ?? null,
+            body.duration ?? null,
+            body.title ?? null,
+            body.gmv ?? null,
+            body.orders ?? null,
+            body.buyerCount ?? null,
+            body.returnAmount ?? null,
+            body.remark ?? null,
+            body.status ?? null,
+            sessionId,
+          ],
+        )
+        if (result.rows.length === 0) return { status: 404 as const, message: '登记记录不存在' }
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.live_registration.update',
+          resourceType: 'live_registration',
+          resourceId: sessionId,
+          afterData: result.rows[0],
+          request,
+        })
+        return { status: 200 as const, row: result.rows[0] }
       })
-      return sendOk(reply, result.rows[0], '登记信息已更新')
+
+      if (out.status !== 200) return sendError(reply, out.status, out.message)
+      return sendOk(reply, out.row, '登记信息已更新')
     } catch (err) {
       request.log.warn({ err }, 'data/live update failed')
       return sendError(reply, 500, '更新登记信息失败')
@@ -742,28 +742,30 @@ export async function dataRoutes(app: FastifyInstance) {
   })
 
   app.get('/api/v1/data/quality', async (request, reply) => {
-    const pool = getPool()
     try {
-      const { rows } = await pool.query(
-        `SELECT COUNT(*)::int AS total,
-                SUM(CASE WHEN gmv IS NULL OR gmv = 0 THEN 1 ELSE 0 END)::int AS null_count,
-                SUM(CASE WHEN anchor_id IS NULL THEN 1 ELSE 0 END)::int AS missing_anchor,
-                SUM(CASE WHEN room_id IS NULL THEN 1 ELSE 0 END)::int AS missing_room,
-                ROUND(100.0 * SUM(CASE WHEN gmv IS NULL OR gmv = 0 THEN 1 ELSE 0 END) / GREATEST(COUNT(*), 1), 1) AS null_rate
-         FROM live_sessions`,
-      )
-      const q = rows[0] || { total: 0, null_count: 0, null_rate: 0, missing_anchor: 0, missing_room: 0 }
-
-      // Check if today's two reports are uploaded
       const today = new Date().toISOString().slice(0, 10)
-      const uploadsToday = await pool.query(
-        `SELECT data_type, COUNT(*)::int AS cnt
-         FROM data_uploads
-         WHERE business_date = $1::date AND status = 'completed'
-         GROUP BY data_type`,
-        [today],
-      )
-      const uploadedTypes = new Set(uploadsToday.rows.map((r: any) => r.data_type))
+      const { q, uploadedTypes } = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(
+          `SELECT COUNT(*)::int AS total,
+                  SUM(CASE WHEN gmv IS NULL OR gmv = 0 THEN 1 ELSE 0 END)::int AS null_count,
+                  SUM(CASE WHEN anchor_id IS NULL THEN 1 ELSE 0 END)::int AS missing_anchor,
+                  SUM(CASE WHEN room_id IS NULL THEN 1 ELSE 0 END)::int AS missing_room,
+                  ROUND(100.0 * SUM(CASE WHEN gmv IS NULL OR gmv = 0 THEN 1 ELSE 0 END) / GREATEST(COUNT(*), 1), 1) AS null_rate
+           FROM live_sessions`,
+        )
+        const uploadsToday = await client.query(
+          `SELECT data_type, COUNT(*)::int AS cnt
+           FROM data_uploads
+           WHERE business_date = $1::date AND status = 'completed'
+           GROUP BY data_type`,
+          [today],
+        )
+        return {
+          q: rows[0] || { total: 0, null_count: 0, null_rate: 0, missing_anchor: 0, missing_room: 0 },
+          uploadedTypes: new Set(uploadsToday.rows.map((r: any) => r.data_type)),
+        }
+      })
+
       const alerts: string[] = []
       if (!uploadedTypes.has('anchor_analysis')) alerts.push('\u4E3B\u64AD\u5206\u6790\u65E5\u62A5\u672A\u4E0A\u4F20')
       if (!uploadedTypes.has('channel_analysis')) alerts.push('\u6E20\u9053\u5206\u6790\u65E5\u62A5\u672A\u4E0A\u4F20')
@@ -795,7 +797,6 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/data/uploaded-data/anchor ──
   app.get('/api/v1/data/uploaded-data/anchor', async (request, reply) => {
-    const pool = getPool()
     try {
       const query = request.query as Record<string, string>
       const page = Math.max(1, parseInt(query.page) || 1)
@@ -821,21 +822,22 @@ export async function dataRoutes(app: FastifyInstance) {
 
       const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''
 
-      const countResult = await pool.query(
-        `SELECT COUNT(*)::int AS total FROM douyin_anchor_daily_metrics a ${whereClause}`,
-        params,
-      )
-      const total = countResult.rows[0]?.total ?? 0
-
-      const { rows } = await pool.query(
-        `SELECT a.*, u.file_name AS upload_file_name
-         FROM douyin_anchor_daily_metrics a
-         LEFT JOIN data_uploads u ON u.id = a.upload_id
-         ${whereClause}
-         ORDER BY a.business_date DESC, a.anchor_name ASC
-         LIMIT $${idx++} OFFSET $${idx++}`,
-        [...params, pageSize, offset],
-      )
+      const { total, rows } = await withRlsContext(request, async (client) => {
+        const countResult = await client.query(
+          `SELECT COUNT(*)::int AS total FROM douyin_anchor_daily_metrics a ${whereClause}`,
+          params,
+        )
+        const dataResult = await client.query(
+          `SELECT a.*, u.file_name AS upload_file_name
+           FROM douyin_anchor_daily_metrics a
+           LEFT JOIN data_uploads u ON u.id = a.upload_id
+           ${whereClause}
+           ORDER BY a.business_date DESC, a.anchor_name ASC
+           LIMIT $${idx} OFFSET $${idx + 1}`,
+          [...params, pageSize, offset],
+        )
+        return { total: countResult.rows[0]?.total ?? 0, rows: dataResult.rows }
+      })
 
       return sendOk(reply, { items: rows, total, page, pageSize })
     } catch (err) {
@@ -846,16 +848,17 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/data/uploaded-data/anchor/:id ──
   app.delete('/api/v1/data/uploaded-data/anchor/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      await pool.query('DELETE FROM douyin_anchor_daily_metrics WHERE id = $1', [parseInt(id)])
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.uploaded_anchor.delete',
-        resourceType: 'douyin_anchor_daily_metric',
-        resourceId: id,
-        request,
+      await withRlsContext(request, async (client) => {
+        await client.query('DELETE FROM douyin_anchor_daily_metrics WHERE id = $1', [parseInt(id)])
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.uploaded_anchor.delete',
+          resourceType: 'douyin_anchor_daily_metric',
+          resourceId: id,
+          request,
+        })
       })
       return sendOk(reply, { deleted: true })
     } catch (err) {
@@ -866,21 +869,23 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/data/uploaded-data/anchor/batch-delete ──
   app.post('/api/v1/data/uploaded-data/anchor/batch-delete', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as { ids: number[] }
       const ids = Array.isArray(body?.ids) ? body.ids : []
       if (ids.length === 0) return sendOk(reply, { deleted: false, count: 0 })
-      const result = await pool.query(
-        `DELETE FROM douyin_anchor_daily_metrics WHERE id = ANY($1::int[])`,
-        [ids],
-      )
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.uploaded_anchor.batch_delete',
-        resourceType: 'douyin_anchor_daily_metric',
-        afterData: { ids, deletedCount: result.rowCount },
-        request,
+      const result = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `DELETE FROM douyin_anchor_daily_metrics WHERE id = ANY($1::int[])`,
+          [ids],
+        )
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.uploaded_anchor.batch_delete',
+          resourceType: 'douyin_anchor_daily_metric',
+          afterData: { ids, deletedCount: res.rowCount },
+          request,
+        })
+        return res
       })
       return sendOk(reply, { deleted: true, count: result.rowCount })
     } catch (err) {
@@ -895,7 +900,6 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/data/uploaded-data/channel ──
   app.get('/api/v1/data/uploaded-data/channel', async (request, reply) => {
-    const pool = getPool()
     try {
       const query = request.query as Record<string, string>
       const page = Math.max(1, parseInt(query.page) || 1)
@@ -921,21 +925,22 @@ export async function dataRoutes(app: FastifyInstance) {
 
       const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''
 
-      const countResult = await pool.query(
-        `SELECT COUNT(*)::int AS total FROM douyin_channel_daily_metrics c ${whereClause}`,
-        params,
-      )
-      const total = countResult.rows[0]?.total ?? 0
-
-      const { rows } = await pool.query(
-        `SELECT c.*, u.file_name AS upload_file_name
-         FROM douyin_channel_daily_metrics c
-         LEFT JOIN data_uploads u ON u.id = c.upload_id
-         ${whereClause}
-         ORDER BY c.business_date DESC, c.channel_name ASC
-         LIMIT $${idx++} OFFSET $${idx++}`,
-        [...params, pageSize, offset],
-      )
+      const { total, rows } = await withRlsContext(request, async (client) => {
+        const countResult = await client.query(
+          `SELECT COUNT(*)::int AS total FROM douyin_channel_daily_metrics c ${whereClause}`,
+          params,
+        )
+        const dataResult = await client.query(
+          `SELECT c.*, u.file_name AS upload_file_name
+           FROM douyin_channel_daily_metrics c
+           LEFT JOIN data_uploads u ON u.id = c.upload_id
+           ${whereClause}
+           ORDER BY c.business_date DESC, c.channel_name ASC
+           LIMIT $${idx} OFFSET $${idx + 1}`,
+          [...params, pageSize, offset],
+        )
+        return { total: countResult.rows[0]?.total ?? 0, rows: dataResult.rows }
+      })
 
       return sendOk(reply, { items: rows, total, page, pageSize })
     } catch (err) {
@@ -946,16 +951,17 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/data/uploaded-data/channel/:id ──
   app.delete('/api/v1/data/uploaded-data/channel/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      await pool.query('DELETE FROM douyin_channel_daily_metrics WHERE id = $1', [parseInt(id)])
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.uploaded_channel.delete',
-        resourceType: 'douyin_channel_daily_metric',
-        resourceId: id,
-        request,
+      await withRlsContext(request, async (client) => {
+        await client.query('DELETE FROM douyin_channel_daily_metrics WHERE id = $1', [parseInt(id)])
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.uploaded_channel.delete',
+          resourceType: 'douyin_channel_daily_metric',
+          resourceId: id,
+          request,
+        })
       })
       return sendOk(reply, { deleted: true })
     } catch (err) {
@@ -966,21 +972,23 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/data/uploaded-data/channel/batch-delete ──
   app.post('/api/v1/data/uploaded-data/channel/batch-delete', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as { ids: number[] }
       const ids = Array.isArray(body?.ids) ? body.ids : []
       if (ids.length === 0) return sendOk(reply, { deleted: false, count: 0 })
-      const result = await pool.query(
-        `DELETE FROM douyin_channel_daily_metrics WHERE id = ANY($1::int[])`,
-        [ids],
-      )
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.uploaded_channel.batch_delete',
-        resourceType: 'douyin_channel_daily_metric',
-        afterData: { ids, deletedCount: result.rowCount },
-        request,
+      const result = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `DELETE FROM douyin_channel_daily_metrics WHERE id = ANY($1::int[])`,
+          [ids],
+        )
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.uploaded_channel.batch_delete',
+          resourceType: 'douyin_channel_daily_metric',
+          afterData: { ids, deletedCount: res.rowCount },
+          request,
+        })
+        return res
       })
       return sendOk(reply, { deleted: true, count: result.rowCount })
     } catch (err) {
@@ -995,7 +1003,6 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/data/clean-rules ── 获取清洗规则集列表
   app.get('/api/v1/data/clean-rules', async (request, reply) => {
-    const pool = getPool()
     try {
       const { platform } = request.query as { platform?: string }
       let query = `SELECT id, name, platform_code, description, is_system, rules, created_at, updated_at FROM clean_rule_sets`
@@ -1005,7 +1012,7 @@ export async function dataRoutes(app: FastifyInstance) {
         params.push(platform)
       }
       query += ` ORDER BY is_system DESC, id ASC`
-      const { rows } = await pool.query(query, params)
+      const { rows } = await withRlsContext(request, (client) => client.query(query, params))
       return sendOk(reply, rows)
     } catch (err) {
       request.log.error({ err }, 'Failed to fetch clean rules')
@@ -1015,7 +1022,6 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/data/clean-rules ── 创建自定义清洗规则集
   app.post('/api/v1/data/clean-rules', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const body = request.body as {
         name: string
@@ -1027,19 +1033,22 @@ export async function dataRoutes(app: FastifyInstance) {
         return sendError(reply, 400, '缺少必要参数 (name, platform_code, rules)')
       }
 
-      const { rows } = await pool.query(
-        `INSERT INTO clean_rule_sets (name, platform_code, description, is_system, rules)
-         VALUES ($1, $2, $3, false, $4)
-         RETURNING *`,
-        [body.name, body.platform_code, body.description || '', JSON.stringify(body.rules)]
-      )
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.clean_rule.create',
-        resourceType: 'clean_rule_set',
-        resourceId: rows[0]?.id,
-        afterData: rows[0],
-        request,
+      const rows = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `INSERT INTO clean_rule_sets (name, platform_code, description, is_system, rules)
+           VALUES ($1, $2, $3, false, $4)
+           RETURNING *`,
+          [body.name, body.platform_code, body.description || '', JSON.stringify(body.rules)],
+        )
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.clean_rule.create',
+          resourceType: 'clean_rule_set',
+          resourceId: res.rows[0]?.id,
+          afterData: res.rows[0],
+          request,
+        })
+        return res.rows
       })
       return sendOk(reply, rows[0], '清洗规则集创建成功')
     } catch (err) {
@@ -1050,7 +1059,6 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── PUT /api/v1/data/clean-rules/:id ── 更新自定义清洗规则集
   app.put('/api/v1/data/clean-rules/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
       const body = request.body as {
@@ -1078,19 +1086,24 @@ export async function dataRoutes(app: FastifyInstance) {
 
       updates.push(`updated_at = now()`)
 
-      const { rows } = await pool.query(
-        `UPDATE clean_rule_sets SET ${updates.join(', ')} WHERE id = $1 RETURNING *`,
-        values
-      )
-      if (rows.length === 0) return sendError(reply, 404, '清洗规则集不存在')
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.clean_rule.update',
-        resourceType: 'clean_rule_set',
-        resourceId: id,
-        afterData: rows[0],
-        request,
+      const rows = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `UPDATE clean_rule_sets SET ${updates.join(', ')} WHERE id = $1 RETURNING *`,
+          values,
+        )
+        if (res.rows.length > 0) {
+          await writeAuditLog(client, {
+            actorUserId: (request as any).user?.id,
+            action: 'data.clean_rule.update',
+            resourceType: 'clean_rule_set',
+            resourceId: id,
+            afterData: res.rows[0],
+            request,
+          })
+        }
+        return res.rows
       })
+      if (rows.length === 0) return sendError(reply, 404, '清洗规则集不存在')
       return sendOk(reply, rows[0], '清洗规则集更新成功')
     } catch (err) {
       request.log.error({ err }, 'Failed to update clean rule set')
@@ -1100,21 +1113,25 @@ export async function dataRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/data/clean-rules/:id ── 删除自定义清洗规则集 (系统内置不可删)
   app.delete('/api/v1/data/clean-rules/:id', { preHandler: [requireRole(DATA_ADMIN_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const { id } = request.params as { id: string }
-      const { rows } = await pool.query(`SELECT is_system FROM clean_rule_sets WHERE id = $1`, [parseInt(id)])
-      if (rows.length === 0) return sendError(reply, 404, '清洗规则集不存在')
-      if (rows[0].is_system) return sendError(reply, 403, '系统官方清洗规则不可删除')
+      const status = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(`SELECT is_system FROM clean_rule_sets WHERE id = $1`, [parseInt(id)])
+        if (rows.length === 0) return 'not_found' as const
+        if (rows[0].is_system) return 'system_forbidden' as const
 
-      await pool.query(`DELETE FROM clean_rule_sets WHERE id = $1`, [parseInt(id)])
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'data.clean_rule.delete',
-        resourceType: 'clean_rule_set',
-        resourceId: id,
-        request,
+        await client.query(`DELETE FROM clean_rule_sets WHERE id = $1`, [parseInt(id)])
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'data.clean_rule.delete',
+          resourceType: 'clean_rule_set',
+          resourceId: id,
+          request,
+        })
+        return 'deleted' as const
       })
+      if (status === 'not_found') return sendError(reply, 404, '清洗规则集不存在')
+      if (status === 'system_forbidden') return sendError(reply, 403, '系统官方清洗规则不可删除')
       return sendOk(reply, { deleted: true }, '清洗规则集已删除')
     } catch (err) {
       request.log.error({ err }, 'Failed to delete clean rule set')

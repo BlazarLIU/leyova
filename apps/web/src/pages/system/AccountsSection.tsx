@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Edit, Trash2 } from 'lucide-react'
+import { Plus, Edit, Trash2, ShieldCheck } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -44,6 +44,25 @@ const moduleNameMap: Record<string, string> = {
   system_inventory: '库存风险',
   system_competitors: '竞品观察',
   system_multiroom: '多直播间总览',
+  content: '内容中心',
+  content_schedule: '内容排产',
+  compliance: '合规风控',
+  fulfillment: '履约SLA',
+  after_sales: '售后工单',
+  kol: '达人合作',
+  customer_service: '客服绩效',
+  net_roi: '全域净ROI',
+  search_seo: '搜索词卡位',
+  members: '会员与私域',
+  product_center: '商品中心',
+  audit_logs: '审计日志',
+  agency: '代运营管理',
+  review: '经营复盘',
+  review_overview: '复盘总览',
+  review_channels: '渠道复盘',
+  review_anchors: '主播复盘',
+  review_funnel: '转化漏斗',
+  review_closed_loop: '闭环改进',
 }
 
 interface Props {
@@ -51,9 +70,10 @@ interface Props {
   roles: RoleInfo[]
   allModules: ModuleInfo[]
   onUsersChange: (users: UserAccount[]) => void
+  onRolesChange?: (roles: RoleInfo[]) => void
 }
 
-export function AccountsSection({ users, roles, allModules, onUsersChange }: Props) {
+export function AccountsSection({ users, roles, allModules, onUsersChange, onRolesChange }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState<UserAccount | null>(null)
   const [form, setForm] = useState<{
@@ -61,6 +81,52 @@ export function AccountsSection({ users, roles, allModules, onUsersChange }: Pro
   }>({ username: '', password: '', realName: '', role: 'ops_staff', status: 1, modules: [] })
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [saveError, setSaveError] = useState('')
+  const [selectedRoleCode, setSelectedRoleCode] = useState<string>('')
+  const [roleDraftModules, setRoleDraftModules] = useState<string[]>([])
+  const [roleMatrixSaving, setRoleMatrixSaving] = useState(false)
+  const [roleMatrixMsg, setRoleMatrixMsg] = useState('')
+
+  useEffect(() => {
+    if (!roles.length) return
+    const current = roles.find(r => r.code === selectedRoleCode) || roles[0]
+    if (!selectedRoleCode || current.code !== selectedRoleCode) {
+      setSelectedRoleCode(current.code)
+      setRoleDraftModules([...(current.modules || [])])
+    } else {
+      setRoleDraftModules([...(current.modules || [])])
+    }
+  }, [roles, selectedRoleCode])
+
+  const handleSelectRoleMatrix = (roleCode: string) => {
+    setSelectedRoleCode(roleCode)
+    setRoleMatrixMsg('')
+    const found = roles.find(r => r.code === roleCode)
+    setRoleDraftModules(found ? [...(found.modules || [])] : [])
+  }
+
+  const toggleRoleDraftModule = (code: string) => {
+    setRoleMatrixMsg('')
+    setRoleDraftModules(prev => (prev.includes(code) ? prev.filter(m => m !== code) : [...prev, code]))
+  }
+
+  const handleSaveRoleModules = async () => {
+    if (!selectedRoleCode) return
+    setRoleMatrixSaving(true)
+    setRoleMatrixMsg('')
+    try {
+      await api.put('/system/roles/modules', {
+        roleCode: selectedRoleCode,
+        moduleCodes: roleDraftModules,
+      })
+      const updatedRoles = await api.get<RoleInfo[]>('/system/roles')
+      onRolesChange?.(updatedRoles)
+      setRoleMatrixMsg(`已更新「${roleLabels[selectedRoleCode] || selectedRoleCode}」默认模块权限（共 ${roleDraftModules.length} 项）`)
+    } catch (err) {
+      setRoleMatrixMsg(err instanceof ApiError ? err.message : '更新角色模块权限失败')
+    } finally {
+      setRoleMatrixSaving(false)
+    }
+  }
 
   const refreshUsers = async () => {
     const list = await api.get<UserAccount[]>('/system/users')
@@ -272,6 +338,70 @@ export function AccountsSection({ users, roles, allModules, onUsersChange }: Pro
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── Role-Module Permission Matrix ─── */}
+      {roles.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader
+            title="角色模块权限矩阵"
+            subtitle="配置各角色的默认可见模块（同步保存至 role_modules）"
+            actions={
+              <Button size="sm" variant="primary" disabled={roleMatrixSaving || !selectedRoleCode} onClick={handleSaveRoleModules}>
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {roleMatrixSaving ? '保存中…' : '保存角色权限'}
+              </Button>
+            }
+          />
+          <CardBody className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {roles.map((r) => (
+                <button
+                  key={r.code}
+                  type="button"
+                  onClick={() => handleSelectRoleMatrix(r.code)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    selectedRoleCode === r.code
+                      ? 'bg-orbit-primary/15 text-orbit-primary-light border-orbit-primary/40'
+                      : 'bg-orbit-surface2 text-slate-400 border-orbit-border hover:text-slate-200'
+                  }`}
+                >
+                  {roleLabels[r.code] || r.name || r.code}
+                  <span className="ml-1.5 text-[11px] opacity-75">({r.modules?.length ?? 0})</span>
+                </button>
+              ))}
+            </div>
+
+            {roleMatrixMsg && (
+              <div className={`text-xs px-3 py-2 rounded-lg border ${
+                roleMatrixMsg.includes('失败') || roleMatrixMsg.includes('仅超级管理员')
+                  ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+              }`}>
+                {roleMatrixMsg}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-3 rounded-lg bg-orbit-surface2 border border-orbit-border">
+              {allModules.map((mod) => (
+                <label
+                  key={mod.code}
+                  className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${
+                    roleDraftModules.includes(mod.code) ? 'bg-orbit-primary/10 text-slate-200' : 'text-slate-400 hover:bg-white/5'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={roleDraftModules.includes(mod.code)}
+                    onChange={() => toggleRoleDraftModule(mod.code)}
+                    className="w-3.5 h-3.5 rounded border-orbit-border bg-orbit-surface3 accent-orbit-primary"
+                  />
+                  <span className="text-xs truncate">{moduleNameMap[mod.code] || mod.name}</span>
+                </label>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
       )}
     </motion.div>
   )

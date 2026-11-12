@@ -11,7 +11,7 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { getPool, withRlsContext } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { getUserAllowedPlatforms, requireAuth } from '../lib/guard.js'
 import { checkComparability } from '../platform/caliber.js'
 
@@ -77,8 +77,6 @@ const DEFAULT_CALIBER_JOIN = `LEFT JOIN platform_caliber_config pcc ON pcc.platf
 const DEFAULT_CALIBER_COND = `AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`
 
 export async function omnichannelRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   // ═══════════════════════════════════════════════════════════════
   // 全渠道经营大盘
   // ═══════════════════════════════════════════════════════════════
@@ -91,10 +89,10 @@ export async function omnichannelRoutes(app: FastifyInstance) {
       const { platform, from, to, shopId } = request.query
       const r = resolveRange(from, to)
       const prev = previousRange(r.from, r.to)
-      const allowed = await accessiblePlatforms(pool, request)
-      const pc = platformClause(platform, allowed)
 
       const { cur, pre } = await withRlsContext(request, async (client) => {
+        const allowed = await accessiblePlatforms(client, request)
+        const pc = platformClause(platform, allowed)
         const buildQuery = async (range: { from: string; to: string }) => {
           const params: any[] = [range.from, range.to, ...pc.params]
           let sql = `
@@ -169,11 +167,11 @@ export async function omnichannelRoutes(app: FastifyInstance) {
     try {
       const { from, to } = request.query
       const r = resolveRange(from, to)
-      const allowed = await accessiblePlatforms(pool, request)
-      const pc = platformClause(undefined, allowed)
 
-      const { rows } = await withRlsContext(request, (client) =>
-        client.query(
+      const { rows, caliberCheck } = await withRlsContext(request, async (client) => {
+        const allowed = await accessiblePlatforms(client, request)
+        const pc = platformClause(undefined, allowed)
+        const res = await client.query(
           `SELECT
              f.platform_code,
              p.platform_name,
@@ -201,24 +199,30 @@ export async function omnichannelRoutes(app: FastifyInstance) {
            ORDER BY gmv DESC`,
           [r.from, r.to, ...pc.params],
         )
-      )
+
+        // 口径可比性校验：跨平台 GMV 加总在口径不同时不可直接加总
+        let check: any = null
+        const codes = res.rows.map((x: any) => x.platform_code).filter(Boolean)
+        if (codes.length > 1) {
+          await client.query('SAVEPOINT sp_omni_caliber')
+          try {
+            check = await checkComparability(codes, 'gmv', client)
+            await client.query('RELEASE SAVEPOINT sp_omni_caliber')
+          } catch {
+            await client.query('ROLLBACK TO SAVEPOINT sp_omni_caliber')
+            check = null
+          }
+        }
+        return { rows: res.rows, caliberCheck: check }
+      })
 
       const totalGmv = rows.reduce((s: number, x: any) => s + Number(x.gmv), 0)
-
-      // 口径可比性校验：跨平台 GMV 加总在口径不同时是错的
-      let caliberCheck: any = null
-      try {
-        const codes = rows.map((x: any) => x.platform_code).filter(Boolean)
-        if (codes.length > 1) {
-          caliberCheck = await checkComparability(codes, 'gmv', pool)
-        }
-      } catch {
-        caliberCheck = null
-      }
+      const comparableTotalGmv = caliberCheck && !caliberCheck.comparable ? null : totalGmv
 
       return sendOk(reply, {
         range: r,
         totalGmv,
+        comparableTotalGmv,
         caliberCheck,
         platforms: rows.map((x: any) => ({
           ...x,
@@ -243,12 +247,12 @@ export async function omnichannelRoutes(app: FastifyInstance) {
     try {
       const { platform, from, to, limit } = request.query
       const r = resolveRange(from, to)
-      const allowed = await accessiblePlatforms(pool, request)
-      const pc = platformClause(platform, allowed)
       const lim = Math.min(parseInt(limit || '50', 10) || 50, 200)
 
-      const { rows } = await withRlsContext(request, (client) =>
-        client.query(
+      const { rows } = await withRlsContext(request, async (client) => {
+        const allowed = await accessiblePlatforms(client, request)
+        const pc = platformClause(platform, allowed)
+        return client.query(
           `SELECT
              f.shop_id,
              s.shop_name,
@@ -272,7 +276,7 @@ export async function omnichannelRoutes(app: FastifyInstance) {
            LIMIT ${lim}`,
           [r.from, r.to, ...pc.params],
         )
-      )
+      })
 
       return sendOk(reply, rows.map((x: any) => ({
         ...x,
@@ -293,29 +297,32 @@ export async function omnichannelRoutes(app: FastifyInstance) {
     try {
       const { platform, from, to, shopId } = request.query
       const r = resolveRange(from, to)
-      const allowed = await accessiblePlatforms(pool, request)
-      const pc = platformClause(platform, allowed)
 
-      const params: any[] = [r.from, r.to, ...pc.params]
-      let sql = `
-        SELECT
-          f.biz_date,
-          COALESCE(sum(f.gmv), 0)::numeric          AS gmv,
-          COALESCE(sum(f.pay_amount), 0)::numeric   AS pay_amount,
-          COALESCE(sum(f.paid_order_count), 0)::int AS paid_order_count,
-          COALESCE(sum(f.refund_amount), 0)::numeric AS refund_amount
-        FROM fact_trade_daily f
-        ${DEFAULT_CALIBER_JOIN}
-        WHERE f.biz_date BETWEEN $1::date AND $2::date
-        ${DEFAULT_CALIBER_COND}
-        ${pc.sql}`
-      if (shopId) {
-        params.push(parseInt(shopId, 10))
-        sql += ` AND f.shop_id = $${params.length}`
-      }
-      sql += ` GROUP BY f.biz_date ORDER BY f.biz_date`
+      const { rows } = await withRlsContext(request, async (client) => {
+        const allowed = await accessiblePlatforms(client, request)
+        const pc = platformClause(platform, allowed)
 
-      const { rows } = await withRlsContext(request, (client) => client.query(sql, params))
+        const params: any[] = [r.from, r.to, ...pc.params]
+        let sql = `
+          SELECT
+            f.biz_date,
+            COALESCE(sum(f.gmv), 0)::numeric          AS gmv,
+            COALESCE(sum(f.pay_amount), 0)::numeric   AS pay_amount,
+            COALESCE(sum(f.paid_order_count), 0)::int AS paid_order_count,
+            COALESCE(sum(f.refund_amount), 0)::numeric AS refund_amount
+          FROM fact_trade_daily f
+          ${DEFAULT_CALIBER_JOIN}
+          WHERE f.biz_date BETWEEN $1::date AND $2::date
+          ${DEFAULT_CALIBER_COND}
+          ${pc.sql}`
+        if (shopId) {
+          params.push(parseInt(shopId, 10))
+          sql += ` AND f.shop_id = $${params.length}`
+        }
+        sql += ` GROUP BY f.biz_date ORDER BY f.biz_date`
+
+        return client.query(sql, params)
+      })
       return sendOk(reply, rows.map((x: any) => ({
         ...x,
         gmv: Number(x.gmv),
@@ -342,9 +349,9 @@ export async function omnichannelRoutes(app: FastifyInstance) {
       if (!Number.isFinite(shopId)) return sendError(reply, 400, '无效的店铺 ID')
       const { from, to } = request.query
       const r = resolveRange(from, to)
-      const allowed = await accessiblePlatforms(pool, request)
 
       const scoped = await withRlsContext(request, async (client) => {
+        const allowed = await accessiblePlatforms(client, request)
         const shopRes = await client.query(
           `SELECT id, platform_code, shop_name, external_shop_id, auth_status, status
              FROM dim_shop WHERE id = $1`,
@@ -451,14 +458,16 @@ export async function omnichannelRoutes(app: FastifyInstance) {
   // ── GET /api/v1/omnichannel/capabilities ── 当前用户可见的平台能力矩阵（供前端动态导航）
   app.get('/api/v1/omnichannel/capabilities', { preHandler: [requireAuth] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const allowed = await accessiblePlatforms(pool, request)
-      const { rows } = await pool.query(
-        `SELECT platform_code, platform_name, category, is_enabled, sort_order
-           FROM system_platform_configs
-          WHERE is_enabled = true
-          ORDER BY sort_order`,
-      )
-      const visible = rows.filter((r: any) => !allowed || allowed.has(r.platform_code))
+      const visible = await withRlsContext(request, async (client) => {
+        const allowed = await accessiblePlatforms(client, request)
+        const { rows } = await client.query(
+          `SELECT platform_code, platform_name, category, is_enabled, sort_order
+             FROM system_platform_configs
+            WHERE is_enabled = true
+            ORDER BY sort_order`,
+        )
+        return rows.filter((r: any) => !allowed || allowed.has(r.platform_code))
+      })
       return sendOk(reply, {
         platforms: visible,
         hasLive: visible.some((r: any) => r.category === 'live'),

@@ -3,6 +3,7 @@ import { AlertTriangle, Truck, Plus, RefreshCw, ShieldAlert } from 'lucide-react
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { useShops } from '@/hooks/useShops'
 import { api } from '@/services/api'
 
 interface WaybillRow {
@@ -82,15 +83,23 @@ export function FulfillmentSlaPage() {
   const [showModal, setShowModal] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
+  const { getShopsByPlatform, getDefaultShopId } = useShops()
   const [form, setForm] = useState({
     platformCode: 'pdd',
-    shopId: '5',
+    shopId: '',
     orderNo: '',
     orderAmount: '199',
     carrierCode: 'YTO',
     waybillNo: '',
     isCustomPresale: false,
   })
+
+  useEffect(() => {
+    const nextShopId = getDefaultShopId(form.platformCode, form.shopId)
+    if (nextShopId && nextShopId !== form.shopId) {
+      setForm((prev) => ({ ...prev, shopId: nextShopId }))
+    }
+  }, [form.platformCode, form.shopId, getDefaultShopId])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -358,8 +367,8 @@ export function FulfillmentSlaPage() {
                 <select
                   value={form.platformCode}
                   onChange={(e) => {
-                    const mapShop: Record<string, string> = { douyin: '1', taobao: '2', tmall: '3', jd: '4', pdd: '5', kuaishou: '6', xiaohongshu: '7' }
-                    setForm({ ...form, platformCode: e.target.value, shopId: mapShop[e.target.value] || '1' })
+                    const nextPlatform = e.target.value
+                    setForm({ ...form, platformCode: nextPlatform, shopId: getDefaultShopId(nextPlatform) })
                   }}
                   className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
                 >
@@ -368,9 +377,23 @@ export function FulfillmentSlaPage() {
                   <option value="douyin">抖音</option>
                   <option value="jd">京东</option>
                   <option value="taobao">淘宝</option>
+                  <option value="tmall">天猫</option>
                 </select>
-                <input required placeholder="订单号" value={form.orderNo} onChange={(e) => setForm({ ...form, orderNo: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <select
+                  required
+                  value={form.shopId}
+                  onChange={(e) => setForm({ ...form, shopId: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                >
+                  {getShopsByPlatform(form.platformCode).map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                  {getShopsByPlatform(form.platformCode).length === 0 && (
+                    <option value="">暂无可用店铺</option>
+                  )}
+                </select>
               </div>
+              <input required placeholder="订单号" value={form.orderNo} onChange={(e) => setForm({ ...form, orderNo: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
               <div className="grid grid-cols-2 gap-3">
                 <input required type="number" step="0.01" placeholder="订单实付金额" value={form.orderAmount} onChange={(e) => setForm({ ...form, orderAmount: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
                 <input placeholder="承运商 (如 SF/YTO)" value={form.carrierCode} onChange={(e) => setForm({ ...form, carrierCode: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />

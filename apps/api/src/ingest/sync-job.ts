@@ -13,7 +13,7 @@
  *   - 水印仅在任务成功后才推进，失败可重试且不会重复入库
  */
 
-import type { Pool } from 'pg'
+import type { DbExecutor } from '../lib/db.js'
 import { decryptCredential } from '../modules/data-governance/security.js'
 import { isRealCredentials, type PlatformCredentials } from '../modules/data-governance/adapters/base-adapter.js'
 import { platformRegistry } from '../platform/index.js'
@@ -52,7 +52,7 @@ function todayString(): string {
  * 来源：ingest_sync_jobs 中该 (platform, shop, type) 最近一条 completed 记录的 watermark_to
  */
 export async function getWatermark(
-  pool: Pool,
+  pool: DbExecutor,
   platformCode: string,
   shopId: number,
   dataType: SyncDataType,
@@ -74,7 +74,7 @@ export async function getWatermark(
 
 /** 写入交易事实行（幂等：ON CONFLICT 覆盖同 shop + biz_date + channel） */
 async function upsertTradeRows(
-  pool: Pool,
+  pool: DbExecutor,
   records: StandardTradeRecord[],
   jobId: number,
 ): Promise<number> {
@@ -117,7 +117,7 @@ async function upsertTradeRows(
 
 /** 写入流量事实行 */
 async function upsertTrafficRows(
-  pool: Pool,
+  pool: DbExecutor,
   records: StandardTrafficRecord[],
   jobId: number,
 ): Promise<number> {
@@ -159,7 +159,7 @@ async function upsertTrafficRows(
  * @param sinceOverride 显式指定起始日期，不传则读取水印/默认昨天
  */
 export async function runSyncJob(
-  pool: Pool,
+  pool: DbExecutor,
   platformCode: string,
   shopId: number,
   dataType: SyncDataType,
@@ -296,7 +296,7 @@ export async function runSyncJob(
 
 /** 批量同步：一个平台下所有已授权店铺 */
 export async function runPlatformSync(
-  pool: Pool,
+  pool: DbExecutor,
   platformCode: string,
   dataType: SyncDataType,
   sinceOverride?: string,
@@ -314,7 +314,7 @@ export async function runPlatformSync(
 
 /** 全平台批量同步（供 cron 调用） */
 export async function runAllPlatformsSync(
-  pool: Pool,
+  pool: DbExecutor,
   dataType: SyncDataType,
   sinceOverride?: string,
 ): Promise<SyncJobResult[]> {

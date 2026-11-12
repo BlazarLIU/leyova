@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { sendOk, sendError } from '../lib/http.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
@@ -8,21 +8,22 @@ const SCHEDULE_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'hrbp', 'o
 
 export async function scheduleRoutes(app: FastifyInstance) {
   // ── GET /api/v1/schedule/meta ── 获取排班所需的元数据（直播间、主播、运营人员、项目）
-  app.get('/api/v1/schedule/meta', { preHandler: [requireAuth] }, async (_request, reply) => {
-    const pool = getPool()
+  app.get('/api/v1/schedule/meta', { preHandler: [requireAuth] }, async (request, reply) => {
     try {
-      const [roomsRes, anchorsRes, operatorsRes, projectsRes] = await Promise.all([
-        pool.query('SELECT id, name, platform, status FROM public.live_rooms WHERE status = \'active\' ORDER BY id ASC'),
-        pool.query('SELECT id, name, level, status FROM public.anchors WHERE status = 1 ORDER BY name ASC'),
-        pool.query('SELECT id, real_name AS name, role FROM public.users WHERE role IN (\'admin\', \'super_admin\', \'operator\') ORDER BY real_name ASC'),
-        pool.query(`
-          SELECT p.id, p.name, c.brand_name AS "brandName", p.platform_code AS "platformCode" 
-          FROM public.agency_projects p 
-          LEFT JOIN public.agency_clients c ON p.client_id = c.id
-          WHERE p.status = 'active' 
-          ORDER BY p.id ASC
-        `),
-      ])
+      const [roomsRes, anchorsRes, operatorsRes, projectsRes] = await withRlsContext(request, (client) =>
+        Promise.all([
+          client.query("SELECT id, name, platform, status FROM public.live_rooms WHERE status = 'active' ORDER BY id ASC"),
+          client.query('SELECT id, name, level, status FROM public.anchors WHERE status = 1 ORDER BY name ASC'),
+          client.query("SELECT id, real_name AS name, role FROM public.users WHERE role IN ('admin', 'super_admin', 'operator') ORDER BY real_name ASC"),
+          client.query(`
+            SELECT p.id, p.name, c.brand_name AS "brandName", p.platform_code AS "platformCode"
+            FROM public.agency_projects p
+            LEFT JOIN public.agency_clients c ON p.client_id = c.id
+            WHERE p.status = 'active'
+            ORDER BY p.id ASC
+          `),
+        ]),
+      )
 
       return sendOk(reply, {
         rooms: roomsRes.rows,
@@ -37,7 +38,6 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/schedule/sessions ── 获取排班场次列表（按周/按月/按筛选）
   app.get('/api/v1/schedule/sessions', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
     const { startDate, endDate, anchorId, roomId, projectId, status } = request.query as any
 
     try {
@@ -71,7 +71,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
       }
 
       const sql = `
-        SELECT 
+        SELECT
           s.id,
           s.title,
           s.date::text AS "date",
@@ -103,7 +103,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
         ORDER BY s.date DESC, s.start_time ASC
       `
 
-      const { rows } = await pool.query(sql, params)
+      const { rows } = await withRlsContext(request, (client) => client.query(sql, params))
       return sendOk(reply, rows)
     } catch (err: any) {
       request.log.error(err, 'Failed to fetch schedule sessions')
@@ -113,7 +113,6 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/schedule/sessions ── 新建排班场次（含冲突检测）
   app.post('/api/v1/schedule/sessions', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     const {
       title,
       date,
@@ -133,53 +132,59 @@ export async function scheduleRoutes(app: FastifyInstance) {
     }
 
     try {
-      // 排班冲突检测：同一主播在同一天的时间段重叠检测
-      const conflictCheck = await pool.query(
-        `
-        SELECT s.id, s.title, s.start_time, s.end_time, a.name AS anchor_name
-        FROM public.live_sessions s
-        JOIN public.anchors a ON s.anchor_id = a.id
-        WHERE s.anchor_id = $1 
-          AND s.date = $2 
-          AND s.status != 'cancelled'
-          AND NOT (s.end_time <= $3 OR s.start_time >= $4)
-        LIMIT 1
-        `,
-        [anchorId, date, startTime, endTime]
-      )
+      const outcome = await withRlsContext(request, async (client) => {
+        const conflictCheck = await client.query(
+          `
+          SELECT s.id, s.title, s.start_time, s.end_time, a.name AS anchor_name
+          FROM public.live_sessions s
+          JOIN public.anchors a ON s.anchor_id = a.id
+          WHERE s.anchor_id = $1
+            AND s.date = $2
+            AND s.status != 'cancelled'
+            AND NOT (s.end_time <= $3 OR s.start_time >= $4)
+          LIMIT 1
+          `,
+          [anchorId, date, startTime, endTime],
+        )
 
-      if (conflictCheck.rows.length > 0) {
-        const c = conflictCheck.rows[0]
+        if (conflictCheck.rows.length > 0) {
+          return { conflict: conflictCheck.rows[0] }
+        }
+
+        const insertSql = `
+          INSERT INTO public.live_sessions (
+            title, date, start_time, end_time, room_id, anchor_id, operator_id,
+            project_id, platform_code, remark, status, duration_min
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 240)
+          RETURNING *
+        `
+        const { rows } = await client.query(insertSql, [
+          title || `排期直播 ${date}`,
+          date,
+          startTime,
+          endTime,
+          roomId,
+          anchorId,
+          operatorId || null,
+          projectId || null,
+          platformCode,
+          remark,
+          status,
+        ])
+        return { row: rows[0] }
+      })
+
+      if ('conflict' in outcome && outcome.conflict) {
+        const c = outcome.conflict
         return sendError(
           reply,
           409,
-          `排班冲突：主播【${c.anchor_name}】在该时段已有场次【${c.title}】(${c.start_time}~${c.end_time})，不可重叠排班！`
+          `排班冲突：主播【${c.anchor_name}】在该时段已有场次【${c.title}】(${c.start_time}~${c.end_time})，不可重叠排班！`,
         )
       }
 
-      const insertSql = `
-        INSERT INTO public.live_sessions (
-          title, date, start_time, end_time, room_id, anchor_id, operator_id,
-          project_id, platform_code, remark, status, duration_min
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 240)
-        RETURNING *
-      `
-      const { rows } = await pool.query(insertSql, [
-        title || `排期直播 ${date}`,
-        date,
-        startTime,
-        endTime,
-        roomId,
-        anchorId,
-        operatorId || null,
-        projectId || null,
-        platformCode,
-        remark,
-        status,
-      ])
-
-      return sendOk(reply, rows[0], '排班创建成功')
+      return sendOk(reply, outcome.row, '排班创建成功')
     } catch (err: any) {
       request.log.error(err, 'Failed to create schedule session')
       return sendError(reply, 500, err.message)
@@ -188,7 +193,6 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
   // ── PUT /api/v1/schedule/sessions/:id ── 更新排班场次
   app.put('/api/v1/schedule/sessions/:id', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     const { id } = request.params as { id: string }
     const { title, date, startTime, endTime, roomId, anchorId, operatorId, projectId, status, remark } = request.body as any
 
@@ -197,62 +201,36 @@ export async function scheduleRoutes(app: FastifyInstance) {
       const params: any[] = [Number(id)]
       let pIdx = 2
 
-      if (title !== undefined) {
-        updates.push(`title = $${pIdx++}`)
-        params.push(title)
-      }
-      if (date !== undefined) {
-        updates.push(`date = $${pIdx++}`)
-        params.push(date)
-      }
-      if (startTime !== undefined) {
-        updates.push(`start_time = $${pIdx++}`)
-        params.push(startTime)
-      }
-      if (endTime !== undefined) {
-        updates.push(`end_time = $${pIdx++}`)
-        params.push(endTime)
-      }
-      if (roomId !== undefined) {
-        updates.push(`room_id = $${pIdx++}`)
-        params.push(roomId)
-      }
-      if (anchorId !== undefined) {
-        updates.push(`anchor_id = $${pIdx++}`)
-        params.push(anchorId)
-      }
-      if (operatorId !== undefined) {
-        updates.push(`operator_id = $${pIdx++}`)
-        params.push(operatorId)
-      }
-      if (projectId !== undefined) {
-        updates.push(`project_id = $${pIdx++}`)
-        params.push(projectId)
-      }
-      if (status !== undefined) {
-        updates.push(`status = $${pIdx++}`)
-        params.push(status)
-      }
-      if (remark !== undefined) {
-        updates.push(`remark = $${pIdx++}`)
-        params.push(remark)
-      }
+      if (title !== undefined) { updates.push(`title = $${pIdx++}`); params.push(title) }
+      if (date !== undefined) { updates.push(`date = $${pIdx++}`); params.push(date) }
+      if (startTime !== undefined) { updates.push(`start_time = $${pIdx++}`); params.push(startTime) }
+      if (endTime !== undefined) { updates.push(`end_time = $${pIdx++}`); params.push(endTime) }
+      if (roomId !== undefined) { updates.push(`room_id = $${pIdx++}`); params.push(roomId) }
+      if (anchorId !== undefined) { updates.push(`anchor_id = $${pIdx++}`); params.push(anchorId) }
+      if (operatorId !== undefined) { updates.push(`operator_id = $${pIdx++}`); params.push(operatorId) }
+      if (projectId !== undefined) { updates.push(`project_id = $${pIdx++}`); params.push(projectId) }
+      if (status !== undefined) { updates.push(`status = $${pIdx++}`); params.push(status) }
+      if (remark !== undefined) { updates.push(`remark = $${pIdx++}`); params.push(remark) }
 
       const sql = `UPDATE public.live_sessions SET ${updates.join(', ')} WHERE id = $1 RETURNING *`
-      const { rows } = await pool.query(sql, params)
+      const { rows } = await withRlsContext(request, async (client) => {
+        const res = await client.query(sql, params)
+        if (res.rows.length > 0) {
+          await writeAuditLog(client, {
+            actorUserId: (request as any).user?.id,
+            action: 'schedule.update',
+            resourceType: 'live_session',
+            resourceId: id,
+            afterData: res.rows[0],
+            request,
+          })
+        }
+        return res
+      })
 
       if (rows.length === 0) {
         return sendError(reply, 404, '场次不存在')
       }
-
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'schedule.update',
-        resourceType: 'live_session',
-        resourceId: id,
-        afterData: rows[0],
-        request,
-      })
 
       return sendOk(reply, rows[0], '排班更新成功')
     } catch (err: any) {
@@ -263,35 +241,38 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
   // ── DELETE /api/v1/schedule/sessions/:id ── 取消/删除排班场次
   app.delete('/api/v1/schedule/sessions/:id', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     const { id } = request.params as { id: string }
 
     try {
-      const { rowCount } = await pool.query(
-        'DELETE FROM public.live_sessions WHERE id = $1 AND status = \'scheduled\'',
-        [Number(id)]
-      )
+      const cancelled = await withRlsContext(request, async (client) => {
+        const { rowCount } = await client.query(
+          "DELETE FROM public.live_sessions WHERE id = $1 AND status = 'scheduled'",
+          [Number(id)],
+        )
 
-      if (rowCount === 0) {
-        // 如果已经开播或完成，则不能物理删除，改为 status = cancelled
-        await pool.query('UPDATE public.live_sessions SET status = \'cancelled\' WHERE id = $1', [Number(id)])
-        await writeAuditLog(pool, {
+        if (rowCount === 0) {
+          await client.query("UPDATE public.live_sessions SET status = 'cancelled' WHERE id = $1", [Number(id)])
+          await writeAuditLog(client, {
+            actorUserId: (request as any).user?.id,
+            action: 'schedule.cancel',
+            resourceType: 'live_session',
+            resourceId: id,
+            request,
+          })
+          return true
+        }
+
+        await writeAuditLog(client, {
           actorUserId: (request as any).user?.id,
-          action: 'schedule.cancel',
+          action: 'schedule.delete',
           resourceType: 'live_session',
           resourceId: id,
           request,
         })
-        return sendOk(reply, { cancelled: true }, '场次已标记为已取消')
-      }
-
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'schedule.delete',
-        resourceType: 'live_session',
-        resourceId: id,
-        request,
+        return false
       })
+
+      if (cancelled) return sendOk(reply, { cancelled: true }, '场次已标记为已取消')
       return sendOk(reply, { deleted: true }, '排班已删除')
     } catch (err: any) {
       request.log.error(err, 'Failed to delete schedule session')
@@ -301,7 +282,6 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
   // ── POST /api/v1/schedule/apply-recommendation ── 一键将 AI 排班建议应用为指定日期的排班
   app.post('/api/v1/schedule/apply-recommendation', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
-    const pool = getPool()
     const { targetDate, roomId = 1, projectId, scheduleItems } = request.body as any
 
     if (!targetDate || !Array.isArray(scheduleItems) || scheduleItems.length === 0) {
@@ -316,44 +296,46 @@ export async function scheduleRoutes(app: FastifyInstance) {
         late_night: { start: '23:30:00', end: '02:00:00' },
       }
 
-      const createdSessions: any[] = []
+      const createdSessions = await withRlsContext(request, async (client) => {
+        const list: any[] = []
+        for (const item of scheduleItems) {
+          const slotTimes = timeSlotMap[item.slotKey] || { start: '19:00:00', end: '23:00:00' }
+          const leadAnchorId = item.leadAnchor?.id
+          if (!leadAnchorId) continue
 
-      for (const item of scheduleItems) {
-        const slotTimes = timeSlotMap[item.slotKey] || { start: '19:00:00', end: '23:00:00' }
-        const leadAnchorId = item.leadAnchor?.id
-        if (!leadAnchorId) continue
+          const title = `AI排班 · ${item.slotName.split(' ')[0]}`
 
-        const title = `AI排班 · ${item.slotName.split(' ')[0]}`
-
-        const res = await pool.query(
-          `
-          INSERT INTO public.live_sessions (
-            title, date, start_time, end_time, room_id, anchor_id, project_id,
-            platform_code, remark, status, duration_min
+          const res = await client.query(
+            `
+            INSERT INTO public.live_sessions (
+              title, date, start_time, end_time, room_id, anchor_id, project_id,
+              platform_code, remark, status, duration_min
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'douyin', $8, 'scheduled', 210)
+            RETURNING id, title, date, start_time, end_time, anchor_id
+            `,
+            [
+              title,
+              targetDate,
+              slotTimes.start,
+              slotTimes.end,
+              roomId,
+              leadAnchorId,
+              projectId || null,
+              `AI智能推导排班：${item.aiReason || ''}`,
+            ],
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, 'douyin', $8, 'scheduled', 210)
-          RETURNING id, title, date, start_time, end_time, anchor_id
-          `,
-          [
-            title,
-            targetDate,
-            slotTimes.start,
-            slotTimes.end,
-            roomId,
-            leadAnchorId,
-            projectId || null,
-            `AI智能推导排班：${item.aiReason || ''}`,
-          ]
-        )
-        createdSessions.push(res.rows[0])
-      }
+          list.push(res.rows[0])
+        }
 
-      await writeAuditLog(pool, {
-        actorUserId: (request as any).user?.id,
-        action: 'schedule.apply_recommendation',
-        resourceType: 'live_session',
-        afterData: { targetDate, createdCount: createdSessions.length },
-        request,
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'schedule.apply_recommendation',
+          resourceType: 'live_session',
+          afterData: { targetDate, createdCount: list.length },
+          request,
+        })
+        return list
       })
 
       return sendOk(reply, { createdCount: createdSessions.length, sessions: createdSessions }, 'AI排班建议已成功转化为正式排班计划！')
@@ -365,23 +347,55 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/schedule/my ── 当前主播个人排班行程日历
   app.get('/api/v1/schedule/my', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
     const user = (request as any).user
 
     try {
-      // 找到对应的主播 ID（优先通过 user.anchorId 或 user_id 关联，杜绝无脑沈知夏 ID 1 兜底）
-      let anchorId = user?.anchorId
-      if (!anchorId) {
-        const findAnchor = await pool.query(
-          'SELECT id, name FROM public.anchors WHERE user_id = $1 OR name = $2 LIMIT 1',
-          [user?.id, user?.realName || user?.username]
-        )
-        if (findAnchor.rows.length > 0) {
-          anchorId = findAnchor.rows[0].id
+      const outcome = await withRlsContext(request, async (client) => {
+        let anchorId = user?.anchorId
+        if (!anchorId) {
+          const findAnchor = await client.query(
+            'SELECT id, name FROM public.anchors WHERE user_id = $1 OR name = $2 LIMIT 1',
+            [user?.id, user?.realName || user?.username],
+          )
+          if (findAnchor.rows.length > 0) {
+            anchorId = findAnchor.rows[0].id
+          }
         }
-      }
 
-      if (!anchorId) {
+        if (!anchorId) {
+          return { anchorId: null, sessions: [], empty: true }
+        }
+
+        const sql = `
+          SELECT
+            s.id,
+            s.title,
+            s.date::text AS "date",
+            s.start_time::text AS "startTime",
+            s.end_time::text AS "endTime",
+            s.status,
+            s.room_id AS "roomId",
+            r.name AS "roomName",
+            s.project_id AS "projectId",
+            p.name AS "projectName",
+            c.brand_name AS "brandName",
+            s.gmv::float AS "gmv",
+            s.orders::int AS "orders",
+            s.duration_min AS "durationMin",
+            s.remark
+          FROM public.live_sessions s
+          LEFT JOIN public.live_rooms r ON s.room_id = r.id
+          LEFT JOIN public.agency_projects p ON s.project_id = p.id
+          LEFT JOIN public.agency_clients c ON p.client_id = c.id
+          WHERE s.anchor_id = $1
+          ORDER BY s.date DESC, s.start_time ASC
+          LIMIT 30
+        `
+        const { rows } = await client.query(sql, [anchorId])
+        return { anchorId, sessions: rows, empty: false }
+      })
+
+      if (outcome.empty) {
         return sendOk(reply, {
           anchorId: null,
           sessions: [],
@@ -389,35 +403,9 @@ export async function scheduleRoutes(app: FastifyInstance) {
         })
       }
 
-      const sql = `
-        SELECT 
-          s.id,
-          s.title,
-          s.date::text AS "date",
-          s.start_time::text AS "startTime",
-          s.end_time::text AS "endTime",
-          s.status,
-          s.room_id AS "roomId",
-          r.name AS "roomName",
-          s.project_id AS "projectId",
-          p.name AS "projectName",
-          c.brand_name AS "brandName",
-          s.gmv::float AS "gmv",
-          s.orders::int AS "orders",
-          s.duration_min AS "durationMin",
-          s.remark
-        FROM public.live_sessions s
-        LEFT JOIN public.live_rooms r ON s.room_id = r.id
-        LEFT JOIN public.agency_projects p ON s.project_id = p.id
-        LEFT JOIN public.agency_clients c ON p.client_id = c.id
-        WHERE s.anchor_id = $1
-        ORDER BY s.date DESC, s.start_time ASC
-        LIMIT 30
-      `
-      const { rows } = await pool.query(sql, [anchorId])
       return sendOk(reply, {
-        anchorId,
-        sessions: rows,
+        anchorId: outcome.anchorId,
+        sessions: outcome.sessions,
       })
     } catch (err: any) {
       return sendError(reply, 500, err.message)
@@ -426,10 +414,9 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/schedule/recommendations ── AI 智能排班建议
   app.get('/api/v1/schedule/recommendations', { preHandler: [requireAuth] }, async (request, reply) => {
-    const pool = getPool()
     try {
       const anchorQuery = `
-        SELECT 
+        SELECT
           a.id,
           a.name,
           a.level,
@@ -438,13 +425,17 @@ export async function scheduleRoutes(app: FastifyInstance) {
           COALESCE(AVG(s.gmv), 0)::float AS "avgSessionGmv",
           COUNT(s.id)::int AS "sessionCount"
         FROM public.anchors a
-        LEFT JOIN public.anchor_capabilities c ON a.id = c.anchor_id
+        LEFT JOIN LATERAL (
+          SELECT overall FROM public.anchor_capabilities
+          WHERE anchor_id = a.id
+          ORDER BY evaluated_at DESC, id DESC LIMIT 1
+        ) c ON true
         LEFT JOIN public.live_sessions s ON a.id = s.anchor_id
         WHERE a.status = 1
         GROUP BY a.id, a.name, a.level, c.overall
         ORDER BY "historicalGmv" DESC
       `
-      const { rows: anchors } = await pool.query(anchorQuery)
+      const { rows: anchors } = await withRlsContext(request, (client) => client.query(anchorQuery))
 
       if (anchors.length === 0) {
         return sendOk(reply, {
@@ -526,3 +517,4 @@ export async function scheduleRoutes(app: FastifyInstance) {
     }
   })
 }
+

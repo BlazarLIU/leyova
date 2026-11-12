@@ -128,15 +128,12 @@ function buildDataSection(mode: PlatformMode): NavSection {
 
 /** 智能分析（所有平台共享，但入口文案随业态） */
 function buildAiSection(mode: PlatformMode): NavSection {
-  const label =
-    mode === 'live' ? 'AI 直播助手'
-    : mode === 'shelf' ? 'AI 店铺助手'
-    : 'AI 助手'
+  const label = mode === 'shelf' ? 'AI 店铺助手' : 'AI 助手'
 
   return {
     title: '智能分析',
     items: [
-      { label, icon: Bot, href: '/ai/chat', badge: 'New', module: 'ai' },
+      { label, icon: Bot, href: '/ai/chat', module: 'ai' },
       { label: '天气 AI 选品穿搭', icon: CloudSun, href: '/ai/weather', badge: '智能', module: 'ai' },
       {
         label: '商业智能',
@@ -144,7 +141,7 @@ function buildAiSection(mode: PlatformMode): NavSection {
         module: 'bi',
         children: [
           { label: 'BI 仪表盘', href: '/bi/dashboard' },
-          { label: 'ROI 看板', href: '/bi/roi' },
+          { label: '全域投放与净ROI', href: '/ops/net-roi', module: 'net_roi' },
           { label: '退款分析', href: '/bi/refund-analysis' },
           { label: '异常检测', href: '/bi/anomaly-detection' },
         ],
@@ -295,7 +292,6 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           { label: '店铺星级（四维考核）', icon: Shield, href: '/shop/jd/store-rating', module: 'overview' },
           { label: '履约时效监控', icon: Clock, href: '/shop/jd/fulfillment', module: 'fulfillment' },
         ] : []),
-        { label: '商品结构分析', icon: Package, href: '/shop/products', module: 'product_center' },
         {
           label: '流量与投放',
           icon: Megaphone,
@@ -307,13 +303,11 @@ function buildShelfSections(platformCode?: string): NavSection[] {
                 { label: '万相台投放对账', href: '/shop/taobao/ad-reconciliation' },
                 { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
                 { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
-                { label: '投放 ROI 分析', href: '/bi/roi' },
               ]
             : [
                 { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
                 { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
                 { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
-                { label: '投放 ROI 分析', href: '/bi/roi' },
               ],
         },
         {
@@ -336,7 +330,7 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           icon: Package,
           module: 'product_center',
           children: [
-            { label: '商品结构分析', href: '/shop/products' },
+            { label: '商品结构分析', href: '/shop/products', module: 'product_center' },
             { label: '商品主数据与库存', href: '/ops/inventory', module: 'product_center' },
             { label: '竞品价格观察', href: '/system/competitors', module: 'system_competitors' },
           ],
@@ -477,12 +471,12 @@ function buildSystemSection(): NavSection {
           { label: '平台与渠道管理', href: '/system/platforms', module: 'system_users' },
           { label: '模型与知识库', href: '/content/center-config', module: 'system_ai' },
           { label: '账号管理', href: '/system/users', module: 'system_users' },
-          { label: '操作审计日志', href: '/system/audit-logs', module: 'system_users' },
+          { label: '操作审计日志', href: '/system/audit-logs', module: 'audit_logs' },
           { label: '字典管理', href: '/system/dict', module: 'system_dict' },
         ],
       },
       { label: '异常中心', icon: AlertTriangle, href: '/system/alerts', module: 'system_alerts' },
-      { label: '2026 合规风控', icon: Shield, href: '/system/compliance', module: 'compliance' },
+      { label: '合规风控', icon: Shield, href: '/system/compliance', module: 'compliance' },
     ],
   }
 }
@@ -534,7 +528,7 @@ function buildAgencyPureNavigation(): NavSection[] {
       items: [
         { label: '数据报警 (Webhook)', icon: AlertTriangle, href: '/system/alerts', module: 'system_alerts' },
         { label: '系统设置与权限', icon: Settings, href: '/system/users', module: 'system_users' },
-        { label: '操作审计日志', icon: Shield, href: '/system/audit-logs', module: 'system_users' },
+        { label: '操作审计日志', icon: Shield, href: '/system/audit-logs', module: 'audit_logs' },
       ],
     },
   ]

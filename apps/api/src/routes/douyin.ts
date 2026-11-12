@@ -3,7 +3,7 @@
  */
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { getPool } from '../lib/db.js'
+import { withRlsContext } from '../lib/db.js'
 import { sendError, sendOk } from '../lib/http.js'
 import { canAccessAdSpend, requireAuth } from '../lib/guard.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
@@ -22,8 +22,6 @@ function defaultRange(from?: string, to?: string) {
 }
 
 export async function douyinRoutes(app: FastifyInstance) {
-  const pool = getPool()
-
   // ── GET /api/v1/douyin/shop/:id/metrics ── 抖音店铺核心经营指标
   app.get(
     '/api/v1/douyin/shop/:id/metrics',
@@ -37,17 +35,17 @@ export async function douyinRoutes(app: FastifyInstance) {
       const user = await requireAuth(request, reply)
       if (!user) return
 
-      const check = await assertShopPlatform(pool, request.params.id, 'douyin')
-      if (!check.ok || !check.shop) {
-        return sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
-      }
-
       try {
         const range = defaultRange(request.query.from, request.query.to)
         const allowAd = canAccessAdSpend(user)
 
-        const [tradeRes, trafficRes, adRes] = await Promise.all([
-          pool.query(
+        const outcome = await withRlsContext(request, async (client) => {
+          const check = await assertShopPlatform(client, request.params.id, 'douyin')
+          if (!check.ok || !check.shop) {
+            return { errorStatus: check.statusCode || 400, errorMsg: check.message || '店铺校验失败' }
+          }
+
+          const tradeRes = await client.query(
             `SELECT
                COALESCE(SUM(gmv), 0)::float8 AS total_gmv,
                COALESCE(SUM(pay_amount), 0)::float8 AS total_pay_amount,
@@ -55,12 +53,12 @@ export async function douyinRoutes(app: FastifyInstance) {
                COALESCE(SUM(paid_buyer_count), 0)::int AS total_buyers,
                COALESCE(SUM(refund_amount), 0)::float8 AS total_refund,
                COALESCE(SUM(refund_count), 0)::int AS total_refund_count
-             FROM fact_trade_daily
+             FROM v_fact_trade_default
              WHERE shop_id = $1 AND platform_code = 'douyin'
                AND biz_date >= $2::date AND biz_date <= $3::date`,
             [check.shop.id, range.from, range.to],
-          ),
-          pool.query(
+          )
+          const trafficRes = await client.query(
             `SELECT
                COALESCE(SUM(impressions), 0)::bigint AS impressions,
                COALESCE(SUM(clicks), 0)::bigint AS clicks,
@@ -69,26 +67,36 @@ export async function douyinRoutes(app: FastifyInstance) {
              WHERE shop_id = $1 AND platform_code = 'douyin'
                AND biz_date >= $2::date AND biz_date <= $3::date`,
             [check.shop.id, range.from, range.to],
-          ),
-          allowAd
-            ? pool.query(
+          )
+          const adRes = allowAd
+            ? await client.query(
                 `SELECT
                    COALESCE(SUM(ad_spend), 0)::float8 AS total_ad_spend,
-                   COALESCE(SUM(attributed_gmv), 0)::float8 AS total_attributed_gmv
+                   COALESCE(SUM(attributed_gross_gmv), 0)::float8 AS total_attributed_gmv
                  FROM fact_ad_spend_daily
                  WHERE shop_id = $1 AND platform_code = 'douyin'
                    AND biz_date >= $2::date AND biz_date <= $3::date`,
                 [check.shop.id, range.from, range.to],
               )
-            : Promise.resolve({ rows: [{ total_ad_spend: null, total_attributed_gmv: null }] }),
-        ])
+            : { rows: [{ total_ad_spend: null, total_attributed_gmv: null }] }
 
+          return {
+            shop: check.shop,
+            trade: tradeRes.rows[0],
+            traffic: trafficRes.rows[0],
+            adSummary: adRes.rows[0],
+          }
+        })
+
+        if ('errorStatus' in outcome && outcome.errorStatus !== undefined) {
+          return sendError(reply, outcome.errorStatus, outcome.errorMsg)
+        }
         return sendOk(reply, {
-          shop: check.shop,
+          shop: outcome.shop,
           range,
-          trade: tradeRes.rows[0],
-          traffic: trafficRes.rows[0],
-          adSummary: adRes.rows[0],
+          trade: outcome.trade,
+          traffic: outcome.traffic,
+          adSummary: outcome.adSummary,
         })
       } catch (err: any) {
         request.log.error({ err }, 'douyin shop metrics failed')
@@ -110,34 +118,40 @@ export async function douyinRoutes(app: FastifyInstance) {
       const user = await requireAuth(request, reply)
       if (!user) return
 
-      const check = await assertShopPlatform(pool, request.params.id, 'douyin')
-      if (!check.ok || !check.shop) {
-        return sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
-      }
-
       try {
         const range = defaultRange(request.query.from, request.query.to)
         const allowAd = canAccessAdSpend(user)
 
-        const { rows } = await pool.query(
-          `SELECT channel_name,
-                  COALESCE(SUM(impressions), 0)::bigint AS impressions,
-                  COALESCE(SUM(viewers), 0)::bigint AS viewers,
-                  COALESCE(SUM(order_count), 0)::int AS order_count,
-                  COALESCE(SUM(payment_amount), 0)::float8 AS payment_amount,
-                  COALESCE(SUM(ad_cost_bound), 0)::float8 AS ad_cost_bound,
-                  COALESCE(SUM(ad_cost_promoted), 0)::float8 AS ad_cost_promoted
-           FROM douyin_channel_daily_metrics
-           WHERE business_date >= $1::date AND business_date <= $2::date
-           GROUP BY channel_name
-           ORDER BY payment_amount DESC`,
-          [range.from, range.to],
-        )
+        const outcome = await withRlsContext(request, async (client) => {
+          const check = await assertShopPlatform(client, request.params.id, 'douyin')
+          if (!check.ok || !check.shop) {
+            return { errorStatus: check.statusCode || 400, errorMsg: check.message || '店铺校验失败' }
+          }
 
+          const { rows } = await client.query(
+            `SELECT channel_name,
+                    COALESCE(SUM(impressions), 0)::bigint AS impressions,
+                    COALESCE(SUM(viewers), 0)::bigint AS viewers,
+                    COALESCE(SUM(order_count), 0)::int AS order_count,
+                    COALESCE(SUM(payment_amount), 0)::float8 AS payment_amount,
+                    COALESCE(SUM(ad_cost_bound), 0)::float8 AS ad_cost_bound,
+                    COALESCE(SUM(ad_cost_promoted), 0)::float8 AS ad_cost_promoted
+             FROM douyin_channel_daily_metrics
+             WHERE business_date >= $1::date AND business_date <= $2::date
+             GROUP BY channel_name
+             ORDER BY payment_amount DESC`,
+            [range.from, range.to],
+          )
+          return { shop: check.shop, rows }
+        })
+
+        if ('errorStatus' in outcome && outcome.errorStatus !== undefined) {
+          return sendError(reply, outcome.errorStatus, outcome.errorMsg)
+        }
         return sendOk(reply, {
-          shop: check.shop,
+          shop: outcome.shop,
           range,
-          channels: rows.map((r: any) => ({
+          channels: outcome.rows.map((r: any) => ({
             channelName: r.channel_name,
             impressions: Number(r.impressions) || 0,
             viewers: Number(r.viewers) || 0,
@@ -167,30 +181,37 @@ export async function douyinRoutes(app: FastifyInstance) {
       const user = await requireAuth(request, reply)
       if (!user) return
 
-      const check = await assertShopPlatform(pool, request.params.id, 'douyin')
-      if (!check.ok || !check.shop) {
-        return sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
-      }
-
       try {
         const range = defaultRange(request.query.from, request.query.to)
         const limit = Math.min(Math.max(parseInt(request.query.limit || '20', 10) || 20, 1), 100)
-        const { rows } = await pool.query(
-          `SELECT anchor_name,
-                  MAX(account_name) AS account_name,
-                  COALESCE(SUM(payment_amount), 0)::float8 AS payment_amount,
-                  COALESCE(AVG(uv_value), 0)::float8 AS avg_uv_value,
-                  COALESCE(AVG(interaction_rate), 0)::float8 AS avg_interaction_rate,
-                  COALESCE(SUM(new_followers), 0)::int AS new_followers
-           FROM douyin_anchor_daily_metrics
-           WHERE business_date >= $1::date AND business_date <= $2::date
-           GROUP BY anchor_name
-           ORDER BY payment_amount DESC
-           LIMIT $3`,
-          [range.from, range.to, limit],
-        )
 
-        return sendOk(reply, { shop: check.shop, range, anchors: rows })
+        const outcome = await withRlsContext(request, async (client) => {
+          const check = await assertShopPlatform(client, request.params.id, 'douyin')
+          if (!check.ok || !check.shop) {
+            return { errorStatus: check.statusCode || 400, errorMsg: check.message || '店铺校验失败' }
+          }
+
+          const { rows } = await client.query(
+            `SELECT anchor_name,
+                    MAX(account_name) AS account_name,
+                    COALESCE(SUM(payment_amount), 0)::float8 AS payment_amount,
+                    COALESCE(AVG(uv_value), 0)::float8 AS avg_uv_value,
+                    COALESCE(AVG(interaction_rate), 0)::float8 AS avg_interaction_rate,
+                    COALESCE(SUM(new_followers), 0)::int AS new_followers
+             FROM douyin_anchor_daily_metrics
+             WHERE business_date >= $1::date AND business_date <= $2::date
+             GROUP BY anchor_name
+             ORDER BY payment_amount DESC
+             LIMIT $3`,
+            [range.from, range.to, limit],
+          )
+          return { shop: check.shop, rows }
+        })
+
+        if ('errorStatus' in outcome && outcome.errorStatus !== undefined) {
+          return sendError(reply, outcome.errorStatus, outcome.errorMsg)
+        }
+        return sendOk(reply, { shop: outcome.shop, range, anchors: outcome.rows })
       } catch (err: any) {
         request.log.error({ err }, 'douyin shop anchors failed')
         return sendError(reply, 500, `获取抖音主播排行失败：${err?.message || err}`)

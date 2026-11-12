@@ -3,6 +3,7 @@ import { Users, Coins, Plus, RefreshCw, CheckCircle2 } from 'lucide-react'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { useShops } from '@/hooks/useShops'
 import { api } from '@/services/api'
 
 interface KolProfile {
@@ -86,10 +87,11 @@ export function KolCooperationPage() {
     defaultCommissionRate: '0.18',
   })
 
+  const { getShopsByPlatform, getDefaultShopId } = useShops()
   const [coopForm, setCoopForm] = useState({
     kolId: '',
     platformCode: 'douyin',
-    shopId: '1',
+    shopId: '',
     coopType: 'live_slot',
     campaignName: '',
     pitFee: '3000',
@@ -97,6 +99,13 @@ export function KolCooperationPage() {
     gmv: '50000',
     refundAmount: '2500',
   })
+
+  useEffect(() => {
+    const nextShopId = getDefaultShopId(coopForm.platformCode, coopForm.shopId)
+    if (nextShopId && nextShopId !== coopForm.shopId) {
+      setCoopForm((prev) => ({ ...prev, shopId: nextShopId }))
+    }
+  }, [coopForm.platformCode, coopForm.shopId, getDefaultShopId])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -389,18 +398,31 @@ export function KolCooperationPage() {
                 value={coopForm.kolId}
                 onChange={(e) => {
                   const found = profiles.find((p) => String(p.id) === e.target.value)
-                  const mapShop: Record<string, string> = { douyin: '1', xiaohongshu: '7', kuaishou: '6' }
+                  const nextPlatform = found?.platform_code || coopForm.platformCode
                   setCoopForm({
                     ...coopForm,
                     kolId: e.target.value,
-                    platformCode: found?.platform_code || coopForm.platformCode,
-                    shopId: mapShop[found?.platform_code || 'douyin'] || '1',
+                    platformCode: nextPlatform,
+                    shopId: getDefaultShopId(nextPlatform),
                     commissionRate: found?.default_commission_rate || coopForm.commissionRate,
                   })
                 }}
                 className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
               >
                 {profiles.map((p) => <option key={p.id} value={p.id}>{p.kol_name} ({p.platform_name})</option>)}
+              </select>
+              <select
+                required
+                value={coopForm.shopId}
+                onChange={(e) => setCoopForm({ ...coopForm, shopId: e.target.value })}
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+              >
+                {getShopsByPlatform(coopForm.platformCode).map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+                {getShopsByPlatform(coopForm.platformCode).length === 0 && (
+                  <option value="">暂无可用店铺</option>
+                )}
               </select>
               <input required placeholder="合作专场/笔记名称" value={coopForm.campaignName} onChange={(e) => setCoopForm({ ...coopForm, campaignName: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
               <div className="grid grid-cols-2 gap-3">

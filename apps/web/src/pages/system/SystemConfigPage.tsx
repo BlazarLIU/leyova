@@ -557,7 +557,7 @@ export function SystemConfigPage() {
 
       {/* ─── accounts ─── */}
       {activeTab === 'accounts' && (
-        <AccountsSection users={users} roles={roles} allModules={allModules} onUsersChange={setUsers} />
+        <AccountsSection users={users} roles={roles} allModules={allModules} onUsersChange={setUsers} onRolesChange={setRoles} />
       )}
 
       {/* ─── personnel ─── */}

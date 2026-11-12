@@ -2,6 +2,23 @@
 
 All notable changes to **Leyova** are documented in this file.
 
+## [2026-11-12 — Round 2 Overlap & Redundancy Consolidation]
+
+### Added & Consolidated
+- **全路由 PostgreSQL RLS 全覆盖 & 服务签名统一**：
+  - 将全部 37 个业务路由文件统一迁入 `withRlsContext` / `withRlsPool`（仅登录/登出与健康检查 `auth.ts`、`health.ts` 保留直连 `getPool`）；修复 `bi.ts` 使用不存在列名 `sp.display_name` 为 `sp.platform_name`，使 `/api/v1/bi/roi` 与 `/api/v1/bi/refund` 对接真实 `fact_ad_spend_daily`、`ad_tool_dict`、`v_fact_trade_default` 与 `fact_after_sale_tickets` 稳定返回真实指标。
+  - `platform/*`、`ai/*`、`services/anchor-ranking.ts`、`ingest/{sync-job,manual-mapper,douyin-bridge}.ts`、`cron/aggregate-facts.ts`、`lib/{audit,partitions}.ts` 统一接收可选 `DbExecutor = Pool | PoolClient`（兼容传透 RLS 事务连接与 Savepoint）。
+- **数据库结构收敛与去重 (`database/migrations/119_round2_consolidation_and_differentiation.sql`)**：
+  - 收敛 `ad_tool_dict`（新增 `impression_window_hours` / `supported_windows` 与真实种子数据）与 `pricing_rules`；移除重叠表 `promotion_rules`、`sync_jobs`、`sync_logs`、`ad_campaigns` 并对齐权限模块 (`audit_logs` 独立权限模块、10 角色 / 41 模块)。
+  - 保留 `live_registrations`（人工考勤/业绩录入闭环）与 `live_sessions` 职责边界，保留 `/api/v1/bi/roi` 与 `/api/v1/net-roi/overview` 并提供归因窗口 (`byAttributionWindow`) 与经营模式 (`byBusinessMode`) 拆分维度。
+- **前端路由收口、动态店铺 Hook、角色模块权限矩阵与 CI 门禁**：
+  - 清理死代码 `ContentConfigPage.tsx` 与 `data/navigation.ts`；将 `/content/config` 重定向至 `/content/center-config`，移除重复 `/ops/sessions` 路由及重复 `/shop/products` 导航项；统一 `Topbar.tsx`、`platform-navigation.ts`、`App.tsx` 与 `audit_logs` 模块权限及「合规风控」命名。
+  - 新增 `apps/web/src/hooks/useShops.ts` 从 `/api/v1/platforms` 动态获取活跃店铺并移除 `AfterSalesPage` / `FulfillmentSlaPage` / `KolCooperationPage` 中的硬编码 `mapShop`。
+  - 在 `AccountsSection.tsx` 补齐全部模块中文映射并新增「角色模块权限矩阵」配置卡片对接 `PUT /api/v1/system/roles/modules`；`UsersPage.tsx` 补全全部 10 个角色选项与标签。
+  - 新增 `scripts/check-guardrails.mjs`（`pnpm check:guardrails`）并接入 `.github/workflows/ci.yml`，静态阻断业务路由新增 `getPool()` 绕过 RLS 及未带口径过滤的 `fact_trade_daily` `SUM(gmv)` 查询；扩展 `rbac-and-domains.test.ts` 至 59 项全通过。
+
+---
+
 ## [2026-11-12 — Release Hardening, Real OpenAPI/OAuth & CI]
 
 ### Added
