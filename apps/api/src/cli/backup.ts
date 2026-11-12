@@ -9,8 +9,9 @@
  */
 
 import { execFileSync } from 'child_process'
-import { resolve } from 'path'
-import { mkdirSync } from 'fs'
+import { resolve, dirname, join } from 'path'
+import { mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from 'fs'
+import { fileURLToPath } from 'url'
 
 function timestamp(): string {
   const d = new Date()
@@ -58,10 +59,14 @@ function resolveDbTarget(): DbTarget {
   }
 }
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const target = resolveDbTarget()
 const outputDir = resolve(
-  process.argv.find((a) => a.startsWith('--output='))?.split('=')[1] ?? resolve(process.cwd(), 'backups')
+  process.argv.find((a) => a.startsWith('--output='))?.split('=')[1] ?? resolve(__dirname, '../../../../.backup')
 )
+const retainArg = process.argv.find((a) => a.startsWith('--retain='))?.split('=')[1]
+const retainCount = Math.max(parseInt(retainArg || '7', 10) || 7, 1)
+const verifyDump = !process.argv.includes('--no-verify')
 const ts = timestamp()
 const outputFile = resolve(outputDir, `${target.database}_${ts}.sql`)
 
@@ -82,6 +87,31 @@ try {
     ],
     { stdio: 'inherit', env: { ...process.env, PGPASSWORD: target.password } }
   )
+
+  const stat = statSync(outputFile)
+  if (verifyDump) {
+    if (stat.size < 128) {
+      throw new Error(`Backup file unexpectedly small (${stat.size} bytes): ${outputFile}`)
+    }
+    const head = readFileSync(outputFile, 'utf8').slice(0, 512)
+    if (!head.includes('PostgreSQL database dump')) {
+      throw new Error(`Backup header verification failed: ${outputFile}`)
+    }
+    console.log(`[backup] Verified dump (${(stat.size / 1024).toFixed(1)} KB)`)
+  }
+
+  // Prune older dumps beyond retention count
+  const prefix = `${target.database}_`
+  const oldFiles = readdirSync(outputDir)
+    .filter((f) => f.startsWith(prefix) && f.endsWith('.sql'))
+    .map((f) => ({ path: join(outputDir, f), mtime: statSync(join(outputDir, f)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime)
+    .slice(retainCount)
+
+  for (const old of oldFiles) {
+    unlinkSync(old.path)
+    console.log(`[backup] Pruned expired backup: ${old.path}`)
+  }
 
   console.log(`[backup] Backup completed: ${outputFile}`)
 } catch (err) {

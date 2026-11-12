@@ -1,16 +1,26 @@
-import { readdirSync, renameSync, statSync, unlinkSync, existsSync, mkdirSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { copyFileSync, readdirSync, statSync, truncateSync, unlinkSync, existsSync, mkdirSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { env } from '../config/env.js'
 
-// 日志根目录：优先 env.LOG_ROOT，否则为当前工作目录下的 logs/
-const ROOT = resolve(env.LOG_ROOT || join(process.cwd(), 'logs'))
+const __dirname = dirname(fileURLToPath(import.meta.url))
+// 默认定位到仓库根目录 /logs（适配 PM2 实际日志路径，也可通过 env.LOG_ROOT 覆盖）
+const DEFAULT_WORKSPACE_LOGS = resolve(__dirname, '../../../../logs')
+const ROOT = resolve(env.LOG_ROOT || DEFAULT_WORKSPACE_LOGS)
 const LOG_DIR = ROOT
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 const KEEP_COUNT = 5
 
 const MANAGED_FILES = [
-  'system.log', 'actions.log', 'php_errors.log',
-  'access.log', 'debug.log', 'error.log',
+  'api-out.log',
+  'api-error.log',
+  'mcp-out.log',
+  'mcp-error.log',
+  'web-out.log',
+  'web-error.log',
+  'system.log',
+  'actions.log',
+  'error.log',
 ]
 
 interface FileStat {
@@ -62,47 +72,48 @@ function parseFilePath(fullPath: string) {
   return { dir, name: dotIdx > 0 ? filename.slice(0, dotIdx) : filename, ext: dotIdx > 0 ? filename.slice(dotIdx + 1) : '' }
 }
 
-function rotateFile(filePath: string): boolean {
-  if (!existsSync(filePath)) return true
-  
+function rotateFile(filePath: string): { ok: boolean; rotated: boolean } {
+  if (!existsSync(filePath)) return { ok: true, rotated: false }
+
   const size = statSync(filePath).size
-  if (size < MAX_SIZE) return true
-  
-  const backupPath = join(parseFilePath(filePath).dir, `${parseFilePath(filePath).name}_${timestamp()}.${parseFilePath(filePath).ext}`)
-  
+  if (size < MAX_SIZE) return { ok: true, rotated: false }
+
+  const parsed = parseFilePath(filePath)
+  const backupPath = join(parsed.dir, `${parsed.name}_${timestamp()}.${parsed.ext}`)
+
   try {
-    renameSync(filePath, backupPath)
-    console.log(`  滚写: ${filePath} -> ${backupPath}`)
+    // 使用 copy + truncate 保留 PM2 进程已打开的文件描述符，避免句柄悬空丢日志
+    copyFileSync(filePath, backupPath)
+    truncateSync(filePath, 0)
+    console.log(`  滚写(copytruncate): ${filePath} -> ${backupPath}`)
     cleanOldBackups(filePath)
-    return true
+    return { ok: true, rotated: true }
   } catch (e) {
     console.error(`  滚写失败: ${filePath} — ${(e as Error).message}`)
-    return false
+    return { ok: false, rotated: false }
   }
 }
 
-function rotateAllFiles(): { processed: number; rotated: number; errors: string[] } {
+export function rotateAllFiles(): { processed: number; rotated: number; errors: string[] } {
   const result = { processed: 0, rotated: 0, errors: [] as string[] }
-  
+
   if (!existsSync(LOG_DIR)) {
     mkdirSync(LOG_DIR, { recursive: true })
   }
-  
+
   for (const logFile of MANAGED_FILES) {
     const fullPath = join(LOG_DIR, logFile)
+    if (!existsSync(fullPath)) continue
     result.processed++
-    
-    if (rotateFile(fullPath)) {
-      // Check if backup was created (file was actually rotated)
-      const parsed = parseFilePath(fullPath)
-      const backups = readdirSync(parsed.dir)
-        .filter(f => f.startsWith(`${parsed.name}_`) && f.endsWith(`.${parsed.ext}`))
-      if (backups.length > 0) result.rotated++
+
+    const res = rotateFile(fullPath)
+    if (res.ok) {
+      if (res.rotated) result.rotated++
     } else {
       result.errors.push(`处理日志文件失败: ${fullPath}`)
     }
   }
-  
+
   return result
 }
 
@@ -164,4 +175,6 @@ async function main() {
   console.log(`\n用法: npx tsx ${process.argv[1]} cleanup    — 执行日志滚写清理`)
 }
 
-main().catch(console.error)
+if (process.argv[1] && /cleanup-logs\.(ts|js)$/.test(process.argv[1])) {
+  main().catch(console.error)
+}

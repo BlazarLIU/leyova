@@ -39,8 +39,51 @@ export interface PartitionResult {
   errors: Array<{ table: string; partition: string; error: string }>
 }
 
+async function hasRangePartitionBound(
+  pool: Pool,
+  parentTable: string,
+  fromDate: string,
+  toDate: string,
+): Promise<string | null> {
+  const { rows } = await pool.query<{ relname: string; bound: string }>(
+    `SELECT c.relname, pg_get_expr(c.relpartbound, c.oid) AS bound
+     FROM pg_inherits i
+     JOIN pg_class p ON p.oid = i.inhparent
+     JOIN pg_class c ON c.oid = i.inhrelid
+     JOIN pg_namespace n ON n.oid = p.relnamespace
+     WHERE n.nspname = 'public' AND p.relname = $1`,
+    [parentTable],
+  )
+  for (const row of rows) {
+    if (row.bound && row.bound.includes(`'${fromDate}'`) && row.bound.includes(`'${toDate}'`)) {
+      return row.relname
+    }
+  }
+  return null
+}
+
+async function ensureDefaultPartition(pool: Pool, parentTable: string): Promise<string | null> {
+  const { rows } = await pool.query<{ relname: string }>(
+    `SELECT c.relname
+     FROM pg_inherits i
+     JOIN pg_class p ON p.oid = i.inhparent
+     JOIN pg_class c ON c.oid = i.inhrelid
+     JOIN pg_namespace n ON n.oid = p.relnamespace
+     WHERE n.nspname = 'public' AND p.relname = $1
+       AND pg_get_expr(c.relpartbound, c.oid) = 'DEFAULT'`,
+    [parentTable],
+  )
+  if (rows.length > 0) return null
+  const defName = `${parentTable}_default`
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS public.${defName} PARTITION OF public.${parentTable} DEFAULT`,
+  )
+  logger.info({ partition: defName }, '[partition] ensured DEFAULT partition')
+  return defName
+}
+
 /**
- * 确保某父表在未来 N 个月内有分区。
+ * 确保某父表在未来 N 个月内有分区，并确保 DEFAULT 兜底分区存在。
  */
 export async function ensureFuturePartitions(
   pool: Pool,
@@ -49,31 +92,37 @@ export async function ensureFuturePartitions(
 ): Promise<PartitionResult> {
   const result: PartitionResult = { created: [], existing: [], errors: [] }
 
+  try {
+    const createdDef = await ensureDefaultPartition(pool, parentTable)
+    if (createdDef) result.created.push(createdDef)
+  } catch (err: any) {
+    if (err?.code !== '42P07') {
+      result.errors.push({ table: parentTable, partition: `${parentTable}_default`, error: String(err?.message || err) })
+    }
+  }
+
   const now = new Date()
   for (let offset = 0; offset <= monthsAhead; offset++) {
     const start = new Date(now.getFullYear(), now.getMonth() + offset, 1)
     const end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 1)
+    const rangeStart = firstDay(start)
+    const rangeEnd = firstDay(end)
     const name = `${parentTable}_y${ym(start)}`
-    const altName = `${parentTable}_y${start.getFullYear()}m${String(start.getMonth() + 1).padStart(2, '0')}`
 
-    const exists = await pool.query(
-      `SELECT relname FROM pg_class WHERE relname IN ($1, $2) AND relkind = 'r'`,
-      [name, altName],
-    )
-    if (exists.rows.length > 0) {
-      result.existing.push(exists.rows[0].relname)
+    const existingBoundName = await hasRangePartitionBound(pool, parentTable, rangeStart, rangeEnd)
+    if (existingBoundName) {
+      result.existing.push(existingBoundName)
       continue
     }
 
     try {
       await pool.query(
         `CREATE TABLE IF NOT EXISTS public.${name} PARTITION OF public.${parentTable}
-           FOR VALUES FROM ('${firstDay(start)}') TO ('${firstDay(end)}')`,
+           FOR VALUES FROM ('${rangeStart}') TO ('${rangeEnd}')`,
       )
       result.created.push(name)
       logger.info({ partition: name }, '[partition] created')
     } catch (err: any) {
-      // 42P07: duplicate_table, 42P17: partition range overlap
       if (err?.code === '42P07' || err?.code === '42P17') {
         result.existing.push(name)
       } else {
@@ -98,19 +147,17 @@ export async function ensurePartitionForMonth(
 ): Promise<{ name: string; created: boolean; error?: string }> {
   const start = new Date(year, month - 1, 1)
   const end = new Date(year, month, 1)
-  const name = `${parentTable}_y${start.getFullYear()}${String(start.getMonth() + 1).padStart(2, '0')}`
-  const altName = `${parentTable}_y${start.getFullYear()}m${String(start.getMonth() + 1).padStart(2, '0')}`
+  const rangeStart = firstDay(start)
+  const rangeEnd = firstDay(end)
+  const name = `${parentTable}_y${ym(start)}`
 
-  const exists = await pool.query(
-    `SELECT relname FROM pg_class WHERE relname IN ($1, $2) AND relkind = 'r'`,
-    [name, altName],
-  )
-  if (exists.rows.length > 0) return { name: exists.rows[0].relname, created: false }
+  const existingBoundName = await hasRangePartitionBound(pool, parentTable, rangeStart, rangeEnd)
+  if (existingBoundName) return { name: existingBoundName, created: false }
 
   try {
     await pool.query(
       `CREATE TABLE IF NOT EXISTS public.${name} PARTITION OF public.${parentTable}
-         FOR VALUES FROM ('${firstDay(start)}') TO ('${firstDay(end)}')`,
+         FOR VALUES FROM ('${rangeStart}') TO ('${rangeEnd}')`,
     )
     logger.info({ partition: name }, '[partition] created (backfill)')
     return { name, created: true }

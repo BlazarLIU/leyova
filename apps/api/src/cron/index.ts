@@ -7,9 +7,64 @@ import { archiveOldData } from './archive-old-data.js'
 import { ensureAllPartitions } from './manage-partitions.js'
 import { runFactAggregation } from './aggregate-facts.js'
 import { runAllPlatformsSync } from '../ingest/sync-job.js'
+import { rotateAllFiles } from '../cli/cleanup-logs.js'
 import { searchMemory } from '../lib/openviking-client.js'
 import { searchKnowledge } from '../lib/anythingllm-client.js'
 import { requestOpenClawReply, LEYOVA_SYSTEM_PROMPT, type AiScopeContext } from '../lib/ai-gateway.js'
+
+/**
+ * 统一受控任务执行包装：将每次定时任务运行状态/耗时/异常持久化写入 system_jobs
+ */
+async function runTrackedJob<T>(
+  jobType: string,
+  jobName: string,
+  fn: () => Promise<T>,
+): Promise<T | null> {
+  const pool = getPool()
+  const startedAt = Date.now()
+  let jobId: number | null = null
+  try {
+    const ins = await pool.query<{ id: number }>(
+      `INSERT INTO system_jobs (job_type, job_name, status, run_at, started_at)
+       VALUES ($1, $2, 'running', NOW(), NOW())
+       RETURNING id`,
+      [jobType, jobName],
+    )
+    jobId = ins.rows[0]?.id ?? null
+  } catch (err) {
+    logger.warn({ err, jobType }, '[cron] failed to record system_jobs start')
+  }
+
+  try {
+    const result = await fn()
+    if (jobId !== null) {
+      await pool.query(
+        `UPDATE system_jobs
+         SET status = 'completed',
+             finished_at = NOW(),
+             updated_at = NOW(),
+             result_payload = $2::jsonb
+         WHERE id = $1`,
+        [jobId, JSON.stringify({ durationMs: Date.now() - startedAt, summary: result ?? {} })],
+      ).catch((err) => logger.warn({ err, jobId }, '[cron] failed to record system_jobs completion'))
+    }
+    return result
+  } catch (err: any) {
+    logger.error({ err, jobType }, `[cron] ${jobName} failed`)
+    if (jobId !== null) {
+      await pool.query(
+        `UPDATE system_jobs
+         SET status = 'failed',
+             finished_at = NOW(),
+             updated_at = NOW(),
+             error_message = $2
+         WHERE id = $1`,
+        [jobId, String(err?.message || err).slice(0, 2000)],
+      ).catch((uErr) => logger.warn({ uErr, jobId }, '[cron] failed to record system_jobs error'))
+    }
+    return null
+  }
+}
 
 /**
  * Registers all recurring cron jobs.
@@ -20,54 +75,50 @@ export function registerCronJobs(): void {
 
   // ── Aggregate daily stats: daily at 01:00 ──
   cron.schedule('0 1 * * *', async () => {
-    logger.info('[cron] Running aggregateDailyStats')
-    await aggregateDailyStats()
+    await runTrackedJob('aggregate_daily_stats', '日汇总统计', () => aggregateDailyStats())
   })
 
   // ── Anomaly detection: every hour ──
   cron.schedule('0 * * * *', async () => {
-    logger.info('[cron] Running detectAnomalies')
-    await detectAnomalies()
+    await runTrackedJob('anomaly_detection', '小时级异常检测', () => detectAnomalies())
   })
 
   // ── Archive old data: daily at 03:00 ──
   cron.schedule('0 3 * * *', async () => {
-    logger.info('[cron] Running archiveOldData')
-    await archiveOldData()
+    await runTrackedJob('archive_old_data', '冷数据归档', () => archiveOldData())
   })
 
   // ── Partition maintenance: daily at 04:00，提前创建未来 3 个月分区 ──
   cron.schedule('0 4 * * *', async () => {
-    logger.info('[cron] Running ensureAllPartitions')
-    try {
+    await runTrackedJob('partition_maintenance', '分区自动预建与DEFAULT守护', async () => {
       const r = await ensureAllPartitions(3)
       logger.info({ created: r.created, errors: r.errors.length }, '[cron] partition maintenance done')
-    } catch (err) {
-      logger.error({ err }, '[cron] ensureAllPartitions failed')
-    }
+      return { createdCount: r.created.length, existingCount: r.existing.length, errorCount: r.errors.length }
+    })
+  })
+
+  // ── Log rotation: weekly on Sunday at 02:00 ──
+  cron.schedule('0 2 * * 0', async () => {
+    await runTrackedJob('log_rotation', 'PM2与系统日志滚写清理', async () => rotateAllFiles())
   })
 
   // ── 多平台事实表聚合：每天 01:30（在 01:00 旧链路聚合之后）──
   cron.schedule('30 1 * * *', async () => {
-    logger.info('[cron] Running fact aggregation (agg_shop_daily / agg_platform_monthly)')
-    try {
+    await runTrackedJob('fact_aggregation', '多平台事实表聚合', async () => {
       const r = await runFactAggregation()
       logger.info({ days: r.dates.length, months: r.months.length }, '[cron] fact aggregation done')
-    } catch (err) {
-      logger.error({ err }, '[cron] fact aggregation failed')
-    }
+      return { dates: r.dates.length, months: r.months.length }
+    })
   })
 
   // ── Multi-platform API sync: daily at 05:00（仅已授权店铺实际拉数，未授权自动跳过）──
   cron.schedule('0 5 * * *', async () => {
-    logger.info('[cron] Running multi-platform trade sync')
-    try {
+    await runTrackedJob('platform_api_sync', '多平台自动同步任务', async () => {
       const results = await runAllPlatformsSync(getPool(), 'trade')
       const done = results.filter((r) => r.status === 'completed').length
       logger.info({ total: results.length, completed: done }, '[cron] multi-platform sync done')
-    } catch (err) {
-      logger.error({ err }, '[cron] multi-platform sync failed')
-    }
+      return { total: results.length, completed: done }
+    })
   })
 
   // ── AI automation jobs ──
@@ -79,8 +130,7 @@ export function registerCronJobs(): void {
 
   // ── AI review draft: daily at 02:30 ──
   cron.schedule('30 2 * * *', async () => {
-    logger.info('[cron-ai] Generating review drafts for completed sessions')
-    await runReviewDrafts()
+    await runTrackedJob('ai_review_drafts', 'AI 复盘草稿生成', () => runReviewDrafts())
   })
 
   // ── Health check for dev: every 5 min in development ──
