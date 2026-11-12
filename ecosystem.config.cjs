@@ -20,6 +20,7 @@ module.exports = {
         PORT: '8788',
         HOST: '0.0.0.0',
         ...(process.env.SESSION_SECRET ? { SESSION_SECRET: process.env.SESSION_SECRET } : {}),
+        ...(process.env.API_ENCRYPTION_KEY ? { API_ENCRYPTION_KEY: process.env.API_ENCRYPTION_KEY } : {}),
         ...(process.env.LEYOVA_MCP_TOKEN ? { LEYOVA_MCP_TOKEN: process.env.LEYOVA_MCP_TOKEN } : {}),
         ...(process.env.LEYOVA_MCP_SIGNING_SECRET ? { LEYOVA_MCP_SIGNING_SECRET: process.env.LEYOVA_MCP_SIGNING_SECRET } : {}),
       },
@@ -53,7 +54,7 @@ module.exports = {
       name: 'leyova-web',
       cwd: join(ROOT, 'apps', 'web'),
       script: 'node_modules/vite/bin/vite.js',
-      args: '--host 0.0.0.0 --port 5513',
+      args: 'preview --host 0.0.0.0 --port 5513',
       env: {
         NODE_ENV: 'production',
       },

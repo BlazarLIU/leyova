@@ -38,7 +38,15 @@ export async function platformRoutes(app: FastifyInstance) {
             p.icon,
             p.api_config,
             COALESCE(
-              (SELECT json_agg(json_build_object('id', s.id, 'name', s.shop_name, 'status', s.status, 'authStatus', s.auth_status))
+              (SELECT json_agg(json_build_object(
+                'id', s.id,
+                'name', s.shop_name,
+                'status', s.status,
+                'authStatus', s.auth_status,
+                'hasCredentials', (COALESCE(s.auth_token_info->>'accessToken', '') <> ''),
+                'appKeyRaw', COALESCE(s.auth_token_info->>'appKey', ''),
+                'authorizedAt', COALESCE(s.auth_token_info->>'authorizedAt', s.auth_token_info->>'updatedAt')
+              ))
                FROM dim_shop s WHERE s.platform_code = p.platform_code AND s.status = 'active'),
               '[]'::json
             ) AS shops
@@ -50,8 +58,15 @@ export async function platformRoutes(app: FastifyInstance) {
       const result = rows.map((row: any) => {
         const capabilities = platformRegistry.getCapabilities(row.platform_code)
         const isPermitted = permittedPlatforms === null || permittedPlatforms.has(row.platform_code)
+        const maskedShops = Array.isArray(row.shops)
+          ? row.shops.map(({ appKeyRaw, ...shop }: any) => ({
+              ...shop,
+              appKeyMasked: appKeyRaw ? maskCredential(decryptCredential(String(appKeyRaw))) : '',
+            }))
+          : []
         return {
           ...row,
+          shops: maskedShops,
           isPermitted,
           capabilities,
         }

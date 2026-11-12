@@ -30,6 +30,7 @@ jobs:
       NODE_ENV: test
       DATABASE_URL: postgresql://postgres:ci_postgres_password@127.0.0.1:5432/leyova
       SESSION_SECRET: ci-session-secret-key-minimum-32-chars-for-leyova-api
+      API_ENCRYPTION_KEY: ci-api-encryption-key-minimum-32-chars-for-aes-256-gcm
       LEYOVA_MCP_TOKEN: ci-mcp-bearer-token-32chars-minimum
       LEYOVA_MCP_SIGNING_SECRET: ci-mcp-signing-secret-32chars-minimum
       LEYOVA_MCP_REQUIRE_SIG: 'true'

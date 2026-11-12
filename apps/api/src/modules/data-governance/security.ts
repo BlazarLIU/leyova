@@ -10,11 +10,15 @@
 import crypto from 'crypto'
 
 const ALGORITHM = 'aes-256-gcm'
-const DEFAULT_KEY_SOURCE = process.env.API_ENCRYPTION_KEY || 'leyova-data-governance-secret-key-32chars!!'
+const DEV_FALLBACK_KEY = 'leyova-data-governance-secret-key-32chars!!'
 
-/** 生成固定 32 字节密钥 */
+/** 生成固定 32 字节密钥（生产环境强制要求配置独立 API_ENCRYPTION_KEY） */
 function getDerivedKey(): Buffer {
-  return crypto.createHash('sha256').update(DEFAULT_KEY_SOURCE).digest()
+  const raw = (process.env.API_ENCRYPTION_KEY || '').trim()
+  if (process.env.NODE_ENV === 'production' && (!raw || raw === DEV_FALLBACK_KEY || raw.length < 32)) {
+    throw new Error('生产环境必须配置至少 32 字符的独立 API_ENCRYPTION_KEY，严禁使用源码默认密钥')
+  }
+  return crypto.createHash('sha256').update(raw || DEV_FALLBACK_KEY).digest()
 }
 
 /**

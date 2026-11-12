@@ -8,9 +8,11 @@ All notable changes to **Leyova** are documented in this file.
 - **开放平台真实 HTTP/OAuth 传输与加密凭据绑定**:
   - `apps/api/src/modules/data-governance/adapters/base-adapter.ts` & `platform-adapters.ts`：实现 7 大电商平台（抖音/快手/淘宝/天猫/京东/拼多多/小红书）真实 `fetch()`（含超时控制、429/5xx 退避重试、TOP MD5 / 抖店 v2 HMAC-SHA256 / 快手 / 京东 / 拼多多 / 小红书 Ark 签名）的 OAuth 换码、Token 刷新、订单与退款拉取，彻底移除硬编码伪造 Token 与 `sampleOrders`。
   - `apps/api/src/platform/adapters/base.ts` 及四类适配器与 `apps/api/src/ingest/sync-job.ts` 收敛统一，接入 `decryptCredential` 解密持久化店铺凭证并保持 `manual_only` / 占位凭证 fail-closed。
-  - `apps/api/src/routes/platforms.ts` & `openapi.ts`：新增管理员专属 `GET /api/v1/platforms/:code/oauth/url`、`POST /api/v1/platforms/:code/oauth/callback` 与 `POST /api/v1/platforms/:code/shops/:shopId/credentials`（AES-256-GCM 密文落库 + 脱敏返回 + 审计记录）。
-  - 新增 `apps/api/test/platform-adapters.test.ts`（本地 `node:http` 测试服务覆盖 7 平台 OAuth、拉数、错误透传、fail-closed 及 `runSyncJob` 端到端闭环）。
-- **前端路由按需懒加载与 Vite 分包**: `apps/web/src/App.tsx` 93 个页面路由统一改造为 `React.lazy` + `<Suspense>`，配合 `apps/web/vite.config.ts` `manualChunks` 消除 Vite 大包体积告警（主入口 `120.52 kB`）。
+  - `apps/api/src/routes/platforms.ts` & `openapi.ts`：新增管理员专属 `GET /api/v1/platforms/:code/oauth/url`、`POST /api/v1/platforms/:code/oauth/callback` 与 `POST /api/v1/platforms/:code/shops/:shopId/credentials`（AES-256-GCM 密文落库 + 脱敏返回 + 审计记录），并在 `GET /api/v1/platforms` 返回脱敏凭证状态。
+  - `apps/web/src/pages/system/PlatformManagementPage.tsx`：新增店铺「配置 OAuth / 凭证」双标签弹窗与「立即同步」触发入口，完成管理员闭环。
+  - `apps/api/src/config/env.ts` & `security.ts`：在 `NODE_ENV=production` 下强制校验强随机 `API_ENCRYPTION_KEY`（>= 32 字符，禁止默认密钥）。
+  - 新增 `apps/api/test/platform-adapters.test.ts`（本地 `node:http` 测试服务覆盖 7 平台 OAuth、拉数、错误透传、fail-closed、脱敏响应及 `runSyncJob` 端到端闭环）。
+- **前端路由按需懒加载、Vite 分包与生产静态托管**: `apps/web/src/App.tsx` 93 个页面路由统一改造为 `React.lazy` + `<Suspense>`；`apps/web/vite.config.ts` 配置 `manualChunks` 与 `preview` 代理，并通过 `ecosystem.config.cjs` 切换 `leyova-web` 以 `vite preview` 托管 `dist/` 生产静态资源（主入口 `120.52 kB`）。
 - **CI 流水线**: 新增 `.github/workflows/ci.yml`，在全新 PostgreSQL 16 服务上自动执行空库初始化 + 迁移幂等校验、全工作区构建、测试类型检查与全量自动化测试。
 
 ### Changed & Fixed

@@ -60,6 +60,8 @@ const envSchema = z.object({
   // MCP Server 监听端口
   MCP_PORT: z.coerce.number().int().positive().default(9101),
 
+  // ---- 会话与加密密钥 ----
+  API_ENCRYPTION_KEY: z.string().default(''),
   // ── 日志 / 定时 ──
   LOG_LEVEL: z.string().default('info'),
   LOG_ROOT: z.string().default(''),
@@ -90,6 +92,16 @@ if (parsed.NODE_ENV === 'production') {
         v.LEYOVA_MCP_TOKEN !== 'change-me',
       {
         message: '生产环境必须设置强随机 LEYOVA_MCP_TOKEN（不能使用开发或示例默认值）',
+      }
+    )
+    .refine(
+      (v) =>
+        v.API_ENCRYPTION_KEY.length >= 32 &&
+        v.API_ENCRYPTION_KEY !== 'leyova-data-governance-secret-key-32chars!!' &&
+        v.API_ENCRYPTION_KEY !== 'replace-with-strong-random-64-char-encryption-key' &&
+        v.API_ENCRYPTION_KEY !== 'change-me',
+      {
+        message: '生产环境必须设置至少 32 字符的强随机 API_ENCRYPTION_KEY（用于 AES-256-GCM 开放平台凭据加密）',
       }
     )
   checkEnv.parse(parsed)

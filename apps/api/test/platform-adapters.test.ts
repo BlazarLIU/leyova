@@ -434,7 +434,20 @@ describe('开放平台 HTTP/OAuth 传输与适配器收敛测试', () => {
     assert.equal(rawStoredToken.split(':').length, 3, 'accessToken 应以 iv:tag:enc 密文形式存储')
     assert.equal(decryptCredential(rawStoredToken), 'real_dy_access_token_xyz')
 
-    // 4. 生成 OAuth 授权跳转 URL
+    // 4. GET /api/v1/platforms 返回脱敏凭证状态（绝不泄漏明文密钥），并可生成 OAuth 授权跳转 URL
+    const listRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/platforms',
+      headers: { cookie: adminUser.cookie },
+    })
+    assert.equal(listRes.statusCode, 200)
+    assert.ok(!listRes.body.includes('dy_prod_secret_8888'))
+    assert.ok(!listRes.body.includes('real_dy_access_token_xyz'))
+    const dyPlat = listRes.json().data.find((p: any) => p.platform_code === 'douyin')
+    const boundShop = dyPlat.shops.find((s: any) => s.id === tempShopId)
+    assert.equal(boundShop.hasCredentials, true)
+    assert.ok(boundShop.appKeyMasked.includes('****'))
+
     const urlRes = await app.inject({
       method: 'GET',
       url: `/api/v1/platforms/douyin/oauth/url?shopId=${tempShopId}`,

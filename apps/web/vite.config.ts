@@ -11,6 +11,19 @@ export default defineConfig(({ mode }) => {
     .split(',')
     .map((h) => h.trim())
     .filter(Boolean)
+  const resolvedAllowedHosts = allowedHosts.length ? allowedHosts : true
+  const apiProxy = {
+    '/api': {
+      target: apiTarget,
+      changeOrigin: true,
+      rewrite: (path: string) => {
+        // /api/v1/... → pass through (already correct)
+        if (path.startsWith('/api/v1')) return path
+        // /api/... → rewrite to /api/v1/...
+        return '/api/v1' + path.slice(4)
+      },
+    },
+  }
 
   return {
     plugins: [react(), tailwindcss()],
@@ -47,19 +60,15 @@ export default defineConfig(({ mode }) => {
     server: {
       port,
       strictPort: true,
-      allowedHosts: allowedHosts.length ? allowedHosts : true,
-      proxy: {
-        '/api': {
-          target: apiTarget,
-          changeOrigin: true,
-          rewrite: (path) => {
-            // /api/v1/... → pass through (already correct)
-            if (path.startsWith('/api/v1')) return path
-            // /api/... → rewrite to /api/v1/...
-            return '/api/v1' + path.slice(4)
-          },
-        },
-      },
+      allowedHosts: resolvedAllowedHosts,
+      proxy: apiProxy,
+    },
+    preview: {
+      host: '0.0.0.0',
+      port,
+      strictPort: true,
+      allowedHosts: resolvedAllowedHosts,
+      proxy: apiProxy,
     },
   }
 })
