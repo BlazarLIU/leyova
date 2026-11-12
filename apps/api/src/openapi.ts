@@ -144,13 +144,6 @@ export const openapiSpec = {
         responses: { '200': { description: 'BI 数据' } },
       },
     },
-    '/api/v1/bi/roi': {
-      get: {
-        tags: ['BI'],
-        summary: '投放 ROI 与渠道花费汇总（ad_buyer/ops_director/finance/admin 及获授权 brand_viewer）',
-        responses: { '200': { description: 'ROI 分析结果' }, '403': { description: '无权访问投放消耗数据' } },
-      },
-    },
     '/api/v1/bi/refund': {
       get: {
         tags: ['BI'],
@@ -174,21 +167,21 @@ export const openapiSpec = {
         responses: { '200': { description: '能力评分' } },
       },
     },
-    '/api/v1/ops/goals': {
+    '/api/v1/ops/goal-tracking': {
       get: {
         tags: ['Ops'],
         summary: '目标跟踪列表',
         responses: { '200': { description: '目标跟踪' } },
       },
     },
-    '/api/v1/ops/scripts': {
+    '/api/v1/ops/script-library': {
       get: {
         tags: ['Ops'],
         summary: '话术库列表',
         responses: { '200': { description: '话术库' } },
       },
     },
-    '/api/v1/ops/issues': {
+    '/api/v1/ops/issue-library': {
       get: {
         tags: ['Ops'],
         summary: '问题库列表',
@@ -226,9 +219,6 @@ export const openapiSpec = {
     },
     '/api/v1/system/multi-room': {
       get: { tags: ['System'], summary: '多房间概览数据', responses: { '200': { description: '多房间数据' } } },
-    },
-    '/api/v1/system/inventory': {
-      get: { tags: ['System'], summary: '库存风控数据', responses: { '200': { description: '库存数据' } } },
     },
     '/api/v1/system/users': {
       get: { tags: ['System'], summary: '用户列表', responses: { '200': { description: '用户列表', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/User' } } } } } } },

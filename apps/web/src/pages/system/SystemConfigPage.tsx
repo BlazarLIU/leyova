@@ -97,21 +97,21 @@ export function SystemConfigPage() {
   // ─── Effects ───
 
   useEffect(() => {
-    api.get<any[]>('/system/target-templates').then(setTargetTemplates).catch(() => {})
+    api.get<any[]>('/system/target-templates').then(setTargetTemplates).catch(() => { })
   }, [])
 
   useEffect(() => {
     api.get<any>('/auth/me')
       .then((res) => { if (res?.user?.role) setUserRole(res.user.role) })
-      .catch(() => {})
+      .catch(() => { })
 
-    api.get<UserAccount[]>('/system/users').then(setUsers).catch(() => {})
-    api.get<any[]>('/personnel/anchors').then(setAnchors).catch(() => {})
-    api.get<any[]>('/personnel/operators').then(setOperators).catch(() => {})
-    api.get<any[]>('/personnel/managers').then(setManagers).catch(() => {})
-    api.get<RoleInfo[]>('/system/roles').then(setRoles).catch(() => {})
-    api.get<ModuleInfo[]>('/system/modules').then(setAllModules).catch(() => {})
-    api.get<LiveRoom[]>('/system/rooms').then(setRooms).catch(() => {})
+    api.get<UserAccount[]>('/system/users').then(setUsers).catch(() => { })
+    api.get<any[]>('/personnel/anchors').then(setAnchors).catch(() => { })
+    api.get<any[]>('/personnel/operators').then(setOperators).catch(() => { })
+    api.get<any[]>('/personnel/managers').then(setManagers).catch(() => { })
+    api.get<RoleInfo[]>('/system/roles').then(setRoles).catch(() => { })
+    api.get<ModuleInfo[]>('/system/modules').then(setAllModules).catch(() => { })
+    api.get<LiveRoom[]>('/system/rooms').then(setRooms).catch(() => { })
   }, [])
 
   const metricDefaultUnit = (m: string) => {
@@ -205,7 +205,7 @@ export function SystemConfigPage() {
   )
 
   return (
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px]">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px]">
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
@@ -222,11 +222,10 @@ export function SystemConfigPage() {
           const Icon = tab.icon
           return (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
-              }`}>
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === tab.key
+                ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
+                : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                }`}>
               <Icon className="w-4 h-4" />{tab.label}
             </button>
           )
@@ -244,7 +243,7 @@ export function SystemConfigPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-orbit-border">
-                      {['规则名称','指标','检测方法','参数','严重程度','启用','操作'].map(h => <th key={h} className="text-left text-xs text-slate-500 font-medium px-5 py-3">{h}</th>)}
+                      {['规则名称', '指标', '检测方法', '参数', '严重程度', '启用', '操作'].map(h => <th key={h} className="text-left text-xs text-slate-500 font-medium px-5 py-3">{h}</th>)}
                     </tr>
                   </thead>
                   <tbody>
@@ -365,12 +364,12 @@ export function SystemConfigPage() {
                     <div key={tmpl.id} className="p-4 rounded-xl bg-orbit-surface2 border border-orbit-border hover:border-orbit-border2 transition-colors">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-semibold text-slate-200">{tmpl.name}</h4>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-accent/10 text-cyan-400 shrink-0">{PERIOD_LABELS[tmpl.period] || '月度'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors"
-                          onClick={() => { setEditingTemplate(tmpl); setTemplateForm({ name: tmpl.name, period: tmpl.period || 'monthly', metrics: (tmpl.metrics || []).map((m: any) => ({ ...m })) }); setTemplateError(''); setShowTemplateModal(true) }}>编辑</button>
+                          <h4 className="text-sm font-semibold text-slate-200">{tmpl.name}</h4>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-accent/10 text-cyan-400 shrink-0">{PERIOD_LABELS[tmpl.period] || '月度'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors"
+                            onClick={() => { setEditingTemplate(tmpl); setTemplateForm({ name: tmpl.name, period: tmpl.period || 'monthly', metrics: (tmpl.metrics || []).map((m: any) => ({ ...m })) }); setTemplateError(''); setShowTemplateModal(true) }}>编辑</button>
                           <button className="text-xs text-slate-500 hover:text-orbit-danger transition-colors"
                             onClick={() => { setDeletingTemplate(tmpl); setDeleteTemplateError('') }}>删除</button>
                         </div>
@@ -478,7 +477,7 @@ export function SystemConfigPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-orbit-border">
-                      {['字典编码','字典名称','数据项数','状态','更新时间','操作'].map(h => <th key={h} className="text-left text-xs text-slate-500 font-medium px-5 py-3">{h}</th>)}
+                      {['字典编码', '字典名称', '数据项数', '状态', '更新时间', '操作'].map(h => <th key={h} className="text-left text-xs text-slate-500 font-medium px-5 py-3">{h}</th>)}
                     </tr>
                   </thead>
                   <tbody>

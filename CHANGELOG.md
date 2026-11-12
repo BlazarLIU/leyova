@@ -12,9 +12,11 @@ All notable changes to **Leyova** are documented in this file.
 - **前后端端点一致性静态护栏 & 4 处真实孤儿调用闭环**：
   - `scripts/check-guardrails.mjs` 新增 Guardrail 3 (`ENDPOINT-PARITY`)，静态扫描全部前端 `api.{get,post,put,patch,delete}` 路径并与 Fastify 注册路由逐一对齐（236 处前端调用 100% 匹配）。
   - 依据护栏排查并补齐 4 处前端真实调用但后端缺失的闭环路由：`GET /api/v1/overview/sessions` (`overview.ts`)、`GET /api/v1/review/related-issues` (`review.ts`)、`POST /api/v1/system/competitors` 与 `POST /api/v1/system/tasks` (`system.ts`)，同时修复 `CompetitorWatchPage.tsx` 对后端数组返回格式的兼容。
-- **P3 导航语义与前端权限目录收口**：
+- **P3 导航语义、独立模块与工程全面收口**：
   - `platform-navigation.ts`、`App.tsx` 与 `Topbar.tsx` 同步对齐权限模块映射（`/shop/pdd/caliber-compare` → `bi`、`/shop/jd/store-rating` → `fulfillment`、`/shop/xiaohongshu/notes` → `content`），补齐 `Topbar` 店铺专页标签与模块准入清单并清理死路由 `/content/config` 与 `AccountsSection.tsx` 残留 `system_inventory` 映射。
-  - `apps/web/src/pages/ops/` 按 9 个独立业务域拆分为子目录（`session-products`、`product-center`、`fulfillment`、`after-sales`、`kol`、`customer-service`、`net-roi`、`search-seo`、`members`），同步修复 `GlobalSearch.tsx` 失效快捷路径 (`/overview/cockpit`、`/omnichannel/dashboard`)；`rbac-and-domains.test.ts` 扩展至 61 项回归全通过。
+  - 新增 `/system/personnel`（`PersonnelPage.tsx`，`module="system_personnel_ops"`）与 `/system/rooms`（`RoomsPage.tsx`，`module="system_rooms"`）独立页面与侧栏入口，打通 HRBP 与运营总监准入。
+  - 下线兼容页 `RoiDashboardPage`（`/bi/roi` 重定向至 `/ops/net-roi`）及后端兼容/冗余别名路由（`GET /api/v1/bi/roi`、`GET /api/v1/system/inventory`、`/api/v1/ops/{goals,scripts,issues}` 及 `/api/v1/anchors` 重复别名），并将 `/api/v1/anchors/:id` 收口为纯数字主键校验（防非法字符触发 500）。
+  - `apps/web/src/pages/ops/` 按 9 个独立业务域拆分为子目录，修复 `GlobalSearch.tsx` 失效跳转并新增 `@leyova/web` 前端架构与权限契约测试套件（`apps/web/test/frontend-integrity.test.mjs`，接入 `pnpm test` 与 `.github/workflows/ci.yml`）；全仓 `@leyova/api`（62 项）与 `@leyova/web`（7 项）测试全部通过。
 
 ---
 

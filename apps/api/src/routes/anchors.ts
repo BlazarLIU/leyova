@@ -80,163 +80,33 @@ export async function anchorRoutes(app: FastifyInstance) {
   }
 
   app.get('/api/v1/anchors/list', { preHandler: [requireAuth] }, listHandler)
-  app.get('/api/v1/anchors', { preHandler: [requireAuth] }, listHandler)
 
-  // ── GET /api/v1/anchors/profile/:id ──
-  //    Frontend: /api/anchors/:id
-  app.get('/api/v1/anchors/profile/:id', { preHandler: [requireAuth] }, async (request, reply) => {
-    const user = (request as any).user
-    const { id } = request.params as { id: string }
-    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
-      return sendError(reply, 403, '仅可查看本人关联主播档案')
-    }
-    try {
-      const result = await withRlsContext(request, (client) => client.query<{
-        id: number; name: string; level: string; followers: number
-        join_date: string; email: string; phone: string; tags: string[]
-      }>(
-        `SELECT a.id, a.name, ap.level, ap.followers, ap.join_date,
-                ap.email, ap.phone, ap.tags
-         FROM anchors a
-         LEFT JOIN anchor_profiles ap ON ap.id = a.id
-         WHERE a.id = $1 AND a.status = 1`,
-        [parseInt(id)]
-      ))
-      const r = result.rows[0]
-      if (!r) return sendOk(reply, { id, name: '未知主播' })
-      return sendOk(reply, {
-        id: String(r.id), name: r.name, initials: r.name.slice(0, 2),
-        level: r.level || 'B级', followers: r.followers || 0,
-        joinDate: r.join_date ? new Date(r.join_date).toISOString().slice(0, 10) : '',
-        email: r.email || '', phone: r.phone || '',
-        tags: r.tags || [],
-      })
-    } catch (err) {
-      request.log.warn({ err }, 'anchors/profile query failed')
-      return sendOk(reply, { id, name: '加载失败' })
-    }
-  })
-  // Alias for frontend calls like /api/anchors/1
+  // ── GET /api/v1/anchors/:id ──
   app.get('/api/v1/anchors/:id', { preHandler: [requireAuth] }, async (request, reply) => {
     const user = (request as any).user
     const { id } = request.params as { id: string }
-    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
+    if (!/^\d+$/.test(id)) return sendError(reply, 404, '主播不存在')
+    const anchorId = parseInt(id, 10)
+    if (user?.role === 'employee' && user?.anchorId && anchorId !== Number(user.anchorId)) {
       return sendError(reply, 403, '仅可查看本人关联主播档案')
     }
     request.params = { id }
-    const detail = await withRlsContext(request, (client) => getAnchorDetail(parseInt(id), client))
+    const detail = await withRlsContext(request, (client) => getAnchorDetail(anchorId, client))
     return sendOk(reply, detail)
   })
 
-  // ── GET /api/v1/anchors/profile/:id/performance ──
-  app.get('/api/v1/anchors/profile/:id/performance', { preHandler: [requireAuth] }, async (request, reply) => {
-    const user = (request as any).user
-    const { id } = request.params as { id: string }
-    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
-      return sendError(reply, 403, '仅可查看本人关联主播绩效数据')
-    }
-    try {
-      const { stats, monthly, recent } = await withRlsContext(request, async (client) => {
-        const stats = await client.query<{
-          avg_gmv: string; avg_viewers: number; avg_conversion: number; session_count: number
-        }>(
-          `SELECT COALESCE(AVG(gmv), 0) AS avg_gmv,
-                  COALESCE(AVG(online_peak), 0)::int AS avg_viewers,
-                  0 AS avg_conversion,
-                  COUNT(*)::int AS session_count
-           FROM session_anchor_metrics WHERE anchor_id = $1`,
-          [parseInt(id)]
-        )
-        const monthly = await client.query(
-          `SELECT to_char(date, 'YYYY-MM') AS month,
-                  COUNT(*)::int AS session_count,
-                  COALESCE(SUM(duration_min), 0)::int AS total_duration_min,
-                  COALESCE(SUM(gmv), 0) AS total_gmv,
-                  COALESCE(AVG(gmv_per_hour), 0) AS avg_gmv_per_hour,
-                  COALESCE(MAX(online_peak), 0)::int AS max_online_peak,
-                  COALESCE(AVG(avg_online), 0)::int AS avg_avg_online,
-                  COALESCE(AVG(avg_item_price), 0) AS avg_avg_item_price,
-                  COALESCE(AVG(exposure_view_rate), 0) AS avg_exposure_view_rate,
-                  COALESCE(AVG(retention_rate), 0) AS avg_retention_rate,
-                  COALESCE(AVG(interaction_rate), 0) AS avg_interaction_rate,
-                  COALESCE(SUM(new_fans), 0)::int AS total_new_fans,
-                  COALESCE(AVG(view_follow_rate), 0) AS avg_view_follow_rate,
-                  COALESCE(SUM(new_group_members), 0)::int AS total_new_group_members,
-                  COALESCE(AVG(uv_value), 0) AS avg_uv_value
-           FROM session_anchor_metrics WHERE anchor_id = $1
-           GROUP BY month ORDER BY month DESC LIMIT 6`,
-          [parseInt(id)]
-        )
-        const recent = await client.query(
-          `SELECT id, title, date::text, duration_min, gmv, gmv_per_hour,
-                  online_peak, avg_online, avg_item_price, exposure_view_rate,
-                  retention_rate, interaction_rate, new_fans, view_follow_rate,
-                  new_group_members, uv_value
-           FROM session_anchor_metrics
-           WHERE anchor_id = $1
-           ORDER BY date DESC
-           LIMIT 10`,
-          [parseInt(id)]
-        )
-        return { stats, monthly, recent }
-      })
-      const s = stats.rows[0]
-      return sendOk(reply, {
-        stats: [
-          { id: 'avg-gmv', label: '场均GMV', value: `¥${(parseFloat(s.avg_gmv) / 10000).toFixed(1)}万`, change: 12.5 },
-          { id: 'avg-viewers', label: '场均观看', value: s.avg_viewers.toLocaleString(), change: 8.3 },
-          { id: 'conversion', label: '转化率', value: `${s.avg_conversion.toFixed(1)}%`, change: 0.6 },
-          { id: 'session-count', label: '总场次', value: String(s.session_count), change: 5.0 },
-        ],
-        monthlyData: monthly.rows.map(r => ({
-          month: r.month,
-          sessionCount: r.session_count,
-          totalDurationMin: parseFloat(r.total_duration_min ?? '0'),
-          totalGmv: parseFloat(r.total_gmv ?? '0'),
-          avgGmvPerHour: parseFloat(r.avg_gmv_per_hour ?? '0'),
-          maxOnlinePeak: r.max_online_peak,
-          avgAvgOnline: parseFloat(r.avg_avg_online ?? '0'),
-          avgAvgItemPrice: parseFloat(r.avg_avg_item_price ?? '0'),
-          avgExposureViewRate: parseFloat(r.avg_exposure_view_rate ?? '0'),
-          avgRetentionRate: parseFloat(r.avg_retention_rate ?? '0'),
-          avgInteractionRate: parseFloat(r.avg_interaction_rate ?? '0'),
-          totalNewFans: parseFloat(r.total_new_fans ?? '0'),
-          avgViewFollowRate: parseFloat(r.avg_view_follow_rate ?? '0'),
-          totalNewGroupMembers: parseFloat(r.total_new_group_members ?? '0'),
-          avgUvValue: parseFloat(r.avg_uv_value ?? '0'),
-        })),
-        recentSessions: recent.rows.map(r => ({
-          id: String(r.id),
-          date: typeof r.date === 'string' ? r.date.slice(0, 10) : r.date,
-          durationMin: r.duration_min ?? 0,
-          gmv: parseFloat(r.gmv ?? '0'),
-          gmvPerHour: parseFloat(r.gmv_per_hour ?? '0'),
-          onlinePeak: r.online_peak ?? 0,
-          avgOnline: r.avg_online ?? 0,
-          avgItemPrice: parseFloat(r.avg_item_price ?? '0'),
-          exposureViewRate: parseFloat(r.exposure_view_rate ?? '0'),
-          retentionRate: parseFloat(r.retention_rate ?? '0'),
-          interactionRate: parseFloat(r.interaction_rate ?? '0'),
-          newFans: r.new_fans ?? 0,
-          viewFollowRate: parseFloat(r.view_follow_rate ?? '0'),
-          newGroupMembers: r.new_group_members ?? 0,
-          uvValue: parseFloat(r.uv_value ?? '0'),
-        })),
-      })
-    } catch (err) {
-      request.log.warn({ err }, 'anchors/performance query failed')
-      return sendOk(reply, { stats: [], monthlyData: [], recentSessions: [] })
-    }
-  })
+  // ── GET /api/v1/anchors/:id/performance ──
   app.get('/api/v1/anchors/:id/performance', { preHandler: [requireAuth] }, async (request, reply) => {
     const user = (request as any).user
     const { id } = request.params as { id: string }
-    if (user?.role === 'employee' && user?.anchorId && parseInt(id, 10) !== Number(user.anchorId)) {
+    if (!/^\d+$/.test(id)) return sendError(reply, 404, '主播不存在')
+    const anchorId = parseInt(id, 10)
+    if (user?.role === 'employee' && user?.anchorId && anchorId !== Number(user.anchorId)) {
       return sendError(reply, 403, '仅可查看本人关联主播绩效数据')
     }
     request.params = { id }
     // forward to profile performance
-    const result = await withRlsContext(request, (client) => getAnchorPerformance(parseInt(id), client))
+    const result = await withRlsContext(request, (client) => getAnchorPerformance(anchorId, client))
     return sendOk(reply, result)
   })
 
@@ -357,8 +227,8 @@ export async function anchorRoutes(app: FastifyInstance) {
     }
   })
 
-  // ── GET /api/v1/anchors/training ──
-  app.get('/api/v1/anchors/training', async (request, reply) => {
+  // ── GET /api/v1/training/plans ──
+  app.get('/api/v1/training/plans', async (request, reply) => {
     const query = request.query as { status?: string }
     try {
       let sql = `SELECT id, name, anchor_count, start_date, end_date, progress, status
@@ -377,45 +247,10 @@ export async function anchorRoutes(app: FastifyInstance) {
         endDate: r.end_date.toISOString().slice(0, 10),
         progress: r.progress, status: r.status,
       })))
-    } catch (err) {
-      request.log.warn({ err }, 'anchors/training query failed')
-      return sendOk(reply, [])
-    }
-  })
-  // Alias for frontend: /api/training/plans
-  app.get('/api/v1/training/plans', async (request, reply) => {
-    request.query = request.query
-    try {
-      const result = await withRlsContext(request, (client) => client.query(
-        `SELECT id, name, anchor_count, start_date, end_date, progress, status
-         FROM anchor_training_plans ORDER BY id`
-      ))
-      return sendOk(reply, result.rows.map(r => ({
-        id: String(r.id), name: r.name,
-        anchorCount: r.anchor_count,
-        startDate: r.start_date.toISOString().slice(0, 10),
-        endDate: r.end_date.toISOString().slice(0, 10),
-        progress: r.progress, status: r.status,
-      })))
     } catch { return sendOk(reply, []) }
   })
 
-  // ── GET /api/v1/anchors/training/records ──
-  app.get('/api/v1/anchors/training/records', async (request, reply) => {
-    try {
-      const result = await withRlsContext(request, (client) => client.query(
-        `SELECT id, anchor_name, date, project, duration_hours, completion, score
-         FROM anchor_training_records ORDER BY date DESC LIMIT 20`
-      ))
-      return sendOk(reply, result.rows.map(r => ({
-        id: String(r.id), date: r.date.toISOString().slice(0, 10),
-        anchor: r.anchor_name, project: r.project,
-        duration: `${r.duration_hours}h`, completion: r.completion,
-        score: r.score,
-      })))
-    } catch { return sendOk(reply, []) }
-  })
-  // Alias for frontend: /api/training/records
+  // ── GET /api/v1/training/records ──
   app.get('/api/v1/training/records', async (request, reply) => {
     try {
       const result = await withRlsContext(request, (client) => client.query(
@@ -431,8 +266,8 @@ export async function anchorRoutes(app: FastifyInstance) {
     } catch { return sendOk(reply, []) }
   })
 
-  // ── GET /api/v1/anchors/scripts ──
-  app.get('/api/v1/anchors/scripts', async (request, reply) => {
+  // ── GET /api/v1/scripts/templates ──
+  app.get('/api/v1/scripts/templates', async (request, reply) => {
     const query = request.query as { category?: string }
     try {
       let sql = `SELECT id, category, title, scenario, content, usage_count, last_used
@@ -444,21 +279,6 @@ export async function anchorRoutes(app: FastifyInstance) {
       }
       sql += ' ORDER BY id'
       const result = await withRlsContext(request, (client) => client.query(sql, params))
-      return sendOk(reply, result.rows.map(r => ({
-        id: String(r.id), category: r.category, title: r.title,
-        scenario: r.scenario, content: r.content,
-        usageCount: r.usage_count,
-        lastUsed: r.last_used ? r.last_used.toISOString().slice(0, 10) : '',
-      })))
-    } catch { return sendOk(reply, []) }
-  })
-  // Alias for frontend: /api/scripts/templates
-  app.get('/api/v1/scripts/templates', async (request, reply) => {
-    try {
-      const result = await withRlsContext(request, (client) => client.query(
-        `SELECT id, category, title, scenario, content, usage_count, last_used
-         FROM anchor_script_templates ORDER BY id`
-      ))
       return sendOk(reply, result.rows.map(r => ({
         id: String(r.id), category: r.category, title: r.title,
         scenario: r.scenario, content: r.content,

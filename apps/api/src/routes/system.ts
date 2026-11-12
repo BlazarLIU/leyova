@@ -4,7 +4,6 @@ import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
 import { canManageTargetUser, requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
-import { queryInventoryProducts } from './inventory.js'
 
 // 规范化目标模板指标项：{ metric, target, unit }，过滤非法项
 function normalizeTemplateMetrics(items?: Array<{ metric?: string; target?: number | string; unit?: string }>) {
@@ -873,17 +872,6 @@ export async function systemRoutes(app: FastifyInstance) {
       return sendOk(reply, rows)
     } catch (err) {
       request.log.warn({ err }, 'system/multi-room query failed')
-      return sendOk(reply, [])
-    }
-  })
-
-  // ── GET /api/v1/system/inventory ──
-  app.get('/api/v1/system/inventory', async (request, reply) => {
-    try {
-      const items = await withRlsContext(request, (client) => queryInventoryProducts(client))
-      return sendOk(reply, items)
-    } catch (err) {
-      request.log.warn({ err }, 'system/inventory query failed')
       return sendOk(reply, [])
     }
   })

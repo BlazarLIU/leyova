@@ -19,6 +19,6 @@
     "start:api": "pnpm -F @leyova/api start",
     "start:mcp": "pnpm -F @leyova/mcp-server start",
     "check:guardrails": "node scripts/check-guardrails.mjs",
-    "test": "pnpm -F @leyova/api test"
+    "test": "pnpm -F @leyova/api test && pnpm -F @leyova/web test"
   }
 }

@@ -65,7 +65,6 @@ const ContentCenterConfigPage = lazyPage(() => import('@/pages/content/ContentCe
 // 商业智能
 const RefundAnalysisPage = lazyPage(() => import('@/pages/bi/RefundAnalysisPage'), 'RefundAnalysisPage')
 const BiDashboardPage = lazyPage(() => import('@/pages/bi/BiDashboardPage'), 'BiDashboardPage')
-const RoiDashboardPage = lazyPage(() => import('@/pages/bi/RoiDashboardPage'), 'RoiDashboardPage')
 const AnomalyDetectionPage = lazyPage(() => import('@/pages/bi/AnomalyDetectionPage'), 'AnomalyDetectionPage')
 
 // 主播赋能
@@ -115,6 +114,8 @@ const UsersPage = lazyPage(() => import('@/pages/system/UsersPage'), 'UsersPage'
 const AuditLogsPage = lazyPage(() => import('@/pages/system/AuditLogsPage'), 'AuditLogsPage')
 const DictPage = lazyPage(() => import('@/pages/system/DictPage'), 'DictPage')
 const SystemConfigPage = lazyPage(() => import('@/pages/system/SystemConfigPage'), 'SystemConfigPage')
+const PersonnelPage = lazyPage(() => import('@/pages/system/PersonnelPage'), 'PersonnelPage')
+const RoomsPage = lazyPage(() => import('@/pages/system/RoomsPage'), 'RoomsPage')
 const AlertCenterPage = lazyPage(() => import('@/pages/system/AlertCenterPage'), 'AlertCenterPage')
 const ImprovementTasksPage = lazyPage(() => import('@/pages/system/ImprovementTasksPage'), 'ImprovementTasksPage')
 const PromotionCampaignsPage = lazyPage(() => import('@/pages/system/PromotionCampaignsPage'), 'PromotionCampaignsPage')
@@ -200,7 +201,7 @@ export default function App() {
 
           {/* ===== 商业智能 ===== */}
           <Route path="/bi/dashboard" element={<RequireAccess module="bi"><BiDashboardPage /></RequireAccess>} />
-          <Route path="/bi/roi" element={<RequireAccess module="bi"><RoiDashboardPage /></RequireAccess>} />
+          <Route path="/bi/roi" element={<Navigate to="/ops/net-roi" replace />} />
           <Route path="/bi/refund-analysis" element={<RequireAccess module="bi"><RefundAnalysisPage /></RequireAccess>} />
           <Route path="/bi/anomaly-detection" element={<RequireAccess module="bi"><AnomalyDetectionPage /></RequireAccess>} />
 
@@ -247,6 +248,8 @@ export default function App() {
 
           {/* ===== 系统 ===== */}
           <Route path="/system/config" element={<RequireAccess roles={['super_admin']} module="system_config"><SystemConfigPage /></RequireAccess>} />
+          <Route path="/system/personnel" element={<RequireAccess module="system_personnel_ops"><PersonnelPage /></RequireAccess>} />
+          <Route path="/system/rooms" element={<RequireAccess module="system_rooms"><RoomsPage /></RequireAccess>} />
           <Route path="/system/alerts" element={<RequireAccess module="system_alerts"><AlertCenterPage /></RequireAccess>} />
           <Route path="/system/tasks" element={<RequireAccess anyModules={['system_tasks', 'ops']}><ImprovementTasksPage /></RequireAccess>} />
           <Route path="/system/promotions" element={<RequireAccess anyModules={['system_promotions', 'ops']}><PromotionCampaignsPage /></RequireAccess>} />

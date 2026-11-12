@@ -468,6 +468,8 @@ function buildSystemSection(): NavSection {
         module: 'system_users',
         children: [
           { label: '系统配置', href: '/system/config', module: 'system_config' },
+          { label: '运营人员管理', href: '/system/personnel', module: 'system_personnel_ops' },
+          { label: '直播间管理', href: '/system/rooms', module: 'system_rooms' },
           { label: '平台与渠道管理', href: '/system/platforms', module: 'system_users' },
           { label: '模型与知识库', href: '/content/center-config', module: 'system_ai' },
           { label: '账号管理', href: '/system/users', module: 'system_users' },

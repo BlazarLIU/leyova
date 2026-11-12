@@ -3,7 +3,7 @@ import { withRlsContext, type DbExecutor } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { sendOk, sendError } from '../lib/http.js'
 
-/** 查询库存概况与列表，同时复用于 /api/v1/system/inventory 与 /api/v1/inventory/* */
+/** 查询商品主数据库存概况与列表，服务于 /api/v1/inventory/* */
 export async function queryInventoryProducts(
   executor: DbExecutor,
   filters: { keyword?: string; category?: string; platformCode?: string; lowStockOnly?: boolean } = {},

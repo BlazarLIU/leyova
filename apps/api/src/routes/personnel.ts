@@ -357,7 +357,7 @@ export async function personnelRoutes(app: FastifyInstance) {
       const dates = Array.from({ length: dim }, (_, i) => {
         const day = i + 1
         const weekdayIdx = new Date(y, m - 1, day).getDay()
-        return { date: `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`, day, weekday: weekdays[weekdayIdx], isWeekend: weekdayIdx === 0 || weekdayIdx === 6 }
+        return { date: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`, day, weekday: weekdays[weekdayIdx], isWeekend: weekdayIdx === 0 || weekdayIdx === 6 }
       })
       return sendOk(reply, { year: y, month: m, daysInMonth: dim, dates, anchors: [], operators: [], attendanceData: {}, anchorStats: [], operatorStats: [] })
     }

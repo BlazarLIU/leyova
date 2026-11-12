@@ -34,14 +34,14 @@ export async function opsRoutes(app: FastifyInstance) {
     }
   })
 
-  // ── GET /api/v1/ops/goal-tracking ── (alias: /api/v1/ops/goals)
-  const goalTrackingHandler = async (request: any, reply: any) => {
+  // ── GET /api/v1/ops/goal-tracking ──
+  app.get('/api/v1/ops/goal-tracking', async (request, reply) => {
     const user = await requireAuth(request, reply)
     if (!user) return
 
     try {
       const showCost = canAccessCost(user)
-      const periodKey = (request.query?.period || '').toString().toLowerCase()
+      const periodKey = (((request.query as { period?: string })?.period) || '').toString().toLowerCase()
       const periodMap: Record<string, string> = { month: 'monthly', quarter: 'quarterly', year: 'yearly' }
       const dbPeriod = periodMap[periodKey] || ''
       const where = dbPeriod ? ' WHERE period = $1' : ''
@@ -62,12 +62,10 @@ export async function opsRoutes(app: FastifyInstance) {
       request.log.warn({ err }, 'ops/goal-tracking query failed')
       return sendOk(reply, { goals: [] })
     }
-  }
-  app.get('/api/v1/ops/goal-tracking', goalTrackingHandler)
-  app.get('/api/v1/ops/goals', goalTrackingHandler)
+  })
 
-  // ── GET /api/v1/ops/script-library ── (alias: /api/v1/ops/scripts)
-  const scriptLibraryHandler = async (request: any, reply: any) => {
+  // ── GET /api/v1/ops/script-library ──
+  app.get('/api/v1/ops/script-library', async (request, reply) => {
     try {
       const { rows } = await withRlsContext(request, (client) =>
         client.query(
@@ -80,12 +78,10 @@ export async function opsRoutes(app: FastifyInstance) {
       request.log.warn({ err }, 'ops/script-library query failed')
       return sendOk(reply, [])
     }
-  }
-  app.get('/api/v1/ops/script-library', scriptLibraryHandler)
-  app.get('/api/v1/ops/scripts', scriptLibraryHandler)
+  })
 
-  // ── GET /api/v1/ops/issue-library ── (alias: /api/v1/ops/issues)
-  const issueLibraryHandler = async (request: any, reply: any) => {
+  // ── GET /api/v1/ops/issue-library ──
+  app.get('/api/v1/ops/issue-library', async (request, reply) => {
     try {
       const { rows, autoTags } = await withRlsContext(request, async (client) => {
         const res = await client.query(
@@ -101,9 +97,7 @@ export async function opsRoutes(app: FastifyInstance) {
       request.log.warn({ err }, 'ops/issue-library query failed')
       return sendOk(reply, { issues: [], autoTags: [] })
     }
-  }
-  app.get('/api/v1/ops/issue-library', issueLibraryHandler)
-  app.get('/api/v1/ops/issues', issueLibraryHandler)
+  })
 
   // ── GET /api/v1/ops/room-health ── (frontend: /ops/room-health)
   app.get('/api/v1/ops/room-health', async (request, reply) => {

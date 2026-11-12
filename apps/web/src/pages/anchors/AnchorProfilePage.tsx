@@ -158,7 +158,7 @@ export function AnchorProfilePage() {
 
   // 加载主播列表；URL 无 id 参数时默认选中第一个现存主播
   useEffect(() => {
-    api.get<any>('/api/anchors')
+    api.get<any>('/api/anchors/list')
       .then((res) => {
         const list = Array.isArray(res) ? res : (res?.data ?? [])
         setAnchorList(list.map((a: any) => ({ id: a.id, name: a.name })))
@@ -185,7 +185,7 @@ export function AnchorProfilePage() {
   // 加载主播数据
   useEffect(() => {
     if (!currentAnchorId) return
-    api.get<any>('/api/anchors/' + currentAnchorId)
+    api.get<any>(`/api/anchors/${currentAnchorId}`)
       .then((res) => {
         const data = res?.data ?? res ?? {}
         if (data && data.name) {
@@ -204,7 +204,7 @@ export function AnchorProfilePage() {
       })
       .catch(() => { /* 保持默认数据 */ })
 
-    api.get<any>('/api/anchors/' + currentAnchorId + '/performance')
+    api.get<any>(`/api/anchors/${currentAnchorId}/performance`)
       .then((res) => {
         const perf = res?.data ?? res ?? {}
 

@@ -71,3 +71,6 @@ jobs:
       - name: Run API unit & integration tests
         run: pnpm --filter @leyova/api test
 
+      - name: Run Web structural & permission integrity tests
+        run: pnpm --filter @leyova/web test
+

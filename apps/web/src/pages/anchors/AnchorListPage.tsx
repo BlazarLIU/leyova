@@ -84,7 +84,7 @@ export function AnchorListPage() {
     const params: Record<string, string | number | undefined> = {}
     if (statusFilter !== 'all') params.status = statusFilter
 
-    api.get<any>('/api/anchors', params)
+    api.get<any>('/api/anchors/list', params)
       .then((res) => {
         const list = Array.isArray(res) ? res : (res?.anchors ?? res?.data ?? [])
         if (list.length > 0) {

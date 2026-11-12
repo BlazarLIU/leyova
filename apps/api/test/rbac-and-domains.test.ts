@@ -69,6 +69,8 @@ describe('HTTP API & RBAC 回归测试', () => {
   let brandViewer: TempAccount
   let financeUser: TempAccount
   let adminUser: TempAccount
+  let hrbpUser: TempAccount
+  let opsDirectorUser: TempAccount
 
   before(async () => {
     app = await buildApp({ logger: false })
@@ -79,7 +81,17 @@ describe('HTTP API & RBAC 回归测试', () => {
     brandViewer = await createTempAccount('brand_viewer', 'brand_viewer', 1)
     financeUser = await createTempAccount('finance', 'agency_staff', 1)
     adminUser = await createTempAccount('admin', 'agency_staff', 1)
-    createdUserIds.push(adBuyer.userId, operatorUser.userId, brandViewer.userId, financeUser.userId, adminUser.userId)
+    hrbpUser = await createTempAccount('hrbp', 'agency_staff', 1)
+    opsDirectorUser = await createTempAccount('ops_director', 'agency_staff', 1)
+    createdUserIds.push(
+      adBuyer.userId,
+      operatorUser.userId,
+      brandViewer.userId,
+      financeUser.userId,
+      adminUser.userId,
+      hrbpUser.userId,
+      opsDirectorUser.userId,
+    )
   })
 
   after(async () => {
@@ -109,7 +121,7 @@ describe('HTTP API & RBAC 回归测试', () => {
   })
 
   test('未登录请求被全局鉴权拦截返回 401', async () => {
-    const res = await app.inject({ method: 'GET', url: '/api/v1/bi/roi' })
+    const res = await app.inject({ method: 'GET', url: '/api/v1/net-roi/overview' })
     assert.equal(res.statusCode, 401)
   })
 
@@ -131,15 +143,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(lockedRes.statusCode, 429)
   })
 
-  test('ad_buyer 允许访问投流/关键词/ROI 看板，但禁止访问成本台账 (/costs)', async () => {
-    const roiRes = await app.inject({
-      method: 'GET',
-      url: '/api/v1/bi/roi',
-      headers: { cookie: adBuyer.cookie },
-    })
-    assert.equal(roiRes.statusCode, 200)
-    assert.equal(roiRes.json().success, true)
-
+  test('ad_buyer 允许访问投流/关键词/Net-ROI 看板，但禁止访问成本台账 (/costs)', async () => {
     const netRoiRes = await app.inject({
       method: 'GET',
       url: '/api/v1/net-roi/overview',
@@ -164,14 +168,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(costsRes.statusCode, 403)
   })
 
-  test('operator 禁止访问 BI ROI 与 Net-ROI，允许访问退款分析与抖音店铺指标，跨平台店铺越权返回 400', async () => {
-    const roiRes = await app.inject({
-      method: 'GET',
-      url: '/api/v1/bi/roi',
-      headers: { cookie: operatorUser.cookie },
-    })
-    assert.equal(roiRes.statusCode, 403)
-
+  test('operator 禁止访问 Net-ROI，允许访问退款分析与抖音店铺指标，跨平台店铺越权返回 400', async () => {
     const netRoiRes = await app.inject({
       method: 'GET',
       url: '/api/v1/net-roi/overview',
@@ -203,10 +200,10 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(mismatchRes.statusCode, 400)
   })
 
-  test('brand_viewer 无显式成本授权时禁止查看 BI ROI，且写接口均被拒绝返回 403', async () => {
+  test('brand_viewer 无显式成本授权时禁止查看 Net-ROI，且写接口均被拒绝返回 403', async () => {
     const roiRes = await app.inject({
       method: 'GET',
-      url: '/api/v1/bi/roi',
+      url: '/api/v1/net-roi/overview',
       headers: { cookie: brandViewer.cookie },
     })
     assert.equal(roiRes.statusCode, 403)
@@ -372,18 +369,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(timingSafeTokenEqual('abc123', 'abc124'), false)
   })
 
-  test('Round 2 修复验证：/bi/roi 与 /bi/refund 返回真实指标，/net-roi/overview 含归因窗口与经营模式维度', async () => {
-    const roiRes = await app.inject({
-      method: 'GET',
-      url: '/api/v1/bi/roi?period=30d',
-      headers: { cookie: adBuyer.cookie },
-    })
-    assert.equal(roiRes.statusCode, 200)
-    const roiData = roiRes.json().data
-    assert.equal(typeof roiData.overall_roi, 'number')
-    assert.ok(Array.isArray(roiData.channels))
-    assert.ok(Array.isArray(roiData.chartData))
-
+  test('Round 2 修复验证：/bi/refund 返回真实指标，/net-roi/overview 含归因窗口与经营模式维度', async () => {
     const refundRes = await app.inject({
       method: 'GET',
       url: '/api/v1/bi/refund?period=30d',
@@ -703,5 +689,48 @@ describe('HTTP API & RBAC 回归测试', () => {
     const pool = getPool()
     await pool.query('DELETE FROM competitor_brands WHERE id = $1', [createdCompId])
     await pool.query('DELETE FROM improvement_tasks WHERE id = $1', [createdTaskId])
+  })
+
+  test('工程清理与独立模块准入：废弃别名返回 404，人员/直播间接口对 HRBP 与运营总监可用', async () => {
+    for (const deadPath of ['/api/v1/bi/roi', '/api/v1/system/inventory', '/api/v1/ops/goals', '/api/v1/anchors/training']) {
+      const res = await app.inject({
+        method: 'GET',
+        url: deadPath,
+        headers: { cookie: adminUser.cookie },
+      })
+      assert.equal(res.statusCode, 404, `已清理路由 ${deadPath} 应返回 404`)
+    }
+
+    for (const livePath of ['/api/v1/inventory/products', '/api/v1/ops/goal-tracking', '/api/v1/training/plans']) {
+      const res = await app.inject({
+        method: 'GET',
+        url: livePath,
+        headers: { cookie: adminUser.cookie },
+      })
+      assert.equal(res.statusCode, 200, `规范路由 ${livePath} 应返回 200`)
+    }
+
+    const hrbpAnchorsRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/personnel/anchors',
+      headers: { cookie: hrbpUser.cookie },
+    })
+    assert.equal(hrbpAnchorsRes.statusCode, 200)
+    assert.ok(Array.isArray(hrbpAnchorsRes.json().data))
+
+    const hrbpManagersRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/personnel/managers',
+      headers: { cookie: hrbpUser.cookie },
+    })
+    assert.equal(hrbpManagersRes.statusCode, 200)
+
+    const opsDirRoomsRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/system/rooms',
+      headers: { cookie: opsDirectorUser.cookie },
+    })
+    assert.equal(opsDirRoomsRes.statusCode, 200)
+    assert.ok(Array.isArray(opsDirRoomsRes.json().data))
   })
 })
