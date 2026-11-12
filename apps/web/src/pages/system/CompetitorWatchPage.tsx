@@ -51,8 +51,9 @@ export function CompetitorWatchPage() {
       search: searchQuery || undefined,
     })
       .then((res) => {
-        if (res.competitors) setCompetitors(res.competitors)
-        if (res.comparisonData) setComparisonData(res.comparisonData)
+        if (Array.isArray(res)) setCompetitors(res)
+        else if (res?.competitors) setCompetitors(res.competitors)
+        if (res?.comparisonData) setComparisonData(res.comparisonData)
       })
       .catch(() => {})
   }, [searchQuery])
@@ -305,8 +306,9 @@ export function CompetitorWatchPage() {
                   setShowAddModal(false)
                   setNewCompetitor({ brand: '', industry: '' })
                   const res = await api.get<any>('/api/system/competitors', { search: searchQuery || undefined })
-                  if (res.competitors) setCompetitors(res.competitors)
-                  if (res.comparisonData) setComparisonData(res.comparisonData)
+                  if (Array.isArray(res)) setCompetitors(res)
+                  else if (res?.competitors) setCompetitors(res.competitors)
+                  if (res?.comparisonData) setComparisonData(res.comparisonData)
                 } catch { /* 后端接口未实现时静默处理 */ }
                 finally { setSaving(false) }
               }} loading={saving}>保存</Button>

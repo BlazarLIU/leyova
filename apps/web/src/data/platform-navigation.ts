@@ -85,7 +85,7 @@ function buildOverviewSection(mode: PlatformMode): NavSection {
   } else {
     // content
     items.push(
-      { label: '笔记经营看板', icon: FileText, href: '/shop/overview', module: 'overview' },
+      { label: '店铺经营看板', icon: Store, href: '/shop/overview', module: 'overview' },
       { label: '数据分析', icon: TrendingUp, href: '/overview/analytics', module: 'overview' },
     )
   }
@@ -285,11 +285,11 @@ function buildShelfSections(platformCode?: string): NavSection[] {
         { label: isTaobaoFamily ? '店铺经营看板（淘系）' : isJd ? '京东经营看板（自营/POP）' : '店铺经营看板', icon: Store, href: shopBoardHref, module: 'overview' },
         ...(isPdd ? [
           { label: '成团转化分析', icon: Users, href: '/shop/pdd/group-funnel', module: 'bi' },
-          { label: '三口径对账', icon: Layers, href: '/shop/pdd/caliber-compare', module: 'overview' },
+          { label: '三口径对账', icon: Layers, href: '/shop/pdd/caliber-compare', module: 'bi' },
           { label: '售后与店铺健康', icon: Undo2, href: '/shop/pdd/refund', module: 'bi' },
         ] : []),
         ...(isJd ? [
-          { label: '店铺星级（四维考核）', icon: Shield, href: '/shop/jd/store-rating', module: 'overview' },
+          { label: '店铺星级（四维考核）', icon: Shield, href: '/shop/jd/store-rating', module: 'fulfillment' },
           { label: '履约时效监控', icon: Clock, href: '/shop/jd/fulfillment', module: 'fulfillment' },
         ] : []),
         {

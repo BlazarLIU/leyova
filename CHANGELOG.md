@@ -2,6 +2,21 @@
 
 All notable changes to **Leyova** are documented in this file.
 
+## [2026-11-12 — SKU Order Facts, Endpoint Parity Guardrail & P3 Closure]
+
+### Added & Hardened
+- **SKU 级订单明细闭环与 RLS 补全 (`database/migrations/121_sku_order_facts_and_p3_polish.sql`)**：
+  - 为 `canonical_order_items` 启用 PostgreSQL `FORCE ROW LEVEL SECURITY`（新增 `p_canonical_order_items_select` / `_write` 策略与 `(store_id, biz_date, internal_sku_id)` 索引），与 `canonical_orders`、`canonical_refund_events` 对齐，全库 RLS 表增至 30 张。
+  - 补全天猫/京东等 7 平台 8 店铺 `dim_sku_mapping` 关联，并生成 `canonical_order_items` 近期 SKU 子订单明细样本（8 店铺 90 条明细行）。
+  - `apps/api/src/routes/omnichannel.ts` 新增 `GET /api/v1/omnichannel/shop/:id/products`，真实聚合店铺 SKU 销量、订单数、实付金额、优惠分摊与成交均价，并按 `canAccessCost` 对估算成本/毛利/毛利率自动脱敏；`ShopProductsPage.tsx` 同步渲染「商品 SKU 销量与盈利排行」卡片并修正跳转路径 `/ops/inventory`。
+- **前后端端点一致性静态护栏 & 4 处真实孤儿调用闭环**：
+  - `scripts/check-guardrails.mjs` 新增 Guardrail 3 (`ENDPOINT-PARITY`)，静态扫描全部前端 `api.{get,post,put,patch,delete}` 路径并与 Fastify 注册路由逐一对齐（236 处前端调用 100% 匹配）。
+  - 依据护栏排查并补齐 4 处前端真实调用但后端缺失的闭环路由：`GET /api/v1/overview/sessions` (`overview.ts`)、`GET /api/v1/review/related-issues` (`review.ts`)、`POST /api/v1/system/competitors` 与 `POST /api/v1/system/tasks` (`system.ts`)，同时修复 `CompetitorWatchPage.tsx` 对后端数组返回格式的兼容。
+- **P3 导航语义收口与回归测试**：
+  - `platform-navigation.ts` 统一修正 `/shop/overview` 内容模式显示名称为「店铺经营看板」，并将 `/shop/pdd/caliber-compare`（`bi`）与 `/shop/jd/store-rating`（`fulfillment`）归入对应业务模块；`rbac-and-domains.test.ts` 扩展至 61 项回归全通过。
+
+---
+
 ## [2026-11-12 — Mid-Term Architecture Optimization]
 
 ### Added & Unified

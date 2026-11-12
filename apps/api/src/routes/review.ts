@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
+import { requireAuth } from '../lib/guard.js'
 import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 export async function reviewRoutes(app: FastifyInstance) {
@@ -178,8 +179,8 @@ export async function reviewRoutes(app: FastifyInstance) {
             current_period: { start_date: q.start_date, end_date: q.end_date },
             previous_period: { start_date: prevStartStr, end_date: prevEndStr },
             gmv_change: prevGmv > 0 ? Math.round(((curGmv - prevGmv) / prevGmv) * 10000) / 100 : 0,
-            orders_change: prev.orders > 0 ? Math.round((( (k.orders || 0) - prev.orders) / prev.orders) * 10000) / 100 : 0,
-            views_change: prev.views > 0 ? Math.round((( (k.views || 0) - prev.views) / prev.views) * 10000) / 100 : 0,
+            orders_change: prev.orders > 0 ? Math.round((((k.orders || 0) - prev.orders) / prev.orders) * 10000) / 100 : 0,
+            views_change: prev.views > 0 ? Math.round((((k.views || 0) - prev.views) / prev.views) * 10000) / 100 : 0,
           }
         }
 
@@ -205,7 +206,7 @@ export async function reviewRoutes(app: FastifyInstance) {
             gmv: parseFloat(r.gmv),
           }))
         } catch {
-          await client.query('ROLLBACK TO SAVEPOINT sp_rev_ch').catch(() => {})
+          await client.query('ROLLBACK TO SAVEPOINT sp_rev_ch').catch(() => { })
         }
 
         // Top 3 anomaly indicators — 基于导入的整体指标与同行基准对比
@@ -595,7 +596,7 @@ export async function reviewRoutes(app: FastifyInstance) {
             await client.query('RELEASE SAVEPOINT sp_rev_imp')
             impTotal = impResult.rows[0]?.total || 0
           } catch {
-            await client.query('ROLLBACK TO SAVEPOINT sp_rev_imp').catch(() => {})
+            await client.query('ROLLBACK TO SAVEPOINT sp_rev_imp').catch(() => { })
           }
 
           // Get views, product_impressions, product_clicks, orders from live_sessions
@@ -666,7 +667,7 @@ export async function reviewRoutes(app: FastifyInstance) {
             prodClicks += fr2.product_click_persons || 0
             orders += fr2.deal_users || 0
           } catch {
-            await client.query('ROLLBACK TO SAVEPOINT sp_rev_imp2').catch(() => {})
+            await client.query('ROLLBACK TO SAVEPOINT sp_rev_imp2').catch(() => { })
           }
 
           return {
@@ -1000,6 +1001,37 @@ export async function reviewRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'review/funnel-data query failed')
       return sendOk(reply, { levels: [], hasImportedData: false })
+    }
+  })
+
+  // ── GET /api/v1/review/related-issues ── 复盘改进闭环关联问题列表
+  app.get('/api/v1/review/related-issues', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    try {
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT id, title, category, occurrence_count, created_at::text AS created_at
+             FROM issue_library
+            ORDER BY occurrence_count DESC, id DESC
+            LIMIT 50`,
+        ),
+      )
+      return sendOk(
+        reply,
+        rows.map((r: any) => ({
+          id: String(r.id),
+          title: r.title,
+          session: '全平台复盘库',
+          type: r.category || 'general',
+          assignee: '运营团队',
+          status: Number(r.occurrence_count || 0) >= 3 ? 'pending' : 'resolved',
+          created_at: String(r.created_at).slice(0, 10),
+        })),
+      )
+    } catch (err) {
+      request.log.warn({ err }, 'review/related-issues query failed')
+      return sendOk(reply, [])
     }
   })
 }

@@ -809,7 +809,11 @@ export async function systemRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/system/competitors ──
   app.get('/api/v1/system/competitors', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
     try {
+      const q = request.query as { search?: string }
+      const search = q.search?.trim() || ''
       const { rows: brands } = await withRlsContext(request, (client) =>
         client.query(
           `SELECT cb.*, COALESCE(
@@ -818,13 +822,40 @@ export async function systemRoutes(app: FastifyInstance) {
             )) FROM competitor_price_data cpd WHERE cpd.brand_id = cb.id),
             '[]'
           ) AS price_data
-           FROM competitor_brands cb ORDER BY cb.id`,
+           FROM competitor_brands cb
+          WHERE ($1 = '' OR cb.brand ILIKE '%' || $1 || '%' OR cb.industry ILIKE '%' || $1 || '%')
+          ORDER BY cb.id`,
+          [search],
         ),
       )
       return sendOk(reply, brands)
     } catch (err) {
       request.log.warn({ err }, 'system/competitors query failed')
       return sendOk(reply, [])
+    }
+  })
+
+  // ── POST /api/v1/system/competitors ── 新增竞品观察品牌
+  app.post('/api/v1/system/competitors', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
+    const body = request.body as { brand?: string; industry?: string }
+    const brand = (body?.brand || '').trim()
+    const industry = (body?.industry || '').trim()
+    if (!brand) {
+      return sendError(reply, 400, '品牌名称不能为空')
+    }
+    try {
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO competitor_brands (brand, industry, trend)
+           VALUES ($1, $2, 'stable')
+           RETURNING *`,
+          [brand, industry],
+        ),
+      )
+      return reply.code(201).send({ success: true, message: '竞品品牌已添加', data: rows[0] })
+    } catch (err) {
+      request.log.warn({ err }, 'system/competitors create failed')
+      return sendError(reply, 500, '创建竞品品牌失败')
     }
   })
 
@@ -905,6 +936,43 @@ export async function systemRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'system/tasks query failed')
       return sendOk(reply, { tasks: [] })
+    }
+  })
+
+  // ── POST /api/v1/system/tasks ── 手动创建改进任务
+  app.post('/api/v1/system/tasks', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
+    const body = request.body as {
+      title?: string
+      description?: string
+      assignee?: string
+      priority?: string
+      dueDate?: string
+    }
+    const title = (body?.title || '').trim()
+    if (!title) {
+      return sendError(reply, 400, '任务标题不能为空')
+    }
+    const priority = ['high', 'medium', 'low'].includes(body?.priority || '') ? body.priority! : 'medium'
+    try {
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `INSERT INTO improvement_tasks (title, description, assignee, priority, source, due_date)
+           VALUES ($1, $2, $3, $4, 'manual', COALESCE(NULLIF($5, '')::date, CURRENT_DATE + 7))
+           RETURNING id, title, description, assignee, priority, source, source_id,
+                     due_date::text AS "dueDate", progress, status, created_at::text AS "createdAt"`,
+          [
+            title,
+            (body?.description || '').trim(),
+            (body?.assignee || '').trim() || '运营团队',
+            priority,
+            (body?.dueDate || '').trim(),
+          ],
+        ),
+      )
+      return reply.code(201).send({ success: true, message: '改进任务已创建', data: { task: rows[0] } })
+    } catch (err) {
+      request.log.warn({ err }, 'system/tasks create failed')
+      return sendError(reply, 500, '创建改进任务失败')
     }
   })
 

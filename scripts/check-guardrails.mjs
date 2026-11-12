@@ -61,5 +61,90 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log('CI Guardrail checks passed: 0 RLS-bypass routes, 0 unguarded fact_trade_daily GMV aggregations.')
+// Guardrail 3: Frontend api.get/post/put/patch/delete literal/templated calls must match a registered backend route
+function normalizeBackendRoute(rawPath) {
+  return rawPath
+    .split('?')[0]
+    .replace(/^\/api\/v1/, '')
+    .replace(/:[^/]+/g, ':param')
+    .replace(/\/+$/, '') || '/'
+}
+
+function frontendCallToRegex(rawPath) {
+  // Mirrors apps/web/src/services/api.ts buildUrl()
+  const clean = rawPath
+    .split('?')[0]
+    .replace(/^\/api(?=\/)/, '')
+    .replace(/^\/v1(?=\/)/, '')
+    .replace(/\/+$/, '') || '/'
+  const parts = clean.split('/').filter(Boolean).map((seg) =>
+    seg.includes('${') ? '[^/]+' : seg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  )
+  return new RegExp(`^/${parts.join('/')}$`)
+}
+
+const backendRoutes = []
+const routeDeclRegex = /\bapp\.(get|post|put|patch|delete)\s*(?:<[\s\S]*?>)?\s*\(\s*['"`]([^'"`]+)['"`]/g
+for (const file of walkTs(ROUTES_DIR)) {
+  const src = fs.readFileSync(file, 'utf8')
+  let m
+  while ((m = routeDeclRegex.exec(src)) !== null) {
+    const method = m[1].toUpperCase()
+    const pathNorm = normalizeBackendRoute(m[2])
+    const beRegex = new RegExp(
+      `^${pathNorm.split('/').filter(Boolean).map((s) => (s === ':param' ? '[^/]+' : s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))).join('/') ? '/' + pathNorm.split('/').filter(Boolean).map((s) => (s === ':param' ? '[^/]+' : s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))).join('/') : '/'}$`,
+    )
+    backendRoutes.push({ method, pathNorm, beRegex })
+  }
+}
+
+function matchesBackend(method, rawFrontendPath) {
+  const feClean = rawFrontendPath
+    .split('?')[0]
+    .replace(/^\/api(?=\/)/, '')
+    .replace(/^\/v1(?=\/)/, '')
+    .replace(/\/+$/, '') || '/'
+  const feRegex = frontendCallToRegex(rawFrontendPath)
+  return backendRoutes.some((b) => {
+    if (b.method !== method) return false
+    if (b.pathNorm === feClean) return true
+    if (b.beRegex.test(feClean)) return true
+    if (feClean.includes('${') && feRegex.test(b.pathNorm)) return true
+    return false
+  })
+}
+
+const WEB_SRC = path.join(ROOT, 'apps/web/src')
+function walkWeb(dir) {
+  const results = []
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) results.push(...walkWeb(full))
+    else if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) results.push(full)
+  }
+  return results
+}
+
+const webCallRegex = /\bapi\.(get|post|put|patch|delete)\s*(?:<[^()]*>)?\s*\(\s*(['"`])(\/[^'"`]+)\2/g
+let checkedFrontendCalls = 0
+for (const file of walkWeb(WEB_SRC)) {
+  const src = fs.readFileSync(file, 'utf8')
+  let m
+  while ((m = webCallRegex.exec(src)) !== null) {
+    const method = m[1].toUpperCase()
+    const rawTarget = m[3]
+    checkedFrontendCalls++
+    if (!matchesBackend(method, rawTarget)) {
+      errors.push(`[ENDPOINT-PARITY] ${path.relative(ROOT, file)} calls ${method} ${rawTarget}, which does not match any registered Fastify route.`)
+    }
+  }
+}
+
+if (errors.length > 0) {
+  console.error('CI Guardrail checks failed:')
+  for (const err of errors) console.error(' -', err)
+  process.exit(1)
+}
+
+console.log(`CI Guardrail checks passed: 0 RLS-bypass routes, 0 unguarded fact_trade_daily GMV aggregations, ${checkedFrontendCalls} frontend API calls matched (${backendRoutes.length} backend routes).`)
 

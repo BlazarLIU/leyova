@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Package, ArrowRight, Info, TrendingUp, Boxes } from 'lucide-react'
+import { Package, ArrowRight, Info, TrendingUp, Boxes, ShoppingBag, Lock } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +21,36 @@ interface ShopDetail {
   trade: { gmv: number; paidOrderCount: number; avgOrderValue: number; refundRate: number }
   channels: ChannelRow[]
   daily: Array<{ biz_date: string; gmv: number; orders: number }>
+}
+
+interface ShopSkuSalesItem {
+  productId: number
+  spuCode: string
+  skuCode: string
+  productName: string
+  category: string
+  platformSkuId: string
+  soldQty: number
+  orderCount: number
+  paidAmount: number
+  discountAllocated: number
+  avgUnitPrice: number
+  retailPrice: number
+  unitCost: number | null
+  estimatedCost: number | null
+  estimatedProfit: number | null
+  marginRatePct: number | null
+}
+
+interface ShopSkuSalesResponse {
+  costMasked: boolean
+  summary: {
+    totalSkuCount: number
+    totalSoldQty: number
+    totalPaidAmount: number
+    totalDiscountAllocated: number
+  }
+  items: ShopSkuSalesItem[]
 }
 
 interface SkuMappingItem {
@@ -50,15 +80,17 @@ interface InventoryProductRow {
 }
 
 /**
- * 商品结构与 SKU 映射页
+ * 商品结构与 SKU 销售映射页
  *
- * 结合 `/inventory/products`（主商品与平台 SKU 映射库存）和 `/omnichannel/shop/:id`（店铺渠道/日粒度成交），
- * 真实呈现当前平台与店铺关联的商品明细及渠道结构，不做假数据填充。
+ * 结合 `/omnichannel/shop/:id/products`（canonical_order_items 聚合的 SKU 级销量/实付/分摊优惠/脱敏毛利）、
+ * `/inventory/products`（主商品与平台 SKU 映射库存）及 `/omnichannel/shop/:id`（渠道贡献与日成交），
+ * 完整呈现店铺商品结构视角。
  */
 export function ShopProductsPage() {
   const { currentPlatform, currentShop } = usePlatform()
   const navigate = useNavigate()
   const [data, setData] = useState<ShopDetail | null>(null)
+  const [skuSales, setSkuSales] = useState<ShopSkuSalesResponse | null>(null)
   const [products, setProducts] = useState<InventoryProductRow[]>([])
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(30)
@@ -68,6 +100,7 @@ export function ShopProductsPage() {
     if (!currentShop?.id && !platformCode) {
       setLoading(false)
       setData(null)
+      setSkuSales(null)
       setProducts([])
       return
     }
@@ -76,18 +109,20 @@ export function ShopProductsPage() {
       const to = new Date().toISOString().slice(0, 10)
       const fromD = new Date()
       fromD.setDate(fromD.getDate() - days + 1)
-      const [shopRes, prodRes] = await Promise.all([
+      const from = fromD.toISOString().slice(0, 10)
+      const [shopRes, skuRes, prodRes] = await Promise.all([
         currentShop?.id
-          ? api.get<ShopDetail>(`/omnichannel/shop/${currentShop.id}`, {
-              from: fromD.toISOString().slice(0, 10),
-              to,
-            }).catch(() => null)
+          ? api.get<ShopDetail>(`/omnichannel/shop/${currentShop.id}`, { from, to }).catch(() => null)
+          : Promise.resolve(null),
+        currentShop?.id
+          ? api.get<ShopSkuSalesResponse>(`/omnichannel/shop/${currentShop.id}/products`, { from, to }).catch(() => null)
           : Promise.resolve(null),
         platformCode
           ? api.get<InventoryProductRow[]>('/inventory/products', { platformCode }).catch(() => [])
           : Promise.resolve([]),
       ])
       setData(shopRes)
+      setSkuSales(skuRes)
       setProducts(Array.isArray(prodRes) ? prodRes : [])
     } finally {
       setLoading(false)
@@ -97,6 +132,7 @@ export function ShopProductsPage() {
   useEffect(() => { load() }, [load])
 
   const hasTradeData = !!data && (data.trade.gmv > 0 || data.channels.length > 0)
+  const hasSkuSales = !!skuSales && skuSales.items.length > 0
   const hasProducts = products.length > 0
   const lowStockCount = products.filter((p) => p.isLowStock).length
 
@@ -129,8 +165,8 @@ export function ShopProductsPage() {
       <div className="flex items-start gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/5 p-3 text-xs text-cyan-300/90">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div>
-          已关联当前平台主商品目录与 SKU 映射库存（来自 <code>dim_product</code> / <code>dim_sku_mapping</code>）；
-          成交事实表按「店铺 × 日期 × 渠道」统计，下方同步保留渠道贡献结构供对照。
+          已打通 <code>canonical_order_items</code>（SKU 级子订单明细销量/实付/优惠分摊）与
+          <code>dim_product</code> / <code>dim_sku_mapping</code>（主商品与库存映射），下方同时保留店铺渠道结构供对照。
         </div>
       </div>
 
@@ -138,16 +174,81 @@ export function ShopProductsPage() {
         <Card><CardBody><Empty text="当前平台下暂无在营店铺与商品映射" onGo={() => navigate('/data/ingest')} /></CardBody></Card>
       ) : loading ? (
         <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
-      ) : !hasTradeData && !hasProducts ? (
+      ) : !hasTradeData && !hasProducts && !hasSkuSales ? (
         <Card><CardBody><Empty text="该店铺在选定周期内暂无商品与成交数据" onGo={() => navigate('/data/ingest')} /></CardBody></Card>
       ) : (
         <>
           <motion.div {...fadeIn} className="grid gap-3 sm:grid-cols-4">
-            <Stat label="平台关联 SKU" value={String(products.length)} unit="个" />
+            <Stat label="在售动销 SKU / 总映射" value={`${skuSales?.summary.totalSkuCount || 0} / ${products.length}`} unit="个" />
+            <Stat label="SKU 实付总额（明细）" value={(skuSales?.summary.totalPaidAmount || 0).toFixed(2)} unit="元" />
             <Stat label="低库存预警 SKU" value={String(lowStockCount)} unit="个" />
-            <Stat label="店铺成交金额" value={data ? data.trade.gmv.toFixed(2) : '0.00'} unit="元" />
-            <Stat label="支付订单 / 客单" value={data ? `${data.trade.paidOrderCount} / ¥${data.trade.avgOrderValue.toFixed(0)}` : '0'} unit="" />
+            <Stat label="店铺成交 / 客单" value={data ? `¥${data.trade.gmv.toFixed(0)} / ¥${data.trade.avgOrderValue.toFixed(0)}` : '¥0'} unit="" />
           </motion.div>
+
+          {hasSkuSales && skuSales && (
+            <motion.div {...fadeIn}>
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <ShoppingBag className="h-4 w-4 text-emerald-400" /> 商品 SKU 销量与盈利排行（来自交易明细）
+                    </div>
+                    {skuSales.costMasked && (
+                      <Badge variant="neutral">
+                        <Lock className="h-3 w-3" /> 成本与估算毛利已按权限脱敏
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardBody>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                          <th className="py-2 pr-3">商品 / SPU</th>
+                          <th className="py-2 pr-3">内部 SKU / 平台 SKU</th>
+                          <th className="py-2 pr-3 text-right">销售件数</th>
+                          <th className="py-2 pr-3 text-right">订单数</th>
+                          <th className="py-2 pr-3 text-right">实付成交额</th>
+                          <th className="py-2 pr-3 text-right">分摊优惠</th>
+                          <th className="py-2 pr-3 text-right">成交均价</th>
+                          <th className="py-2 text-right">估算毛利 / 毛利率</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {skuSales.items.map((item) => (
+                          <tr key={`${item.skuCode}-${item.platformSkuId}`} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
+                            <td className="py-2.5 pr-3">
+                              <div className="font-medium text-slate-100">{item.productName}</div>
+                              <div className="font-mono text-[11px] text-slate-500">{item.spuCode || '—'} · {item.category}</div>
+                            </td>
+                            <td className="py-2.5 pr-3 font-mono text-xs">
+                              <div className="text-cyan-300">{item.skuCode}</div>
+                              <div className="text-[11px] text-slate-500">{item.platformSkuId || '—'}</div>
+                            </td>
+                            <td className="py-2.5 pr-3 text-right font-mono">{item.soldQty.toFixed(0)}</td>
+                            <td className="py-2.5 pr-3 text-right font-mono">{item.orderCount}</td>
+                            <td className="py-2.5 pr-3 text-right font-mono text-slate-100">¥{item.paidAmount.toFixed(2)}</td>
+                            <td className="py-2.5 pr-3 text-right font-mono text-amber-300">¥{item.discountAllocated.toFixed(2)}</td>
+                            <td className="py-2.5 pr-3 text-right font-mono">¥{item.avgUnitPrice.toFixed(2)}</td>
+                            <td className="py-2.5 text-right font-mono">
+                              {skuSales.costMasked || item.estimatedProfit === null ? (
+                                <span className="text-xs text-slate-500">已脱敏</span>
+                              ) : (
+                                <span className={item.estimatedProfit >= 0 ? 'text-emerald-300' : 'text-rose-400'}>
+                                  ¥{item.estimatedProfit.toFixed(2)} ({item.marginRatePct?.toFixed(1)}%)
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+          )}
 
           {hasProducts && (
             <motion.div {...fadeIn}>
@@ -157,7 +258,7 @@ export function ShopProductsPage() {
                     <div className="flex items-center gap-2">
                       <Boxes className="h-4 w-4 text-cyan-400" /> 平台主商品与 SKU 映射库存
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/inventory')}>
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/ops/inventory')}>
                       前往商品库存中心 <ArrowRight className="ml-1 h-3.5 w-3.5" />
                     </Button>
                   </div>

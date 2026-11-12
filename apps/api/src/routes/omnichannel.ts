@@ -12,7 +12,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
-import { getUserAllowedPlatforms, requireAuth } from '../lib/guard.js'
+import { canAccessCost, getUserAllowedPlatforms, requireAuth } from '../lib/guard.js'
 import { checkComparability } from '../platform/caliber.js'
 import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
@@ -76,6 +76,29 @@ function platformClause(
 
 const DEFAULT_CALIBER_JOIN = `LEFT JOIN platform_caliber_config pcc ON pcc.platform_code = f.platform_code AND pcc.metric_code = 'gmv' AND pcc.is_default = true`
 const DEFAULT_CALIBER_COND = `AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`
+
+async function loadAccessibleShop(
+  client: any,
+  request: FastifyRequest,
+  shopId: number,
+): Promise<
+  | { status: 'ok'; shop: { id: number; platform_code: string; shop_name: string; external_shop_id: string | null; auth_status: string; status: string } }
+  | { status: 'not_found' }
+  | { status: 'forbidden' }
+> {
+  const allowed = await accessiblePlatforms(client, request)
+  const shopRes = await client.query(
+    `SELECT id, platform_code, shop_name, external_shop_id, auth_status, status
+       FROM dim_shop WHERE id = $1`,
+    [shopId],
+  )
+  if (shopRes.rows.length === 0) return { status: 'not_found' }
+  const shop = shopRes.rows[0]
+  if (allowed && !allowed.has(shop.platform_code)) {
+    return { status: 'forbidden' }
+  }
+  return { status: 'ok', shop }
+}
 
 export async function omnichannelRoutes(app: FastifyInstance) {
   // ═══════════════════════════════════════════════════════════════
@@ -352,17 +375,10 @@ export async function omnichannelRoutes(app: FastifyInstance) {
       const r = resolveRange(from, to)
 
       const scoped = await withRlsContext(request, async (client) => {
-        const allowed = await accessiblePlatforms(client, request)
-        const shopRes = await client.query(
-          `SELECT id, platform_code, shop_name, external_shop_id, auth_status, status
-             FROM dim_shop WHERE id = $1`,
-          [shopId],
-        )
-        if (shopRes.rows.length === 0) return { notFound: true as const }
-        const shop = shopRes.rows[0]
-        if (allowed && !allowed.has(shop.platform_code)) {
-          return { forbidden: true as const }
-        }
+        const shopCheck = await loadAccessibleShop(client, request, shopId)
+        if (shopCheck.status === 'not_found') return { notFound: true as const }
+        if (shopCheck.status === 'forbidden') return { forbidden: true as const }
+        const shop = shopCheck.shop
 
         // 交易汇总
         const tradeRes = await client.query(
@@ -453,6 +469,110 @@ export async function omnichannelRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.error({ err }, 'Failed to build shop detail')
       return sendError(reply, 500, '获取店铺经营详情失败')
+    }
+  })
+
+  // ── GET /api/v1/omnichannel/shop/:id/products ── 店铺 SKU 级订单明细销售聚合
+  app.get<{
+    Params: { id: string }
+    Querystring: { from?: string; to?: string; limit?: string }
+  }>('/api/v1/omnichannel/shop/:id/products', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    try {
+      const shopId = parseInt(request.params.id, 10)
+      if (!Number.isFinite(shopId)) return sendError(reply, 400, '无效的店铺 ID')
+      const { from, to, limit } = request.query
+      const r = resolveRange(from, to)
+      const lim = Math.min(Math.max(parseInt(limit || '50', 10) || 50, 1), 200)
+      const allowCost = canAccessCost(user)
+
+      const scoped = await withRlsContext(request, async (client) => {
+        const shopCheck = await loadAccessibleShop(client, request, shopId)
+        if (shopCheck.status === 'not_found') return { notFound: true as const }
+        if (shopCheck.status === 'forbidden') return { forbidden: true as const }
+        const shop = shopCheck.shop
+
+        const res = await client.query(
+          `SELECT
+             COALESCE(p.id, 0)::bigint                                    AS product_id,
+             COALESCE(p.spu_code, '')                                     AS spu_code,
+             COALESCE(p.sku_code, coi.platform_sku_id, '')                AS sku_code,
+             COALESCE(p.product_name, coi.product_name, '未匹配商品')       AS product_name,
+             COALESCE(p.category, '未分类')                                AS category,
+             MAX(COALESCE(coi.platform_sku_id, ''))                       AS platform_sku_id,
+             COALESCE(SUM(coi.quantity), 0)::numeric                      AS sold_qty,
+             COUNT(DISTINCT coi.source_order_id)::int                     AS order_count,
+             COALESCE(SUM(coi.item_paid_amount), 0)::numeric              AS paid_amount,
+             COALESCE(SUM(coi.item_discount_allocated), 0)::numeric       AS discount_allocated,
+             COALESCE(MAX(p.retail_price), 0)::numeric                    AS retail_price,
+             COALESCE(MAX(p.unit_cost), 0)::numeric                       AS unit_cost
+           FROM canonical_order_items coi
+           LEFT JOIN dim_product p ON p.id = coi.internal_sku_id
+           WHERE coi.store_id = $1
+             AND coi.biz_date BETWEEN $2::date AND $3::date
+             AND coi.maturity_status <> 'SUPERSEDED'
+           GROUP BY
+             COALESCE(p.id, 0),
+             COALESCE(p.spu_code, ''),
+             COALESCE(p.sku_code, coi.platform_sku_id, ''),
+             COALESCE(p.product_name, coi.product_name, '未匹配商品'),
+             COALESCE(p.category, '未分类')
+           ORDER BY paid_amount DESC, sold_qty DESC
+           LIMIT $4`,
+          [shopId, r.from, r.to, lim],
+        )
+
+        return { shop, rows: res.rows }
+      })
+
+      if ('notFound' in scoped && scoped.notFound) return sendError(reply, 404, '店铺不存在')
+      if ('forbidden' in scoped && scoped.forbidden) return sendError(reply, 403, '无权访问该平台数据')
+
+      const items = scoped.rows.map((row: any) => {
+        const soldQty = Number(row.sold_qty || 0)
+        const paidAmount = Number(row.paid_amount || 0)
+        const discountAllocated = Number(row.discount_allocated || 0)
+        const unitCost = Number(row.unit_cost || 0)
+        const estimatedCost = unitCost > 0 ? Number((unitCost * soldQty).toFixed(2)) : 0
+        const estimatedProfit = Number((paidAmount - estimatedCost).toFixed(2))
+        const marginRatePct = paidAmount > 0 ? Number(((estimatedProfit / paidAmount) * 100).toFixed(2)) : 0
+
+        return {
+          productId: Number(row.product_id),
+          spuCode: row.spu_code,
+          skuCode: row.sku_code,
+          productName: row.product_name,
+          category: row.category,
+          platformSkuId: row.platform_sku_id,
+          soldQty: Number(soldQty.toFixed(2)),
+          orderCount: Number(row.order_count || 0),
+          paidAmount: Number(paidAmount.toFixed(2)),
+          discountAllocated: Number(discountAllocated.toFixed(2)),
+          avgUnitPrice: soldQty > 0 ? Number((paidAmount / soldQty).toFixed(2)) : 0,
+          retailPrice: Number(row.retail_price || 0),
+          unitCost: allowCost ? unitCost : null,
+          estimatedCost: allowCost ? estimatedCost : null,
+          estimatedProfit: allowCost ? estimatedProfit : null,
+          marginRatePct: allowCost ? marginRatePct : null,
+        }
+      })
+
+      return sendOk(reply, {
+        shop: scoped.shop,
+        range: r,
+        costMasked: !allowCost,
+        summary: {
+          totalSkuCount: items.length,
+          totalSoldQty: Number(items.reduce((s: number, i: any) => s + i.soldQty, 0).toFixed(2)),
+          totalPaidAmount: Number(items.reduce((s: number, i: any) => s + i.paidAmount, 0).toFixed(2)),
+          totalDiscountAllocated: Number(items.reduce((s: number, i: any) => s + i.discountAllocated, 0).toFixed(2)),
+        },
+        items,
+      })
+    } catch (err) {
+      request.log.error({ err }, 'Failed to build shop SKU products analytics')
+      return sendError(reply, 500, '获取店铺商品 SKU 明细失败')
     }
   })
 

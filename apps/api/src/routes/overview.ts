@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
-import { sendOk } from '../lib/http.js'
+import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
+import { canAccessAdSpend, requireAuth } from '../lib/guard.js'
 import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 export async function overviewRoutes(app: FastifyInstance) {
@@ -362,6 +363,55 @@ export async function overviewRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'overview/patrol-records query failed')
       return sendOk(reply, [])
+    }
+  })
+
+  // ── GET /api/v1/overview/sessions ── 场次列表（SessionsPage 对接）
+  app.get('/api/v1/overview/sessions', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    try {
+      const allowAd = canAccessAdSpend(user)
+      const { rows } = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT ls.id,
+                  ls.date::text AS date,
+                  COALESCE(r.name, ls.title, '直播间') AS room,
+                  COALESCE(a.name, '未知') AS anchor,
+                  COALESCE(TO_CHAR(ls.start_time, 'HH24:MI'), '00:00') AS start_time,
+                  COALESCE(TO_CHAR(ls.end_time, 'HH24:MI'), '00:00') AS end_time,
+                  ls.gmv,
+                  ls.ad_cost,
+                  ls.status
+             FROM live_sessions ls
+             LEFT JOIN live_rooms r ON r.id = ls.room_id
+             LEFT JOIN anchors a ON a.id = ls.anchor_id
+            WHERE ls.status <> 'cancelled'
+            ORDER BY ls.date DESC, ls.id DESC
+            LIMIT 200`,
+        ),
+      )
+
+      return sendOk(reply, {
+        sessions: rows.map((r: any) => {
+          const gmv = Number(r.gmv || 0)
+          const adCost = Number(r.ad_cost || 0)
+          return {
+            id: Number(r.id),
+            date: String(r.date).slice(0, 10),
+            room: r.room,
+            anchor: r.anchor,
+            start_time: r.start_time,
+            end_time: r.end_time,
+            gmv,
+            roi: allowAd && adCost > 0 ? Number((gmv / adCost).toFixed(2)) : 0,
+            status: r.status,
+          }
+        }),
+      })
+    } catch (err) {
+      request.log.warn({ err }, 'overview/sessions query failed')
+      return sendError(reply, 500, '查询场次列表失败')
     }
   })
 }

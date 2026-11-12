@@ -619,4 +619,89 @@ describe('HTTP API & RBAC 回归测试', () => {
       }
     }
   })
+
+  test('长期演进与端点一致性：SKU 级订单明细销售聚合脱敏 & 补全闭环接口', async () => {
+    const skuFinRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/omnichannel/shop/1/products',
+      headers: { cookie: financeUser.cookie },
+    })
+    assert.equal(skuFinRes.statusCode, 200)
+    const skuFin = skuFinRes.json().data
+    assert.equal(skuFin.costMasked, false)
+    assert.ok(skuFin.items.length > 0)
+    assert.ok(skuFin.summary.totalPaidAmount > 0)
+    assert.notEqual(skuFin.items[0].estimatedProfit, null)
+
+    const skuOpRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/omnichannel/shop/1/products',
+      headers: { cookie: operatorUser.cookie },
+    })
+    assert.equal(skuOpRes.statusCode, 200)
+    const skuOp = skuOpRes.json().data
+    assert.equal(skuOp.costMasked, true)
+    assert.ok(skuOp.items.length > 0)
+    assert.equal(skuOp.items[0].unitCost, null)
+    assert.equal(skuOp.items[0].estimatedProfit, null)
+
+    const skuForbiddenRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/omnichannel/shop/1/products',
+      headers: { cookie: brandViewer.cookie },
+    })
+    assert.ok(
+      skuForbiddenRes.statusCode === 403 || skuForbiddenRes.statusCode === 404,
+      `未授权店铺应被 RLS/RBAC 拒绝，实际状态码 ${skuForbiddenRes.statusCode}`,
+    )
+
+    // 端点一致性补齐验证 (/overview/sessions, /review/related-issues, POST competitors/tasks)
+    const sessionsUnauth = await app.inject({ method: 'GET', url: '/api/v1/overview/sessions' })
+    assert.equal(sessionsUnauth.statusCode, 401)
+    const sessionsRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/overview/sessions',
+      headers: { cookie: operatorUser.cookie },
+    })
+    assert.equal(sessionsRes.statusCode, 200)
+    assert.ok(Array.isArray(sessionsRes.json().data.sessions))
+
+    const issuesRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/review/related-issues',
+      headers: { cookie: operatorUser.cookie },
+    })
+    assert.equal(issuesRes.statusCode, 200)
+    assert.ok(Array.isArray(issuesRes.json().data))
+
+    const compForbidden = await app.inject({
+      method: 'POST',
+      url: '/api/v1/system/competitors',
+      headers: { cookie: brandViewer.cookie },
+      payload: { brand: '不应创建', industry: '服饰' },
+    })
+    assert.equal(compForbidden.statusCode, 403)
+
+    const compCreate = await app.inject({
+      method: 'POST',
+      url: '/api/v1/system/competitors',
+      headers: { cookie: operatorUser.cookie },
+      payload: { brand: `UT_COMP_${Date.now()}`, industry: '运动服饰' },
+    })
+    assert.equal(compCreate.statusCode, 201)
+    const createdCompId = compCreate.json().data.id
+
+    const taskCreate = await app.inject({
+      method: 'POST',
+      url: '/api/v1/system/tasks',
+      headers: { cookie: operatorUser.cookie },
+      payload: { title: `UT_TASK_${Date.now()}`, priority: 'high' },
+    })
+    assert.equal(taskCreate.statusCode, 201)
+    const createdTaskId = taskCreate.json().data.task.id
+
+    const pool = getPool()
+    await pool.query('DELETE FROM competitor_brands WHERE id = $1', [createdCompId])
+    await pool.query('DELETE FROM improvement_tasks WHERE id = $1', [createdTaskId])
+  })
 })
