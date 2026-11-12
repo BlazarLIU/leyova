@@ -19,6 +19,31 @@ export default defineConfig(({ mode }) => {
         '@': resolve(__dirname, './src'),
       },
     },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return
+            if (id.includes('/react-dom/') || id.includes('/react-router') || id.includes('/react/')) {
+              return 'vendor-react'
+            }
+            if (id.includes('/recharts/') || id.includes('/d3-')) {
+              return 'vendor-charts'
+            }
+            if (id.includes('/framer-motion/')) {
+              return 'vendor-motion'
+            }
+            if (id.includes('/lucide-react/')) {
+              return 'vendor-icons'
+            }
+            if (id.includes('/@tanstack/') || id.includes('/react-hook-form/') || id.includes('/zod/')) {
+              return 'vendor-forms'
+            }
+          },
+        },
+      },
+    },
     server: {
       port,
       strictPort: true,

@@ -89,6 +89,7 @@ async function run() {
           console.log(`  ⏳ 执行基线文件: ${baseFile}...`)
           const sql = fs.readFileSync(filePath, 'utf8')
           await client.query(sql)
+          await client.query(`SELECT pg_catalog.set_config('search_path', 'public', false)`)
           console.log(`  ✅ ${baseFile} 执行完毕`)
         }
       }

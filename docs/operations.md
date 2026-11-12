@@ -80,11 +80,15 @@ pnpm --filter @leyova/api cleanup-logs cleanup  # 手动触发超阈值日志滚
 1. **生产环境强校验 (`apps/api/src/config/env.ts`)**：`NODE_ENV=production` 下拒绝默认示例密钥（`leyova-local-session-secret-change-in-prod`、`leyova-local-mcp-token-change-in-prod`、`change-me` 等），要求随机生成高强度密钥。
 2. **MCP 服务间鉴权与防伪造**：
    - `LEYOVA_MCP_TOKEN`：48 位以上随机 Bearer Token，使用 `crypto.timingSafeEqual` 等时比对；
-   - `LEYOVA_MCP_SIGNING_SECRET` + `X-Leyova-User-Sig`：网关传递 `X-Leyova-User-Id` 时附带 HMAC-SHA256 签名，并在后端与独立 MCP Server 两侧双向验签；默认禁用 `LEYOVA_MCP_DEFAULT_USER_ID` 隐式回退（fail-closed 返回 `401`/`403`）。
-3. **防爆破锁定与账号隔离**：`/api/v1/auth/login` 连续 5 次密码错误锁定 15 分钟并返回 `429` + 写入 `audit_logs`；敏感成本与投放花费由路由守卫、AI 语义层与 PostgreSQL `leyova_app` RLS 策略多重隔离。
-4. **测试与静态检查**：
+   - `LEYOVA_MCP_SIGNING_SECRET` + `X-Leyova-User-Sig`：网关传递 `X-Leyova-User-Id` 时附带 HMAC-SHA256 签名，并在后端与独立 MCP Server 两侧双向验签；默认启用 `LEYOVA_MCP_REQUIRE_SIG=true` 且禁用 `LEYOVA_MCP_DEFAULT_USER_ID` 隐式回退（fail-closed 返回 `401`/`403`）。
+3. **开放平台 OAuth 与凭证加密规范**：
+   - 7 大平台凭证（`appSecret`、`accessToken`、`refreshToken`）均使用 AES-256-GCM 加密存于 `dim_shop.auth_token_info`（格式 `iv:tag:enc`），所有未授权或 `manual_only` 店铺在采集器与适配器双重 fail-closed 拦截，绝不向外部平台发请求或伪造数据。
+   - 管理员可通过 `GET /api/v1/platforms/:code/oauth/url`、`POST /api/v1/platforms/:code/oauth/callback` 与 `POST /api/v1/platforms/:code/shops/:shopId/credentials` 安全绑定生产凭证。
+4. **防爆破锁定与账号隔离**：`/api/v1/auth/login` 连续 5 次密码错误锁定 15 分钟并返回 `429` + 写入 `audit_logs`；敏感成本与投放花费由路由守卫、AI 语义层与 PostgreSQL `leyova_app` RLS 策略多重隔离。
+5. **全新空库初始化、测试与静态检查**：
 
 ```bash
+node database/migrate.js                                # 全新空库或增量迁移均可幂等执行
 pnpm --filter @leyova/api exec tsc -p tsconfig.test.json --noEmit
 pnpm build
 pnpm test

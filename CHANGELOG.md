@@ -2,6 +2,23 @@
 
 All notable changes to **Leyova** are documented in this file.
 
+## [2026-11-12 — Release Hardening, Real OpenAPI/OAuth & CI]
+
+### Added
+- **开放平台真实 HTTP/OAuth 传输与加密凭据绑定**:
+  - `apps/api/src/modules/data-governance/adapters/base-adapter.ts` & `platform-adapters.ts`：实现 7 大电商平台（抖音/快手/淘宝/天猫/京东/拼多多/小红书）真实 `fetch()`（含超时控制、429/5xx 退避重试、TOP MD5 / 抖店 v2 HMAC-SHA256 / 快手 / 京东 / 拼多多 / 小红书 Ark 签名）的 OAuth 换码、Token 刷新、订单与退款拉取，彻底移除硬编码伪造 Token 与 `sampleOrders`。
+  - `apps/api/src/platform/adapters/base.ts` 及四类适配器与 `apps/api/src/ingest/sync-job.ts` 收敛统一，接入 `decryptCredential` 解密持久化店铺凭证并保持 `manual_only` / 占位凭证 fail-closed。
+  - `apps/api/src/routes/platforms.ts` & `openapi.ts`：新增管理员专属 `GET /api/v1/platforms/:code/oauth/url`、`POST /api/v1/platforms/:code/oauth/callback` 与 `POST /api/v1/platforms/:code/shops/:shopId/credentials`（AES-256-GCM 密文落库 + 脱敏返回 + 审计记录）。
+  - 新增 `apps/api/test/platform-adapters.test.ts`（本地 `node:http` 测试服务覆盖 7 平台 OAuth、拉数、错误透传、fail-closed 及 `runSyncJob` 端到端闭环）。
+- **前端路由按需懒加载与 Vite 分包**: `apps/web/src/App.tsx` 93 个页面路由统一改造为 `React.lazy` + `<Suspense>`，配合 `apps/web/vite.config.ts` `manualChunks` 消除 Vite 大包体积告警（主入口 `120.52 kB`）。
+- **CI 流水线**: 新增 `.github/workflows/ci.yml`，在全新 PostgreSQL 16 服务上自动执行空库初始化 + 迁移幂等校验、全工作区构建、测试类型检查与全量自动化测试。
+
+### Changed & Fixed
+- **空库冷启动引导修复 (`database/migrate.js`)**: 修复 `01_schema.sql` 设置 `search_path=''` 导致同一会话后续执行 `02_seed.sql` 报 `relation "roles" does not exist` 的问题，并在全新空库上验证 `01~03` + 19 个增量迁移（`100~118`）一次性通过。
+- **MCP 严格 HMAC 验签与告警通道清理**: 本地运行态与 `.env.example` 默认启用 `LEYOVA_MCP_REQUIRE_SIG=true`，补充 `/mcp` 正向 HMAC 放行回归用例；清空 `alert_rules` id=6 占位示例 Webhook。
+
+---
+
 ## [2026-11-12] — 全面审计整改闭环、架构加固与回归测试
 
 ### Added
