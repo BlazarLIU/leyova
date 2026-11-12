@@ -1,6 +1,7 @@
-import type { PlatformAdapter, PlatformCapabilities, StandardTradeRecord, StandardTrafficRecord } from '../types.js'
+import { GovernanceBackedPlatformAdapter } from './base.js'
+import type { PlatformCapabilities } from '../types.js'
 
-export class TaobaoAdapter implements PlatformAdapter {
+export class TaobaoAdapter extends GovernanceBackedPlatformAdapter {
   readonly platformCode = 'taobao'
   readonly platformName = '淘宝集市'
   readonly category = 'shelf' as const
@@ -11,7 +12,7 @@ export class TaobaoAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: false,
+      supportsAutoSync: true,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -24,17 +25,9 @@ export class TaobaoAdapter implements PlatformAdapter {
       ],
     }
   }
-
-  async fetchTradeData(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]> {
-    return []
-  }
-
-  async fetchTrafficData(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]> {
-    return []
-  }
 }
 
-export class TmallAdapter implements PlatformAdapter {
+export class TmallAdapter extends GovernanceBackedPlatformAdapter {
   readonly platformCode = 'tmall'
   readonly platformName = '天猫商城'
   readonly category = 'shelf' as const
@@ -45,7 +38,7 @@ export class TmallAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: false,
+      supportsAutoSync: true,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -58,13 +51,4 @@ export class TmallAdapter implements PlatformAdapter {
       ],
     }
   }
-
-  async fetchTradeData(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]> {
-    return []
-  }
-
-  async fetchTrafficData(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]> {
-    return []
-  }
 }
-

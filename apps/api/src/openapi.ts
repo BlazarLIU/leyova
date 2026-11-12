@@ -318,7 +318,40 @@ export const openapiSpec = {
       post: { tags: ['Livereg'], summary: '提交直播登记', requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/LiveregSubmitRequest' } } } }, responses: { '200': { description: '提交结果' } } },
     },
 
-    // ── Platform Domain Analytics ──
+    // ── Platform Domain Analytics & OAuth Credentials ──
+    '/api/v1/platforms/{code}/oauth/url': {
+      get: {
+        tags: ['Platforms'],
+        summary: '生成开放平台 OAuth 授权跳转 URL（仅管理员）',
+        parameters: [
+          { name: 'code', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'shopId', in: 'query', schema: { type: 'integer' } },
+          { name: 'redirectUri', in: 'query', schema: { type: 'string' } },
+        ],
+        responses: { '200': { description: '授权跳转信息' }, '400': { description: '未配置有效 appKey' }, '403': { description: '无管理员权限' } },
+      },
+    },
+    '/api/v1/platforms/{code}/oauth/callback': {
+      post: {
+        tags: ['Platforms'],
+        summary: '开放平台 OAuth 授权码换取 Token 并 AES-256-GCM 加密入库（仅管理员）',
+        parameters: [{ name: 'code', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        responses: { '200': { description: '绑定成功（返回脱敏凭证）' }, '400': { description: '参数或凭证校验失败' }, '502': { description: '开放平台换码失败' } },
+      },
+    },
+    '/api/v1/platforms/{code}/shops/{shopId}/credentials': {
+      post: {
+        tags: ['Platforms'],
+        summary: 'AES-256-GCM 加密配置店铺开放平台凭证或切换授权状态（仅管理员）',
+        parameters: [
+          { name: 'code', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'shopId', in: 'path', required: true, schema: { type: 'integer' } },
+        ],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        responses: { '200': { description: '凭证更新成功（返回脱敏凭证）' }, '400': { description: '占位凭证或参数被拦截' } },
+      },
+    },
     '/api/v1/douyin/shop/{id}/metrics': {
       get: { tags: ['Platforms'], summary: '抖音店铺核心指标（含跨平台店铺校验）', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '指标数据' }, '400': { description: '店铺所属平台不匹配' } } },
     },

@@ -1,6 +1,7 @@
-import type { PlatformAdapter, PlatformCapabilities, StandardTradeRecord, StandardTrafficRecord } from '../types.js'
+import { GovernanceBackedPlatformAdapter } from './base.js'
+import type { PlatformCapabilities } from '../types.js'
 
-export class JdAdapter implements PlatformAdapter {
+export class JdAdapter extends GovernanceBackedPlatformAdapter {
   readonly platformCode = 'jd'
   readonly platformName = '京东'
   readonly category = 'shelf' as const
@@ -11,7 +12,7 @@ export class JdAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: false,
+      supportsAutoSync: true,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -24,17 +25,9 @@ export class JdAdapter implements PlatformAdapter {
       ],
     }
   }
-
-  async fetchTradeData(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]> {
-    return []
-  }
-
-  async fetchTrafficData(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]> {
-    return []
-  }
 }
 
-export class PddAdapter implements PlatformAdapter {
+export class PddAdapter extends GovernanceBackedPlatformAdapter {
   readonly platformCode = 'pdd'
   readonly platformName = '拼多多'
   readonly category = 'shelf' as const
@@ -45,7 +38,7 @@ export class PddAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: false,
       supportsAds: true,
-      supportsAutoSync: false,
+      supportsAutoSync: true,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -58,13 +51,4 @@ export class PddAdapter implements PlatformAdapter {
       ],
     }
   }
-
-  async fetchTradeData(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]> {
-    return []
-  }
-
-  async fetchTrafficData(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]> {
-    return []
-  }
 }
-

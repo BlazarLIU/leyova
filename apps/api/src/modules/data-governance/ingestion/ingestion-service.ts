@@ -10,8 +10,8 @@
 
 import type { Pool } from 'pg'
 import * as XLSX from 'xlsx'
-import { computeSha256, sanitizeCsvCell } from '../security.js'
-import { governancePlatformRegistry } from '../adapters/index.js'
+import { computeSha256, decryptCredential, sanitizeCsvCell } from '../security.js'
+import { governancePlatformRegistry, isRealCredentials, type PlatformCredentials } from '../adapters/index.js'
 import { CleanerService } from '../cleaning/cleaner-service.js'
 import { ValidationService } from '../validation/validation-service.js'
 
@@ -76,7 +76,20 @@ export class IngestionService {
       }
 
       const tokenInfo = shop.auth_token_info || {}
-      if (!tokenInfo.accessToken || String(tokenInfo.accessToken).startsWith('mock_')) {
+      const credentials: PlatformCredentials = {
+        appKey: decryptCredential(String(tokenInfo.appKey || '')),
+        appSecret: decryptCredential(String(tokenInfo.appSecret || '')),
+        accessToken: decryptCredential(String(tokenInfo.accessToken || '')),
+        refreshToken: tokenInfo.refreshToken ? decryptCredential(String(tokenInfo.refreshToken)) : undefined,
+        shopId,
+        platformCode,
+        authStatus: shop.auth_status,
+        gatewayBaseUrl: tokenInfo.gatewayBaseUrl,
+        oauthBaseUrl: tokenInfo.oauthBaseUrl,
+        extra: tokenInfo.extra,
+      }
+
+      if (!isRealCredentials(credentials)) {
         return {
           success: true,
           batchId: null,
@@ -86,18 +99,20 @@ export class IngestionService {
       }
 
       // 2. 调用平台适配器拉取数据
-      const credentials = {
-        appKey: tokenInfo.appKey,
-        appSecret: tokenInfo.appSecret,
-        accessToken: tokenInfo.accessToken,
-        refreshToken: tokenInfo.refreshToken,
-        shopId,
-        platformCode,
-        authStatus: shop.auth_status,
-      }
+      const fetchResult =
+        datasetType === 'refunds'
+          ? await adapter.fetchRefunds(credentials, { sinceTime })
+          : await adapter.fetchOrders(credentials, { sinceTime })
 
-      const fetchResult = await adapter.fetchOrders(credentials, { sinceTime })
-      if (!fetchResult.success || fetchResult.records.length === 0) {
+      if (!fetchResult.success) {
+        return {
+          success: false,
+          batchId: null,
+          message: fetchResult.error || '开放平台 API 拉取失败',
+          recordsCount: 0,
+        }
+      }
+      if (fetchResult.records.length === 0) {
         return {
           success: true,
           batchId: null,
@@ -120,10 +135,10 @@ export class IngestionService {
       // 4. 将 API 原始报文落入 raw_records (按月物理分区)
       const bizDate = fetchResult.records[0].bizDate || new Date().toISOString().slice(0, 10)
       for (let i = 0; i < fetchResult.records.length; i++) {
-        const order = fetchResult.records[i]
-        const rawJson = fetchResult.rawResponses?.[i] || order
+        const record = fetchResult.records[i] as any
+        const rawJson = fetchResult.rawResponses?.[i] || record
         const payloadHash = computeSha256(JSON.stringify(rawJson))
-        const bizKey = `${platformCode}:${shopId}:${order.sourceOrderId}`
+        const bizKey = `${platformCode}:${shopId}:${record.sourceRefundId || record.sourceOrderId}`
 
         await client.query(
           `INSERT INTO raw_records

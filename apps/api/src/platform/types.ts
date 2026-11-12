@@ -49,6 +49,8 @@ export interface StandardTrafficRecord {
   extra?: Record<string, any>
 }
 
+import type { PlatformCredentials } from '../modules/data-governance/adapters/base-adapter.js'
+
 export interface PlatformAdapter {
   readonly platformCode: string
   readonly platformName: string
@@ -60,7 +62,7 @@ export interface PlatformAdapter {
   exchangeToken?(code: string): Promise<Record<string, any>>
   refreshToken?(refreshToken: string): Promise<Record<string, any>>
 
-  fetchTradeData?(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]>
-  fetchTrafficData?(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]>
+  fetchTradeData?(shopId: number, sinceWatermark: string, credentials?: PlatformCredentials): Promise<StandardTradeRecord[]>
+  fetchTrafficData?(shopId: number, sinceWatermark: string, credentials?: PlatformCredentials): Promise<StandardTrafficRecord[]>
 }
 

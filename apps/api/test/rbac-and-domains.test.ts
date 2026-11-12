@@ -279,7 +279,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(finCosts.statusCode, 200)
   })
 
-  test('MCP fail-closed 鉴权：缺失或无效 X-Leyova-User-Id 返回 401，无效 HMAC 签名返回 403', async () => {
+  test('MCP fail-closed 鉴权：缺失或无效 X-Leyova-User-Id 返回 401，无效 HMAC 签名返回 403，合法 HMAC 放行', async () => {
     const missingIdRes = await app.inject({
       method: 'POST',
       url: '/mcp',
@@ -301,6 +301,44 @@ describe('HTTP API & RBAC 回归测试', () => {
       payload: { jsonrpc: '2.0', id: 1, method: 'tools/list' },
     })
     assert.equal(badSigRes.statusCode, 403)
+
+    if (env.LEYOVA_MCP_REQUIRE_SIG) {
+      const missingSigRes = await app.inject({
+        method: 'POST',
+        url: '/mcp',
+        headers: {
+          authorization: `Bearer ${env.LEYOVA_MCP_TOKEN}`,
+          'x-leyova-user-id': String(adBuyer.userId),
+        },
+        payload: { jsonrpc: '2.0', id: 1, method: 'tools/list' },
+      })
+      assert.equal(missingSigRes.statusCode, 403)
+    }
+
+    const secret = env.LEYOVA_MCP_SIGNING_SECRET || env.LEYOVA_MCP_TOKEN || ''
+    const validSig = signMcpUserId(adBuyer.userId, secret)
+    const okRes = await app.inject({
+      method: 'POST',
+      url: '/mcp',
+      headers: {
+        authorization: `Bearer ${env.LEYOVA_MCP_TOKEN}`,
+        accept: 'application/json, text/event-stream',
+        'x-leyova-user-id': String(adBuyer.userId),
+        'x-leyova-user-sig': validSig,
+      },
+      payload: {
+        jsonrpc: '2.0',
+        id: 2,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: { name: 'leyova-test', version: '1.0.0' },
+        },
+      },
+    })
+    assert.equal(okRes.statusCode, 200)
+    assert.ok(okRes.body.includes('leyova-mcp'))
   })
 
   test('语义层 buildMetricQuery 对无权限角色阻断投流指标并校验 MCP HMAC 工具函数', () => {

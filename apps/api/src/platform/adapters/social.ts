@@ -1,6 +1,7 @@
-import type { PlatformAdapter, PlatformCapabilities, StandardTradeRecord, StandardTrafficRecord } from '../types.js'
+import { GovernanceBackedPlatformAdapter } from './base.js'
+import type { PlatformCapabilities } from '../types.js'
 
-export class KuaishouAdapter implements PlatformAdapter {
+export class KuaishouAdapter extends GovernanceBackedPlatformAdapter {
   readonly platformCode = 'kuaishou'
   readonly platformName = '快手电商'
   readonly category = 'live' as const
@@ -11,7 +12,7 @@ export class KuaishouAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: false,
+      supportsAutoSync: true,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -24,17 +25,9 @@ export class KuaishouAdapter implements PlatformAdapter {
       ],
     }
   }
-
-  async fetchTradeData(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]> {
-    return []
-  }
-
-  async fetchTrafficData(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]> {
-    return []
-  }
 }
 
-export class XiaohongshuAdapter implements PlatformAdapter {
+export class XiaohongshuAdapter extends GovernanceBackedPlatformAdapter {
   readonly platformCode = 'xiaohongshu'
   readonly platformName = '小红书电商'
   readonly category = 'content' as const
@@ -45,7 +38,7 @@ export class XiaohongshuAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: false,
+      supportsAutoSync: true,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -58,13 +51,4 @@ export class XiaohongshuAdapter implements PlatformAdapter {
       ],
     }
   }
-
-  async fetchTradeData(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]> {
-    return []
-  }
-
-  async fetchTrafficData(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]> {
-    return []
-  }
 }
-

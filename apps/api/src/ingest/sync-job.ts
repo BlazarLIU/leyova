@@ -14,6 +14,8 @@
  */
 
 import type { Pool } from 'pg'
+import { decryptCredential } from '../modules/data-governance/security.js'
+import { isRealCredentials, type PlatformCredentials } from '../modules/data-governance/adapters/base-adapter.js'
 import { platformRegistry } from '../platform/index.js'
 import type { StandardTradeRecord, StandardTrafficRecord } from '../platform/types.js'
 
@@ -180,15 +182,16 @@ export async function runSyncJob(
     return { ...base, status: 'failed', error: `未注册的平台适配器: ${platformCode}`, durationMs: Date.now() - startedAt }
   }
 
-  // ── 校验店铺授权状态 ──
+  // ── 校验店铺授权状态与解密凭证 ──
   const shopRes = await pool.query(
-    `SELECT auth_status FROM dim_shop WHERE id = $1 AND platform_code = $2`,
+    `SELECT auth_status, auth_token_info FROM dim_shop WHERE id = $1 AND platform_code = $2`,
     [shopId, platformCode],
   )
   if (shopRes.rows.length === 0) {
     return { ...base, status: 'failed', error: `店铺不存在或不属于平台 ${platformCode}`, durationMs: Date.now() - startedAt }
   }
   const authStatus: string = shopRes.rows[0].auth_status
+  const tokenInfo = shopRes.rows[0].auth_token_info || {}
 
   // ── 校验适配器能力 ──
   const fetcher = dataType === 'trade' ? adapter.fetchTradeData : adapter.fetchTrafficData
@@ -205,6 +208,28 @@ export async function runSyncJob(
       ...base,
       status: 'skipped',
       reason: `店铺授权状态为 ${authStatus}，跳过 API 同步（可使用手动上传导入数据）`,
+      durationMs: Date.now() - startedAt,
+    }
+  }
+
+  const credentials: PlatformCredentials = {
+    appKey: decryptCredential(String(tokenInfo.appKey || '')),
+    appSecret: decryptCredential(String(tokenInfo.appSecret || '')),
+    accessToken: decryptCredential(String(tokenInfo.accessToken || '')),
+    refreshToken: tokenInfo.refreshToken ? decryptCredential(String(tokenInfo.refreshToken)) : undefined,
+    shopId,
+    platformCode,
+    authStatus: authStatus as PlatformCredentials['authStatus'],
+    gatewayBaseUrl: tokenInfo.gatewayBaseUrl,
+    oauthBaseUrl: tokenInfo.oauthBaseUrl,
+    extra: tokenInfo.extra,
+  }
+
+  if (!isRealCredentials(credentials)) {
+    return {
+      ...base,
+      status: 'skipped',
+      reason: `店铺未配置有效生产 API Token（可能为空或占位凭证），已安全跳过 API 同步`,
       durationMs: Date.now() - startedAt,
     }
   }
@@ -233,9 +258,9 @@ export async function runSyncJob(
   try {
     let records: Array<StandardTradeRecord | StandardTrafficRecord> = []
     if (dataType === 'trade') {
-      records = await adapter.fetchTradeData!(shopId, watermarkFrom)
+      records = await adapter.fetchTradeData!(shopId, watermarkFrom, credentials)
     } else {
-      records = await adapter.fetchTrafficData!(shopId, watermarkFrom)
+      records = await adapter.fetchTrafficData!(shopId, watermarkFrom, credentials)
     }
 
     const valid = (records || []).filter(

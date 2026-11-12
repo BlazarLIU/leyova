@@ -1,6 +1,7 @@
-import type { PlatformAdapter, PlatformCapabilities, StandardTradeRecord, StandardTrafficRecord } from '../types.js'
+import { GovernanceBackedPlatformAdapter } from './base.js'
+import type { PlatformCapabilities } from '../types.js'
 
-export class DouyinAdapter implements PlatformAdapter {
+export class DouyinAdapter extends GovernanceBackedPlatformAdapter {
   readonly platformCode = 'douyin'
   readonly platformName = '抖音电商'
   readonly category = 'live' as const
@@ -11,7 +12,7 @@ export class DouyinAdapter implements PlatformAdapter {
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,
-      supportsAutoSync: false,
+      supportsAutoSync: true,
       supportsManualUpload: true,
       availableMetrics: [
         'gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count',
@@ -24,14 +25,4 @@ export class DouyinAdapter implements PlatformAdapter {
       ],
     }
   }
-
-  async fetchTradeData(shopId: number, sinceWatermark: string): Promise<StandardTradeRecord[]> {
-    // Reserved OpenAPI hook: returns empty array when running in manual-only mode
-    return []
-  }
-
-  async fetchTrafficData(shopId: number, sinceWatermark: string): Promise<StandardTrafficRecord[]> {
-    return []
-  }
 }
-
