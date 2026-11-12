@@ -24,6 +24,7 @@ import {
   listPlatformMetrics,
   PLATFORM_METRIC_REGISTRY,
 } from './platform-metrics.js'
+import { canAccessAdSpend, canAccessCost } from '../lib/guard.js'
 
 // ---------------------------------------------------------------------------
 // 类型
@@ -100,30 +101,32 @@ async function runTool(
   input: any,
   scope: string[] | null,
   pool: Pool,
+  role?: string,
 ): Promise<{ output: any; rowCount: number }> {
+  const access = role ? { role } : undefined
   switch (toolName) {
     case 'query_metric': {
-      const r = await queryMetric(input, scope, pool)
+      const r = await queryMetric(input, scope, pool, access)
       return { output: r, rowCount: r.rowCount }
     }
     case 'compare_periods': {
-      const r = await comparePeriods(input, scope, pool)
+      const r = await comparePeriods(input, scope, pool, access)
       return { output: r, rowCount: r.changes.length }
     }
     case 'drill_down': {
-      const r = await drillDown(input, scope, pool)
+      const r = await drillDown(input, scope, pool, access)
       return { output: r, rowCount: r.contributions.length }
     }
     case 'detect_anomalies': {
-      const r = await detectAnomalies(input, scope, pool)
+      const r = await detectAnomalies(input, scope, pool, access)
       return { output: r, rowCount: r.anomalies.length }
     }
     case 'forecast_trend': {
-      const r = await forecastTrend(input, scope, pool)
+      const r = await forecastTrend(input, scope, pool, access)
       return { output: r, rowCount: r.forecast.length }
     }
     case 'query_platform_metric': {
-      const r = await queryPlatformMetrics(input, pool)
+      const r = await queryPlatformMetrics(input, pool, access)
       return { output: r, rowCount: r.rows.length }
     }
     default:
@@ -469,7 +472,7 @@ function buildRulePlan(req: AnalysisRequest): { mode: AnalysisMode; calls: Plann
 
     default: {
       // ── 平台专属分析（覆盖 S1 默认剧本）──
-      const platformBranch = buildPlatformBranch(platform, range, filters, req.question)
+      const platformBranch = buildPlatformBranch(platform, range, filters, req.question, req.role)
       if (platformBranch) {
         calls.push(...platformBranch)
         break
@@ -506,6 +509,7 @@ function buildPlatformBranch(
   range: { from: string; to: string },
   filters: any,
   question: string,
+  role?: string,
 ): PlannedCall[] | null {
   if (!platform) return null
   const q = question
@@ -620,18 +624,19 @@ function buildPlatformBranch(
     }
   }
 
-  // 京东：自营采销 / 毛利
+  // 京东：自营采销 / 毛利（非成本权限角色仅查供货金额）
   if (platform === 'jd' && /自营|采销|供货|毛利|账期/.test(q)) {
+    const allowCost = !role || canAccessCost({ role })
     return [
       {
         tool: 'query_platform_metric',
         input: {
           platformCode: 'jd',
-          metrics: ['jd_supply_amount', 'jd_gross_margin', 'jd_margin_rate'],
+          metrics: allowCost ? ['jd_supply_amount', 'jd_gross_margin', 'jd_margin_rate'] : ['jd_supply_amount'],
           timeRange: range,
           shopId: filters.shopId,
         },
-        purpose: '分析京东自营采销的供货额与毛利',
+        purpose: allowCost ? '分析京东自营采销的供货额与毛利' : '分析京东自营采销的供货额',
       },
     ]
   }
@@ -933,7 +938,7 @@ export async function runAnalysis(
   for (const call of calls) {
     const t0 = Date.now()
     try {
-      const { output, rowCount } = await runTool(call.tool, call.input, scope, p)
+      const { output, rowCount } = await runTool(call.tool, call.input, scope, p, req.role)
       steps.push({
         seq: ++seq,
         role: 'executor',
@@ -995,13 +1000,15 @@ export async function runAnalysis(
     error: verification.passed ? undefined : `${verification.unmatched.length} 个数字无法溯源`,
   })
 
-  // ── 落库 ──
+  const durationMs = Date.now() - started
+
+  // ── 落库（runs + steps）──
   let runId: number | null = null
   try {
     const ins = await p.query(
       `INSERT INTO ai_analysis_runs
-         (conversation_id, user_id, mode, question, plan, status, verdict, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, now()) RETURNING id`,
+         (conversation_id, user_id, mode, question, plan, status, verdict, duration_ms, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now()) RETURNING id`,
       [
         req.conversationId || null,
         req.userId || null,
@@ -1010,11 +1017,31 @@ export async function runAnalysis(
         JSON.stringify({ mode, calls: calls.map((c) => ({ tool: c.tool, purpose: c.purpose })) }),
         verification.passed ? 'completed' : 'needs_review',
         JSON.stringify({ verification, findings: conclusion.findings.length }),
+        durationMs,
       ],
     )
     runId = ins.rows[0].id
-  } catch {
-    // 表不存在时不影响主流程
+    for (const step of steps) {
+      await p.query(
+        `INSERT INTO ai_analysis_steps
+           (run_id, seq, role, tool_name, input, output_ref, row_count, duration_ms, status, error)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+        [
+          runId,
+          step.seq,
+          step.role,
+          step.toolName,
+          JSON.stringify(step.input),
+          JSON.stringify(step.outputRef ?? null).slice(0, 100000),
+          step.rowCount,
+          step.durationMs,
+          step.status,
+          step.error || null,
+        ],
+      )
+    }
+  } catch (err) {
+    console.warn('[orchestrator] failed to persist analysis run/steps:', (err as Error)?.message || err)
   }
 
   return {
@@ -1027,6 +1054,6 @@ export async function runAnalysis(
     conclusion,
     verification,
     knowledgeUsed: knowledge.length,
-    durationMs: Date.now() - started,
+    durationMs,
   }
 }

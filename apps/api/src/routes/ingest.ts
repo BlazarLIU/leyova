@@ -302,9 +302,9 @@ export async function ingestRoutes(app: FastifyInstance) {
 
       const ruleSets = platform
         ? (await pool.query(
-            `SELECT id, name, description, is_system, rules FROM clean_rule_sets WHERE platform_code = $1 ORDER BY is_system DESC, id`,
-            [platform],
-          )).rows
+          `SELECT id, name, description, is_system, rules FROM clean_rule_sets WHERE platform_code = $1 ORDER BY is_system DESC, id`,
+          [platform],
+        )).rows
         : []
 
       return sendOk(reply, { fields, savedMappings, ruleSets })
@@ -550,21 +550,59 @@ export async function ingestRoutes(app: FastifyInstance) {
         workingRows = out.cleanedRows
       }
 
-      const result = await ingestManualFacts(pool, {
-        platformCode,
-        shopId,
-        dataType,
-        rows: workingRows,
-        defaultBizDate: bizDate || undefined,
-        cleanRuleSetId: ruleSetId,
-      })
+      const ext = fileName.split('.').pop()?.toLowerCase() || 'xlsx'
+      const uploadIns = await pool.query<{ id: number }>(
+        `INSERT INTO data_uploads
+           (file_name, file_type, file_size, status, row_count, data_type, business_date, platform_code, clean_rule_set_id)
+         VALUES ($1, $2, $3, 'processing', $4, $5, $6, $7, $8)
+         RETURNING id`,
+        [
+          fileName,
+          ext.slice(0, 50),
+          `${Math.max(1, Math.round(fileBuffer.length / 1024))}KB`,
+          workingRows.length,
+          dataType,
+          bizDate || null,
+          platformCode,
+          ruleSetId ?? null,
+        ],
+      )
+      const uploadId = uploadIns.rows[0]?.id ?? null
 
-      return sendOk(reply, {
-        ...result,
-        fileName,
-        inputRows: rows.length,
-        cleanedRows: workingRows.length,
-      }, `导入完成：成功 ${result.insertedRows} 行，拒绝 ${result.rejectedRows} 行`)
+      try {
+        const result = await ingestManualFacts(pool, {
+          platformCode,
+          shopId,
+          dataType,
+          rows: workingRows,
+          defaultBizDate: bizDate || undefined,
+          cleanRuleSetId: ruleSetId,
+          uploadId,
+        })
+
+        if (uploadId) {
+          await pool.query(
+            `UPDATE data_uploads SET status = 'completed', row_count = $1 WHERE id = $2`,
+            [result.insertedRows, uploadId],
+          )
+        }
+
+        return sendOk(reply, {
+          ...result,
+          uploadId,
+          fileName,
+          inputRows: rows.length,
+          cleanedRows: workingRows.length,
+        }, `导入完成：成功 ${result.insertedRows} 行，拒绝 ${result.rejectedRows} 行`)
+      } catch (err) {
+        if (uploadId) {
+          await pool.query(
+            `UPDATE data_uploads SET status = 'failed', error_message = $1 WHERE id = $2`,
+            [String((err as Error)?.message || err).slice(0, 500), uploadId],
+          ).catch(() => {})
+        }
+        throw err
+      }
     } catch (err) {
       request.log.error({ err }, 'ingest/manual-upload failed')
       return sendError(reply, 500, '手动上传导入失败')

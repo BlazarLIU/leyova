@@ -15,6 +15,24 @@
 
 import type { Pool } from 'pg'
 import { getPool } from '../lib/db.js'
+import { canAccessCost } from '../lib/guard.js'
+
+const COST_SENSITIVE_PLATFORM_METRICS = new Set(['jd_gross_margin', 'jd_margin_rate'])
+
+export interface PlatformAccessOptions {
+  role?: string | null
+  userType?: string | null
+  allowCost?: boolean
+}
+
+function isCostAccessAllowed(access?: PlatformAccessOptions): boolean {
+  if (!access) return true
+  if (access.allowCost !== undefined) return Boolean(access.allowCost)
+  if (access.role !== undefined || access.userType !== undefined) {
+    return canAccessCost({ role: access.role, userType: access.userType })
+  }
+  return true
+}
 
 /** 平台扩展事实表 */
 export type PlatformFactSource =
@@ -202,9 +220,10 @@ export function isPlatformMetricApplicable(code: string, platformCode: string): 
 }
 
 /** 列出某平台可用的专属指标 */
-export function listPlatformMetrics(platformCode: string): PlatformMetricDef[] {
+export function listPlatformMetrics(platformCode: string, access?: PlatformAccessOptions): PlatformMetricDef[] {
+  const allowCost = isCostAccessAllowed(access)
   return Object.values(PLATFORM_METRIC_REGISTRY)
-    .filter((m) => m.platformScope.includes(platformCode))
+    .filter((m) => m.platformScope.includes(platformCode) && (allowCost || !COST_SENSITIVE_PLATFORM_METRICS.has(m.code)))
 }
 
 export interface PlatformQueryInput {
@@ -230,9 +249,11 @@ export interface PlatformQueryResult {
 export async function queryPlatformMetrics(
   input: PlatformQueryInput,
   pool?: Pool,
+  access?: PlatformAccessOptions,
 ): Promise<PlatformQueryResult> {
   const p = pool || getPool()
   const warnings: string[] = []
+  const allowCost = isCostAccessAllowed(access)
 
   const applicable = input.metrics.filter((m) => {
     const def = PLATFORM_METRIC_REGISTRY[m]
@@ -242,6 +263,10 @@ export async function queryPlatformMetrics(
     }
     if (!def.platformScope.includes(input.platformCode)) {
       warnings.push(`指标 ${m}(${def.label}) 不适用于平台 ${input.platformCode}，已跳过`)
+      return false
+    }
+    if (!allowCost && COST_SENSITIVE_PLATFORM_METRICS.has(m)) {
+      warnings.push(`指标 ${m}(${def.label}) 涉及成本/毛利敏感数据，当前角色无权查看`)
       return false
     }
     return true
@@ -283,12 +308,12 @@ export async function queryPlatformMetrics(
 
   if (TABLES_WITH_PLATFORM_CODE.includes(primarySource)) {
     params.push(input.platformCode)
-    sql += ` AND platform_code = ${params.length}`
+    sql += ` AND platform_code = $${params.length}`
   }
 
   if (input.shopId) {
     params.push(input.shopId)
-    sql += ` AND shop_id = ${params.length}`
+    sql += ` AND shop_id = $${params.length}`
   }
 
   const { rows } = await p.query(sql, params)

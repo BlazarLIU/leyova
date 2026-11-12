@@ -97,17 +97,17 @@ export function toDeerFlowThreadId(conversationId: string): string {
   return `leyova_${conversationId}`
 }
 
+import { signMcpUserId } from './mcp-auth.js'
+
 function deerFlowHeaders(ownerUserId?: number): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (env.DEERFLOW_INTERNAL_TOKEN) {
     headers['X-DeerFlow-Internal-Token'] = env.DEERFLOW_INTERNAL_TOKEN
   }
-  // 经 DeerFlow 内网 internal 认证通道把会话用户 ID 透传为 run 身份
-  // （AuthMiddleware 校验 internal token 后，X-DeerFlow-Owner-User-Id →
-  //   configurable.context.user_id → leyova MCP 拦截器注入 X-Leyova-User-Id）。
-  // 仅在 internal token 已配置（可信内部调用方）时发送，避免匿名环境伪造。
   if (env.DEERFLOW_INTERNAL_TOKEN && ownerUserId) {
     headers['X-DeerFlow-Owner-User-Id'] = String(ownerUserId)
+    const secret = env.LEYOVA_MCP_SIGNING_SECRET || env.LEYOVA_MCP_TOKEN
+    headers['X-Leyova-User-Sig'] = signMcpUserId(ownerUserId, secret)
   }
   return headers
 }
@@ -322,10 +322,18 @@ export async function requestDeerFlowReply(req: {
         ],
       },
       ...(runContext ? { context: runContext } : {}),
-      // 会话身份经 config.context.secrets 透传（DeerFlow 的 MCP 拦截器
-      // 读取后动态注入 leyova MCP 的 X-Leyova-User-Id → 多用户数据隔离）
       ...(req.userId
-        ? { config: { recursion_limit: 500, context: { secrets: { leyova_user_id: req.userId } } } }
+        ? {
+            config: {
+              recursion_limit: 500,
+              context: {
+                secrets: {
+                  leyova_user_id: req.userId,
+                  leyova_user_sig: signMcpUserId(req.userId, env.LEYOVA_MCP_SIGNING_SECRET || env.LEYOVA_MCP_TOKEN),
+                },
+              },
+            },
+          }
         : {}),
       stream_mode: ['messages-tuple', 'values'],
     }

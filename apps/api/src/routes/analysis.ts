@@ -12,7 +12,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
-import { requireRole } from '../lib/guard.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
 import { runAnalysis, type AnalysisMode } from '../ai/orchestrator.js'
 import { resolveScope, listMetrics, listDimensions } from '../ai/semantic-layer.js'
 import { listPlatformMetrics } from '../ai/platform-metrics.js'
@@ -21,8 +21,11 @@ export async function analysisRoutes(app: FastifyInstance) {
   const pool = getPool()
 
   // ── GET /api/v1/analysis/metrics ──
-  app.get('/api/v1/analysis/metrics', async (_request, reply) => {
-    return sendOk(reply, { metrics: listMetrics(), dimensions: listDimensions() })
+  app.get('/api/v1/analysis/metrics', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    const access = { role: user.role, userType: user.userType }
+    return sendOk(reply, { metrics: listMetrics(access), dimensions: listDimensions() })
   })
 
   // ── POST /api/v1/analysis/run ──
@@ -36,7 +39,7 @@ export async function analysisRoutes(app: FastifyInstance) {
       /** 当前选中的平台，启用平台专属分析 */
       platformCode?: string
     }
-  }>('/api/v1/analysis/run', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/analysis/run', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance', 'ad_buyer'])] }, async (request, reply) => {
     try {
       const body = request.body || ({} as any)
       const question = (body.question || '').trim()
@@ -60,26 +63,6 @@ export async function analysisRoutes(app: FastifyInstance) {
         pool,
       )
 
-      // 落库每步明细，供审计与复现
-      if (result.runId) {
-        for (const step of result.steps) {
-          await pool.query(
-            `INSERT INTO ai_analysis_steps
-               (run_id, seq, role, tool_name, input, output_ref, row_count, duration_ms, status, error)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-            [
-              result.runId, step.seq, step.role, step.toolName,
-              JSON.stringify(step.input), JSON.stringify(step.outputRef).slice(0, 100000),
-              step.rowCount, step.durationMs, step.status, step.error || null,
-            ],
-          ).catch(() => {})
-        }
-        await pool.query(
-          `UPDATE ai_analysis_runs SET duration_ms = $1 WHERE id = $2`,
-          [result.durationMs, result.runId],
-        ).catch(() => {})
-      }
-
       // 数字溯源未通过时，明确告知前端
       const message = result.verification.passed
         ? '分析完成，所有数字均可溯源'
@@ -96,8 +79,10 @@ export async function analysisRoutes(app: FastifyInstance) {
   app.get('/api/v1/analysis/platform-metrics/:platform', async (request: FastifyRequest<{
     Params: { platform: string }
   }>, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
     try {
-      const metrics = listPlatformMetrics(request.params.platform)
+      const metrics = listPlatformMetrics(request.params.platform, { role: user.role, userType: user.userType })
       return sendOk(reply, { platformCode: request.params.platform, metrics })
     } catch (err) {
       return sendError(reply, 500, '获取平台指标失败')
@@ -108,11 +93,18 @@ export async function analysisRoutes(app: FastifyInstance) {
   app.get('/api/v1/analysis/runs', async (request: FastifyRequest<{
     Querystring: { limit?: string }
   }>, reply: FastifyReply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
     try {
       const lim = Math.min(parseInt(request.query.limit || '30', 10) || 30, 100)
+      const isPrivileged = user.role === 'super_admin' || user.role === 'admin'
       const { rows } = await pool.query(
-        `SELECT id, conversation_id, mode, question, status, verdict, duration_ms, created_at
-           FROM ai_analysis_runs ORDER BY created_at DESC LIMIT ${lim}`,
+        isPrivileged
+          ? `SELECT id, conversation_id, mode, question, status, verdict, duration_ms, created_at
+               FROM ai_analysis_runs ORDER BY created_at DESC LIMIT $1`
+          : `SELECT id, conversation_id, mode, question, status, verdict, duration_ms, created_at
+               FROM ai_analysis_runs WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`,
+        isPrivileged ? [lim] : [user.id, lim],
       )
       return sendOk(reply, rows)
     } catch (err) {
@@ -122,12 +114,18 @@ export async function analysisRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/analysis/runs/:id ──
   app.get('/api/v1/analysis/runs/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
     try {
       const id = parseInt(request.params.id, 10)
       if (!Number.isFinite(id)) return sendError(reply, 400, '无效的 ID')
 
       const run = await pool.query(`SELECT * FROM ai_analysis_runs WHERE id = $1`, [id])
       if (run.rows.length === 0) return sendError(reply, 404, '分析记录不存在')
+      const isPrivileged = user.role === 'super_admin' || user.role === 'admin'
+      if (!isPrivileged && run.rows[0].user_id !== user.id) {
+        return sendError(reply, 403, '无权查看他人分析详情')
+      }
 
       const steps = await pool.query(
         `SELECT seq, role, tool_name, input, output_ref, row_count, duration_ms, status, error

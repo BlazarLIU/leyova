@@ -4,9 +4,18 @@ import crypto from 'node:crypto'
 import { env } from '../config/env.js'
 import { sendError, sendOk } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { writeAuditLog } from '../lib/audit.js'
 
 const SESSION_MAX_AGE = 24 * 60 * 60 * 1000 // 24 hours (default)
 const REMEMBER_ME_AGE = 7 * 24 * 60 * 60 * 1000 // 7 days
+const MAX_FAILED_ATTEMPTS = 5
+const LOCKOUT_WINDOW_MS = 15 * 60 * 1000
+
+const failedLoginAttempts = new Map<string, { count: number; lockedUntil: number }>()
+
+function attemptKey(ip: string, username: string): string {
+  return `${ip || 'unknown'}:${username.toLowerCase()}`
+}
 
 interface DbUser {
   id: number
@@ -43,6 +52,13 @@ export async function authRoutes(app: FastifyInstance) {
       username: string; password: string; rememberMe?: boolean
     }
     const pool = getPool()
+    const key = attemptKey(request.ip, username.trim())
+    const rec = failedLoginAttempts.get(key)
+    const nowMs = Date.now()
+    if (rec && rec.lockedUntil > nowMs) {
+      const retryMin = Math.ceil((rec.lockedUntil - nowMs) / 60000)
+      return sendError(reply, 429, `连续失败次数过多，账号已临时锁定，请 ${retryMin} 分钟后再试`)
+    }
 
     let user: DbUser | null = null
     try {
@@ -56,17 +72,37 @@ export async function authRoutes(app: FastifyInstance) {
       return sendError(reply, 500, '服务器错误，请稍后重试')
     }
 
-    if (!user) {
+    const recordFailure = async (reason: string) => {
+      const current = failedLoginAttempts.get(key)
+      const isExpiredLock = Boolean(current && current.lockedUntil > 0 && current.lockedUntil <= nowMs)
+      const nextCount = (isExpiredLock ? 0 : current?.count || 0) + 1
+      const lockedUntil = nextCount >= MAX_FAILED_ATTEMPTS ? nowMs + LOCKOUT_WINDOW_MS : 0
+      failedLoginAttempts.set(key, { count: nextCount, lockedUntil })
+      if (lockedUntil > 0) {
+        await writeAuditLog(pool, {
+          request,
+          actorUserId: user?.id ?? null,
+          action: 'auth.login.lockout',
+          resourceType: 'users',
+          resourceId: user?.id ?? username,
+          afterData: { username, ip: request.ip, reason, attempts: nextCount },
+        }).catch(() => {})
+      }
+    }
+
+    if (!user || !user.password_hash) {
+      await recordFailure('user_not_found_or_empty_hash')
       return sendError(reply, 401, '用户名或密码不正确')
     }
 
     // Verify password
-    if (user.password_hash) {
-      const valid = await bcrypt.compare(password, user.password_hash)
-      if (!valid) {
-        return sendError(reply, 401, '用户名或密码不正确')
-      }
+    const valid = await bcrypt.compare(password, user.password_hash)
+    if (!valid) {
+      await recordFailure('invalid_password')
+      return sendError(reply, 401, '用户名或密码不正确')
     }
+
+    failedLoginAttempts.delete(key)
 
     // Create session
     const sessionId = crypto.randomUUID()
@@ -85,11 +121,13 @@ export async function authRoutes(app: FastifyInstance) {
 
     // Set cookie — session cookie (no maxAge) by default, deleted on browser close
     // If "rememberMe" is checked, persist for 7 days
+    const forwardedProto = String(request.headers['x-forwarded-proto'] || '')
+    const isHttps = request.protocol === 'https' || forwardedProto.split(',')[0]?.trim() === 'https'
     const cookieOpts: Record<string, any> = {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
-      secure: false,
+      secure: isHttps,
     }
     if (rememberMe) {
       cookieOpts.maxAge = 7 * 24 * 60 * 60 // 7 days in seconds

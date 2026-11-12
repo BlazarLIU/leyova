@@ -80,7 +80,8 @@ registerTool({
     sessionId: z.number().int().positive().optional(),
   }),
   riskLevel: 'read_only',
-  execute: async (params) => {
+  execute: async (params, ctx) => {
+    const allowAd = ['super_admin', 'admin', 'ops_director', 'finance', 'ad_buyer'].includes(ctx.role)
     const conditions: string[] = []
     const values: unknown[] = []
     let idx = 1
@@ -102,7 +103,7 @@ registerTool({
        ORDER BY gmv DESC`,
       values
     )
-    return rows
+    return allowAd ? rows : rows.map((r: any) => ({ ...r, ad_spend: null, roi: null }))
   },
 })
 

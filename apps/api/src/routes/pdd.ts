@@ -4,6 +4,9 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
+import { getPool } from '../lib/db.js'
+import { requireAuth } from '../lib/guard.js'
+import { assertShopPlatform } from '../lib/shop-guard.js'
 import {
   getPddGroupFunnel,
   getPddCaliberCompare,
@@ -23,14 +26,27 @@ function defaultRange(from?: string, to?: string) {
 }
 
 export async function pddRoutes(app: FastifyInstance) {
+  const pool = getPool()
+
+  async function resolvePddShop(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const user = await requireAuth(request, reply)
+    if (!user) return null
+    const check = await assertShopPlatform(pool, request.params.id, 'pdd')
+    if (!check.ok || !check.shop) {
+      sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
+      return null
+    }
+    return check.shop.id
+  }
+
   // ── GET /api/v1/pdd/shop/:id/group-funnel ── 成团漏斗
   app.get('/api/v1/pdd/shop/:id/group-funnel', async (request: FastifyRequest<{
     Params: { id: string }
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = parseInt(request.params.id, 10)
-      if (!Number.isFinite(shopId)) return sendError(reply, 400, '无效的店铺 ID')
+      const shopId = await resolvePddShop(request, reply)
+      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
       const data = await getPddGroupFunnel(shopId, r.from, r.to)
       return sendOk(reply, data)
@@ -46,8 +62,8 @@ export async function pddRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = parseInt(request.params.id, 10)
-      if (!Number.isFinite(shopId)) return sendError(reply, 400, '无效的店铺 ID')
+      const shopId = await resolvePddShop(request, reply)
+      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
       const data = await getPddCaliberCompare(shopId, r.from, r.to)
       return sendOk(reply, data)
@@ -62,8 +78,8 @@ export async function pddRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = parseInt(request.params.id, 10)
-      if (!Number.isFinite(shopId)) return sendError(reply, 400, '无效的店铺 ID')
+      const shopId = await resolvePddShop(request, reply)
+      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
       const data = await getPddRefundAnalysis(shopId, r.from, r.to)
       return sendOk(reply, data)
@@ -78,8 +94,8 @@ export async function pddRoutes(app: FastifyInstance) {
     Querystring: { from?: string; to?: string }
   }>, reply: FastifyReply) => {
     try {
-      const shopId = parseInt(request.params.id, 10)
-      if (!Number.isFinite(shopId)) return sendError(reply, 400, '无效的店铺 ID')
+      const shopId = await resolvePddShop(request, reply)
+      if (!shopId) return
       const r = defaultRange(request.query.from, request.query.to)
       const data = await getPddStoreHealth(shopId, r.from, r.to)
       return sendOk(reply, data)

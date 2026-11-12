@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
-import { requireRole } from '../lib/guard.js'
+import { canAccessCost, requireAuth, requireRole } from '../lib/guard.js'
 
 const OPS_PLAN_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'controller']
 
@@ -91,8 +91,12 @@ export async function opsRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/ops/goal-tracking ── (alias: /api/v1/ops/goals)
   const goalTrackingHandler = async (request: any, reply: any) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+
     const pool = getPool()
     try {
+      const showCost = canAccessCost(user)
       const periodKey = (request.query?.period || '').toString().toLowerCase()
       const periodMap: Record<string, string> = { month: 'monthly', quarter: 'quarterly', year: 'yearly' }
       const dbPeriod = periodMap[periodKey] || ''
@@ -104,10 +108,13 @@ export async function opsRoutes(app: FastifyInstance) {
          FROM goal_tracking${where} ORDER BY id`,
         params
       )
-      return sendOk(reply, { goals: rows })
+      const filtered = showCost
+        ? rows
+        : rows.filter((r: any) => !/成本|毛利|利润|净利|ROI|投产|花费/i.test(`${r.category || ''} ${r.name || ''}`))
+      return sendOk(reply, { goals: filtered })
     } catch (err) {
       request.log.warn({ err }, 'ops/goal-tracking query failed')
-      return sendOk(reply, [])
+      return sendOk(reply, { goals: [] })
     }
   }
   app.get('/api/v1/ops/goal-tracking', goalTrackingHandler)

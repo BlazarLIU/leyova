@@ -51,8 +51,12 @@ const envSchema = z.object({
   // ── MCP Server（供 DeerFlow 兜底链路调用）──
   // Bearer token：DeerFlow extensions_config 中 headers 引用同值
   LEYOVA_MCP_TOKEN: z.string().default('dev-leyova-mcp-token'),
-  // 默认映射的用户（X-Leyova-User-Id 头缺省时使用）
-  LEYOVA_MCP_DEFAULT_USER_ID: z.coerce.number().int().positive().default(1),
+  // HMAC 签名密钥（用于签名/校验 X-Leyova-User-Sig；未设时回退使用 LEYOVA_MCP_TOKEN）
+  LEYOVA_MCP_SIGNING_SECRET: z.string().default(''),
+  // 是否强制要求 X-Leyova-User-Sig HMAC 校验（生产建议开启）
+  LEYOVA_MCP_REQUIRE_SIG: z.coerce.boolean().default(false),
+  // 可选：显式配置的默认用户 ID（不再静默回退 super_admin 1）
+  LEYOVA_MCP_DEFAULT_USER_ID: z.coerce.number().int().positive().optional(),
   // MCP Server 监听端口
   MCP_PORT: z.coerce.number().int().positive().default(9101),
 
@@ -71,12 +75,23 @@ if (parsed.NODE_ENV === 'production') {
       SESSION_SECRET: z.string().min(16),
       LEYOVA_MCP_TOKEN: z.string().min(1),
     })
-    .refine((v) => v.SESSION_SECRET !== 'dev-session-secret-please-change', {
-      message: '生产环境必须设置 SESSION_SECRET（不能使用开发默认值）',
-    })
-    .refine((v) => v.LEYOVA_MCP_TOKEN !== 'dev-leyova-mcp-token', {
-      message: '生产环境必须设置 LEYOVA_MCP_TOKEN（不能使用开发默认值）',
-    })
+    .refine(
+      (v) =>
+        v.SESSION_SECRET !== 'dev-session-secret-please-change' &&
+        v.SESSION_SECRET !== 'leyova-local-session-secret-change-in-prod',
+      {
+        message: '生产环境必须设置强随机 SESSION_SECRET（不能使用开发或示例默认值）',
+      }
+    )
+    .refine(
+      (v) =>
+        v.LEYOVA_MCP_TOKEN !== 'dev-leyova-mcp-token' &&
+        v.LEYOVA_MCP_TOKEN !== 'leyova-local-mcp-token-change-in-prod' &&
+        v.LEYOVA_MCP_TOKEN !== 'change-me',
+      {
+        message: '生产环境必须设置强随机 LEYOVA_MCP_TOKEN（不能使用开发或示例默认值）',
+      }
+    )
   checkEnv.parse(parsed)
 }
 

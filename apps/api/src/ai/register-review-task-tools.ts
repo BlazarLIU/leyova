@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { registerTool } from './tool-registry.js'
+import { canAccessAdSpend } from '../lib/guard.js'
 
 // ---------------------------------------------------------------------------
 // Review tools (read-only)
@@ -46,9 +47,14 @@ registerTool({
        LIMIT 5`
     ).catch(() => ({ rows: [] as any[] }))
 
+    const allowAd = canAccessAdSpend({ role: ctx.role })
+    const safeChannels = allowAd
+      ? channelRows
+      : channelRows.map((c: any) => ({ ...c, ad_spend: null, roi: null }))
+
     return {
       session: s,
-      channels: channelRows,
+      channels: safeChannels,
       anomalies: anomalyRows,
       summary: {
         gmv: parseFloat(s.gmv),

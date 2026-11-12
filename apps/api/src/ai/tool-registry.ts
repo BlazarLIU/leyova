@@ -87,6 +87,10 @@ export async function executeTool(
     await logToolCall(ctx, name, rawParams, null, 'rejected', `Tool ${name} is forbidden`)
     return { ok: false, error: `Tool ${name} is forbidden` }
   }
+  if (tool.riskLevel === 'admin_only' && ctx.role !== 'super_admin' && ctx.role !== 'admin') {
+    await logToolCall(ctx, name, rawParams, null, 'rejected', `Tool ${name} requires admin role`)
+    return { ok: false, error: `Tool ${name} requires admin privileges` }
+  }
 
   const parsed = tool.inputSchema.safeParse(rawParams)
   if (!parsed.success) {
@@ -110,8 +114,8 @@ export async function executeTool(
            VALUES ($1, $2, 'pending', NOW() + INTERVAL '24 hours')`,
           [toolLogId, ctx.userId]
         )
-      } catch {
-        // ai_action_approvals table may not exist yet
+      } catch (err) {
+        console.warn('[tool-registry] failed to create approval row:', (err as Error)?.message || err)
       }
     }
     return {
@@ -175,7 +179,8 @@ async function logToolCall(
       ]
     )
     return rows[0]?.id
-  } catch {
+  } catch (err) {
+    console.warn('[tool-registry] failed to write ai_tool_logs:', (err as Error)?.message || err)
     return undefined
   }
 }

@@ -9,7 +9,8 @@ registerTool({
     sessionId: z.number().int().positive(),
   }),
   riskLevel: 'read_only',
-  execute: async (params) => {
+  execute: async (params, ctx) => {
+    const allowAd = ['super_admin', 'admin', 'ops_director', 'finance', 'ad_buyer'].includes(ctx.role)
     const { rows } = await query(
       `SELECT ls.id, ls.date, ls.status, ls.gmv, ls.orders, ls.views,
               ls.uv_value, ls.interaction_rate, ls.retention_rate, ls.gpm,
@@ -44,7 +45,7 @@ registerTool({
 
     return {
       session: s,
-      channels: channelRows,
+      channels: allowAd ? channelRows : channelRows.map((c: any) => ({ ...c, ad_spend: null, roi: null })),
       anomalies: anomalyRows,
       summary: {
         gmv: parseFloat(s.gmv),

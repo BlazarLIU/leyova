@@ -15,6 +15,22 @@
 
 import type { Pool } from 'pg'
 import { getPool } from '../lib/db.js'
+import { canAccessAdSpend } from '../lib/guard.js'
+
+export interface MetricAccessOptions {
+  role?: string | null
+  userType?: string | null
+  allowAdSpend?: boolean
+}
+
+function isAdAccessAllowed(access?: MetricAccessOptions): boolean {
+  if (!access) return true
+  if (access.allowAdSpend !== undefined) return Boolean(access.allowAdSpend)
+  if (access.role !== undefined || access.userType !== undefined) {
+    return canAccessAdSpend({ role: access.role, userType: access.userType })
+  }
+  return true
+}
 
 // ---------------------------------------------------------------------------
 // 注册表
@@ -302,12 +318,16 @@ function resolveSourceTable(metrics: string[]): FactSource {
 export function buildMetricQuery(
   input: QueryMetricInput,
   scope: string[] | null,
+  access?: MetricAccessOptions,
 ): { sql: string; params: any[] } {
   const metrics = (input.metrics || []).filter((m) => m in METRIC_REGISTRY)
   if (metrics.length === 0) {
     throw new Error(
       `未识别的指标：${(input.metrics || []).join(', ')}。可用指标：${Object.keys(METRIC_REGISTRY).join(', ')}`,
     )
+  }
+  if (!isAdAccessAllowed(access) && metrics.some((m) => METRIC_REGISTRY[m].source === 'ad')) {
+    throw new Error('当前角色无权查询投流消耗与 ROI 敏感指标')
   }
   const dims = (input.dimensions || []).filter((d) => d in DIMENSION_REGISTRY)
   const unknownDims = (input.dimensions || []).filter((d) => !(d in DIMENSION_REGISTRY))
@@ -456,9 +476,10 @@ export async function queryMetric(
   input: QueryMetricInput,
   scope: string[] | null,
   pool?: Pool,
+  access?: MetricAccessOptions,
 ): Promise<QueryMetricResult> {
   const p = pool || getPool()
-  const { sql, params } = buildMetricQuery(input, scope)
+  const { sql, params } = buildMetricQuery(input, scope, access)
   const { rows } = await p.query(sql, params)
   const dims = (input.dimensions || []).filter((d) => d in DIMENSION_REGISTRY)
   const validMetrics = (input.metrics || []).filter((m) => m in METRIC_REGISTRY)
@@ -506,6 +527,7 @@ export async function comparePeriods(
   },
   scope: string[] | null,
   pool?: Pool,
+  access?: MetricAccessOptions,
 ): Promise<{
   base: QueryMetricResult
   compare: QueryMetricResult
@@ -514,11 +536,11 @@ export async function comparePeriods(
   const p = pool || getPool()
   const base = await queryMetric(
     { ...input, timeRange: input.base, granularity: 'total' },
-    scope, p,
+    scope, p, access,
   )
   const compare = await queryMetric(
     { ...input, timeRange: input.compare, granularity: 'total' },
-    scope, p,
+    scope, p, access,
   )
 
   const changes = input.metrics
@@ -553,6 +575,7 @@ export async function drillDown(
   },
   scope: string[] | null,
   pool?: Pool,
+  access?: MetricAccessOptions,
 ): Promise<{
   dimension: string
   metric: string
@@ -570,7 +593,7 @@ export async function drillDown(
       filters: input.filters,
       granularity: 'total',
     },
-    scope, p,
+    scope, p, access,
   )
 
   let prevMap = new Map<string, number>()
@@ -583,7 +606,7 @@ export async function drillDown(
         filters: input.filters,
         granularity: 'total',
       },
-      scope, p,
+      scope, p, access,
     )
     for (const r of prev.rows) {
       prevMap.set(String(r[input.dimension]), Number(r[input.metric] || 0))
@@ -621,6 +644,7 @@ export async function detectAnomalies(
   },
   scope: string[] | null,
   pool?: Pool,
+  access?: MetricAccessOptions,
 ): Promise<{
   metric: string
   mean: number
@@ -639,7 +663,7 @@ export async function detectAnomalies(
       filters: input.filters,
       granularity: 'day',
     },
-    scope, p,
+    scope, p, access,
   )
 
   const values = series.rows.map((r: any) => ({ date: toDateStr(r.date), v: Number(r[input.metric] || 0) }))
@@ -679,6 +703,7 @@ export async function forecastTrend(
   },
   scope: string[] | null,
   pool?: Pool,
+  access?: MetricAccessOptions,
 ): Promise<{
   metric: string
   history: Array<{ date: string; value: number }>
@@ -697,7 +722,7 @@ export async function forecastTrend(
       filters: input.filters,
       granularity: 'day',
     },
-    scope, p,
+    scope, p, access,
   )
 
   const hist = series.rows.map((r: any) => ({ date: toDateStr(r.date), value: Number(r[input.metric] || 0) }))
@@ -753,10 +778,13 @@ export async function forecastTrend(
 }
 
 /** 元数据：供 LLM 了解可用指标与维度 */
-export function listMetrics() {
-  return Object.values(METRIC_REGISTRY).map((m) => ({
-    code: m.code, label: m.label, unit: m.unit, category: m.category, additive: m.additive,
-  }))
+export function listMetrics(access?: MetricAccessOptions) {
+  const allowAd = isAdAccessAllowed(access)
+  return Object.values(METRIC_REGISTRY)
+    .filter((m) => allowAd || m.source !== 'ad')
+    .map((m) => ({
+      code: m.code, label: m.label, unit: m.unit, category: m.category, additive: m.additive,
+    }))
 }
 
 export function listDimensions() {

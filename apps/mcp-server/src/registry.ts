@@ -46,6 +46,10 @@ export async function executeTool(
     await logToolCall(ctx, name, rawParams, null, 'rejected', `Tool ${name} is forbidden`)
     return { ok: false, error: `Tool ${name} is forbidden` }
   }
+  if (tool.riskLevel === 'admin_only' && ctx.role !== 'super_admin' && ctx.role !== 'admin') {
+    await logToolCall(ctx, name, rawParams, null, 'rejected', `Tool ${name} requires admin privileges`)
+    return { ok: false, error: `Tool ${name} requires admin privileges` }
+  }
 
   const parsed = tool.inputSchema.safeParse(rawParams)
   if (!parsed.success) {
@@ -122,7 +126,8 @@ async function logToolCall(
       ]
     )
     return rows[0]?.id
-  } catch {
+  } catch (err) {
+    console.warn('[mcp-server] failed to write ai_tool_logs:', (err as Error)?.message || err)
     return undefined
   }
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { registerTool } from './tool-registry.js'
+import { canAccessAdSpend } from '../lib/guard.js'
 
 // ---------------------------------------------------------------------------
 // Insight tools（Read-only）
@@ -251,7 +252,8 @@ registerTool({
     )
 
     if (rows.length === 0) return { error: 'Session not found' }
-    const s = rows[0]
+    const allowAd = canAccessAdSpend({ role: ctx.role })
+    const s = allowAd ? rows[0] : { ...rows[0], ad_cost: null }
 
     const { rows: channels } = await ctx.pool.query(
       `SELECT channel, avg_watch_sec, impressions, views, interactions, new_fans,
@@ -265,15 +267,16 @@ registerTool({
 
     const totalChannelGmv = channels.reduce((sum, c) => sum + (Number(c.gmv) || 0), 0)
     const totalAdSpend = channels.reduce((sum, c) => sum + (Number(c.ad_spend) || 0), 0)
+    const safeChannels = allowAd ? channels : channels.map((c) => ({ ...c, ad_spend: null }))
 
     return {
       session: s,
-      channels,
+      channels: safeChannels,
       channelSummary: {
         channelCount: channels.length,
         totalGmv: totalChannelGmv,
-        totalAdSpend: totalAdSpend,
-        blendedRoi: totalAdSpend > 0 ? totalChannelGmv / totalAdSpend : null,
+        totalAdSpend: allowAd ? totalAdSpend : null,
+        blendedRoi: allowAd && totalAdSpend > 0 ? totalChannelGmv / totalAdSpend : null,
       },
     }
   },
@@ -421,6 +424,7 @@ registerTool({
       [params.sessionId]
     )
 
+    const allowAd = canAccessAdSpend({ role: ctx.role })
     return {
       sessionId: params.sessionId,
       channels: rows.map((row) => ({
@@ -440,8 +444,8 @@ registerTool({
         itemCount: Number(row.item_count) || 0,
         gpm: Number(row.gpm) || 0,
         avgOrderValue: Number(row.avg_order_value) || 0,
-        adSpend: Number(row.ad_spend) || 0,
-        roi: Number(row.ad_spend) > 0 ? (Number(row.gmv) || 0) / Number(row.ad_spend) : null,
+        adSpend: allowAd ? Number(row.ad_spend) || 0 : null,
+        roi: allowAd && Number(row.ad_spend) > 0 ? (Number(row.gmv) || 0) / Number(row.ad_spend) : null,
       })),
       count: rows.length,
     }
@@ -482,6 +486,7 @@ registerTool({
       values
     )
 
+    const allowAd = canAccessAdSpend({ role: ctx.role })
     const series = rows.map((row) => ({
       date: row.business_date,
       channel: row.channel_name,
@@ -491,8 +496,8 @@ registerTool({
       gmv: Number(row.gmv) || 0,
       thousandViewPayment: Number(row.thousand_view_payment) || 0,
       avgOrderValue: Number(row.avg_order_value) || 0,
-      adSpend: Number(row.ad_spend) || 0,
-      roi: Number(row.ad_spend) > 0 ? (Number(row.gmv) || 0) / Number(row.ad_spend) : null,
+      adSpend: allowAd ? Number(row.ad_spend) || 0 : null,
+      roi: allowAd && Number(row.ad_spend) > 0 ? (Number(row.gmv) || 0) / Number(row.ad_spend) : null,
     }))
 
     return {
@@ -645,16 +650,17 @@ registerTool({
       values
     )
 
+    const allowAd = canAccessAdSpend({ role: ctx.role })
     const items = rows.map((row) => ({
       channel: row.channel,
       periodDate: row.period_date,
       gmv: Number(row.gmv) || 0,
-      adSpend: Number(row.ad_spend) || 0,
-      roi: Number(row.ad_spend) > 0 ? (Number(row.gmv) || 0) / Number(row.ad_spend) : null,
+      adSpend: allowAd ? Number(row.ad_spend) || 0 : null,
+      roi: allowAd && Number(row.ad_spend) > 0 ? (Number(row.gmv) || 0) / Number(row.ad_spend) : null,
     }))
 
     const totalGmv = items.reduce((sum, i) => sum + i.gmv, 0)
-    const totalAdSpend = items.reduce((sum, i) => sum + i.adSpend, 0)
+    const totalAdSpend = allowAd ? items.reduce((sum, i) => sum + (i.adSpend ?? 0), 0) : null
 
     return {
       sessionId: params.sessionId ?? null,
@@ -663,7 +669,7 @@ registerTool({
       summary: {
         totalGmv,
         totalAdSpend,
-        blendedRoi: totalAdSpend > 0 ? totalGmv / totalAdSpend : null,
+        blendedRoi: allowAd && totalAdSpend && totalAdSpend > 0 ? totalGmv / totalAdSpend : null,
         channelCount: items.length,
       },
     }

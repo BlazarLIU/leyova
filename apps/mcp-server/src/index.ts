@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import crypto from 'node:crypto'
 import { createServer, IncomingMessage, ServerResponse } from 'node:http'
 
 import './tools/live.js'
@@ -29,13 +30,49 @@ function readBody(req: IncomingMessage): Promise<string> {
   })
 }
 
-function parseAuth(req: IncomingMessage): { userId: number; role: string; scopeType: string; scopeId: string } | null {
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const ba = Buffer.from(a, 'utf8')
+  const bb = Buffer.from(b, 'utf8')
+  return ba.length === bb.length && crypto.timingSafeEqual(ba, bb)
+}
+
+async function parseAuth(
+  req: IncomingMessage
+): Promise<{ userId: number; role: string; scopeType: string; scopeId: string } | { error: string; status: number }> {
+  const configuredToken = process.env.LEYOVA_MCP_TOKEN || ''
+  if (process.env.NODE_ENV === 'production' && !configuredToken) {
+    return { status: 500, error: 'LEYOVA_MCP_TOKEN not configured' }
+  }
+  if (configuredToken) {
+    const authHeader = String(req.headers.authorization || '')
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+    if (!token || !timingSafeEqualStr(token, configuredToken)) {
+      return { status: 401, error: 'Unauthorized' }
+    }
+  }
+
   const userId = parseInt(req.headers['x-leyova-user-id'] as string, 10)
-  const role = (req.headers['x-leyova-role'] as string) || 'viewer'
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return { status: 401, error: 'Missing or invalid X-Leyova-User-Id header' }
+  }
+
+  const sigHeader = String(req.headers['x-leyova-user-sig'] || '')
+  const hmacSecret = process.env.LEYOVA_MCP_SIGNING_SECRET || configuredToken
+  if ((process.env.LEYOVA_MCP_REQUIRE_SIG === 'true' || sigHeader) && hmacSecret) {
+    const expected = crypto.createHmac('sha256', hmacSecret).update(`leyova-mcp-uid:${userId}`).digest('hex')
+    if (!sigHeader || !timingSafeEqualStr(sigHeader.trim().toLowerCase(), expected)) {
+      return { status: 403, error: 'Invalid or missing X-Leyova-User-Sig' }
+    }
+  }
+
+  const { rows } = await pool.query<{ role: string }>('SELECT role FROM users WHERE id = $1 AND status = 1 LIMIT 1', [userId])
+  if (rows.length === 0) {
+    return { status: 401, error: 'Unknown or disabled user' }
+  }
+
   const scopeType = (req.headers['x-leyova-scope-type'] as string) || 'user'
   const scopeId = (req.headers['x-leyova-scope-id'] as string) || `user:${userId}`
-  if (!userId) return null
-  return { userId, role, scopeType, scopeId }
+  return { userId, role: rows[0].role, scopeType, scopeId }
 }
 
 const server = createServer(async (req, res) => {
@@ -51,8 +88,8 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && path === '/tools/call') {
-    const auth = parseAuth(req)
-    if (!auth) return sendJSON(res, 401, { error: 'Missing X-Leyova-User-Id header' })
+    const auth = await parseAuth(req)
+    if ('error' in auth) return sendJSON(res, auth.status, { error: auth.error })
 
     const raw = await readBody(req)
     let body: { tool?: string; params?: unknown }

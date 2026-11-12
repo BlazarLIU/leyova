@@ -29,6 +29,7 @@ import type { AiScopeContext } from '../lib/ai-gateway.js'
 import { searchMemory, writeMemory } from '../lib/openviking-client.js'
 import { searchKnowledge } from '../lib/anythingllm-client.js'
 import { sendError } from '../lib/http.js'
+import { timingSafeTokenEqual, verifyMcpUserSig } from '../lib/mcp-auth.js'
 
 // ---------------------------------------------------------------------------
 // Shared-context tools (NOT registered into the main tool registry —
@@ -105,23 +106,50 @@ interface ToolExtra {
 // Auth / identity
 // ---------------------------------------------------------------------------
 
+function parseExplicitUserId(raw: string | string[] | undefined): number | null {
+  const val = Array.isArray(raw) ? raw[0] : raw
+  if (val === undefined || String(val).trim() === '') return null
+  const num = Number(val)
+  return Number.isInteger(num) && num > 0 ? num : null
+}
+
 async function mcpAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const auth = request.headers.authorization || ''
-  if (!auth.startsWith('Bearer ') || auth.slice(7).trim() !== env.LEYOVA_MCP_TOKEN) {
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
+  if (!token || !timingSafeTokenEqual(token, env.LEYOVA_MCP_TOKEN)) {
     sendError(reply, 401, 'Unauthorized')
     return
   }
+
   const rawId = request.headers['x-leyova-user-id']
-  const userId = rawId ? Number(rawId) : env.LEYOVA_MCP_DEFAULT_USER_ID
-  if (Number.isInteger(userId) && userId > 0) {
-    const sessionId = request.headers['mcp-session-id']
-    if (sessionId) sessionUserIds.set(String(sessionId), userId)
+  const explicitId = parseExplicitUserId(rawId)
+  if (rawId !== undefined && String(rawId).trim() !== '' && explicitId === null) {
+    sendError(reply, 401, 'Invalid X-Leyova-User-Id header')
+    return
   }
+
+  const resolvedUserId = explicitId ?? env.LEYOVA_MCP_DEFAULT_USER_ID ?? null
+  if (!resolvedUserId) {
+    sendError(reply, 401, 'Missing X-Leyova-User-Id header')
+    return
+  }
+
+  const sigHeader = Array.isArray(request.headers['x-leyova-user-sig'])
+    ? request.headers['x-leyova-user-sig'][0]
+    : request.headers['x-leyova-user-sig']
+  const secret = env.LEYOVA_MCP_SIGNING_SECRET || env.LEYOVA_MCP_TOKEN
+  if (env.LEYOVA_MCP_REQUIRE_SIG || sigHeader) {
+    if (!verifyMcpUserSig(resolvedUserId, sigHeader, secret)) {
+      sendError(reply, 403, 'Invalid or missing X-Leyova-User-Sig HMAC signature')
+      return
+    }
+  }
+
+  const sessionId = request.headers['mcp-session-id']
+  if (sessionId) sessionUserIds.set(String(sessionId), resolvedUserId)
 }
 
 function resolveUserId(extra?: ToolExtra): number {
-  // 无状态模式下请求级身份优先（每个 HTTP 请求从 X-Leyova-User-Id 头解析，
-  // 经 AsyncLocalStorage 沿请求链路传入——这是 DeerFlow 动态身份的主路径）
   const requestUserId = requestUserIdStore.getStore()
   if (requestUserId) return requestUserId
   const sessionId = extra?.sessionId
@@ -129,7 +157,8 @@ function resolveUserId(extra?: ToolExtra): number {
     const mapped = sessionUserIds.get(sessionId)
     if (mapped) return mapped
   }
-  return env.LEYOVA_MCP_DEFAULT_USER_ID
+  if (env.LEYOVA_MCP_DEFAULT_USER_ID) return env.LEYOVA_MCP_DEFAULT_USER_ID
+  throw new Error('Missing authenticated MCP user context')
 }
 
 async function buildToolContext(userId: number): Promise<ToolContext> {
@@ -257,8 +286,8 @@ async function logSharedToolCall(
         errorMsg || null,
       ]
     )
-  } catch {
-    // ai_tool_logs 表可能不存在，静默跳过
+  } catch (err) {
+    console.warn('[mcp] failed to write shared ai_tool_logs:', (err as Error)?.message || err)
   }
 }
 
@@ -303,12 +332,12 @@ export async function registerMcpRoutes(app: FastifyInstance): Promise<void> {
     preHandler: mcpAuth,
     handler: async (request, reply) => {
       reply.hijack()
-      // 无状态模式下直接从请求头解析 leyova 用户（缺省 DEFAULT），
-      // 经 AsyncLocalStorage 沿本请求链路传给工具回调 → 动态身份生效
-      const rawId = request.headers['x-leyova-user-id']
-      const headerUserId =
-        rawId !== undefined && rawId !== '' ? Number(rawId) : env.LEYOVA_MCP_DEFAULT_USER_ID
-      const requestUserId = Number.isInteger(headerUserId) && headerUserId > 0 ? headerUserId : env.LEYOVA_MCP_DEFAULT_USER_ID
+      const requestUserId = parseExplicitUserId(request.headers['x-leyova-user-id']) ?? env.LEYOVA_MCP_DEFAULT_USER_ID
+      if (!requestUserId) {
+        reply.raw.statusCode = 401
+        reply.raw.end('Missing X-Leyova-User-Id')
+        return
+      }
       try {
         const mcpServer = createMcpServer()
         const transport = new StreamableHTTPServerTransport({

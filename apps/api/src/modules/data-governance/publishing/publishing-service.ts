@@ -193,18 +193,31 @@ export class PublishingService {
         publishedCount++
       }
 
-      // 6. 同步刷新/汇总至聚合表 fact_trade_daily (保障现有看板完全兼容)
+      // 6. 同步刷新/汇总至聚合表 fact_trade_daily 并绑定 data_uploads 血缘 ID
+      let governanceUploadId: number | null = null
+      if (orderMap.size > 0) {
+        const upRes = await client.query<{ id: number }>(
+          `INSERT INTO data_uploads
+             (file_name, file_type, file_size, status, row_count, data_type, platform_code)
+           VALUES ($1, 'governance_batch', '0KB', 'completed', $2, 'trade', $3)
+           RETURNING id`,
+          [`governance_batch_${input.batchId}`, publishedCount, batch.source_platform || null],
+        )
+        governanceUploadId = upRes.rows[0]?.id ?? null
+      }
+
       for (const ord of orderMap.values()) {
         await client.query(
           `INSERT INTO fact_trade_daily
-             (biz_date, platform_code, shop_id, channel_name, amount_type, gmv, pay_amount, paid_order_count, paid_buyer_count, refund_amount, refund_count, source)
-           VALUES ($1::date, $2, $3, '规范发布渠道', 'gross_paid', $4, $4, 1, 1, 0, 0, 'data_governance')
+             (biz_date, platform_code, shop_id, channel_name, amount_type, gmv, pay_amount, paid_order_count, paid_buyer_count, refund_amount, refund_count, source, upload_id)
+           VALUES ($1::date, $2, $3, '规范发布渠道', 'gross_paid', $4, $4, 1, 1, 0, 0, 'data_governance', $5)
            ON CONFLICT (biz_date, platform_code, shop_id, channel_name, amount_type)
            DO UPDATE SET
              gmv = fact_trade_daily.gmv + EXCLUDED.gmv,
              pay_amount = fact_trade_daily.pay_amount + EXCLUDED.pay_amount,
-             paid_order_count = fact_trade_daily.paid_order_count + EXCLUDED.paid_order_count`,
-          [ord.bizDate, ord.sourcePlatform, ord.storeId, ord.paidAmount]
+             paid_order_count = fact_trade_daily.paid_order_count + EXCLUDED.paid_order_count,
+             upload_id = COALESCE(EXCLUDED.upload_id, fact_trade_daily.upload_id)`,
+          [ord.bizDate, ord.sourcePlatform, ord.storeId, ord.paidAmount, governanceUploadId]
         )
       }
 

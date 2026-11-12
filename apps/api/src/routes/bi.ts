@@ -1,31 +1,91 @@
 import type { FastifyInstance } from 'fastify'
-import { sendOk } from '../lib/http.js'
+import { sendOk, sendError } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
+import { requireAuth, canAccessAdSpend, getUserAllowedPlatforms } from '../lib/guard.js'
+import { resolveUserRlsScope } from '../lib/rls.js'
+
+const REASON_LABELS: Record<string, { label: string; barColor: string; dotColor: string }> = {
+  size_mismatch: { label: '尺码不合适', barColor: 'from-violet-500 to-violet-400', dotColor: 'bg-violet-400' },
+  quality_defect: { label: '商品质量/瑕疵', barColor: 'from-rose-500 to-rose-400', dotColor: 'bg-rose-400' },
+  logistics_slow: { label: '物流超时/揽收慢', barColor: 'from-amber-500 to-amber-400', dotColor: 'bg-amber-400' },
+  not_as_described: { label: '描述不符', barColor: 'from-cyan-500 to-cyan-400', dotColor: 'bg-cyan-400' },
+  buyer_remorse: { label: '7天无理由退货', barColor: 'from-blue-500 to-blue-400', dotColor: 'bg-blue-400' },
+  other: { label: '其他原因', barColor: 'from-slate-500 to-slate-400', dotColor: 'bg-slate-400' },
+}
+
+const TICKET_STATUS_LABELS: Record<string, string> = {
+  pending_audit: '待审核',
+  waiting_return: '待退回',
+  approved: '已同意退款',
+  rejected: '已驳回',
+  platform_intervened: '平台介入中',
+  closed: '已退款完成',
+}
+
+function normalizePlatformSql(expr: string): string {
+  return `CASE LOWER(COALESCE(${expr}, 'douyin'))
+    WHEN '抖音' THEN 'douyin'
+    WHEN '淘宝' THEN 'taobao'
+    WHEN '天猫' THEN 'tmall'
+    WHEN '京东' THEN 'jd'
+    WHEN '拼多多' THEN 'pdd'
+    WHEN '快手' THEN 'kuaishou'
+    WHEN '小红书' THEN 'xiaohongshu'
+    ELSE LOWER(COALESCE(${expr}, 'douyin'))
+  END`
+}
+
+async function resolveAllowedPlatformsList(pool: any, user: any): Promise<string[] | null> {
+  const allowedSet = await getUserAllowedPlatforms(pool, user)
+  return allowedSet === null ? null : Array.from(allowedSet)
+}
 
 export async function biRoutes(app: FastifyInstance) {
   // ── GET /api/v1/bi/dashboard ──
   //    Frontend: /api/bi/dashboard?period=7d&platform=all
   app.get('/api/v1/bi/dashboard', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+
     const query = request.query as { period?: string; platform?: string }
     const pool = getPool()
     try {
-      // period aggregation from imported data
-      let daysFilter = "7"
-      if (query.period === '30d') daysFilter = "30"
-      else if (query.period === 'quarter') daysFilter = "90"
+      const allowedPlatforms = await resolveAllowedPlatformsList(pool, user)
+      let daysFilter = '7'
+      if (query.period === '30d') daysFilter = '30'
+      else if (query.period === 'quarter') daysFilter = '90'
 
-      // ── 查询所有可用数据（不限制日期范围），用于兜底 ──
+      const scopeParams: any[] = []
+      const scopeConds: string[] = []
+      if (allowedPlatforms !== null) {
+        if (allowedPlatforms.length === 0) {
+          return sendOk(reply, {
+            total_gmv: 0, total_orders: 0, avg_order_value: 0, total_refund: 0,
+            change_rates: {}, platforms: [], dailyTrend: [],
+          })
+        }
+        scopeParams.push(allowedPlatforms)
+        scopeConds.push(`${normalizePlatformSql('r.platform')} = ANY($${scopeParams.length})`)
+      }
+      if (query.platform && query.platform !== 'all') {
+        scopeParams.push(query.platform.toLowerCase())
+        scopeConds.push(`${normalizePlatformSql('r.platform')} = $${scopeParams.length}`)
+      }
+      const baseWhere = scopeConds.length > 0 ? `WHERE ${scopeConds.join(' AND ')}` : ''
+
       const allData = await pool.query(
         `SELECT COALESCE(SUM(lb.payment_amount), 0) AS total_gmv,
                 COALESCE(SUM(om.deal_users), 0)::int AS total_orders,
                 COALESCE(SUM(om.refund_amount), 0) AS total_refund
          FROM session_live_basic_info lb
          LEFT JOIN session_overview_metrics om
-           ON om.room_id = lb.room_id AND om.business_date = lb.business_date`
+           ON om.room_id = lb.room_id AND om.business_date = lb.business_date
+         LEFT JOIN live_rooms r ON r.id = lb.room_id
+         ${baseWhere}`,
+        scopeParams
       )
       const allTotalGmv = parseFloat(allData.rows[0].total_gmv)
 
-      // ── 如果全量数据为空，直接返回默认响应 ──
       if (allTotalGmv === 0) {
         return sendOk(reply, {
           total_gmv: 0, total_orders: 0, avg_order_value: 0, total_refund: 0,
@@ -33,7 +93,9 @@ export async function biRoutes(app: FastifyInstance) {
         })
       }
 
-      // ── 按请求的日期范围查询 ──
+      const periodParams = [...scopeParams, daysFilter]
+      const periodWhere = `${baseWhere ? `${baseWhere} AND` : 'WHERE'} lb.business_date >= CURRENT_DATE - $${periodParams.length}::int`
+
       const agg = await pool.query(
         `SELECT COALESCE(SUM(lb.payment_amount), 0) AS total_gmv,
                 COALESCE(SUM(om.deal_users), 0)::int AS total_orders,
@@ -41,35 +103,37 @@ export async function biRoutes(app: FastifyInstance) {
          FROM session_live_basic_info lb
          LEFT JOIN session_overview_metrics om
            ON om.room_id = lb.room_id AND om.business_date = lb.business_date
-         WHERE lb.business_date >= CURRENT_DATE - $1::int`,
-        [daysFilter]
+         LEFT JOIN live_rooms r ON r.id = lb.room_id
+         ${periodWhere}`,
+        periodParams
       )
       let totalGmv = parseFloat(agg.rows[0].total_gmv)
       let totalOrders = parseInt(agg.rows[0].total_orders)
       let totalRefund = parseFloat(agg.rows[0].total_refund)
-      // 如果按日期范围查不到，改用全量数据
-      if (totalGmv === 0) {
+      const useAllFallback = totalGmv === 0
+      if (useAllFallback) {
         totalGmv = allTotalGmv
         totalOrders = parseInt(allData.rows[0].total_orders)
         totalRefund = parseFloat(allData.rows[0].total_refund)
       }
       const avgOrderValue = totalOrders > 0 ? Math.round(totalGmv / totalOrders) : 0
 
-      // daily trend from imported data (全量数据时使用所有可用日期)
+      const trendParams = useAllFallback ? scopeParams : periodParams
+      const trendWhere = useAllFallback ? baseWhere : periodWhere
       const trendRows = await pool.query(
         `SELECT to_char(lb.business_date, 'MM/DD') AS day, COALESCE(SUM(lb.payment_amount), 0) AS gmv
          FROM session_live_basic_info lb
-         ${totalGmv === allTotalGmv ? '' : 'WHERE lb.business_date >= CURRENT_DATE - $1::int'}
+         LEFT JOIN live_rooms r ON r.id = lb.room_id
+         ${trendWhere}
          GROUP BY lb.business_date
          ORDER BY lb.business_date DESC LIMIT 7`,
-        totalGmv === allTotalGmv ? [] : [daysFilter]
+        trendParams
       )
       const dailyTrend = trendRows.rows.reverse().map((r: any) => ({
         date: r.day,
         value: parseFloat(r.gmv) / 10000,
       }))
 
-      // platform breakdown from imported rooms
       const platRows = await pool.query(
         `SELECT COALESCE(r.platform, '抖音') AS platform,
                 COALESCE(SUM(lb.payment_amount), 0) AS gmv,
@@ -79,9 +143,9 @@ export async function biRoutes(app: FastifyInstance) {
          LEFT JOIN session_overview_metrics om
            ON om.room_id = lb.room_id AND om.business_date = lb.business_date
          LEFT JOIN live_rooms r ON r.id = lb.room_id
-         ${totalGmv === allTotalGmv ? '' : 'WHERE lb.business_date >= CURRENT_DATE - $1::int'}
+         ${trendWhere}
          GROUP BY r.platform`,
-        totalGmv === allTotalGmv ? [] : [daysFilter]
+        trendParams
       )
       const platforms = platRows.rows.map((r: any) => ({
         platform: r.platform || '抖音',
@@ -115,12 +179,24 @@ export async function biRoutes(app: FastifyInstance) {
   // ── GET /api/v1/bi/roi ──
   //    Frontend: /api/bi/roi?period=yesterday|7d|15d|30d|month|year&month=YYYY-MM&year=YYYY
   app.get('/api/v1/bi/roi', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    if (!canAccessAdSpend(user) && user.userType !== 'brand_viewer') {
+      return sendError(reply, 403, '当前角色无权查看投流消耗与 ROI 数据')
+    }
+
     const query = request.query as { period?: string; month?: string; year?: string }
     const period = query.period || '30d'
     const pool = getPool()
 
     try {
-      // Calculate date range based on period
+      const rlsScope = await resolveUserRlsScope(pool, user)
+      if (rlsScope.userType === 'brand_viewer' && !rlsScope.canViewCost) {
+        return sendError(reply, 403, '品牌方账号未获成本与消耗明文查看授权')
+      }
+
+      const allowedPlatforms = await resolveAllowedPlatformsList(pool, user)
+
       const now = new Date()
       let startDate: Date
       let endDate: Date
@@ -144,13 +220,11 @@ export async function biRoutes(app: FastifyInstance) {
           break
         case 'month': {
           if (query.month && query.year) {
-            // 前端分别传 year=2026&month=6
             const y = parseInt(query.year)
             const m = parseInt(query.month)
             startDate = new Date(y, m - 1, 1)
-            endDate = new Date(y, m, 0) // last day of the month
+            endDate = new Date(y, m, 0)
           } else if (query.month && query.month.includes('-')) {
-            // 兼容 "YYYY-MM" 格式
             const [y, m] = query.month.split('-').map(Number)
             startDate = new Date(y, m - 1, 1)
             endDate = new Date(y, m, 0)
@@ -171,7 +245,6 @@ export async function biRoutes(app: FastifyInstance) {
           endDate = now
       }
 
-      // 验证日期有效性
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         startDate = new Date(now.getTime() - 30 * 86400000)
         endDate = now
@@ -180,72 +253,77 @@ export async function biRoutes(app: FastifyInstance) {
       const startStr = startDate.toISOString().slice(0, 10)
       const endStr = endDate.toISOString().slice(0, 10)
 
-    try {
-      // Aggregate data within date range from imported data
-      const aggRows = await pool.query(
-        `SELECT
-           COALESCE(SUM(lb.payment_amount), 0) AS total_gmv,
-           COALESCE(SUM(om.deal_users), 0)::int AS total_orders,
-           COALESCE(SUM(om.refund_amount), 0) AS total_refund
-         FROM session_live_basic_info lb
-         LEFT JOIN session_overview_metrics om
-           ON om.room_id = lb.room_id AND om.business_date = lb.business_date
-         WHERE lb.business_date >= $1 AND lb.business_date <= $2`,
-        [startStr, endStr]
-      )
-      const agg = aggRows.rows[0] || { total_gmv: 0, total_orders: 0, total_refund: 0 }
-      const totalGmv = parseFloat(agg.total_gmv)
-      const totalOrders = parseInt(agg.total_orders)
-      const totalRefund = parseFloat(agg.total_refund)
-      const totalAdCost = 0 // 导入数据暂无广告花费
-
-      // Build chart data (daily grouping)
-      const dailyRows = await pool.query(
-        `SELECT lb.business_date,
-                COALESCE(SUM(lb.payment_amount), 0) AS daily_gmv,
-                COALESCE(SUM(om.deal_users), 0)::int AS daily_orders
-         FROM session_live_basic_info lb
-         LEFT JOIN session_overview_metrics om
-           ON om.room_id = lb.room_id AND om.business_date = lb.business_date
-         WHERE lb.business_date >= $1 AND lb.business_date <= $2
-         GROUP BY lb.business_date ORDER BY lb.business_date`,
-        [startStr, endStr]
-      )
-
-      const chartData = dailyRows.rows.map((r: any) => {
-        const dgmv = parseFloat(r.daily_gmv)
-        const orders = parseInt(r.daily_orders)
-        const roi = 0 // 无广告花费数据，ROI 记 0
-        const dateStr = typeof r.business_date === 'string' ? r.business_date : r.business_date.toISOString().slice(0, 10)
-        return {
-          label: dateStr.slice(5),  // MM-DD format
-          roi,
-          gmv: dgmv,
-        }
-      })
-
-      // Compute overall stats from real data
-      let overallRoi = 0
-      let adRoi = 0
-      let organicRoi = 0
-      let overallRate = 0
-      const channels: any[] = []
-      const changeRates: Record<string, number> = {}
-
-      // Real channel data from imported douyin channels
       try {
-        const channelRows = await pool.query(
-          `SELECT channel_name AS channel,
-                  COALESCE(SUM(ad_cost_bound), 0) AS total_spend,
-                  COALESCE(SUM(payment_amount), 0) AS total_output
-           FROM douyin_channel_daily_metrics
-           WHERE business_date >= $1 AND business_date <= $2
-           GROUP BY channel_name ORDER BY total_output DESC`,
-          [startStr, endStr]
-        )
-        const chTotalOutput = channelRows.rows.reduce((sum: number, r: any) => sum + parseFloat(r.total_output || '0'), 0)
+        const allowDouyin = allowedPlatforms === null || allowedPlatforms.includes('douyin')
+        let liveTotalGmv = 0
+        const dailyGmvMap = new Map<string, number>()
 
-        for (const r of channelRows.rows) {
+        if (allowDouyin) {
+          const dailyRows = await pool.query(
+            `SELECT lb.business_date,
+                    COALESCE(SUM(lb.payment_amount), 0) AS daily_gmv
+             FROM session_live_basic_info lb
+             WHERE lb.business_date >= $1 AND lb.business_date <= $2
+             GROUP BY lb.business_date ORDER BY lb.business_date`,
+            [startStr, endStr]
+          )
+          for (const r of dailyRows.rows) {
+            const dateStr = typeof r.business_date === 'string' ? r.business_date : r.business_date.toISOString().slice(0, 10)
+            const dgmv = parseFloat(r.daily_gmv || '0')
+            liveTotalGmv += dgmv
+            dailyGmvMap.set(dateStr, dgmv)
+          }
+        }
+
+        const spendParams: any[] = [startStr, endStr]
+        let spendWhere = 'WHERE f.biz_date >= $1 AND f.biz_date <= $2'
+        if (allowedPlatforms !== null) {
+          if (allowedPlatforms.length === 0) {
+            return sendOk(reply, { period, overall_roi: 0, ad_roi: 0, organic_roi: 0, overall_rate: 0, change_rates: {}, chartData: [], channels: [] })
+          }
+          spendParams.push(allowedPlatforms)
+          spendWhere += ` AND f.platform_code = ANY($${spendParams.length})`
+        }
+
+        const adDailyRes = await pool.query(
+          `SELECT f.biz_date::text AS biz_date,
+                  COALESCE(SUM(f.ad_spend), 0) AS ad_spend,
+                  COALESCE(SUM(f.attributed_gmv), 0) AS attributed_gmv
+           FROM fact_ad_spend_daily f
+           ${spendWhere}
+           GROUP BY f.biz_date
+           ORDER BY f.biz_date`,
+          spendParams
+        )
+
+        let factAdSpend = 0
+        let factAttributedGmv = 0
+        const dailySpendMap = new Map<string, { spend: number; gmv: number }>()
+        for (const r of adDailyRes.rows) {
+          const sp = parseFloat(r.ad_spend || '0')
+          const ag = parseFloat(r.attributed_gmv || '0')
+          factAdSpend += sp
+          factAttributedGmv += ag
+          dailySpendMap.set(String(r.biz_date).slice(0, 10), { spend: sp, gmv: ag })
+        }
+
+        const channels: any[] = []
+        let douyinChannelSpend = 0
+        let douyinChannelOutput = 0
+
+        const toolChannelsRes = await pool.query(
+          `SELECT COALESCE(sp.display_name, f.platform_code) || ' · ' || COALESCE(d.tool_name, f.ad_tool_code) AS channel,
+                  COALESCE(SUM(f.ad_spend), 0) AS total_spend,
+                  COALESCE(SUM(f.attributed_gmv), 0) AS total_output
+           FROM fact_ad_spend_daily f
+           LEFT JOIN system_platform_configs sp ON sp.platform_code = f.platform_code
+           LEFT JOIN ad_tool_dict d ON d.platform_code = f.platform_code AND d.tool_code = f.ad_tool_code
+           ${spendWhere}
+           GROUP BY sp.display_name, f.platform_code, d.tool_name, f.ad_tool_code
+           ORDER BY total_output DESC`,
+          spendParams
+        )
+        for (const r of toolChannelsRes.rows) {
           const spend = parseFloat(r.total_spend || '0')
           const output = parseFloat(r.total_output || '0')
           const channelRoi = spend > 0 ? +(output / spend).toFixed(2) : 0
@@ -255,66 +333,202 @@ export async function biRoutes(app: FastifyInstance) {
             output: +(output / 10000).toFixed(2),
             roi: channelRoi,
             change: 0,
-            rating: channelRoi >= 2.5 ? '优秀' : channelRoi >= 1.5 ? '良好' : channelRoi >= 1 ? '一般' : '较差',
+            rating: channelRoi >= 3.0 ? '优秀' : channelRoi >= 1.8 ? '良好' : channelRoi >= 1 ? '一般' : '较差',
           })
         }
-      } catch {
-        // Fallback: no channel data yet
-      }
 
-      // If no real channel data, provide empty array
-      if (channels.length === 0) {
-        channels.push(
-          { channel: '抖音', investment: 0, output: 0, roi: 0, change: 0, rating: '一般' },
-        )
-      }
+        if (allowDouyin) {
+          try {
+            const channelRows = await pool.query(
+              `SELECT channel_name AS channel,
+                      COALESCE(SUM(ad_cost_bound), 0) AS total_spend,
+                      COALESCE(SUM(payment_amount), 0) AS total_output
+               FROM douyin_channel_daily_metrics
+               WHERE business_date >= $1 AND business_date <= $2
+               GROUP BY channel_name ORDER BY total_output DESC`,
+              [startStr, endStr]
+            )
+            for (const r of channelRows.rows) {
+              const spend = parseFloat(r.total_spend || '0')
+              const output = parseFloat(r.total_output || '0')
+              douyinChannelSpend += spend
+              douyinChannelOutput += output
+              const channelRoi = spend > 0 ? +(output / spend).toFixed(2) : 0
+              channels.push({
+                channel: r.channel,
+                investment: +(spend / 10000).toFixed(2),
+                output: +(output / 10000).toFixed(2),
+                roi: channelRoi,
+                change: 0,
+                rating: channelRoi >= 2.5 ? '优秀' : channelRoi >= 1.5 ? '良好' : channelRoi >= 1 ? '一般' : '较差',
+              })
+            }
+          } catch {
+            // Optional legacy douyin channel table
+          }
+        }
 
-      return sendOk(reply, {
-        period,
-        overall_roi: overallRoi,
-        ad_roi: adRoi,
-        organic_roi: organicRoi,
-        overall_rate: overallRate,
-        change_rates: changeRates,
-        chartData,
-        channels,
-      })
+        const totalAdSpend = factAdSpend + douyinChannelSpend
+        const totalAttributedGmv = factAttributedGmv + douyinChannelOutput
+        const effectiveTotalGmv = Math.max(liveTotalGmv + factAttributedGmv, totalAttributedGmv)
+        const overallRoi = totalAdSpend > 0 ? +(effectiveTotalGmv / totalAdSpend).toFixed(2) : 0
+        const adRoi = totalAdSpend > 0 ? +(totalAttributedGmv / totalAdSpend).toFixed(2) : 0
+        const organicGmv = Math.max(0, effectiveTotalGmv - totalAttributedGmv)
+        const organicRoi = totalAdSpend > 0 ? +(organicGmv / totalAdSpend).toFixed(2) : 0
+        const overallRate = overallRoi
+
+        const allDates = Array.from(new Set([...dailyGmvMap.keys(), ...dailySpendMap.keys()])).sort()
+        const chartData = allDates.map((d) => {
+          const ad = dailySpendMap.get(d)
+          const liveGmv = dailyGmvMap.get(d) || 0
+          const dayGmv = liveGmv + (ad?.gmv || 0)
+          const daySpend = ad?.spend || 0
+          return {
+            label: d.slice(5),
+            roi: daySpend > 0 ? +(dayGmv / daySpend).toFixed(2) : 0,
+            gmv: dayGmv,
+          }
+        })
+
+        return sendOk(reply, {
+          period,
+          overall_roi: overallRoi,
+          ad_roi: adRoi,
+          organic_roi: organicRoi,
+          overall_rate: overallRate,
+          change_rates: {},
+          chartData,
+          channels,
+        })
+      } catch (err) {
+        request.log.warn({ err }, 'bi/roi db query failed')
+        return sendOk(reply, { period, overall_roi: 0, ad_roi: 0, organic_roi: 0, overall_rate: 0, change_rates: {}, chartData: [], channels: [] })
+      }
     } catch (err) {
-      request.log.warn({ err }, 'bi/roi db query failed')
+      request.log.warn({ err }, 'bi/roi date calc failed')
       return sendOk(reply, { period, overall_roi: 0, ad_roi: 0, organic_roi: 0, overall_rate: 0, change_rates: {}, chartData: [], channels: [] })
     }
-  } catch (err) {
-    request.log.warn({ err }, 'bi/roi date calc failed')
-    return sendOk(reply, { period, overall_roi: 0, ad_roi: 0, organic_roi: 0, overall_rate: 0, change_rates: {}, chartData: [], channels: [] })
-  }
   })
 
   // ── GET /api/v1/bi/refund ──
   //    Frontend: /api/bi/refund?period=7d
-  app.get('/api/v1/bi/refund', async (_request, reply) => {
-    // TODO: 建 refund 表后改为从数据库查询
-    // 当前从 live_sessions 的 return_amount 聚合
+  app.get('/api/v1/bi/refund', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+
+    const query = request.query as { period?: string }
+    const daysFilter = query.period === '7d' ? 7 : query.period === 'quarter' ? 90 : 30
     const pool = getPool()
+
     try {
-      const result = await pool.query(
+      const allowedPlatforms = await resolveAllowedPlatformsList(pool, user)
+      if (allowedPlatforms !== null && allowedPlatforms.length === 0) {
+        return sendOk(reply, {
+          total_refund: 0, refund_rate: 0, refund_orders: 0, avg_refund_time: 0,
+          change_rates: {}, reasons: [], records: [],
+        })
+      }
+
+      const params: any[] = [daysFilter]
+      const platformCond = allowedPlatforms !== null
+        ? (() => {
+            params.push(allowedPlatforms)
+            return ` AND t.platform_code = ANY($${params.length})`
+          })()
+        : ''
+
+      const summaryRes = await pool.query(
         `SELECT
-           COALESCE(SUM(return_amount), 0) AS total_refund,
-           CASE WHEN COALESCE(SUM(gmv), 0) > 0
-             THEN ROUND((COALESCE(SUM(return_amount), 0) / SUM(gmv)) * 100, 1)
-             ELSE 0 END AS refund_rate,
-           COUNT(*) FILTER (WHERE return_amount > 0)::int AS refund_orders
-         FROM live_sessions
-         WHERE date >= CURRENT_DATE - INTERVAL '30 days' AND status = 'completed'`
+           COALESCE(SUM(t.refund_amount), 0) AS total_refund,
+           COUNT(*)::int AS refund_orders,
+           COALESCE(ROUND(AVG(EXTRACT(EPOCH FROM (COALESCE(t.resolved_at, NOW()) - t.applied_at)) / 86400.0)::numeric, 1), 0) AS avg_refund_days
+         FROM fact_after_sale_tickets t
+         WHERE t.applied_at >= CURRENT_DATE - ($1::int * INTERVAL '1 day')${platformCond}`,
+        params
       )
-      const r = result.rows[0]
+
+      const gmvParams: any[] = [daysFilter]
+      const tradePlatformCond = allowedPlatforms !== null
+        ? (() => {
+            gmvParams.push(allowedPlatforms)
+            return ` AND platform_code = ANY($${gmvParams.length})`
+          })()
+        : ''
+      const gmvRes = await pool.query(
+        `SELECT
+           COALESCE((SELECT SUM(COALESCE(pay_amount, gmv)) FROM fact_trade_daily WHERE biz_date >= CURRENT_DATE - $1::int${tradePlatformCond}), 0)
+           + COALESCE((SELECT SUM(gmv) FROM live_sessions WHERE date >= CURRENT_DATE - $1::int AND status = 'completed'), 0) AS total_gmv`,
+        gmvParams
+      )
+
+      const reasonRes = await pool.query(
+        `SELECT t.reason_category,
+                COUNT(*)::int AS ticket_count,
+                COALESCE(SUM(t.refund_amount), 0) AS refund_amount
+         FROM fact_after_sale_tickets t
+         WHERE t.applied_at >= CURRENT_DATE - ($1::int * INTERVAL '1 day')${platformCond}
+         GROUP BY t.reason_category
+         ORDER BY refund_amount DESC, ticket_count DESC`,
+        params
+      )
+
+      const recordRes = await pool.query(
+        `SELECT t.source_order_id,
+                t.ticket_no,
+                COALESCE(p.sku_name, sp.display_name || ' 订单 ' || t.source_order_id) AS product_name,
+                t.refund_amount,
+                t.reason_category,
+                t.ticket_status,
+                to_char(t.applied_at AT TIME ZONE 'Asia/Shanghai', 'YYYY-MM-DD HH24:MI') AS apply_time,
+                ROUND(EXTRACT(EPOCH FROM (COALESCE(t.resolved_at, NOW()) - t.applied_at)) / 3600.0, 1) AS duration_hours,
+                t.resolved_at
+         FROM fact_after_sale_tickets t
+         LEFT JOIN dim_product p ON p.id = t.product_id
+         LEFT JOIN system_platform_configs sp ON sp.platform_code = t.platform_code
+         WHERE t.applied_at >= CURRENT_DATE - ($1::int * INTERVAL '1 day')${platformCond}
+         ORDER BY t.applied_at DESC
+         LIMIT 20`,
+        params
+      )
+
+      const summary = summaryRes.rows[0] || {}
+      const totalRefund = parseFloat(summary.total_refund || '0')
+      const refundOrders = parseInt(summary.refund_orders || '0')
+      const avgRefundTime = parseFloat(summary.avg_refund_days || '0')
+      const totalGmv = parseFloat(gmvRes.rows[0]?.total_gmv || '0')
+      const refundRate = totalGmv > 0 ? +((totalRefund / totalGmv) * 100).toFixed(1) : 0
+
+      const denom = totalRefund > 0 ? totalRefund : 1
+      const reasons = reasonRes.rows.map((r: any) => {
+        const meta = REASON_LABELS[r.reason_category] || REASON_LABELS.other
+        const amount = parseFloat(r.refund_amount || '0')
+        return {
+          reason: meta.label,
+          percentage: totalRefund > 0 ? +((amount / denom) * 100).toFixed(1) : 0,
+          amount,
+          barColor: meta.barColor,
+          dotColor: meta.dotColor,
+        }
+      })
+
+      const records = recordRes.rows.map((r: any) => ({
+        orderId: r.source_order_id,
+        product: r.product_name,
+        amount: parseFloat(r.refund_amount || '0'),
+        reason: (REASON_LABELS[r.reason_category] || REASON_LABELS.other).label,
+        applyTime: r.apply_time || '',
+        duration: r.resolved_at ? `${r.duration_hours}小时` : `已历时${r.duration_hours}小时`,
+        status: TICKET_STATUS_LABELS[r.ticket_status] || r.ticket_status,
+      }))
+
       return sendOk(reply, {
-        total_refund: parseFloat(r.total_refund),
-        refund_rate: parseFloat(r.refund_rate),
-        refund_orders: r.refund_orders,
-        avg_refund_time: 0, // 暂无可计算来源
+        total_refund: totalRefund,
+        refund_rate: refundRate,
+        refund_orders: refundOrders,
+        avg_refund_time: avgRefundTime,
         change_rates: {},
-        reasons: [],
-        records: [],
+        reasons,
+        records,
       })
     } catch (err) {
       app.log.warn({ err }, 'bi/refund query failed')
@@ -328,13 +542,26 @@ export async function biRoutes(app: FastifyInstance) {
   // ── GET /api/v1/bi/anomalies ──
   //    Frontend: /api/bi/anomalies?dimension=gmv&severity=critical&period=7d
   app.get('/api/v1/bi/anomalies', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+
     const query = request.query as { dimension?: string; severity?: string; period?: string }
     const pool = getPool()
     try {
-      // query live_sessions for aggregate to compare against thresholds
-      let daysFilter = "7"
-      if (query.period === '30d') daysFilter = "30"
-      else if (query.period === 'quarter') daysFilter = "90"
+      const allowedPlatforms = await resolveAllowedPlatformsList(pool, user)
+      if (allowedPlatforms !== null && !allowedPlatforms.includes('douyin') && !allowedPlatforms.includes('kuaishou')) {
+        return sendOk(reply, [{
+          id: 'anomaly-normal', dimension: query.dimension || 'GMV',
+          actualValue: '正常', normalRange: '-',
+          deviation: '0%', severity: 'info',
+          detectedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+          detail: '当前授权货架/图文平台暂无直播间异常指标',
+        }])
+      }
+
+      let daysFilter = '7'
+      if (query.period === '30d') daysFilter = '30'
+      else if (query.period === 'quarter') daysFilter = '90'
 
       const agg = await pool.query(
         `SELECT COALESCE(AVG(gmv), 0) AS avg_gmv,
@@ -345,7 +572,6 @@ export async function biRoutes(app: FastifyInstance) {
       )
       const a = agg.rows[0]
       const avgGmv = parseFloat(a.avg_gmv)
-      const avgOrders = parseInt(a.avg_orders)
       const avgViewers = parseInt(a.avg_viewers)
 
       const anomalies: any[] = []

@@ -1,0 +1,200 @@
+/**
+ * douyin.ts — 抖音专属分析路由（与其他五大平台路由架构对齐 + shop/platform 越权守卫）
+ */
+
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { getPool } from '../lib/db.js'
+import { sendError, sendOk } from '../lib/http.js'
+import { canAccessAdSpend, requireAuth } from '../lib/guard.js'
+import { assertShopPlatform } from '../lib/shop-guard.js'
+
+function defaultRange(from?: string, to?: string) {
+  const t = new Date()
+  const toDate = to || t.toISOString().slice(0, 10)
+  const f =
+    from ||
+    (() => {
+      const d = new Date(toDate)
+      d.setDate(d.getDate() - 29)
+      return d.toISOString().slice(0, 10)
+    })()
+  return { from: f, to: toDate }
+}
+
+export async function douyinRoutes(app: FastifyInstance) {
+  const pool = getPool()
+
+  // ── GET /api/v1/douyin/shop/:id/metrics ── 抖音店铺核心经营指标
+  app.get(
+    '/api/v1/douyin/shop/:id/metrics',
+    async (
+      request: FastifyRequest<{
+        Params: { id: string }
+        Querystring: { from?: string; to?: string }
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const user = await requireAuth(request, reply)
+      if (!user) return
+
+      const check = await assertShopPlatform(pool, request.params.id, 'douyin')
+      if (!check.ok || !check.shop) {
+        return sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
+      }
+
+      try {
+        const range = defaultRange(request.query.from, request.query.to)
+        const allowAd = canAccessAdSpend(user)
+
+        const [tradeRes, trafficRes, adRes] = await Promise.all([
+          pool.query(
+            `SELECT
+               COALESCE(SUM(gmv), 0)::float8 AS total_gmv,
+               COALESCE(SUM(pay_amount), 0)::float8 AS total_pay_amount,
+               COALESCE(SUM(paid_order_count), 0)::int AS total_orders,
+               COALESCE(SUM(paid_buyer_count), 0)::int AS total_buyers,
+               COALESCE(SUM(refund_amount), 0)::float8 AS total_refund,
+               COALESCE(SUM(refund_count), 0)::int AS total_refund_count
+             FROM fact_trade_daily
+             WHERE shop_id = $1 AND platform_code = 'douyin'
+               AND biz_date >= $2::date AND biz_date <= $3::date`,
+            [check.shop.id, range.from, range.to],
+          ),
+          pool.query(
+            `SELECT
+               COALESCE(SUM(impressions), 0)::bigint AS impressions,
+               COALESCE(SUM(clicks), 0)::bigint AS clicks,
+               COALESCE(SUM(visitors), 0)::bigint AS visitors
+             FROM fact_traffic_daily
+             WHERE shop_id = $1 AND platform_code = 'douyin'
+               AND biz_date >= $2::date AND biz_date <= $3::date`,
+            [check.shop.id, range.from, range.to],
+          ),
+          allowAd
+            ? pool.query(
+                `SELECT
+                   COALESCE(SUM(ad_spend), 0)::float8 AS total_ad_spend,
+                   COALESCE(SUM(attributed_gmv), 0)::float8 AS total_attributed_gmv
+                 FROM fact_ad_spend_daily
+                 WHERE shop_id = $1 AND platform_code = 'douyin'
+                   AND biz_date >= $2::date AND biz_date <= $3::date`,
+                [check.shop.id, range.from, range.to],
+              )
+            : Promise.resolve({ rows: [{ total_ad_spend: null, total_attributed_gmv: null }] }),
+        ])
+
+        return sendOk(reply, {
+          shop: check.shop,
+          range,
+          trade: tradeRes.rows[0],
+          traffic: trafficRes.rows[0],
+          adSummary: adRes.rows[0],
+        })
+      } catch (err: any) {
+        request.log.error({ err }, 'douyin shop metrics failed')
+        return sendError(reply, 500, `获取抖音店铺指标失败：${err?.message || err}`)
+      }
+    },
+  )
+
+  // ── GET /api/v1/douyin/shop/:id/channels ── 抖音渠道结构与投流消耗
+  app.get(
+    '/api/v1/douyin/shop/:id/channels',
+    async (
+      request: FastifyRequest<{
+        Params: { id: string }
+        Querystring: { from?: string; to?: string }
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const user = await requireAuth(request, reply)
+      if (!user) return
+
+      const check = await assertShopPlatform(pool, request.params.id, 'douyin')
+      if (!check.ok || !check.shop) {
+        return sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
+      }
+
+      try {
+        const range = defaultRange(request.query.from, request.query.to)
+        const allowAd = canAccessAdSpend(user)
+
+        const { rows } = await pool.query(
+          `SELECT channel_name,
+                  COALESCE(SUM(impressions), 0)::bigint AS impressions,
+                  COALESCE(SUM(viewers), 0)::bigint AS viewers,
+                  COALESCE(SUM(order_count), 0)::int AS order_count,
+                  COALESCE(SUM(payment_amount), 0)::float8 AS payment_amount,
+                  COALESCE(SUM(ad_cost_bound), 0)::float8 AS ad_cost_bound,
+                  COALESCE(SUM(ad_cost_promoted), 0)::float8 AS ad_cost_promoted
+           FROM douyin_channel_daily_metrics
+           WHERE business_date >= $1::date AND business_date <= $2::date
+           GROUP BY channel_name
+           ORDER BY payment_amount DESC`,
+          [range.from, range.to],
+        )
+
+        return sendOk(reply, {
+          shop: check.shop,
+          range,
+          channels: rows.map((r: any) => ({
+            channelName: r.channel_name,
+            impressions: Number(r.impressions) || 0,
+            viewers: Number(r.viewers) || 0,
+            orderCount: Number(r.order_count) || 0,
+            paymentAmount: Number(r.payment_amount) || 0,
+            adCostBound: allowAd ? Number(r.ad_cost_bound) || 0 : null,
+            adCostPromoted: allowAd ? Number(r.ad_cost_promoted) || 0 : null,
+          })),
+        })
+      } catch (err: any) {
+        request.log.error({ err }, 'douyin shop channels failed')
+        return sendError(reply, 500, `获取抖音渠道指标失败：${err?.message || err}`)
+      }
+    },
+  )
+
+  // ── GET /api/v1/douyin/shop/:id/anchors ── 抖音主播日表现榜单
+  app.get(
+    '/api/v1/douyin/shop/:id/anchors',
+    async (
+      request: FastifyRequest<{
+        Params: { id: string }
+        Querystring: { from?: string; to?: string; limit?: string }
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const user = await requireAuth(request, reply)
+      if (!user) return
+
+      const check = await assertShopPlatform(pool, request.params.id, 'douyin')
+      if (!check.ok || !check.shop) {
+        return sendError(reply, check.statusCode || 400, check.message || '店铺校验失败')
+      }
+
+      try {
+        const range = defaultRange(request.query.from, request.query.to)
+        const limit = Math.min(Math.max(parseInt(request.query.limit || '20', 10) || 20, 1), 100)
+        const { rows } = await pool.query(
+          `SELECT anchor_name,
+                  MAX(account_name) AS account_name,
+                  COALESCE(SUM(payment_amount), 0)::float8 AS payment_amount,
+                  COALESCE(AVG(uv_value), 0)::float8 AS avg_uv_value,
+                  COALESCE(AVG(interaction_rate), 0)::float8 AS avg_interaction_rate,
+                  COALESCE(SUM(new_followers), 0)::int AS new_followers
+           FROM douyin_anchor_daily_metrics
+           WHERE business_date >= $1::date AND business_date <= $2::date
+           GROUP BY anchor_name
+           ORDER BY payment_amount DESC
+           LIMIT $3`,
+          [range.from, range.to, limit],
+        )
+
+        return sendOk(reply, { shop: check.shop, range, anchors: rows })
+      } catch (err: any) {
+        request.log.error({ err }, 'douyin shop anchors failed')
+        return sendError(reply, 500, `获取抖音主播排行失败：${err?.message || err}`)
+      }
+    },
+  )
+}
