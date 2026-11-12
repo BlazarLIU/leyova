@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
 import { requireAuth, canAccessAdSpend } from '../lib/guard.js'
+import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 const REASON_LABELS: Record<string, { label: string; barColor: string; dotColor: string }> = {
   size_mismatch: { label: '尺码不合适', barColor: 'from-violet-500 to-violet-400', dotColor: 'bg-violet-400' },
@@ -145,7 +146,7 @@ export async function biRoutes(app: FastifyInstance) {
           platform: r.platform || '抖音',
           gmv: parseFloat(r.gmv) / 10000,
           orders: parseInt(r.orders),
-          refund_rate: parseFloat(r.gmv) > 0 ? +((parseFloat(r.refund_amount) / parseFloat(r.gmv)) * 100).toFixed(2) : 0,
+          refund_rate: computeRefundRatePct(parseFloat(r.refund_amount), parseFloat(r.gmv), 2),
           roi: 0,
           trend: 'up' as const,
         }))
@@ -429,9 +430,9 @@ export async function biRoutes(app: FastifyInstance) {
         const params: any[] = [daysFilter]
         const platformCond = allowedPlatforms !== null
           ? (() => {
-              params.push(allowedPlatforms)
-              return ` AND t.platform_code = ANY($${params.length})`
-            })()
+            params.push(allowedPlatforms)
+            return ` AND t.platform_code = ANY($${params.length})`
+          })()
           : ''
 
         const summaryRes = await client.query(
@@ -447,9 +448,9 @@ export async function biRoutes(app: FastifyInstance) {
         const gmvParams: any[] = [daysFilter]
         const tradePlatformCond = allowedPlatforms !== null
           ? (() => {
-              gmvParams.push(allowedPlatforms)
-              return ` AND platform_code = ANY($${gmvParams.length})`
-            })()
+            gmvParams.push(allowedPlatforms)
+            return ` AND platform_code = ANY($${gmvParams.length})`
+          })()
           : ''
         // 使用默认成交口径视图 v_fact_trade_default 防止多口径 GMV 放大 2~4x
         const gmvRes = await client.query(
@@ -494,7 +495,7 @@ export async function biRoutes(app: FastifyInstance) {
         const refundOrders = parseInt(summary.refund_orders || '0')
         const avgRefundTime = parseFloat(summary.avg_refund_days || '0')
         const totalGmv = parseFloat(gmvRes.rows[0]?.total_gmv || '0')
-        const refundRate = totalGmv > 0 ? +((totalRefund / totalGmv) * 100).toFixed(1) : 0
+        const refundRate = computeRefundRatePct(totalRefund, totalGmv, 1)
 
         const denom = totalRefund > 0 ? totalRefund : 1
         const reasons = reasonRes.rows.map((r: any) => {

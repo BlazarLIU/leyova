@@ -4,32 +4,28 @@ import { requireAuth, requireRole } from '../lib/guard.js'
 import { sendOk, sendError } from '../lib/http.js'
 import { ensureRefundMonthPartition } from '../lib/partitions.js'
 
-/** 根据平台规则计算售后审单截点与仅退款自治保护标志 */
-function computeAfterSaleSla(
-  platformCode: string,
+/** 根据平台规则（platform_sla_config）计算售后审单截点与仅退款自治保护标志 */
+export function computeAfterSaleSla(
+  _platformCode: string,
   refundType: string,
   shopExperienceScore: number,
   appliedAt: Date,
   rules: Array<{ sla_type: string; threshold_hours: number; autonomy_min_score: string | null }>,
 ) {
-  let auditHours = 48
-  if (platformCode === 'kuaishou') {
-    const rule = rules.find((r) =>
-      refundType === 'only_refund'
-        ? r.sla_type === 'aftersale_only_refund_audit'
-        : r.sla_type === 'aftersale_return_audit',
-    )
-    auditHours = rule ? Number(rule.threshold_hours) : (refundType === 'only_refund' ? 24 : 36)
-  } else if (platformCode === 'jd') {
-    const rule = rules.find((r) => r.sla_type === 'aftersale_review')
-    auditHours = rule ? Number(rule.threshold_hours) : 24
-  } else {
-    auditHours = refundType === 'only_refund' ? 24 : 48
-  }
+  const preferredAuditType =
+    refundType === 'only_refund' ? 'aftersale_only_refund_audit' : 'aftersale_return_audit'
+  const auditRule =
+    rules.find((r) => r.sla_type === preferredAuditType) ||
+    rules.find((r) => r.sla_type === 'aftersale_review')
+  const auditHours = auditRule
+    ? Number(auditRule.threshold_hours)
+    : (refundType === 'only_refund' ? 24 : 48)
 
-  const autonomyRule = rules.find((r) => r.autonomy_min_score !== null)
-  const minScore = autonomyRule?.autonomy_min_score ? Number(autonomyRule.autonomy_min_score) : (platformCode === 'kuaishou' ? 4.7 : (platformCode === 'taobao' || platformCode === 'tmall' ? 4.8 : 99))
-  const autonomyProtected = shopExperienceScore >= minScore
+  const autonomyRule =
+    rules.find((r) => r.sla_type === 'only_refund_autonomy' && r.autonomy_min_score !== null) ||
+    rules.find((r) => r.autonomy_min_score !== null)
+  const minScore = autonomyRule?.autonomy_min_score ? Number(autonomyRule.autonomy_min_score) : null
+  const autonomyProtected = minScore !== null && shopExperienceScore >= minScore
 
   const auditDeadlineAt = new Date(appliedAt.getTime() + auditHours * 3600 * 1000)
   return { auditDeadlineAt, autonomyProtected }

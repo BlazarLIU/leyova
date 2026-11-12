@@ -62,3 +62,4 @@ if (errors.length > 0) {
 }
 
 console.log('CI Guardrail checks passed: 0 RLS-bypass routes, 0 unguarded fact_trade_daily GMV aggregations.')
+

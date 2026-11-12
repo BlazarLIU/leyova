@@ -4,22 +4,46 @@
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
-import { requireRole } from '../lib/guard.js'
+import { withRlsContext } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
 import {
   listCaliberConfig,
   listAmountTypes,
   getDefaultCaliber,
   checkComparability,
 } from '../platform/caliber.js'
+import { listMetricDefinitions } from '../services/metrics-caliber.js'
 
 export async function caliberRoutes(app: FastifyInstance) {
   // ── GET /api/v1/caliber ── 全部口径配置
-  app.get('/api/v1/caliber', async (_request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/caliber', async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
     try {
-      const [configs, types] = await Promise.all([listCaliberConfig(), listAmountTypes()])
-      return sendOk(reply, { configs, amountTypes: types })
+      const data = await withRlsContext(request, async (client) => {
+        const [configs, types] = await Promise.all([
+          listCaliberConfig(client),
+          listAmountTypes(client),
+        ])
+        return { configs, amountTypes: types }
+      })
+      return sendOk(reply, data)
     } catch (err) {
       return sendError(reply, 500, '获取口径配置失败')
+    }
+  })
+
+  // ── GET /api/v1/caliber/metrics ── 统一指标口径定义目录（metric_definition）
+  app.get('/api/v1/caliber/metrics', async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    try {
+      const metrics = await withRlsContext(request, (client) =>
+        listMetricDefinitions(client, { role: user.role, userType: user.userType }),
+      )
+      return sendOk(reply, { metrics })
+    } catch (err) {
+      return sendError(reply, 500, '获取指标口径定义失败')
     }
   })
 
@@ -28,9 +52,13 @@ export async function caliberRoutes(app: FastifyInstance) {
     Params: { platform: string }
     Querystring: { metric?: string }
   }>, reply: FastifyReply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
     try {
       const metric = request.query.metric || 'gmv'
-      const info = await getDefaultCaliber(request.params.platform, metric)
+      const info = await withRlsContext(request, (client) =>
+        getDefaultCaliber(request.params.platform, metric, client),
+      )
       if (!info) return sendError(reply, 404, `平台 ${request.params.platform} 未配置 ${metric} 口径`)
       return sendOk(reply, info)
     } catch (err) {
@@ -47,7 +75,9 @@ export async function caliberRoutes(app: FastifyInstance) {
       if (!Array.isArray(platformCodes) || platformCodes.length === 0) {
         return sendError(reply, 400, '缺少 platformCodes')
       }
-      const result = await checkComparability(platformCodes, metric)
+      const result = await withRlsContext(request, (client) =>
+        checkComparability(platformCodes, metric, client),
+      )
       return sendOk(reply, result, result.comparable ? '口径可对比' : '口径不可对比，请查看建议')
     } catch (err) {
       return sendError(reply, 500, '口径校验失败')

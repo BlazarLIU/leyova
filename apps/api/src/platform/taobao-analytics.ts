@@ -12,6 +12,7 @@
 import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 import { getDefaultCaliber } from '../platform/caliber.js'
+import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 /** 百分比格式化：统一保留 2 位小数，避免 1.00 显示成 1 */
 function pct(numerator: number, denominator: number): number | null {
@@ -130,7 +131,7 @@ export async function getTaobaoShopMetrics(
     activeItemCount: Number(i.active_items),
     sellThroughRate: pct(Number(i.active_items), Number(i.item_count)),
     refundAmount,
-    refundRate: pct(refundAmount, payAmount) ?? 0,
+    refundRate: computeRefundRatePct(refundAmount, payAmount, 2),
     caliber: caliber ? {
       amountType: caliber.amountType,
       amountTypeName: caliber.amountTypeName,

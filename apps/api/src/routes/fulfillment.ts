@@ -42,10 +42,10 @@ export function evaluateWaybillSla(
   const shipPresaleRule = rules.find((r) => r.platform_code === input.platformCode && r.sla_type === 'ship_presale')
   const fakeRule = rules.find((r) => r.platform_code === input.platformCode && r.sla_type === 'fake_ship') || shipRule
 
-  // 预售/定制订单优先读取 platform_sla_config(ship_presale)，拼多多无配置时兼容兜底 120h
+  // 预售/定制订单优先读取 platform_sla_config(ship_presale)，统一由配置表驱动时限与赔付
   const baseHours = shipRule ? Number(shipRule.threshold_hours || 48) : 48
   const shipLimitHours = input.isCustomPresale
-    ? (shipPresaleRule ? Number(shipPresaleRule.threshold_hours) : (input.platformCode === 'pdd' ? 120 : baseHours))
+    ? (shipPresaleRule ? Number(shipPresaleRule.threshold_hours) : baseHours)
     : baseHours
   const shipDeadlineAt = new Date(input.paidAt.getTime() + shipLimitHours * 3600 * 1000)
 
@@ -76,12 +76,13 @@ export function evaluateWaybillSla(
   }
 
   if (isShipDelayed) {
-    let calc = 3
-    if (shipRule) {
-      const fixed = Number(shipRule.penalty_fixed_amount || 0)
-      const rate = Number(shipRule.penalty_rate || 0)
-      const minAmt = Number(shipRule.penalty_min_amount || 0)
-      const maxAmt = Number(shipRule.penalty_max_amount || 0)
+    const activeShipRule = (input.isCustomPresale && shipPresaleRule) ? shipPresaleRule : shipRule
+    let calc = 0
+    if (activeShipRule) {
+      const fixed = Number(activeShipRule.penalty_fixed_amount || 0)
+      const rate = Number(activeShipRule.penalty_rate || 0)
+      const minAmt = Number(activeShipRule.penalty_min_amount || 0)
+      const maxAmt = Number(activeShipRule.penalty_max_amount || 0)
       calc = fixed > 0 ? fixed : (rate > 0 ? clampPenalty(input.orderAmount * rate, minAmt, maxAmt) : 0)
     }
     estimatedPenalty = Math.max(estimatedPenalty, calc)

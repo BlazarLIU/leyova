@@ -132,3 +132,4 @@ export async function getAnchorCapabilityHistory(
   )
   return rows
 }
+

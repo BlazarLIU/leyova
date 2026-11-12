@@ -18,3 +18,4 @@ export async function ensureRefundMonthPartition(dateStr: string): Promise<void>
      FOR VALUES FROM ('${startDate}') TO ('${endDate}')`,
   )
 }
+

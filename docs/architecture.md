@@ -721,7 +721,7 @@ reconciliation_runs + publish_reversals
 
 ## 十二、核心设计要点
 
-1. **单一数据库**：PostgreSQL 18（143 张逻辑表 / 219 张含月分区的物理表，28 张启用 RLS 行级隔离，增量迁移 100~119）
+1. **单一数据库**：PostgreSQL 18（136 张逻辑表 / 空库冷启动基线 206 张物理表，29 张启用 RLS 行级隔离，增量迁移 100~120）
 2. **多维 RBAC + RLS**：应用层角色权限矩阵 + `leyova_app` 角色 PostgreSQL 行级策略双重纵深防御，支持品牌商只读与成本/投流脱敏
 3. **双轨数据治理底座**：未授权/`manual_only` 店铺 fail-closed 拦截，CSV/XLSX 与 OpenAPI 统一落 `raw_records → clean_records → canonical_*`，支持财务级余数归底分摊与原子冲正
 4. **AI 集成**：4 阶受控 AI 编排器 + 语义层按角色裁剪投流/成本敏感指标 + HMAC 签名 MCP 服务通信

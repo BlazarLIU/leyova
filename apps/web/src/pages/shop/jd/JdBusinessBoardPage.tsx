@@ -1,14 +1,25 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Store, Package, AlertTriangle, Info, Wallet, Clock } from 'lucide-react'
+import { Store, Package, AlertTriangle, Info, Wallet, Clock, Receipt, Lock } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { api } from '@/services/api'
 
 const fadeIn = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4 } }
 
+interface FeeSummary {
+  grossMarginGuarantee: number | null
+  rebate: number | null
+  tcFreight: number | null
+  labelFee: number | null
+  qualityDeposit: number | null
+  commission: number | null
+  netFeeImpact: number | null
+}
+
 interface ModeBreakdown {
   range: { from: string; to: string }
+  costMasked?: boolean
   modes: Array<{
     businessMode: string
     businessModeName: string
@@ -18,9 +29,28 @@ interface ModeBreakdown {
     orderCount: number
     grossMargin: number | null
     avgSettleDays: number | null
+    feeSummary?: FeeSummary | null
     note: string
   }>
   warning: string
+}
+
+interface SettlementFeeResponse {
+  range: { from: string; to: string }
+  costMasked: boolean
+  items: Array<{
+    id: number
+    shopId: number
+    shopName: string
+    businessMode: string
+    businessModeName: string
+    bizMonth: string
+    feeCode: string
+    feeName: string
+    direction: 'deduct' | 'rebate'
+    amount: number | null
+    note: string
+  }>
 }
 
 interface CaliberNote {
@@ -39,6 +69,7 @@ function fmt(n: number): string {
 
 export function JdBusinessBoardPage() {
   const [data, setData] = useState<ModeBreakdown | null>(null)
+  const [fees, setFees] = useState<SettlementFeeResponse | null>(null)
   const [caliber, setCaliber] = useState<CaliberNote | null>(null)
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(30)
@@ -50,14 +81,17 @@ export function JdBusinessBoardPage() {
       const fd = new Date()
       fd.setDate(fd.getDate() - days + 1)
       const from = fd.toISOString().slice(0, 10)
-      const [d, c] = await Promise.all([
+      const [d, f, c] = await Promise.all([
         api.get<ModeBreakdown>('/jd/mode-breakdown', { from, to }),
+        api.get<SettlementFeeResponse>('/jd/settlement-fees', { from, to }).catch(() => null),
         api.get<CaliberNote>('/jd/caliber').catch(() => null),
       ])
       setData(d)
+      setFees(f)
       setCaliber(c)
     } catch {
       setData(null)
+      setFees(null)
     } finally {
       setLoading(false)
     }
@@ -141,15 +175,31 @@ export function JdBusinessBoardPage() {
                   <div className="flex items-center gap-2">
                     <Wallet className="h-4 w-4" /> 自营采销
                     <Badge variant="warning">供应商视角</Badge>
+                    {data.costMasked && <Badge variant="neutral">成本/费用已脱敏</Badge>}
                   </div>
                 </CardHeader>
                 <CardBody>
                   <div className="grid gap-3 sm:grid-cols-4">
                     <Stat label="供货金额（采销额）" value={fmt(selfMode.amount)} unit="元" highlight="amber" />
                     <Stat label="采销单数" value={String(selfMode.orderCount)} unit="单" />
-                    <Stat label="毛利额" value={selfMode.grossMargin !== null ? fmt(selfMode.grossMargin) : '—'} unit="元" />
+                    <Stat label="毛利额" value={selfMode.grossMargin !== null ? fmt(selfMode.grossMargin) : '已脱敏'} unit={selfMode.grossMargin !== null ? '元' : ''} />
                     <Stat label="平均账期" value={selfMode.avgSettleDays !== null ? String(selfMode.avgSettleDays) : '—'} unit="天" />
                   </div>
+                  {selfMode.feeSummary && !data.costMasked && (
+                    <div className="mt-4 grid gap-2 rounded-lg border border-slate-700/60 bg-slate-800/30 p-3 text-xs sm:grid-cols-6">
+                      <div><span className="text-slate-500">毛保补差</span><div className="mt-1 font-mono text-rose-300">-¥{fmt(selfMode.feeSummary.grossMarginGuarantee || 0)}</div></div>
+                      <div><span className="text-slate-500">季度返点</span><div className="mt-1 font-mono text-emerald-300">+¥{fmt(selfMode.feeSummary.rebate || 0)}</div></div>
+                      <div><span className="text-slate-500">TC 运费</span><div className="mt-1 font-mono text-slate-200">-¥{fmt(selfMode.feeSummary.tcFreight || 0)}</div></div>
+                      <div><span className="text-slate-500">贴码费</span><div className="mt-1 font-mono text-slate-200">-¥{fmt(selfMode.feeSummary.labelFee || 0)}</div></div>
+                      <div><span className="text-slate-500">质保金</span><div className="mt-1 font-mono text-slate-200">-¥{fmt(selfMode.feeSummary.qualityDeposit || 0)}</div></div>
+                      <div>
+                        <span className="text-slate-500">费用净影响</span>
+                        <div className={`mt-1 font-mono font-semibold ${(selfMode.feeSummary.netFeeImpact || 0) >= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
+                          {(selfMode.feeSummary.netFeeImpact || 0) >= 0 ? '+' : ''}¥{fmt(selfMode.feeSummary.netFeeImpact || 0)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <p className="mt-3 text-[11px] leading-relaxed text-slate-500">{selfMode.note}</p>
                   <div className="mt-2 text-[11px] text-slate-600">
                     涉及 {selfMode.shopCount} 个店铺 · 毛利口径 = (零售价 - 供货价) × 数量
@@ -184,10 +234,75 @@ export function JdBusinessBoardPage() {
                         <div className="mt-1 text-[11px] text-slate-500">
                           {m.amountLabel} · {m.orderCount} 单
                         </div>
+                        {m.feeSummary && !data.costMasked && (
+                          <div className="mt-2 flex flex-wrap gap-4 border-t border-slate-700/50 pt-2 text-[11px] text-slate-400">
+                            <span>平台佣金：<strong className="font-mono text-rose-300">-¥{fmt(m.feeSummary.commission || 0)}</strong></span>
+                            <span>仓配履约费：<strong className="font-mono text-slate-200">-¥{fmt(m.feeSummary.tcFreight || 0)}</strong></span>
+                            <span>费用净影响：<strong className="font-mono text-amber-300">¥{fmt(m.feeSummary.netFeeImpact || 0)}</strong></span>
+                          </div>
+                        )}
                         <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">{m.note}</p>
                       </div>
                     ))}
                   </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* 精细化结算费用对账表 */}
+          {fees && (
+            <motion.div {...fadeIn}>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-cyan-400" /> 自营 vs POP 结算费用对账明细
+                  </div>
+                </CardHeader>
+                <CardBody>
+                  {fees.costMasked ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/40 p-4 text-xs text-slate-400">
+                      <Lock className="h-4 w-4 text-slate-500" />
+                      当前角色无成本与结算扣费权限，毛保/返点/佣金等金额字段已自动脱敏。
+                    </div>
+                  ) : fees.items.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-slate-500">选定周期内暂无费用对账记录</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                            <th className="py-2 pr-3">账期</th>
+                            <th className="py-2 pr-3">模式</th>
+                            <th className="py-2 pr-3">店铺</th>
+                            <th className="py-2 pr-3">费用科目</th>
+                            <th className="py-2 pr-3">方向</th>
+                            <th className="py-2 pr-3 text-right">金额 (元)</th>
+                            <th className="py-2">核对说明</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {fees.items.map((item) => (
+                            <tr key={item.id} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
+                              <td className="py-2 pr-3 font-mono text-xs">{item.bizMonth}</td>
+                              <td className="py-2 pr-3 text-xs">{item.businessModeName}</td>
+                              <td className="py-2 pr-3 text-xs text-slate-200">{item.shopName}</td>
+                              <td className="py-2 pr-3 text-xs font-medium text-slate-100">{item.feeName}</td>
+                              <td className="py-2 pr-3">
+                                <Badge variant={item.direction === 'rebate' ? 'success' : 'warning'}>
+                                  {item.direction === 'rebate' ? '返利 (+)' : '扣费 (-)'}
+                                </Badge>
+                              </td>
+                              <td className={`py-2 pr-3 text-right font-mono ${item.direction === 'rebate' ? 'text-emerald-300' : 'text-rose-300'}`}>
+                                {item.amount !== null ? `${item.direction === 'rebate' ? '+' : '-'}${item.amount.toFixed(2)}` : '—'}
+                              </td>
+                              <td className="py-2 text-xs text-slate-500">{item.note}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </CardBody>
               </Card>
             </motion.div>

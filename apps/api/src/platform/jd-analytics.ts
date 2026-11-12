@@ -25,6 +25,31 @@ import { getDefaultCaliber } from '../platform/caliber.js'
 
 export type JdBusinessMode = 'self_operated' | 'pop_sop' | 'pop_fbp' | 'unknown'
 
+export interface JdFeeSummary {
+  grossMarginGuarantee: number | null
+  rebate: number | null
+  tcFreight: number | null
+  labelFee: number | null
+  qualityDeposit: number | null
+  commission: number | null
+  /** 净费用影响：返点 (+) 减去各项扣费 (-) */
+  netFeeImpact: number | null
+}
+
+export interface JdSettlementFeeItem {
+  id: number
+  shopId: number
+  shopName: string
+  businessMode: JdBusinessMode
+  businessModeName: string
+  bizMonth: string
+  feeCode: string
+  feeName: string
+  direction: 'deduct' | 'rebate'
+  amount: number | null
+  note: string
+}
+
 export interface JdModeBreakdown {
   businessMode: JdBusinessMode
   businessModeName: string
@@ -37,6 +62,8 @@ export interface JdModeBreakdown {
   grossMargin: number | null
   /** 自营独有：平均账期 */
   avgSettleDays: number | null
+  /** 精细化结算费用汇总（按成本权限脱敏） */
+  feeSummary?: JdFeeSummary | null
   note: string
 }
 
@@ -47,14 +74,113 @@ const MODE_NAMES: Record<JdBusinessMode, string> = {
   unknown: '未标注模式',
 }
 
+function createEmptyFeeSummary(): JdFeeSummary {
+  return {
+    grossMarginGuarantee: 0,
+    rebate: 0,
+    tcFreight: 0,
+    labelFee: 0,
+    qualityDeposit: 0,
+    commission: 0,
+    netFeeImpact: 0,
+  }
+}
+
+/** 查询京东自营与 POP 精细化结算费用明细（毛保、返点、TC运费、贴码费、质保金、佣金） */
+export async function getJdSettlementFees(
+  from: string,
+  to: string,
+  platformCodes: string[] = ['jd'],
+  pool?: DbExecutor,
+  options?: { shopId?: number; maskCost?: boolean },
+): Promise<{
+  range: { from: string; to: string }
+  costMasked: boolean
+  items: JdSettlementFeeItem[]
+  byMode: Record<string, JdFeeSummary>
+}> {
+  const p = pool || getPool()
+  const maskCost = Boolean(options?.maskCost)
+  if (maskCost) {
+    return {
+      range: { from, to },
+      costMasked: true,
+      items: [],
+      byMode: {},
+    }
+  }
+
+  const params: any[] = [platformCodes, from, to]
+  let shopCond = ''
+  if (options?.shopId && Number.isFinite(options.shopId)) {
+    params.push(options.shopId)
+    shopCond = ` AND f.shop_id = $${params.length}`
+  }
+
+  const { rows } = await p.query(
+    `SELECT f.id, f.shop_id, s.shop_name, f.business_mode, f.biz_month,
+            f.fee_code, f.fee_name, f.direction, f.amount, f.note
+       FROM fact_jd_settlement_fees f
+       JOIN dim_shop s ON s.id = f.shop_id
+      WHERE s.platform_code = ANY($1::text[])
+        AND f.biz_month BETWEEN to_char($2::date, 'YYYY-MM') AND to_char($3::date, 'YYYY-MM')${shopCond}
+      ORDER BY f.biz_month DESC, f.business_mode, f.fee_code`,
+    params,
+  )
+
+  const items: JdSettlementFeeItem[] = []
+  const byMode: Record<string, JdFeeSummary> = {}
+
+  for (const r of rows) {
+    const mode = (r.business_mode || 'unknown') as JdBusinessMode
+    const amount = Number(r.amount || 0)
+    const direction = r.direction === 'rebate' ? 'rebate' : 'deduct'
+    items.push({
+      id: Number(r.id),
+      shopId: Number(r.shop_id),
+      shopName: r.shop_name || '',
+      businessMode: mode,
+      businessModeName: MODE_NAMES[mode] || mode,
+      bizMonth: r.biz_month,
+      feeCode: r.fee_code,
+      feeName: r.fee_name,
+      direction,
+      amount: Number(amount.toFixed(2)),
+      note: r.note || '',
+    })
+
+    if (!byMode[mode]) byMode[mode] = createEmptyFeeSummary()
+    const bucket = byMode[mode]
+    if (r.fee_code === 'gross_margin_guarantee') bucket.grossMarginGuarantee = (bucket.grossMarginGuarantee || 0) + amount
+    else if (r.fee_code === 'rebate') bucket.rebate = (bucket.rebate || 0) + amount
+    else if (r.fee_code === 'tc_freight') bucket.tcFreight = (bucket.tcFreight || 0) + amount
+    else if (r.fee_code === 'label_fee') bucket.labelFee = (bucket.labelFee || 0) + amount
+    else if (r.fee_code === 'quality_deposit') bucket.qualityDeposit = (bucket.qualityDeposit || 0) + amount
+    else if (r.fee_code === 'commission') bucket.commission = (bucket.commission || 0) + amount
+
+    bucket.netFeeImpact = Number(
+      ((bucket.netFeeImpact || 0) + (direction === 'rebate' ? amount : -amount)).toFixed(2),
+    )
+  }
+
+  return {
+    range: { from, to },
+    costMasked: false,
+    items,
+    byMode,
+  }
+}
+
 /** 按业务模式拆分（自营 vs POP）——禁止跨模式加总 */
 export async function getJdModeBreakdown(
   from: string,
   to: string,
   platformCodes: string[] = ['jd'],
   pool?: DbExecutor,
+  options?: { maskCost?: boolean },
 ): Promise<{
   range: { from: string; to: string }
+  costMasked: boolean
   modes: JdModeBreakdown[]
   warning: string
 }> {
@@ -154,9 +280,15 @@ export async function getJdModeBreakdown(
     if (d.cycle > 0) a.cycleSamples.push(d.cycle)
   }
 
+  const maskCost = Boolean(options?.maskCost)
+  const feeData = await getJdSettlementFees(from, to, platformCodes, p, { maskCost })
+
   const modes: JdModeBreakdown[] = []
   for (const [mode, a] of agg.entries()) {
     const isSelf = mode === 'self_operated'
+    const feeSummary = maskCost
+      ? null
+      : (feeData.byMode[mode] ?? null)
     modes.push({
       businessMode: mode,
       businessModeName: MODE_NAMES[mode],
@@ -164,10 +296,11 @@ export async function getJdModeBreakdown(
       amount: Number(a.amount.toFixed(2)),
       amountLabel: isSelf ? '供货金额（采销额）' : '成交金额（含货到付款）',
       orderCount: a.orders,
-      grossMargin: isSelf ? Number(a.margin.toFixed(2)) : null,
+      grossMargin: isSelf && !maskCost ? Number(a.margin.toFixed(2)) : null,
       avgSettleDays: isSelf && a.cycleSamples.length > 0
         ? Number((a.cycleSamples.reduce((x, y) => x + y, 0) / a.cycleSamples.length).toFixed(1))
         : null,
+      feeSummary,
       note: isSelf
         ? '自营采销：京东向供货商采购后零售，供货金额对供货商是收入但不等于零售成交额'
         : mode === 'pop_fbp'
@@ -181,6 +314,7 @@ export async function getJdModeBreakdown(
 
   return {
     range: { from, to },
+    costMasked: maskCost,
     modes,
     warning: selfShopCount > 0 && popShopCount > 0
       ? '⚠️ 检测到同时存在自营与 POP 店铺。自营的「供货金额」与 POP 的「成交金额」含义与量级不同，禁止相加计算总 GMV。'

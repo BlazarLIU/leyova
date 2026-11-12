@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
+import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 export async function overviewRoutes(app: FastifyInstance) {
   // ── GET /api/v1/overview/live-monitor ──
@@ -209,7 +210,7 @@ export async function overviewRoutes(app: FastifyInstance) {
           totalReturn = parseFloat(row.total_return || '0')
           totalAdCost = parseFloat(row.total_ad_cost || '0')
         }
-        const refundRate = totalGmv > 0 ? +((totalReturn / totalGmv) * 100).toFixed(1) : 0
+        const refundRate = computeRefundRatePct(totalReturn, totalGmv, 1)
         const roi = totalAdCost > 0 ? +(totalGmv / totalAdCost).toFixed(2) : 0
 
         const trend = fromLiveSessions

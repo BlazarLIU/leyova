@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Bootstrap empty PostgreSQL & apply migrations (100-119)
+      - name: Bootstrap empty PostgreSQL & apply migrations (100-120)
         run: node database/migrate.js
 
       - name: Verify idempotent re-run of database/migrate.js

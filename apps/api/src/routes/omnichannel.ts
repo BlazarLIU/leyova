@@ -14,6 +14,7 @@ import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
 import { getUserAllowedPlatforms, requireAuth } from '../lib/guard.js'
 import { checkComparability } from '../platform/caliber.js'
+import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 /** 解析时间范围，默认最近 30 天 */
 function resolveRange(from?: string, to?: string): { from: string; to: string } {
@@ -123,7 +124,7 @@ export async function omnichannelRoutes(app: FastifyInstance) {
       const num = (v: any) => Number(v || 0)
       const pct = (a: number, b: number) => (b === 0 ? null : ((a - b) / b) * 100)
 
-      const refundRate = num(cur.gmv) > 0 ? (num(cur.refund_amount) / num(cur.gmv)) * 100 : 0
+      const refundRate = computeRefundRatePct(num(cur.refund_amount), num(cur.gmv), 2)
       const aov = num(cur.paid_order_count) > 0 ? num(cur.gmv) / num(cur.paid_order_count) : 0
 
       return sendOk(reply, {
@@ -135,7 +136,7 @@ export async function omnichannelRoutes(app: FastifyInstance) {
           paidOrderCount: num(cur.paid_order_count),
           paidBuyerCount: num(cur.paid_buyer_count),
           refundAmount: num(cur.refund_amount),
-          refundRate: Number(refundRate.toFixed(2)),
+          refundRate,
           netSales: num(cur.gmv) - num(cur.refund_amount),
           avgOrderValue: Number(aov.toFixed(2)),
         },

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
+import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 export async function reviewRoutes(app: FastifyInstance) {
   // ── GET /api/v1/review/sessions ──
@@ -260,9 +261,11 @@ export async function reviewRoutes(app: FastifyInstance) {
           session_count: kpi.session_count || 0,
           refund_amount: parseFloat(kpi.refund_amount || '0'),
           refund_orders: kpi.refund_orders || 0,
-          refund_rate: kpi.gmv > 0
-            ? Math.round((parseFloat(kpi.refund_amount || '0') / parseFloat(kpi.gmv)) * 10000) / 100
-            : 0,
+          refund_rate: computeRefundRatePct(
+            parseFloat(kpi.refund_amount || '0'),
+            parseFloat(kpi.gmv || '0'),
+            2,
+          ),
         },
         comparison,
         top_channels: topChannels,

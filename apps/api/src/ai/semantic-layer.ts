@@ -15,6 +15,7 @@
 
 import { getPool, type DbExecutor } from '../lib/db.js'
 import { canAccessAdSpend } from '../lib/guard.js'
+import { listMetricDefinitions } from '../services/metrics-caliber.js'
 
 export interface MetricAccessOptions {
   role?: string | null
@@ -784,6 +785,37 @@ export function listMetrics(access?: MetricAccessOptions) {
     .map((m) => ({
       code: m.code, label: m.label, unit: m.unit, category: m.category, additive: m.additive,
     }))
+}
+
+/**
+ * 结合数据库 `metric_definition` 与语义层白名单返回完整指标目录（支持口径描述与多平台范围）。
+ */
+export async function listMetricsFromCatalog(
+  pool?: DbExecutor,
+  access?: MetricAccessOptions,
+) {
+  const base = listMetrics(access)
+  try {
+    const dbDefs = await listMetricDefinitions(pool, access)
+    if (dbDefs.length === 0) return base
+    const byCode = new Map(dbDefs.map((d) => [d.code, d]))
+    return base.map((m) => {
+      const def = byCode.get(m.code)
+      return {
+        ...m,
+        label: def?.name || m.label,
+        unit: def?.unit ?? m.unit,
+        category: def?.category || m.category,
+        additive: def ? def.isAdditive : m.additive,
+        formula: def?.formula ?? null,
+        description: def?.description ?? null,
+        supportedPlatforms: def?.supportedPlatforms ?? [],
+        extra: def?.extra ?? {},
+      }
+    })
+  } catch {
+    return base
+  }
 }
 
 export function listDimensions() {

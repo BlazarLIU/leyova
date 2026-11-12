@@ -24,6 +24,7 @@ import {
   PLATFORM_METRIC_REGISTRY,
 } from './platform-metrics.js'
 import { canAccessAdSpend, canAccessCost } from '../lib/guard.js'
+import { getRefundRateWarningPct } from '../services/metrics-caliber.js'
 
 // ---------------------------------------------------------------------------
 // 类型
@@ -673,6 +674,7 @@ function synthesizeConclusion(
   steps: AnalysisStep[],
   evidence: EvidenceItem[],
   knowledge: Array<{ content: string; documentName: string }>,
+  refundRateWarningPct = 10,
 ): AnalysisResult['conclusion'] {
   const findings: string[] = []
   const risks: string[] = []
@@ -812,7 +814,7 @@ function synthesizeConclusion(
         const best = rows.reduce((a: any, b: any) => (b.gmv > a.gmv ? b : a))
         const worstRefund = rows.reduce((a: any, b: any) => (b.refund_rate > a.refund_rate ? b : a))
         findings.push(`GMV 规模最大的是 ${best.platform_name}`)
-        if (worstRefund.refund_rate > 10) {
+        if (worstRefund.refund_rate > refundRateWarningPct) {
           risks.push(`${worstRefund.platform_name} 退款率 ${worstRefund.refund_rate}%，高于健康水位`)
         }
       }
@@ -861,7 +863,7 @@ function synthesizeConclusion(
     if (q && Array.isArray(q.outputRef.rows)) {
       const totalGmv = q.outputRef.rows.reduce((s: number, r: any) => s + Number(r.gmv || 0), 0)
       findings.push(`本期覆盖 ${q.outputRef.rows.length} 个平台，GMV 合计 ${fmt(totalGmv, '元')}`)
-      const highRefund = q.outputRef.rows.filter((r: any) => Number(r.refund_rate) > 10)
+      const highRefund = q.outputRef.rows.filter((r: any) => Number(r.refund_rate) > refundRateWarningPct)
       for (const r of highRefund) {
         risks.push(`${r.platform_name} 退款率 ${r.refund_rate}%，需重点关注`)
       }
@@ -991,7 +993,10 @@ export async function runAnalysis(
 
   // ── Reporter ──
   const repStarted = Date.now()
-  const conclusion = synthesizeConclusion(mode, steps, evidence, knowledge)
+  const refundRateWarningPct = await withOptionalSavepoint(p, 'sp_ai_cfg_refund', () =>
+    getRefundRateWarningPct(p),
+  )
+  const conclusion = synthesizeConclusion(mode, steps, evidence, knowledge, refundRateWarningPct)
   steps.push({
     seq: ++seq,
     role: 'reporter',

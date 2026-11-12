@@ -53,3 +53,4 @@ export function useShops() {
 
   return { shops, loading, getShopsByPlatform, getDefaultShopId }
 }
+

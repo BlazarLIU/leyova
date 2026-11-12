@@ -19,6 +19,9 @@ import { env } from '../src/config/env.js'
 import { getPool } from '../src/lib/db.js'
 import { signMcpUserId, timingSafeTokenEqual, verifyMcpUserSig } from '../src/lib/mcp-auth.js'
 import { buildMetricQuery } from '../src/ai/semantic-layer.js'
+import { computeRefundRatePct, computeOrderRefundRatePct } from '../src/services/metrics-caliber.js'
+import { computeAfterSaleSla } from '../src/routes/after-sales.js'
+import { evaluateWaybillSla } from '../src/routes/fulfillment.js'
 
 interface TempAccount {
   userId: number
@@ -476,6 +479,144 @@ describe('HTTP API & RBAC 回归测试', () => {
         headers: { cookie: adminUser.cookie },
         payload: { roleCode: 'employee', moduleCodes: originalModules },
       })
+    }
+  })
+
+  test('中期架构优化：口径目录 / 退款率函数 / 配置化 SLA / 京东自营与POP费用对账脱敏', async () => {
+    // 1. 口径接口鉴权与 metric_definition 目录权限过滤
+    const caliberUnauth = await app.inject({ method: 'GET', url: '/api/v1/caliber' })
+    assert.equal(caliberUnauth.statusCode, 401)
+
+    const metricsOpRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/caliber/metrics',
+      headers: { cookie: operatorUser.cookie },
+    })
+    assert.equal(metricsOpRes.statusCode, 200)
+    const opMetricCodes = (metricsOpRes.json().data.metrics as Array<{ code: string }>).map((m) => m.code)
+    assert.ok(opMetricCodes.includes('refund_rate'))
+    assert.equal(opMetricCodes.includes('ad_spend'), false)
+
+    const metricsFinRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/caliber/metrics',
+      headers: { cookie: financeUser.cookie },
+    })
+    assert.equal(metricsFinRes.statusCode, 200)
+    const finMetricCodes = (metricsFinRes.json().data.metrics as Array<{ code: string }>).map((m) => m.code)
+    assert.ok(finMetricCodes.includes('ad_spend'))
+
+    const analysisMetricsRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/analysis/metrics',
+      headers: { cookie: financeUser.cookie },
+    })
+    assert.equal(analysisMetricsRes.statusCode, 200)
+    const refundDef = (analysisMetricsRes.json().data.metrics as Array<any>).find((m) => m.code === 'refund_rate')
+    assert.ok(refundDef && Array.isArray(refundDef.supportedPlatforms) && refundDef.supportedPlatforms.includes('pdd'))
+
+    // 2. 统一退款率公式与 DB 配置化 SLA 逻辑
+    assert.equal(computeRefundRatePct(150, 1000, 2), 15)
+    assert.equal(computeRefundRatePct(100, 0, 2), 0)
+    assert.equal(computeOrderRefundRatePct(3, 40, 2), 7.5)
+
+    const appliedAt = new Date('2026-11-10T00:00:00Z')
+    const afterSaleFromDbRule = computeAfterSaleSla('douyin', 'return_refund', 4.9, appliedAt, [
+      { sla_type: 'aftersale_only_refund_audit', threshold_hours: 24, autonomy_min_score: null },
+      { sla_type: 'aftersale_return_audit', threshold_hours: 48, autonomy_min_score: null },
+    ])
+    assert.equal(afterSaleFromDbRule.auditDeadlineAt.getTime() - appliedAt.getTime(), 48 * 3600 * 1000)
+    assert.equal(afterSaleFromDbRule.autonomyProtected, false)
+
+    const presalePaidAt = new Date('2026-11-01T00:00:00Z')
+    const waybillSla = evaluateWaybillSla(
+      {
+        platformCode: 'pdd',
+        orderAmount: 200,
+        isCustomPresale: true,
+        paidAt: presalePaidAt,
+        shippedAt: new Date('2026-11-06T01:00:00Z'), // 121h > 120h
+      },
+      [
+        {
+          platform_code: 'pdd',
+          sla_type: 'ship',
+          sla_name: '常规发货',
+          threshold_hours: 48,
+          pickup_threshold_hours: 24,
+          penalty_fixed_amount: '3.00',
+          penalty_rate: '0',
+          penalty_min_amount: '0',
+          penalty_max_amount: '0',
+          autonomy_min_score: null,
+          penalty_note: '',
+        },
+        {
+          platform_code: 'pdd',
+          sla_type: 'ship_presale',
+          sla_name: '预售发货',
+          threshold_hours: 120,
+          pickup_threshold_hours: 24,
+          penalty_fixed_amount: '3.00',
+          penalty_rate: '0',
+          penalty_min_amount: '0',
+          penalty_max_amount: '0',
+          autonomy_min_score: null,
+          penalty_note: '',
+        },
+      ],
+    )
+    assert.equal(waybillSla.isShipDelayed, true)
+    assert.equal(waybillSla.estimatedPenaltyAmount, 3)
+
+    // 3. 京东自营 vs POP 精细化费用对账及成本权限脱敏
+    const jdFeesFinRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/jd/settlement-fees?from=2026-11-01&to=2026-11-30',
+      headers: { cookie: financeUser.cookie },
+    })
+    assert.equal(jdFeesFinRes.statusCode, 200)
+    const jdFeesFin = jdFeesFinRes.json().data
+    assert.equal(jdFeesFin.costMasked, false)
+    assert.ok(jdFeesFin.items.length >= 7)
+    assert.ok(jdFeesFin.byMode.self_operated)
+    assert.equal(jdFeesFin.byMode.self_operated.rebate, 6150)
+
+    const jdBreakdownFinRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/jd/mode-breakdown?from=2026-11-01&to=2026-11-30',
+      headers: { cookie: financeUser.cookie },
+    })
+    assert.equal(jdBreakdownFinRes.statusCode, 200)
+    const jdBreakdownFin = jdBreakdownFinRes.json().data
+    assert.equal(jdBreakdownFin.costMasked, false)
+    const selfFin = jdBreakdownFin.modes.find((m: any) => m.businessMode === 'self_operated')
+    if (selfFin) {
+      assert.ok(selfFin.feeSummary)
+      assert.equal(selfFin.feeSummary.grossMarginGuarantee, 4280)
+    }
+
+    for (const maskedUser of [operatorUser, adBuyer]) {
+      const feesMaskedRes = await app.inject({
+        method: 'GET',
+        url: '/api/v1/jd/settlement-fees?from=2026-11-01&to=2026-11-30',
+        headers: { cookie: maskedUser.cookie },
+      })
+      assert.equal(feesMaskedRes.statusCode, 200)
+      assert.equal(feesMaskedRes.json().data.costMasked, true)
+      assert.equal(feesMaskedRes.json().data.items.length, 0)
+
+      const bdMaskedRes = await app.inject({
+        method: 'GET',
+        url: '/api/v1/jd/mode-breakdown?from=2026-11-01&to=2026-11-30',
+        headers: { cookie: maskedUser.cookie },
+      })
+      assert.equal(bdMaskedRes.statusCode, 200)
+      assert.equal(bdMaskedRes.json().data.costMasked, true)
+      for (const m of bdMaskedRes.json().data.modes) {
+        assert.equal(m.grossMargin, null)
+        assert.equal(m.feeSummary, null)
+      }
     }
   })
 })

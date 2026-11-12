@@ -2,6 +2,24 @@
 
 All notable changes to **Leyova** are documented in this file.
 
+## [2026-11-12 — Mid-Term Architecture Optimization]
+
+### Added & Unified
+- **僵尸/备份表清理与数据库收敛 (`database/migrations/120_midterm_architecture_optimization.sql`)**：
+  - 删除 8 张确认 0 行、0 业务引用的空表/历史备份表：`product_template_items`、`product_templates`、`ad_channel_metrics`、`ad_plans`、`agency_client_tokens`、`attendance_records`、`dim_channel`、`live_registrations_backup_20261108`。
+  - 新增 `fact_jd_settlement_fees`（启用 `FORCE ROW LEVEL SECURITY` 与成本权限 SELECT/WRITE 策略，预置京东自营毛保/返点/TC运费/贴码费/质保金与 POP 佣金/仓配履约费样本）并补全 `platform_sla_config`（拼多多预售 120h、各平台仅退款/退货退款审单时效、发货延期默认赔付 `3.00`）、`system_config.refund_rate_warning_pct` (`10`) 及 `metric_definition.refund_rate` 配置。
+- **统一指标口径服务 & 语义层持久化联动**：
+  - 新增 `apps/api/src/services/metrics-caliber.ts`，集中提供 `computeRefundRatePct`、`computeOrderRefundRatePct`、`listMetricDefinitions` 与 `getRefundRateWarningPct`；统一收敛 `bi.ts`、`overview.ts`、`omnichannel.ts`、`review.ts`、`taobao-analytics.ts`、`pdd-analytics.ts` 与 `ai/register-insight-tools.ts` 中分散的退款率计算逻辑。
+  - `routes/caliber.ts` 接入 `requireAuth` + `withRlsContext` 并新增 `GET /api/v1/caliber/metrics`；`ai/semantic-layer.ts` 新增 `listMetricsFromCatalog` 联动 `metric_definition` 表，供 `GET /api/v1/analysis/metrics` 使用；`ai/orchestrator.ts` 改为读取 `system_config.refund_rate_warning_pct` 替代硬编码 `10%` 水位。
+- **配置驱动 SLA 与京东精细化费用对账**：
+  - 移除 `routes/after-sales.ts` 与 `routes/fulfillment.ts` 中的平台硬编码审单/预售/赔付兜底分支，统一从 `platform_sla_config` 读取规则。
+  - `platform/jd-analytics.ts` 与 `routes/jd.ts` 新增 `getJdSettlementFees` 与 `GET /api/v1/jd/settlement-fees`，并将 `feeSummary` 合入 `/api/v1/jd/mode-breakdown`；非 `canAccessCost` 角色自动脱敏 `feeSummary` 与 `grossMargin`。
+- **前端真实关联升级**：
+  - `JdBusinessBoardPage.tsx` 展示自营/POP 费用汇总及精细化结算对账明细（支持脱敏提示）。
+  - `ShopProductsPage.tsx` 对接 `GET /api/v1/inventory/products?platformCode=...` 呈现主商品与平台 SKU 映射库存；`ShopOverviewPage.tsx` 恢复「店铺经营看板」清晰定位并提供小红书「笔记内容看板」直达入口。
+
+---
+
 ## [2026-11-12 — Round 2 Overlap & Redundancy Consolidation]
 
 ### Added & Consolidated

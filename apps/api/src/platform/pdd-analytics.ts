@@ -11,6 +11,7 @@
 import type { DbExecutor } from '../lib/audit.js'
 import { getPool } from '../lib/db.js'
 import { getDefaultCaliber } from '../platform/caliber.js'
+import { computeOrderRefundRatePct } from '../services/metrics-caliber.js'
 
 export interface PddGroupFunnel {
   range: { from: string; to: string }
@@ -234,7 +235,7 @@ export async function getPddRefundAnalysis(
     refund: {
       amount: refundAmount,
       orders: refundCount,
-      rate: orderCount > 0 ? Number(((refundCount / orderCount) * 100).toFixed(2)) : null,
+      rate: orderCount > 0 ? computeOrderRefundRatePct(refundCount, orderCount, 2) : null,
     },
     groupSample: {
       groupedGroups: groupedSample,

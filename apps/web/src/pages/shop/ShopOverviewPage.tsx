@@ -66,7 +66,7 @@ export function ShopOverviewPage() {
   useEffect(() => { load() }, [load])
 
   const isContentMode = currentPlatform?.capabilities?.supportsContent && !currentPlatform?.capabilities?.supportsLive
-  const title = isContentMode ? '笔记经营看板' : '店铺经营看板'
+  const title = '店铺经营看板'
 
   return (
     <div className="space-y-6">
@@ -78,19 +78,26 @@ export function ShopOverviewPage() {
               {currentShop ? `${currentShop.name} · ${currentPlatform?.platform_name || ''}` : '未选择店铺'}
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
-            {[7, 30, 90].map((d) => (
-              <button
-                key={d}
-                onClick={() => setDays(d)}
-                className={cn(
-                  'rounded px-3 py-1.5 text-xs transition',
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200',
-                )}
-              >
-                近 {d} 天
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            {isContentMode && (
+              <Button variant="ghost" size="sm" onClick={() => navigate('/shop/xiaohongshu/notes')}>
+                笔记内容看板 <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Button>
+            )}
+            <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+              {[7, 30, 90].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDays(d)}
+                  className={cn(
+                    'rounded px-3 py-1.5 text-xs transition',
+                    days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200',
+                  )}
+                >
+                  近 {d} 天
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </motion.div>

@@ -14,7 +14,7 @@ import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { runAnalysis, type AnalysisMode } from '../ai/orchestrator.js'
-import { resolveScope, listMetrics, listDimensions } from '../ai/semantic-layer.js'
+import { resolveScope, listMetricsFromCatalog, listDimensions } from '../ai/semantic-layer.js'
 import { listPlatformMetrics } from '../ai/platform-metrics.js'
 
 export async function analysisRoutes(app: FastifyInstance) {
@@ -23,7 +23,10 @@ export async function analysisRoutes(app: FastifyInstance) {
     const user = await requireAuth(request, reply)
     if (!user) return
     const access = { role: user.role, userType: user.userType }
-    return sendOk(reply, { metrics: listMetrics(access), dimensions: listDimensions() })
+    const metrics = await withRlsContext(request, (client) =>
+      listMetricsFromCatalog(client, access),
+    )
+    return sendOk(reply, { metrics, dimensions: listDimensions() })
   })
 
   // ── POST /api/v1/analysis/run ──

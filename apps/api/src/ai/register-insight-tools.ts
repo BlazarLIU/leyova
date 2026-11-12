@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { registerTool } from './tool-registry.js'
 import { canAccessAdSpend } from '../lib/guard.js'
+import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
 // ---------------------------------------------------------------------------
 // Insight tools（Read-only）
@@ -722,7 +723,7 @@ registerTool({
         refundAmount,
         refundOrders: Number(row.refund_orders) || 0,
         refundUsers: Number(row.refund_users) || 0,
-        refundRatePct: gmv > 0 ? (refundAmount / gmv) * 100 : null,
+        refundRatePct: gmv > 0 ? computeRefundRatePct(refundAmount, gmv, 2) : null,
       }
     })
 
