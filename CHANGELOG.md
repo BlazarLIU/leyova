@@ -12,8 +12,9 @@ All notable changes to **Leyova** are documented in this file.
 - **前后端端点一致性静态护栏 & 4 处真实孤儿调用闭环**：
   - `scripts/check-guardrails.mjs` 新增 Guardrail 3 (`ENDPOINT-PARITY`)，静态扫描全部前端 `api.{get,post,put,patch,delete}` 路径并与 Fastify 注册路由逐一对齐（236 处前端调用 100% 匹配）。
   - 依据护栏排查并补齐 4 处前端真实调用但后端缺失的闭环路由：`GET /api/v1/overview/sessions` (`overview.ts`)、`GET /api/v1/review/related-issues` (`review.ts`)、`POST /api/v1/system/competitors` 与 `POST /api/v1/system/tasks` (`system.ts`)，同时修复 `CompetitorWatchPage.tsx` 对后端数组返回格式的兼容。
-- **P3 导航语义收口与回归测试**：
-  - `platform-navigation.ts` 统一修正 `/shop/overview` 内容模式显示名称为「店铺经营看板」，并将 `/shop/pdd/caliber-compare`（`bi`）与 `/shop/jd/store-rating`（`fulfillment`）归入对应业务模块；`rbac-and-domains.test.ts` 扩展至 61 项回归全通过。
+- **P3 导航语义与前端权限目录收口**：
+  - `platform-navigation.ts`、`App.tsx` 与 `Topbar.tsx` 同步对齐权限模块映射（`/shop/pdd/caliber-compare` → `bi`、`/shop/jd/store-rating` → `fulfillment`、`/shop/xiaohongshu/notes` → `content`），补齐 `Topbar` 店铺专页标签与模块准入清单并清理死路由 `/content/config` 与 `AccountsSection.tsx` 残留 `system_inventory` 映射。
+  - `apps/web/src/pages/ops/` 按 9 个独立业务域拆分为子目录（`session-products`、`product-center`、`fulfillment`、`after-sales`、`kol`、`customer-service`、`net-roi`、`search-seo`、`members`），同步修复 `GlobalSearch.tsx` 失效快捷路径 (`/overview/cockpit`、`/omnichannel/dashboard`)；`rbac-and-domains.test.ts` 扩展至 61 项回归全通过。
 
 ---
 

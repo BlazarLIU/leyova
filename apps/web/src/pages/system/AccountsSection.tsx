@@ -41,7 +41,6 @@ const moduleNameMap: Record<string, string> = {
   system_alerts: '异常中心',
   system_tasks: '改进任务',
   system_promotions: '大促管理',
-  system_inventory: '库存风险',
   system_competitors: '竞品观察',
   system_multiroom: '多直播间总览',
   content: '内容中心',

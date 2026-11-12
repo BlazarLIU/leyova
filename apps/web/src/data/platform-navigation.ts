@@ -371,7 +371,7 @@ function buildContentSections(): NavSection[] {
     {
       title: '内容经营',
       items: [
-        { label: '笔记经营看板', icon: FileText, href: '/shop/xiaohongshu/notes', module: 'overview' },
+        { label: '笔记经营看板', icon: FileText, href: '/shop/xiaohongshu/notes', module: 'content' },
         {
           label: '内容分析',
           icon: Film,

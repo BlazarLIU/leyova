@@ -62,7 +62,12 @@ const routeLabels: Record<string, string> = {
   '/content/video-data': '视频数据',
   '/content/schedule': '内容排产与归因',
   '/content/center-config': '生成服务配置',
-  '/content/config': '生成服务配置',
+  '/shop/products': '全店商品明细',
+  '/shop/pdd/caliber-compare': '三口径对账',
+  '/shop/jd/store-rating': '店铺星级（四维考核）',
+  '/shop/xiaohongshu/notes': '笔记经营看板',
+  '/shop/xiaohongshu/conversion': '种草转化链路',
+  '/shop/kuaishou/fans-team': '粉丝团运营',
   '/system/compliance': '合规风控',
 }
 
@@ -116,6 +121,12 @@ const ROUTE_MODULE_REQUIREMENTS: Record<string, string> = {
   '/system/promotions': 'system_promotions',
   '/system/competitors': 'system_competitors',
   '/system/multi-room': 'system_multiroom',
+  '/shop/products': 'product_center',
+  '/shop/pdd/caliber-compare': 'bi',
+  '/shop/jd/store-rating': 'fulfillment',
+  '/shop/xiaohongshu/notes': 'content',
+  '/shop/xiaohongshu/conversion': 'content',
+  '/shop/kuaishou/fans-team': 'ops',
 }
 
 export function Topbar({ user }: { user?: { username: string; realName: string; role: string } }) {
