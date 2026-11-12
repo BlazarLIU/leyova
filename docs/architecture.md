@@ -1,6 +1,6 @@
 # leyova 系统架构详细文档
 
-> 更新日期: 2026-08-11
+> 更新日期: 2026-11-12
 
 ---
 
@@ -11,10 +11,10 @@
 | 项目 | 说明 |
 |------|------|
 | 项目名称 | leyova (Orbit Dashboard) |
-| 业务领域 | 抖音直播电商运营数据分析 |
+| 业务领域 | 7 大平台直播电商与全渠道货架运营数据分析 |
 | 技术栈 | React 19 + Fastify 5 + PostgreSQL 18 |
-| 部署方式 | PM2 进程管理 |
-| 开发状态 | 单系统运行中 |
+| 部署方式 | PM2 进程管理 (`leyova-api:8788`, `leyova-web:5513`, `leyova-mcp:9101`) |
+| 数据规模与隔离 | 146 张逻辑表 / 222 张物理表（含分区），29 张启用 PostgreSQL RLS |
 
 ---
 
@@ -518,17 +518,21 @@
 
 ## 八、权限与角色体系
 
-### 8.1 角色定义
+### 8.1 角色定义 (`roles` 表 10 个内部角色 + 外部只读视图)
 
 | 角色 | 代码 | 说明 |
 |------|------|------|
-| 超级管理员 | `super_admin` | 全部权限 |
-| 运营总监 | `ops_director` | 运营管理权限 |
-| 运营专员 | `ops_staff` | 运营执行权限 |
-| 中控 | `controller` | 仅个人达成和直播登记 |
-| 管理员 | `admin` | (旧系统) 管理权限 |
-| 经理 | `manager` | (旧系统) 管理权限 |
-| 员工 | `employee` | (旧系统) 基础权限 |
+| 超级管理员 | `super_admin` | 全部 31 项权限及租户/平台全局管控 |
+| 管理员 | `admin` | 机构负责人/业务总监，跨项目审批与统筹 |
+| 运营总监 | `ops_director` | 运营管理与全渠道看板权限（含投流总览） |
+| 运营 | `operator` | 直播操盘、选品与场控运营（屏蔽成本/投流明文） |
+| 运营专员 | `ops_staff` | 运营日常执行权限 |
+| 投放专员 | `ad_buyer` | 全域投流消耗、归因窗口与 T+7 净成交 ROI 优化（屏蔽商品进价成本） |
+| 财务 | `finance` | 成本录入、阶梯佣金核算、不可变月结对账单与净毛利查看 |
+| HRBP | `hrbp` | 主播档案、梯队评级、考勤排班审批与绩效 |
+| 中控 | `controller` | 个人达成与直播现场登记 |
+| 员工 | `employee` | 基层一线作业人员基础工作台 |
+| 品牌方代表 *(外部账号类型)* | `brand_viewer` | 外部品牌商受限只读视角（受 PostgreSQL RLS 物理行级隔离，默认屏蔽内部成本/消耗） |
 
 ### 8.2 系统模块列表 (12个)
 
@@ -593,12 +597,17 @@
    权限操作 → requirePermission → 检查 role_modules / role_permissions
 ```
 
-### 9.3 定时任务流程
+### 9.3 定时任务流程（全量接入 `system_jobs` 状态追踪）
 
 ```
 每天 01:00  → 聚合日报统计 (live_sessions → overview_daily_stats)
-每小时      → 异常检测 (GMV波动/低活跃直播间 → alert_events)
-每天 03:00  → 归档旧数据 (删除90天前的 overview_daily_stats)
+每天 01:30  → 多平台事实表汇总聚合 (aggregate-facts → agg_shop_daily / agg_platform_monthly)
+每天 02:30  → AI 场次复盘草稿自动生成 (ai_review_drafts)
+每天 03:00  → 冷数据归档 (overview_daily_stats 历史数据转存归档表)
+每天 04:00  → 7 大分区表未来 3 个月预建与 DEFAULT 分区守护 (partition_maintenance)
+每天 05:00  → 多平台官方授权店铺增量同步 (platform_api_sync，未授权/manual_only 自动跳过)
+每小时      → 异常检测与阈值规则评测 (anomaly_detection → alert_events)
+每周日 02:00 → PM2 与系统日志滚写清理 (log_rotation → rotateAllFiles)
 ```
 
 ---
@@ -609,13 +618,16 @@
 
 | 变量 | 值示例 | 说明 |
 |------|--------|------|
-| `NODE_ENV` | development/test/production | 运行环境 |
-| `PORT` | 8788 | 后端端口 |
+| `NODE_ENV` | development/test/production | 运行环境（生产模式强制拒绝默认弱密钥） |
+| `PORT` | 8788 | 后端 API 端口 |
 | `HOST` | 0.0.0.0 | 监听地址 |
 | `WEB_ORIGIN` | http://localhost:5513 | CORS 源 |
-| `DATABASE_URL` | postgresql://postgres:change-me@localhost:5432/leyova | 数据库连接串 |
+| `DATABASE_URL` | postgresql://user:password@127.0.0.1:55432/leyova | 数据库连接串 |
 | `SESSION_COOKIE_NAME` | leyova_session | Session Cookie 名称 |
-| `SESSION_SECRET` | (32字符随机串) | 会话密钥 |
+| `SESSION_SECRET` | (随机强密钥) | 会话密钥（生产禁止使用示例弱串） |
+| `LEYOVA_MCP_TOKEN` | (48位以上随机串) | API/MCP 服务间 Bearer 认证令牌 |
+| `LEYOVA_MCP_SIGNING_SECRET` | (48位以上随机串) | `X-Leyova-User-Sig` HMAC-SHA256 验签密钥 |
+| `LEYOVA_MCP_REQUIRE_SIG` | true | 是否强制要求所有 MCP 请求携带 HMAC 用户签名 |
 
 ### 10.2 PM2 进程管理
 
@@ -696,22 +708,22 @@ reconciliation_runs + publish_reversals
 | 发布层 | `publish_runs`、`publish_reversals` |
 | 对账层 | `reconciliation_runs` |
 
-**分区规则**：`raw_records`、`clean_records`、`canonical_orders`、`canonical_order_items`、`canonical_refund_events`、`fact_trade_daily`、`fact_traffic_daily` 均按月分区。
+**分区规则与守护**：`raw_records`、`clean_records`、`canonical_orders`、`canonical_order_items`、`canonical_refund_events`、`fact_trade_daily`、`fact_traffic_daily` 全部按月物理分区。
 
-> ⚠️ **已知问题（见审计报告分册 02）**：分区维护任务 `cron/manage-partitions.ts` 的 `PARTITIONED_TABLES` **只覆盖 2 张表**（`fact_trade_daily`、`fact_traffic_daily`），其余 5 张仅靠迁移 114 一次性建到 2027-07，**无 DEFAULT 分区兜底**，2027-08-01 起插入会失败。分区命名亦存在 `_y2026m10`（带 m）与 `_y202610`（不带 m）两种混用。
+> `cron/manage-partitions.ts` 通过 `hasRangePartitionBound()` 查询 `pg_inherits` 与 `pg_get_expr(c.relpartbound, c.oid)` 自动兼容历史 `_yYYYYmMM` / `_yYYYYMM` 分区命名，每日 `04:00` 提前预建未来 3 个月区间分区，并由 `ensureDefaultPartition()` 为 7 张分区表自动兜底创建 `DEFAULT` 分区，彻底消除跨月或历史补数写入失败风险。
 
-### 11.5 API 端点（`routes/governance.ts`，12 个）
+### 11.5 API 端点与业务域覆盖
 
-覆盖接入批次管理、清洗执行、校验执行、发布、回滚、对账、质量问题查询等治理全流程操作。
+后端共 44 个路由模块、264 个 REST/MCP 端点：数据治理引擎 (`routes/governance.ts`) 覆盖接入批次、清洗、校验闸门、对账、原子发布与反向冲正，并将每次发布绑定至 `data_uploads` 与 `fact_trade_daily.upload_id` 血缘链。
 
 ---
 
 ## 十二、核心设计要点
 
-1. **单一数据库**：PostgreSQL 18（唯一数据存储，196 张表，含按月分区）
-2. **RBAC 权限体系**：基于角色-模块-权限的三层控制，支持细粒度访问管理
-3. **数据导入引擎**：支持 CSⅤ/XLSX 自动解析，四种导入模板自动识别
-4. **AI 集成**：数据驱动 AI 问答，支持主播排行/渠道分析/异常预警/日报生成
-5. **Orbit Design System**：完整的暗/亮双主题设计系统，统一 UI 组件库
-6. **分层架构**：前端 (React) → API (Fastify) → 数据库 (PostgreSQL)，职责清晰
-7. **定时自动化**：日报聚合、异常检测、数据归档全自动执行
+1. **单一数据库**：PostgreSQL 18（146 张逻辑表 / 222 张含月分区的物理表，29 张启用 RLS 行级隔离，增量迁移 100~118）
+2. **多维 RBAC + RLS**：应用层角色权限矩阵 + `leyova_app` 角色 PostgreSQL 行级策略双重纵深防御，支持品牌商只读与成本/投流脱敏
+3. **双轨数据治理底座**：未授权/`manual_only` 店铺 fail-closed 拦截，CSV/XLSX 与 OpenAPI 统一落 `raw_records → clean_records → canonical_*`，支持财务级余数归底分摊与原子冲正
+4. **AI 集成**：4 阶受控 AI 编排器 + 语义层按角色裁剪投流/成本敏感指标 + HMAC 签名 MCP 服务通信
+5. **Orbit Design System**：完整的暗/亮双主题设计系统，支持纯代运营 / 纯品牌自播 / 全渠道总览三种工作模式
+6. **分层架构**：前端 (React 19 · 93 页) → API (Fastify 5 · `buildApp()` 可注入测试实例) → 数据库 (PostgreSQL 18)
+7. **可观测运维闭环**：全量定时任务写入 `system_jobs`，配套 `pg_dump` 校验与保留策略备份脚本、`copyFileSync + truncate` PM2 日志滚写工具与 HTTP 集成测试套件

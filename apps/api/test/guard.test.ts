@@ -9,7 +9,7 @@ test('findSessionUser: 命中有效会话返回用户', async () => {
     query: async () => ({ rows: [{ id: 7, username: 'luozh', real_name: '罗真恒', role: 'ops_staff' }] }),
   }
   const user = await findSessionUser(pool, 'token-1')
-  assert.deepEqual(user, { id: 7, username: 'luozh', realName: '罗真恒', role: 'ops_staff', userType: undefined, tenantId: undefined })
+  assert.deepEqual(user, { id: 7, username: 'luozh', realName: '罗真恒', role: 'ops_staff', userType: undefined, tenantId: undefined, anchorId: undefined })
 })
 
 test('findSessionUser: 无命中（过期/账号停用/会话不存在）返回 null', async () => {

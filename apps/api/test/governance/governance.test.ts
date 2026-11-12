@@ -12,7 +12,7 @@
  * 8. 原子发布闸门与反向冲正测试
  */
 
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   encryptCredential,
@@ -26,20 +26,23 @@ import {
   governancePlatformRegistry,
   topSignMd5,
   hmacSha256Hex,
-  md5Hex,
 } from '../../src/modules/data-governance/adapters/index.js'
 import {
   normalizeDateTimeString,
   normalizeCurrencyAmount,
   mapCanonicalOrderStatus,
 } from '../../src/modules/data-governance/cleaning/cleaner-service.js'
-import { getPool } from '../../src/lib/db.js'
+import { closePool, getPool } from '../../src/lib/db.js'
 import { IngestionService } from '../../src/modules/data-governance/ingestion/ingestion-service.js'
 import { ReviewService } from '../../src/modules/data-governance/review/review-service.js'
 import { ReconciliationService } from '../../src/modules/data-governance/reconciliation/reconciliation-service.js'
 import { PublishingService } from '../../src/modules/data-governance/publishing/publishing-service.js'
 import { ValidationService } from '../../src/modules/data-governance/validation/validation-service.js'
 import * as XLSX from 'xlsx'
+
+after(async () => {
+  await closePool()
+})
 
 // ═══════════════════════════════════════════════════════════════
 // 1. 安全机制与防 CSV 注入测试
@@ -177,16 +180,44 @@ test('清洗标准化: 订单状态映射', () => {
   assert.equal(mapCanonicalOrderStatus('未知状态xxx').canonical, 'OTHER')
 })
 
+async function cleanupGovernanceBatch(pool: ReturnType<typeof getPool>, batchId: number) {
+  await pool.query(
+    `DELETE FROM canonical_order_items coi
+     USING canonical_orders co
+     WHERE coi.biz_date = co.biz_date
+       AND coi.source_platform = co.source_platform
+       AND coi.store_id = co.store_id
+       AND coi.source_order_id = co.source_order_id
+       AND co.batch_id = $1`,
+    [batchId],
+  )
+  await pool.query(`DELETE FROM canonical_orders WHERE batch_id = $1`, [batchId])
+  await pool.query(`DELETE FROM canonical_refund_events WHERE batch_id = $1`, [batchId])
+  await pool.query(
+    `DELETE FROM publish_reversals WHERE publish_run_id IN (SELECT id FROM publish_runs WHERE batch_id = $1)`,
+    [batchId],
+  )
+  const batchUploadName = `governance_batch_${batchId}`
+  await pool.query(
+    `DELETE FROM fact_trade_daily
+     WHERE upload_id IN (SELECT id FROM data_uploads WHERE file_name = $1)
+       AND gmv = 0 AND paid_order_count = 0`,
+    [batchUploadName],
+  )
+  await pool.query(`DELETE FROM data_uploads WHERE file_name = $1`, [batchUploadName])
+  await pool.query(`DELETE FROM clean_records WHERE batch_id = $1`, [batchId])
+  await pool.query(`DELETE FROM raw_records WHERE batch_id = $1`, [batchId])
+  await pool.query(`DELETE FROM import_batches WHERE id = $1`, [batchId])
+}
+
 // ═══════════════════════════════════════════════════════════════
-// 5. 端到端全流程集成测试: 客户类型 1 (API 直连) 与客户类型 2 (手动上传)
+// 5. 端到端全流程集成测试: API 未授权 fail-closed 拦截 与 手动上传->审核->发布->冲正闭环
 // ═══════════════════════════════════════════════════════════════
-test('端到端全链路: 客户类型 1 (API 直连) 自动完成 原始落库 -> 清洗 -> 校验 -> 对账 -> 发布', async () => {
+test('端到端全链路: 客户类型 1 (API 直连) 对 manual_only / 无真实 Token 店铺 fail-closed 拒绝生成假数据', async () => {
   const pool = getPool()
   const ingestion = new IngestionService(pool)
-  const reconciliation = new ReconciliationService(pool)
-  const publishing = new PublishingService(pool)
 
-  // 1. 执行 API 同步
+  // dim_shop#1 默认处于 manual_only，严禁拉取/生成伪造订单污染生产数据库
   const ingestRes = await ingestion.ingestFromApi({
     platformCode: 'douyin',
     shopId: 1, // 抖音主营旗舰店
@@ -194,123 +225,114 @@ test('端到端全链路: 客户类型 1 (API 直连) 自动完成 原始落库 
   })
 
   assert.equal(ingestRes.success, true)
-  assert.ok(ingestRes.batchId, '应创建批次')
-  const batchId = ingestRes.batchId!
-
-  // 验证 raw_records 已落库
-  const { rows: rawRows } = await pool.query(`SELECT count(*) FROM raw_records WHERE batch_id = $1`, [batchId])
-  assert.ok(Number(rawRows[0].count) > 0, 'raw_records 应有数据')
-
-  // 验证 clean_records 已落库
-  const { rows: cleanRows } = await pool.query(`SELECT count(*) FROM clean_records WHERE batch_id = $1`, [batchId])
-  assert.ok(Number(cleanRows[0].count) > 0, 'clean_records 应有数据')
-
-  // 2. 执行对账
-  const reconRes = await reconciliation.reconcileBatch({
-    batchId,
-    controlTotals: {
-      expectedRowCount: 1,
-      expectedTotalAmount: 399.0,
-    },
-  })
-  assert.ok(reconRes.length >= 2)
-  assert.equal(reconRes.find((r) => r.metricCode === 'TOTAL_PAID_AMOUNT')?.status, 'MATCHED')
-
-  // 3. 执行原子发布
-  const pubRes = await publishing.publishBatch({
-    batchId,
-    userId: 1,
-  })
-  assert.equal(pubRes.success, true)
-  assert.equal(pubRes.finalMaturityStatus, 'FINAL')
-
-  // 4. 验证规范事实明细表与日聚合表已包含发布数据
-  const { rows: orderRows } = await pool.query(
-    `SELECT * FROM canonical_orders WHERE batch_id = $1`,
-    [batchId]
-  )
-  assert.equal(orderRows.length, 1)
-  assert.equal(Number(orderRows[0].paid_amount), 399.0)
-  assert.equal(orderRows[0].maturity_status, 'FINAL')
-
-  // 5. 测试反向冲正/撤销
-  const revRes = await publishing.reverseBatch(pubRes.publishRunId, '测试审计撤销冲正', 1)
-  assert.equal(revRes.success, true)
-  const { rows: checkBatch } = await pool.query(`SELECT status FROM import_batches WHERE id = $1`, [batchId])
-  assert.equal(checkBatch[0].status, 'SUPERSEDED')
+  assert.equal(ingestRes.batchId, null)
+  assert.equal(ingestRes.recordsCount, 0)
 })
 
-test('端到端全链路: 客户类型 2 (手动上传包含附录A异常案例) 触发 P0 闸门阻断，经人工审核修复后发布', async () => {
+test('端到端全链路: 客户类型 2 (手动上传包含附录A异常案例) 触发 P0 闸门阻断，经人工审核修复、对账发布、血缘绑定与冲正后清理', async () => {
   const pool = getPool()
   const ingestion = new IngestionService(pool)
   const review = new ReviewService(pool)
   const validation = new ValidationService(pool)
+  const reconciliation = new ReconciliationService(pool)
   const publishing = new PublishingService(pool)
 
-  // 构造附录 A 黄金测试数据集 Excel (含正常单、负金额异常单、万元单位单、缺失ID单)
+  const ts = Date.now()
+  // 构造附录 A 黄金测试数据集 Excel (含正常单、万元单位单、负金额异常单)
   const testData = [
-    { 平台订单号: `TEST_GOLDEN_${Date.now()}_01`, 实付款: '￥399.00', 商品编码: 'SKU-0098', 订单状态: '已付款' },
-    { 平台订单号: `TEST_GOLDEN_${Date.now()}_02`, 实付款: '1.2万', 商品编码: 'SKU-0102', 订单状态: '已付款' },
-    { 平台订单号: `TEST_GOLDEN_${Date.now()}_03`, 实付款: '-199.00', 商品编码: 'SKU-0105', 订单状态: '已付款' }, // 触发 P0 异常金额
+    { 平台订单号: `TEST_GOLDEN_${ts}_01`, 实付款: '￥399.00', 商品编码: 'SKU-0098', 订单状态: '已付款' },
+    { 平台订单号: `TEST_GOLDEN_${ts}_02`, 实付款: '1.2万', 商品编码: 'SKU-0102', 订单状态: '已付款' },
+    { 平台订单号: `TEST_GOLDEN_${ts}_03`, 实付款: '-199.00', 商品编码: 'SKU-0105', 订单状态: '已付款' }, // 触发 P0 异常金额
   ]
 
   const ws = XLSX.utils.json_to_sheet(testData)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, '订单明细')
   const fileBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+  const filename = `golden_appendix_a_test_${ts}.xlsx`
 
-  // 1. 上传文件
-  const uploadRes = await ingestion.ingestFromFile({
-    platformCode: 'douyin',
-    shopId: 1,
-    fileBuffer,
-    originalFilename: 'golden_appendix_a_test.xlsx',
-  })
+  let batchId: number | null = null
+  try {
+    // 1. 上传文件
+    const uploadRes = await ingestion.ingestFromFile({
+      platformCode: 'douyin',
+      shopId: 1,
+      fileBuffer,
+      originalFilename: filename,
+    })
 
-  assert.equal(uploadRes.success, true)
-  assert.ok(uploadRes.batchId)
-  const batchId = uploadRes.batchId!
+    assert.equal(uploadRes.success, true)
+    assert.ok(uploadRes.batchId)
+    batchId = uploadRes.batchId!
 
-  // 2. 重复上传相同文件应被 SHA-256 识别并拦截
-  const dupUploadRes = await ingestion.ingestFromFile({
-    platformCode: 'douyin',
-    shopId: 1,
-    fileBuffer,
-    originalFilename: 'golden_appendix_a_test.xlsx',
-  })
-  assert.equal(dupUploadRes.isDuplicateFile, true, '相同文件应被哈希去重拦截')
+    // 2. 重复上传相同文件应被 SHA-256 识别并拦截
+    const dupUploadRes = await ingestion.ingestFromFile({
+      platformCode: 'douyin',
+      shopId: 1,
+      fileBuffer,
+      originalFilename: filename,
+    })
+    assert.equal(dupUploadRes.isDuplicateFile, true, '相同文件应被哈希去重拦截')
 
-  // 3. 验证校验引擎产生了 P0 致命错误 (负数金额 -199)
-  const issues = await review.getBatchIssues(batchId)
-  assert.ok(issues.length > 0)
-  const p0Issue = issues.find((i) => i.severity === 'P0' && i.ruleId === 'ORD-003')
-  assert.ok(p0Issue, '应产生 ORD-003 P0 严重性错误')
+    // 3. 验证校验引擎产生了 P0 致命错误 (负数金额 -199)
+    const issues = await review.getBatchIssues(batchId)
+    assert.ok(issues.length > 0)
+    const p0Issue = issues.find((i) => i.severity === 'P0' && i.ruleId === 'ORD-003')
+    assert.ok(p0Issue, '应产生 ORD-003 P0 严重性错误')
 
-  // 4. 尝试在存在未解决 P0 问题时发布 -> 验证发布闸门拒绝放行！
-  await assert.rejects(
-    publishing.publishBatch({ batchId, userId: 1 }),
-    /PUBLISH_BLOCKED/,
-    '存在未解决 P0 质量问题时必须阻断发布'
-  )
+    // 4. 尝试在存在未解决 P0 问题时发布 -> 验证发布闸门拒绝放行！
+    await assert.rejects(
+      publishing.publishBatch({ batchId, userId: 1 }),
+      /PUBLISH_BLOCKED/,
+      '存在未解决 P0 质量问题时必须阻断发布'
+    )
 
-  // 5. 人工审核工作台提交修复：纠正负数金额为 199.00 并记录原因
-  const resolveRes = await review.resolveIssue({
-    issueId: p0Issue.id,
-    reviewerId: 1,
-    decision: 'CONFIRM_FIX',
-    reason: '核实平台来源报表，原始负数系退款冲销录入失误，更正为实际应付 199.00',
-    fixedValues: {
-      paidAmount: 199.0,
-    },
-  })
-  assert.equal(resolveRes.success, true)
+    // 5. 人工审核工作台提交修复：纠正负数金额为 199.00 并记录原因
+    const resolveRes = await review.resolveIssue({
+      issueId: p0Issue.id,
+      reviewerId: 1,
+      decision: 'CONFIRM_FIX',
+      reason: '核实平台来源报表，原始负数系退款冲销录入失误，更正为实际应付 199.00',
+      fixedValues: {
+        paidAmount: 199.0,
+      },
+    })
+    assert.equal(resolveRes.success, true)
 
-  // 6. 重新执行独立质量校验
-  const revalRes = await validation.validateCleaningRun(uploadRes.cleanResult.runId)
-  assert.equal(revalRes.p0Count, 0, '修复后 P0 错误计数应为 0')
+    // 6. 重新执行独立质量校验并执行对账 (399 + 12000 + 199 = 12598.00)
+    const revalRes = await validation.validateCleaningRun(uploadRes.cleanResult.runId)
+    assert.equal(revalRes.p0Count, 0, '修复后 P0 错误计数应为 0')
 
-  // 7. 再次执行发布 -> 闸门放行，原子发布成功！
-  const pubRes = await publishing.publishBatch({ batchId, userId: 1 })
-  assert.equal(pubRes.success, true)
-  assert.equal(pubRes.finalMaturityStatus, 'FINAL')
+    const reconRes = await reconciliation.reconcileBatch({
+      batchId,
+      controlTotals: {
+        expectedRowCount: 3,
+        expectedTotalAmount: 12598.0,
+      },
+    })
+    assert.ok(reconRes.length >= 2)
+    assert.equal(reconRes.find((r) => r.metricCode === 'TOTAL_PAID_AMOUNT')?.status, 'MATCHED')
+
+    // 7. 再次执行发布 -> 闸门放行，原子发布成功并绑定 data_uploads 血缘！
+    const pubRes = await publishing.publishBatch({ batchId, userId: 1 })
+    assert.equal(pubRes.success, true)
+    assert.equal(pubRes.finalMaturityStatus, 'FINAL')
+
+    const { rows: uploadRows } = await pool.query(
+      `SELECT id, status, row_count FROM data_uploads WHERE file_name = $1`,
+      [`governance_batch_${batchId}`],
+    )
+    assert.equal(uploadRows.length, 1)
+    assert.equal(uploadRows[0].status, 'completed')
+
+    // 8. 测试反向冲正/撤销，并还原 fact_trade_daily 数值
+    const revRes = await publishing.reverseBatch(pubRes.publishRunId, '测试审计撤销冲正', 1)
+    assert.equal(revRes.success, true)
+    const { rows: checkBatch } = await pool.query(`SELECT status FROM import_batches WHERE id = $1`, [batchId])
+    assert.equal(checkBatch[0].status, 'SUPERSEDED')
+  } finally {
+    if (batchId !== null) {
+      await cleanupGovernanceBatch(pool, batchId)
+    }
+  }
 })

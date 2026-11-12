@@ -25,7 +25,7 @@
 
 **Leyova** 是一套开箱即用的现代化企业级电商运营与数字决策中台。系统立足于中国电商“**品牌自播**”与“**MCN 代运营**”并存的双轨实际，原生支持 **7 大主流电商平台**（抖音、快手、淘宝、天猫、京东、拼多多、小红书）。
 
-平台彻底打破了行业内常见的“仅看虚高 GMV”痛点，内置**全口径真实净利算法**、**4 阶受控 AI 助手**、**气象联动 AI 穿搭选品**、**智能防冲突排班**与**不可篡改法律结算凭单**，提供精细化的 **6 级 RBAC 角色权限管控**。
+平台彻底打破了行业内常见的“仅看虚高 GMV”痛点，内置**全口径真实净利算法**、**4 阶受控 AI 助手**、**气象联动 AI 穿搭选品**、**智能防冲突排班**、**不可篡改法律结算凭单**与**多维 RBAC + PostgreSQL RLS 行级权限隔离**（覆盖 10 个内部角色与品牌方只读门户）。
 
 ```mermaid
 graph TD
@@ -33,7 +33,7 @@ graph TD
   A --> M2["🏷️ 纯品牌自播展示模式: 7大平台全渠道货架 / 真实净利算法 / 投放对账"]
   A --> M3["🌐 全功能总览展示模式: 代运营 + 品牌自播双轨融合全局决策"]
 
-  A --> RBAC["6级账号身份权限: 系统管理员 / 管理员 / 运营 / 财务 / HRBP / 员工"]
+  A --> RBAC["多维 RBAC + RLS: super_admin/admin/ops_director/operator/ops_staff/ad_buyer/finance/hrbp/controller/employee + brand_viewer"]
   A --> PF["7大实战阵地专属打法: 抖音 · 快手 · 淘宝 · 天猫 · 京东 · 拼多多 · 小红书"]
   A --> AI["受控 AI 赋能: AI助手 · 天气穿搭选品 · AI智能排班 · 异动归因"]
 ```
@@ -114,19 +114,19 @@ flowchart TD
     direction TB
     UI_Top["顶栏中枢: 3大工作模式 / 7大平台店铺切换 / Cmd+K 全局搜索"]
     UI_Side["自适应侧边栏: 按代运营与自播模式、7大平台业态动态裁剪"]
-    UI_Page["78个业务页面: 运营驾驶舱 / 排班中心 / 月结对账 / 品牌门户 / AI工作台"]
+    UI_Page["93个业务页面: 运营驾驶舱 / 全链路履约售后 / T+7净利ROI / 品牌门户 / AI工作台"]
     UI_Top --> UI_Page
     UI_Side --> UI_Page
   end
 
   subgraph API["后端服务群 (apps/api · Fastify 5 + TypeScript)"]
     direction TB
-    MW_Guard["安全守卫: 6级 RBAC 权限校验 + 商业成本脱敏隔离"]
-    API_Core["业务路由中枢: 258个 REST 端点 + SSE 流式通信"]
+    MW_Guard["安全守卫: 10类内部角色 + brand_viewer + PostgreSQL RLS + 成本/投流脱敏"]
+    API_Core["业务路由中枢: 264个 REST/MCP 端点 + SSE 流式通信"]
     
     subgraph Engines["核心业务算法与 AI 引擎"]
       direction LR
-      E_Profit["真实净利算法"]
+      E_Profit["真实净利 & 5层大促试算"]
       E_Sched["AI排班推导"]
       E_Weather["气象穿搭选品"]
       E_AI["4阶受控编排器"]
@@ -138,8 +138,8 @@ flowchart TD
 
   subgraph DB["数据中枢 (PostgreSQL 14+)"]
     direction TB
-    DB_Tables[("126张核心业务与事实表")]
-    DB_Migrate["自动化增量迁移链 (100~113)"]
+    DB_Tables[("146张逻辑表 / 222张含分区表 (29张启用RLS)")]
+    DB_Migrate["自动化增量迁移链 (100~118 · 19个SQL脚本)"]
     DB_Migrate -.-> DB_Tables
   end
 
@@ -212,13 +212,26 @@ pnpm db:migrate
 ```
 该命令会自动扫描并运行 `database/migrations/` 下所有增量迁移脚本，自动注入基础字典与默认体验账号。
 
-#### 5. 启动本地热重载开发服务
+#### 5. 运行构建、测试与本地开发服务
 ```bash
-pnpm dev
+pnpm build     # 编译 api / web / mcp-server 三个工程
+pnpm test      # 执行单测、数据治理全链路与 HTTP/RBAC 集成测试
+pnpm dev       # 并行启动热重载开发服务
 ```
 启动后终端将显示：
 - 前端 Web 控制台：`http://localhost:5513`
 - 后端 Fastify API 服务：`http://localhost:8788`
+- 独立 MCP Server：`http://localhost:9101`
+
+---
+
+## 📚 延伸文档导航
+
+- [系统架构详细文档 (docs/architecture.md)](docs/architecture.md)
+- [数据库初始化与迁移说明 (database/README.md)](database/README.md)
+- [核心数据字典 (docs/data-dictionary/README.md)](docs/data-dictionary/README.md)
+- [生产运维与安全手册 (docs/operations.md)](docs/operations.md)
+- [版本变更日志 (CHANGELOG.md)](CHANGELOG.md)
 
 ---
 
@@ -228,29 +241,34 @@ pnpm dev
 leyova/
 ├── .vscode/                  # 团队统一 VS Code 工作区配置、推荐插件与 F5 调试配置
 ├── apps/
-│   ├── api/                  # Fastify 5 + TypeScript 后端服务
+│   ├── api/                  # Fastify 5 + TypeScript 后端服务 (44 个路由模块 + MCP)
 │   │   ├── src/
 │   │   │   ├── ai/           # 自研四阶受控 AI 编排器与指标语义层
-│   │   │   ├── routes/       # 业务路由（agency代播 / costs成本 / schedule排班 / bi / shop）
-│   │   │   ├── lib/          # 数据库连接池、RBAC守卫、天气客户端
-│   │   │   └── index.ts      # API 服务主入口
+│   │   │   ├── cli/          # backup.ts / cleanup-logs.ts 运维工具
+│   │   │   ├── cron/         # 日汇总、异常检测、7表分区自动预建与日志滚写
+│   │   │   ├── modules/      # 企业级数据治理引擎 (data-governance)
+│   │   │   ├── routes/       # 44 个业务路由模块
+│   │   │   ├── lib/          # 数据库连接池、PostgreSQL RLS 上下文、RBAC & MCP 守卫
+│   │   │   ├── app.ts        # Fastify 应用装配工厂（支持 fastify.inject 测试）
+│   │   │   └── index.ts      # API 服务启动入口
 │   │   ├── Dockerfile        # 后端容器构建定义
 │   │   └── package.json
 │   ├── web/                  # React 19 + Vite 6 + Tailwind CSS 前端控制台
 │   │   ├── src/
 │   │   │   ├── components/   # 模块化 UI 与业务组件（WorkMode / Leaderboard / PrintModal）
 │   │   │   ├── hooks/        # 全局状态（useWorkMode / usePlatform / useSidebar）
-│   │   │   ├── pages/        # 78 个业务功能页面（agency / anchors / shop / bi / review）
+│   │   │   ├── pages/        # 93 个业务功能页面（含履约/售后/库存/达人/客服/NetROI/关键词等）
 │   │   │   └── data/         # 自适应多平台导航与业态分流 (platform-navigation.ts)
 │   │   ├── Dockerfile        # Nginx 静态生产部署定义
 │   │   └── package.json
-│   └── mcp-server/           # MCP (Model Context Protocol) 工具服务
+│   └── mcp-server/           # MCP (Model Context Protocol) 独立工具服务
 ├── database/                 # 数据库资产
 │   ├── 01_schema.sql         # 初始基线表结构
 │   ├── 02_seed.sql           # 初始系统字典
 │   ├── 03_demo_data.sql      # 演示数据
-│   ├── migrations/           # 100~113 增量版本迁移 SQL 链
+│   ├── migrations/           # 100~118 增量版本迁移 SQL 链 (19 个脚本)
 │   └── migrate.js            # 自动化增量版本迁移执行器
+├── docs/                     # 架构设计、数据字典与运维文档
 ├── docker-compose.yml        # Docker 一键编排文件
 ├── ecosystem.config.cjs      # PM2 生产环境进程托管配置
 ├── package.json              # Monorepo 根配置

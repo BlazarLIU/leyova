@@ -14,16 +14,23 @@ export const openapiSpec = {
     contact: { name: 'leyova Team' },
   },
   servers: [
-    { url: 'http://localhost:8787', description: 'Local dev' },
-    { url: 'http://localhost:5173', description: 'Via Vite proxy' },
+    { url: 'http://localhost:8788', description: 'Local API server' },
+    { url: 'http://localhost:5513', description: 'Via Vite dev/preview proxy' },
   ],
   paths: {
-    // ── Health ──
-    '/health': {
+    // ── Health & Readiness ──
+    '/api/v1/health': {
       get: {
         tags: ['Health'],
-        summary: '服务健康检查',
+        summary: '服务健康检查与 DB 连通性探针',
         responses: { '200': { description: '服务正常', content: { 'application/json': { schema: { $ref: '#/components/schemas/HealthResponse' } } } } },
+      },
+    },
+    '/api/v1/ready': {
+      get: {
+        tags: ['Health'],
+        summary: '服务就绪探针（验证数据库连接与核心表就绪状态）',
+        responses: { '200': { description: '服务就绪' }, '503': { description: '依赖未就绪' } },
       },
     },
 
@@ -140,15 +147,15 @@ export const openapiSpec = {
     '/api/v1/bi/roi': {
       get: {
         tags: ['BI'],
-        summary: 'ROI 分析数据',
-        responses: { '200': { description: 'ROI 数据' } },
+        summary: '投放 ROI 与渠道花费汇总（ad_buyer/ops_director/finance/admin 及获授权 brand_viewer）',
+        responses: { '200': { description: 'ROI 分析结果' }, '403': { description: '无权访问投放消耗数据' } },
       },
     },
     '/api/v1/bi/refund': {
       get: {
         tags: ['BI'],
-        summary: '退款分析数据',
-        responses: { '200': { description: '退款数据' } },
+        summary: '售后退款归因与平台退款指标统计',
+        responses: { '200': { description: '退款分析结果' } },
       },
     },
     '/api/v1/bi/anomalies': {
@@ -310,6 +317,62 @@ export const openapiSpec = {
     '/api/v1/livereg/submit': {
       post: { tags: ['Livereg'], summary: '提交直播登记', requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/LiveregSubmitRequest' } } } }, responses: { '200': { description: '提交结果' } } },
     },
+
+    // ── Platform Domain Analytics ──
+    '/api/v1/douyin/shop/{id}/metrics': {
+      get: { tags: ['Platforms'], summary: '抖音店铺核心指标（含跨平台店铺校验）', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '指标数据' }, '400': { description: '店铺所属平台不匹配' } } },
+    },
+
+    // ── Full Business Chains (Inventory / Fulfillment / After-Sales / KOL / CS / Net-ROI / Search / Growth / Compliance) ──
+    '/api/v1/inventory/stock': {
+      get: { tags: ['Inventory'], summary: '全渠道商品主数据与可用库存台账', responses: { '200': { description: '库存台账' } } },
+    },
+    '/api/v1/fulfillment/waybills': {
+      get: { tags: ['Fulfillment'], summary: '多平台 48h 履约 SLA 监控与赔付风控运单', responses: { '200': { description: '履约运单' } } },
+    },
+    '/api/v1/after-sales/tickets': {
+      get: { tags: ['AfterSales'], summary: '售后工单与退货原因归因闭环', responses: { '200': { description: '售后工单列表' } } },
+    },
+    '/api/v1/kol/cooperations': {
+      get: { tags: ['KOL'], summary: '外部达人档案与带货佣金台账', responses: { '200': { description: '达人合作台账' } } },
+    },
+    '/api/v1/cs/conversations': {
+      get: { tags: ['CS'], summary: '客服会话满意度与响应时长绩效', responses: { '200': { description: '客服绩效数据' } } },
+    },
+    '/api/v1/net-roi/attribution-windows': {
+      get: { tags: ['NetROI'], summary: '7大平台官方广告归因窗口与结算周期字典', responses: { '200': { description: '归因窗口字典' } } },
+    },
+    '/api/v1/net-roi/overview': {
+      get: { tags: ['NetROI'], summary: 'T+0 消耗归因 vs T+7 净成交 ROI 双时间线总览', responses: { '200': { description: '净成交 ROI 总览' }, '403': { description: '无投流查看权限' } } },
+    },
+    '/api/v1/search-keywords': {
+      get: { tags: ['Search'], summary: '全平台搜索词卡位排名与小红书笔记搜索词联合分析', responses: { '200': { description: '搜索词分析' } } },
+    },
+    '/api/v1/promotions/rules': {
+      get: { tags: ['Growth'], summary: '大促 5 层叠加优惠规则列表', responses: { '200': { description: '叠加规则列表' } } },
+      post: { tags: ['Growth'], summary: '创建大促叠加优惠规则', responses: { '200': { description: '规则创建成功' }, '403': { description: '仅允许运营/投放/财务创建' } } },
+    },
+    '/api/v1/promotions/simulate': {
+      post: { tags: ['Growth'], summary: '大促 5 层叠加折后价与净毛利试算（非财务角色自动脱敏成本）', responses: { '200': { description: '试算拆解结果' } } },
+    },
+    '/api/v1/members/overview': {
+      get: { tags: ['Growth'], summary: '会员资产分级与私域复购留存总览', responses: { '200': { description: '会员分析' } } },
+    },
+    '/api/v1/compliance/events': {
+      get: { tags: ['Compliance'], summary: '2026 平台合规与自动跟价风控事件台账', responses: { '200': { description: '合规事件列表' } } },
+    },
+    '/api/v1/content/schedules': {
+      get: { tags: ['Content'], summary: '内容选题策划至多平台发布追踪工作流', responses: { '200': { description: '排期列表' } } },
+      post: { tags: ['Content'], summary: '创建内容排期', responses: { '200': { description: '排期已创建' } } },
+    },
+
+    // ── Governance & MCP ──
+    '/api/v1/governance/batches': {
+      get: { tags: ['Governance'], summary: '数据治理接入批次与质量校验发布闸门清单', responses: { '200': { description: '批次列表' } } },
+    },
+    '/mcp': {
+      post: { tags: ['MCP'], summary: 'Streamable HTTP MCP Server 端点（Bearer + X-Leyova-User-Id + HMAC 鉴权）', responses: { '200': { description: 'JSON-RPC 响应' }, '401': { description: '未认证或缺少用户身份头' }, '403': { description: 'HMAC 签名无效' } } },
+    },
   },
 
   components: {
@@ -371,7 +434,10 @@ export const openapiSpec = {
           id: { type: 'integer' },
           username: { type: 'string' },
           real_name: { type: 'string' },
-          role: { type: 'string', enum: ['admin', 'manager', 'employee'] },
+          role: {
+            type: 'string',
+            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'finance', 'hrbp', 'controller', 'employee', 'brand_viewer'],
+          },
           status: { type: 'integer', enum: [0, 1] },
           last_login: { type: 'string', format: 'date-time' },
           created_at: { type: 'string', format: 'date-time' },
@@ -382,7 +448,10 @@ export const openapiSpec = {
         properties: {
           username: { type: 'string' },
           realName: { type: 'string' },
-          role: { type: 'string', enum: ['admin', 'manager', 'employee'] },
+          role: {
+            type: 'string',
+            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'finance', 'hrbp', 'controller', 'employee', 'brand_viewer'],
+          },
           status: { type: 'integer', enum: [0, 1] },
         },
       },
