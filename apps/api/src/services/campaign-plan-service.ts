@@ -85,7 +85,7 @@ export async function generateCampaignPlan(
   const template = tmplRes.rows[0] || {
     id: 1,
     template_code: 'TMPL_STANDARD_LIVE',
-    name: '标准直播运营爆破方案',
+    name: '标准全渠道运营方案',
     version: 1,
   }
 

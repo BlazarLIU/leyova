@@ -55,7 +55,7 @@ registerTool({
 
 registerTool({
   name: 'generate_campaign_plan',
-  description: '基于选品结果与店铺属性，一键生成全域 12 模块直播运营方案（包含场次定位、货盘分层、开播节奏、主播话术、投流策略与风控清单）。',
+  description: '基于选品结果与店铺属性，生成全域运营方案（包含场次定位、货盘分层、开播节奏、主播话术、投流策略与风控清单）。',
   inputSchema: z.object({
     shopId: z.number().int().positive().describe('目标店铺 ID'),
     categoryCode: z.string().optional().describe('主营类目编码，如 APPAREL'),

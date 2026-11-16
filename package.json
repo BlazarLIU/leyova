@@ -1,7 +1,7 @@
 {
   "name": "leyova",
   "version": "0.1.0",
-  "description": "leyova — AI 直播运营管理系统（后端 API + Web 控制台 + MCP Server）",
+  "description": "leyova — 全渠道电商数字化运营中枢（后端 API + Web 控制台 + MCP Server）",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",

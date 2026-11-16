@@ -26,7 +26,7 @@ export const LIVE_ONLY_ROUTES: Record<string, string> = {
   '/live/registration': '直播登记',
   '/live/data': '登记数据管理',
   '/overview/live-monitor': '实时监控',
-  '/overview/cockpit': '直播运营驾驶舱',
+  '/overview/cockpit': '运营驾驶舱',
   '/review/overview': '复盘总览',
   '/review/products': '商品分析',
   '/review/short-videos': '短视频引流',
