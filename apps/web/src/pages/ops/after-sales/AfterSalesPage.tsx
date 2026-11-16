@@ -4,6 +4,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { useShops } from '@/hooks/useShops'
+import { usePlatform } from '@/hooks/usePlatform'
 import { api } from '@/services/api'
 
 interface AfterSaleTicket {
@@ -68,6 +69,7 @@ const TICKET_STATUS_MAP: Record<string, { label: string; variant: 'warning' | 'i
 }
 
 export function AfterSalesPage() {
+  const { currentPlatform } = usePlatform()
   const [overview, setOverview] = useState<AfterSaleOverview | null>(null)
   const [tickets, setTickets] = useState<AfterSaleTicket[]>([])
   const [statusFilter, setStatusFilter] = useState('')
@@ -77,7 +79,7 @@ export function AfterSalesPage() {
 
   const { getShopsByPlatform, getDefaultShopId } = useShops()
   const [form, setForm] = useState({
-    platformCode: 'kuaishou',
+    platformCode: currentPlatform?.platform_code || 'douyin',
     shopId: '',
     sourceOrderId: '',
     refundType: 'only_refund',
@@ -86,6 +88,14 @@ export function AfterSalesPage() {
     reasonDetail: '',
     shopExperienceScore: '4.76',
   })
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      const p = currentPlatform.platform_code
+      setForm((prev) => ({ ...prev, platformCode: p, shopId: getDefaultShopId(p) }))
+    }
+  }, [currentPlatform?.platform_code, getDefaultShopId])
 
   useEffect(() => {
     const nextShopId = getDefaultShopId(form.platformCode, form.shopId)
@@ -343,12 +353,12 @@ export function AfterSalesPage() {
                   }}
                   className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
                 >
-                  <option value="kuaishou">快手 (24h/36h自审)</option>
-                  <option value="pdd">拼多多</option>
                   <option value="douyin">抖音</option>
-                  <option value="jd">京东 (24h兜底)</option>
+                  <option value="kuaishou">快手 (24h/36h自审)</option>
+                  <option value="wechat">视频号</option>
                   <option value="taobao">淘宝</option>
                   <option value="tmall">天猫</option>
+                  <option value="xiaohongshu">小红书</option>
                 </select>
                 <select
                   required

@@ -7,6 +7,7 @@ import { DataPage, type ColumnDef } from '@/components/common/DataPage'
 import { useTable, type TableFetchParams } from '@/components/common/useTable'
 import { api } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
+import { usePlatform } from '@/hooks/usePlatform'
 
 interface KeywordRow {
   id: number
@@ -58,6 +59,7 @@ const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'ops_st
 
 export function SearchKeywordsPage() {
   const { hasRole } = useAuth()
+  const { currentPlatform } = usePlatform()
   const canWrite = hasRole(WRITE_ROLES)
 
   const [shops, setShops] = useState<Array<{ id: number; platform_code: string; shop_name: string }>>([])
@@ -66,7 +68,7 @@ export function SearchKeywordsPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
-    platformCode: 'xiaohongshu',
+    platformCode: currentPlatform?.platform_code || 'xiaohongshu',
     shopId: '',
     bizDate: new Date().toISOString().slice(0, 10),
     keyword: '',
@@ -116,9 +118,17 @@ export function SearchKeywordsPage() {
   const table = useTable<KeywordRow, { platform: string }>({
     fetchData: fetchKeywords,
     initialPageSize: 20,
-    initialFilters: { platform: '' },
+    initialFilters: { platform: currentPlatform?.platform_code || '' },
     getRowId: (r) => r.id,
   })
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      table.setFilter('platform', currentPlatform.platform_code)
+      setForm((prev) => ({ ...prev, platformCode: currentPlatform.platform_code }))
+    }
+  }, [currentPlatform?.platform_code])
 
   const filteredShops = shops.filter((s) => s.platform_code === form.platformCode)
 
@@ -265,7 +275,7 @@ export function SearchKeywordsPage() {
                   }}
                   className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
                 >
-                  {['xiaohongshu', 'tmall', 'taobao', 'jd', 'pdd', 'douyin'].map((p) => (
+                  {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                     <option key={p} value={p}>
                       {p}
                     </option>
@@ -454,12 +464,12 @@ export function SearchKeywordsPage() {
             className="h-9 px-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-xs text-slate-200 focus:outline-none focus:border-orbit-primary"
           >
             <option value="">全部平台</option>
-            <option value="tmall">天猫</option>
-            <option value="taobao">淘宝</option>
-            <option value="jd">京东</option>
-            <option value="pdd">拼多多</option>
-            <option value="xiaohongshu">小红书</option>
             <option value="douyin">抖音</option>
+            <option value="kuaishou">快手</option>
+            <option value="wechat">视频号</option>
+            <option value="taobao">淘宝</option>
+            <option value="tmall">天猫</option>
+            <option value="xiaohongshu">小红书</option>
           </select>
         }
       />

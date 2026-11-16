@@ -17,6 +17,7 @@ import { api } from '../../services/api'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { usePlatform } from '../../hooks/usePlatform'
 
 interface RuleSnapshot {
   id: number
@@ -68,6 +69,7 @@ interface ActivityReminder {
 
 export function RuleRadarPage() {
   const navigate = useNavigate()
+  const { currentPlatform } = usePlatform()
   const [activeTab, setActiveTab] = useState<'changes' | 'rules' | 'reminders'>('changes')
 
   // Stats
@@ -81,7 +83,7 @@ export function RuleRadarPage() {
   const [reminders, setReminders] = useState<ActivityReminder[]>([])
 
   // Filters
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('all')
+  const [selectedPlatform, setSelectedPlatform] = useState<string>(() => currentPlatform?.platform_code || 'all')
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all')
   const [unreadOnly, setUnreadOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -94,7 +96,7 @@ export function RuleRadarPage() {
   // Manual entry modal
   const [showManualModal, setShowManualModal] = useState(false)
   const [manualForm, setManualForm] = useState({
-    platformCode: 'pdd',
+    platformCode: currentPlatform?.platform_code || 'douyin',
     externalId: '',
     title: '',
     category: '平台招商与营销',
@@ -105,6 +107,14 @@ export function RuleRadarPage() {
     operationalImpact: '',
   })
   const [manualSubmitting, setManualSubmitting] = useState(false)
+
+  // 监听顶栏平台切换，联动刷新
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      setSelectedPlatform(currentPlatform.platform_code)
+      setManualForm((prev) => ({ ...prev, platformCode: currentPlatform.platform_code }))
+    }
+  }, [currentPlatform?.platform_code])
 
   // Fetch changes
   const fetchChanges = async () => {
@@ -228,7 +238,7 @@ export function RuleRadarPage() {
 
       setShowManualModal(false)
       setManualForm({
-        platformCode: 'pdd',
+        platformCode: currentPlatform?.platform_code || 'douyin',
         externalId: '',
         title: '',
         category: '平台招商与营销',
@@ -249,11 +259,10 @@ export function RuleRadarPage() {
   const platforms = [
     { code: 'all', name: '全网平台' },
     { code: 'douyin', name: '抖音电商' },
+    { code: 'kuaishou', name: '快手电商' },
+    { code: 'wechat', name: '视频号小店' },
     { code: 'taobao', name: '淘宝集市' },
     { code: 'tmall', name: '天猫商城' },
-    { code: 'jd', name: '京东' },
-    { code: 'kuaishou', name: '快手电商' },
-    { code: 'pdd', name: '拼多多' },
     { code: 'xiaohongshu', name: '小红书' },
   ]
 

@@ -4,6 +4,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
+import { usePlatform } from '@/hooks/usePlatform'
 
 interface MembersOverviewResponse {
   summary: {
@@ -43,10 +44,18 @@ interface MembersOverviewResponse {
 }
 
 export function MembersPage() {
-  const [platform, setPlatform] = useState('')
+  const { currentPlatform } = usePlatform()
+  const [platform, setPlatform] = useState(() => currentPlatform?.platform_code || '')
   const [data, setData] = useState<MembersOverviewResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      setPlatform(currentPlatform.platform_code)
+    }
+  }, [currentPlatform?.platform_code])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -85,9 +94,10 @@ export function MembersPage() {
           >
             <option value="">全部平台</option>
             <option value="douyin">抖音</option>
-            <option value="tmall">天猫</option>
-            <option value="jd">京东</option>
             <option value="kuaishou">快手</option>
+            <option value="wechat">视频号</option>
+            <option value="taobao">淘宝</option>
+            <option value="tmall">天猫</option>
             <option value="xiaohongshu">小红书</option>
           </select>
           <Button size="sm" variant="secondary" onClick={load} disabled={loading}>

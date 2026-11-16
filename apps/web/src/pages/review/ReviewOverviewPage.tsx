@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { api } from '@/services/api'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { cn } from '@/utils/cn'
+import { usePlatform } from '@/hooks/usePlatform'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
@@ -201,13 +202,15 @@ function SessionInfoCard({ sessionInfo }: { sessionInfo: any }) {
   )
 }
 
-function FilterBar({ onSessionChange }: { onSessionChange?: (sessionId: number | null) => void }) {
+function FilterBar({ onSessionChange, platformCode }: { onSessionChange?: (sessionId: number | null) => void; platformCode?: string }) {
   const [sessions, setSessions] = useState<any[]>([])
   const [selectedSession, setSelectedSession] = useState<number | null>(null)
 
   useEffect(() => {
-    api.get<any[]>('/api/v1/review/sessions').then(setSessions).catch(() => {})
-  }, [])
+    const params: any = {}
+    if (platformCode && platformCode !== 'all') params.platform = platformCode
+    api.get<any[]>('/api/v1/review/sessions', params).then(setSessions).catch(() => {})
+  }, [platformCode])
 
   const handleSessionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value ? Number(e.target.value) : null
@@ -717,15 +720,23 @@ function AiSummaryCard() {
 
 // ─── Page Component ───
 export function ReviewOverviewPage() {
+  const { currentPlatform } = usePlatform()
   const [overviewData, setOverviewData] = useState<OverviewData | null>(null)
   const [funnelData, setFunnelData] = useState<FunnelStep[]>([])
   const [loading, setLoading] = useState(true)
   const [sessionInfo, setSessionInfo] = useState<any>(null)
 
   useEffect(() => {
+    setLoading(true)
+    const platformParam = currentPlatform?.platform_code
+    const params: Record<string, any> = {}
+    if (platformParam && platformParam !== 'all') {
+      params.platform = platformParam
+    }
+
     Promise.all([
-      api.get<any>('/api/v1/review/overview'),
-      api.get<any>('/api/v1/review/funnel'),
+      api.get<any>('/api/v1/review/overview', params),
+      api.get<any>('/api/v1/review/funnel', params),
     ])
       .then(([overview, funnel]) => {
         setOverviewData(overview)
@@ -738,7 +749,7 @@ export function ReviewOverviewPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [])
+  }, [currentPlatform?.platform_code])
 
   const handleSessionChange = (sessionId: number | null) => {
     if (!sessionId) {
@@ -759,7 +770,7 @@ export function ReviewOverviewPage() {
             <h1 className="text-2xl font-bold text-slate-100">复盘总览</h1>
             <p className="text-slate-500 text-sm mt-1">直播效果综合复盘</p>
           </div>
-          <FilterBar onSessionChange={handleSessionChange} />
+          <FilterBar onSessionChange={handleSessionChange} platformCode={currentPlatform?.platform_code} />
         </div>
       </motion.div>
 

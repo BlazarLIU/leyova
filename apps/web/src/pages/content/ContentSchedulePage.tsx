@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
+import { usePlatform } from '@/hooks/usePlatform'
 
 interface ScheduleRow {
   id: number
@@ -70,6 +71,7 @@ const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'opera
 
 export function ContentSchedulePage() {
   const { hasRole } = useAuth()
+  const { currentPlatform } = usePlatform()
   const canWrite = hasRole(WRITE_ROLES)
 
   const [schedules, setSchedules] = useState<ScheduleRow[]>([])
@@ -81,11 +83,22 @@ export function ContentSchedulePage() {
   const [form, setForm] = useState({
     title: '',
     topicCategory: '商品测评',
-    platformCode: 'xiaohongshu',
-    targetPlatforms: ['xiaohongshu', 'douyin'],
+    platformCode: currentPlatform?.platform_code || 'xiaohongshu',
+    targetPlatforms: [currentPlatform?.platform_code || 'xiaohongshu'],
     scriptSummary: '',
     plannedPublishAt: new Date(Date.now() + 86400_000).toISOString().slice(0, 16),
   })
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      setForm((prev) => ({
+        ...prev,
+        platformCode: currentPlatform.platform_code,
+        targetPlatforms: [currentPlatform.platform_code],
+      }))
+    }
+  }, [currentPlatform?.platform_code])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -208,7 +221,7 @@ export function ContentSchedulePage() {
                     onChange={(e) => setForm({ ...form, platformCode: e.target.value })}
                     className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
                   >
-                    {['xiaohongshu', 'douyin', 'kuaishou', 'tmall', 'taobao', 'jd'].map((p) => (
+                    {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                       <option key={p} value={p}>{p}</option>
                     ))}
                   </select>

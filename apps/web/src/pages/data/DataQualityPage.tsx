@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
 import { api } from '@/services/api'
+import { usePlatform } from '@/hooks/usePlatform'
 import { EntityAliasPanel } from '@/components/data/EntityAliasPanel'
 
 const fadeIn = {
@@ -83,6 +84,7 @@ export interface BatchQualityReport {
 }
 
 export function DataQualityPage() {
+  const { currentPlatform } = usePlatform()
   const [activeTab, setActiveTab] = useState<'batches' | 'workbench' | 'reconciliation' | 'platforms' | 'ingest' | 'aliases'>('batches')
   const [batches, setBatches] = useState<any[]>([])
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null)
@@ -113,9 +115,16 @@ export function DataQualityPage() {
 
   // 手工上传与 API 触发
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploadPlatform, setUploadPlatform] = useState('douyin')
+  const [uploadPlatform, setUploadPlatform] = useState(() => currentPlatform?.platform_code || 'douyin')
   const [uploadStatusMsg, setUploadStatusMsg] = useState<string | null>(null)
   const [syncingApi, setSyncingApi] = useState(false)
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      setUploadPlatform(currentPlatform.platform_code)
+    }
+  }, [currentPlatform?.platform_code])
 
   // 刷新批次列表
   const fetchBatches = async () => {

@@ -4,6 +4,7 @@ import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
+import { usePlatform } from '@/hooks/usePlatform'
 import { DataPage, type ColumnDef } from '@/components/common/DataPage'
 import { useTable } from '@/components/common/useTable'
 
@@ -66,6 +67,7 @@ interface CsSessionRow {
 }
 
 export function CustomerServicePage() {
+  const { currentPlatform } = usePlatform()
   const [activeTab, setActiveTab] = useState<'sessions' | 'agents'>('sessions')
   const [overview, setOverview] = useState<CsOverview | null>(null)
   const [agents, setAgents] = useState<CsAgent[]>([])
@@ -108,7 +110,7 @@ export function CustomerServicePage() {
 
   // Sessions Table
   const sessionsTable = useTable<CsSessionRow, { platformCode: string; shiftType: string }>({
-    initialFilters: { platformCode: '', shiftType: '' },
+    initialFilters: { platformCode: currentPlatform?.platform_code || '', shiftType: '' },
     initialPageSize: 20,
     fetchData: async ({ filters, search, page, pageSize }) => {
       const ss = await api.get<CsSessionRow[]>('/cs/sessions', {
@@ -132,6 +134,13 @@ export function CustomerServicePage() {
       }
     },
   })
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      sessionsTable.setFilter('platformCode', currentPlatform.platform_code)
+    }
+  }, [currentPlatform?.platform_code])
 
   // Agents Table
   const agentsTable = useTable<CsAgent, Record<string, any>>({
@@ -471,11 +480,12 @@ export function CustomerServicePage() {
                 className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
               >
                 <option value="">全部平台</option>
-                <option value="jd">京东 (咚咚)</option>
                 <option value="douyin">抖音</option>
                 <option value="kuaishou">快手</option>
-                <option value="pdd">拼多多</option>
+                <option value="wechat">视频号</option>
                 <option value="taobao">淘宝</option>
+                <option value="tmall">天猫</option>
+                <option value="xiaohongshu">小红书</option>
               </select>
               <select
                 value={sessionsTable.filters.shiftType}

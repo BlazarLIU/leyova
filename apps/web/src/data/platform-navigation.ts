@@ -29,7 +29,7 @@ import {
   CalendarDays, ClipboardPlus, Table, Clapperboard, LineChart, Mic, Zap,
   BarChart4, Database, Settings, Store, Package,
   Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Home, Shield,
-  UserCog, BookKey, Layers, Compass,
+  BookKey, Layers, Compass,
 } from 'lucide-react'
 import type { NavSection, NavSubItem } from '@/types'
 
@@ -442,7 +442,8 @@ function buildContentSections(): NavSection[] {
 // ═══════════════════════════════════════════════════════════════
 // 系统与设置（所有平台共享）
 // 2026-11-14 重构：原单一「系统管理」大容器拆为 5 个职责清晰的分组
-//   账号与权限 / 平台与场地 / 运营支撑 / 系统运维 / 合规风控
+//   系统运维（聚合账号权限、平台场地、配置、队列、模型、审计、告警）
+//   运营支撑 / 合规风控
 // ═══════════════════════════════════════════════════════════════
 
 function buildSystemSection(): NavSection {
@@ -450,24 +451,20 @@ function buildSystemSection(): NavSection {
     title: '系统与设置',
     items: [
       {
-        // 老大明确要求：账号管理单独出来
-        label: '账号与权限',
-        icon: UserCog,
-        module: 'system_users',
+        label: '系统运维',
+        icon: Settings,
+        module: 'system_config',
         children: [
           { label: '账号管理', href: '/system/users', module: 'system_users' },
           { label: '角色与模块权限', href: '/system/roles', module: 'system_users' },
           { label: '运营人员管理', href: '/system/personnel', module: 'system_personnel_ops' },
-        ],
-      },
-      {
-        // 直播间不够全面 → 扩为「平台 / 直播间 / 场地资源」
-        label: '平台与场地',
-        icon: Radio,
-        module: 'system_rooms',
-        children: [
           { label: '平台与渠道管理', href: '/system/platforms', module: 'system_users' },
           { label: '直播间管理', href: '/system/rooms', module: 'system_rooms' },
+          { label: '系统配置', href: '/system/config', module: 'system_config' },
+          { label: '异步任务与运维队列', href: '/system/jobs', module: 'system_config' },
+          { label: '模型与知识库', href: '/content/center-config', module: 'system_ai' },
+          { label: '操作审计日志', href: '/system/audit-logs', module: 'audit_logs' },
+          { label: '异常中心', href: '/system/alerts', module: 'system_alerts' },
         ],
       },
       {
@@ -479,18 +476,6 @@ function buildSystemSection(): NavSection {
           { label: '大促活动管理', href: '/system/promotions', module: 'system_promotions' },
           { label: '竞品观察', href: '/system/competitors', module: 'system_competitors' },
           { label: '改进任务', href: '/system/tasks', module: 'system_tasks' },
-        ],
-      },
-      {
-        label: '系统运维',
-        icon: Settings,
-        module: 'system_config',
-        children: [
-          { label: '系统配置', href: '/system/config', module: 'system_config' },
-          { label: '异步任务与运维队列', href: '/system/jobs', module: 'system_config' },
-          { label: '模型与知识库', href: '/content/center-config', module: 'system_ai' },
-          { label: '操作审计日志', href: '/system/audit-logs', module: 'audit_logs' },
-          { label: '异常中心', href: '/system/alerts', module: 'system_alerts' },
         ],
       },
       {

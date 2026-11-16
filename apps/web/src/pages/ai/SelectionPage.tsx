@@ -15,6 +15,7 @@ import {
   Percent,
 } from 'lucide-react'
 import { api } from '../../services/api'
+import { usePlatform } from '@/hooks/usePlatform'
 
 interface Category {
   code: string
@@ -64,26 +65,33 @@ interface RecommendationResult {
 
 export const SelectionPage: React.FC = () => {
   const navigate = useNavigate()
+  const { currentPlatform } = usePlatform()
   const [searchParams] = useSearchParams()
   const initialCategory = searchParams.get('category') || 'APPAREL'
 
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory)
   const [selectedCity, setSelectedCity] = useState<string>('杭州')
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('')
+  const [selectedPlatform, setSelectedPlatform] = useState<string>(() => currentPlatform?.platform_code || '')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<RecommendationResult | null>(null)
   const [adopted, setAdopted] = useState(false)
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      setSelectedPlatform(currentPlatform.platform_code)
+    }
+  }, [currentPlatform?.platform_code])
 
   const presetCities = ['杭州', '上海', '北京', '广州', '深圳', '成都', '武汉', '西安', '全国']
   const platforms = [
     { code: '', name: '全部全网平台' },
     { code: 'douyin', name: '抖音电商' },
+    { code: 'kuaishou', name: '快手电商' },
+    { code: 'wechat', name: '视频号小店' },
+    { code: 'taobao', name: '淘宝集市' },
     { code: 'tmall', name: '天猫旗舰' },
-    { code: 'taobao', name: '淘宝企业' },
-    { code: 'jd', name: '京东自营/POP' },
-    { code: 'pdd', name: '拼多多' },
-    { code: 'kuaishou', name: '快手小店' },
     { code: 'xiaohongshu', name: '小红书' },
   ]
 

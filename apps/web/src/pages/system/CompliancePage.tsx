@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
+import { usePlatform } from '@/hooks/usePlatform'
 
 interface ComplianceResponse {
   summary: {
@@ -39,15 +40,16 @@ const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator']
 
 export function CompliancePage() {
   const { hasRole } = useAuth()
+  const { currentPlatform } = usePlatform()
   const canWrite = hasRole(WRITE_ROLES)
 
   const [data, setData] = useState<ComplianceResponse | null>(null)
-  const [platform, setPlatform] = useState('')
+  const [platform, setPlatform] = useState(() => currentPlatform?.platform_code || '')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({
-    platformCode: 'pdd',
+    platformCode: currentPlatform?.platform_code || 'douyin',
     regulationCode: 'AUTO-PRICE-FOLLOW-2026',
     eventType: 'auto_price_follow_risk',
     severity: 'warning',
@@ -57,6 +59,14 @@ export function CompliancePage() {
     entityConsistencyOk: true,
     summary: '',
   })
+
+  // 监听顶栏全局平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      setPlatform(currentPlatform.platform_code)
+      setForm((prev) => ({ ...prev, platformCode: currentPlatform.platform_code }))
+    }
+  }, [currentPlatform?.platform_code])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -120,11 +130,10 @@ export function CompliancePage() {
           >
             <option value="">全部平台</option>
             <option value="douyin">抖音</option>
+            <option value="kuaishou">快手</option>
+            <option value="wechat">视频号</option>
             <option value="taobao">淘宝</option>
             <option value="tmall">天猫</option>
-            <option value="jd">京东</option>
-            <option value="pdd">拼多多</option>
-            <option value="kuaishou">快手</option>
             <option value="xiaohongshu">小红书</option>
           </select>
           <Button size="sm" variant="secondary" onClick={load} disabled={loading}>
@@ -155,7 +164,7 @@ export function CompliancePage() {
               <div>
                 <label className="text-slate-400 block mb-1">平台</label>
                 <select value={form.platformCode} onChange={(e) => setForm({ ...form, platformCode: e.target.value })} className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200">
-                  {['pdd', 'douyin', 'tmall', 'taobao', 'jd', 'kuaishou', 'xiaohongshu'].map((p) => (
+                  {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>

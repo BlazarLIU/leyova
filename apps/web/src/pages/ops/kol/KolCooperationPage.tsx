@@ -4,6 +4,7 @@ import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { useShops } from '@/hooks/useShops'
+import { usePlatform } from '@/hooks/usePlatform'
 import { api } from '@/services/api'
 
 interface KolProfile {
@@ -69,6 +70,7 @@ const SETTLE_BADGE: Record<string, { label: string; variant: 'warning' | 'info' 
 }
 
 export function KolCooperationPage() {
+  const { currentPlatform } = usePlatform()
   const [overview, setOverview] = useState<KolOverview | null>(null)
   const [profiles, setProfiles] = useState<KolProfile[]>([])
   const [coops, setCoops] = useState<KolCoop[]>([])
@@ -79,7 +81,7 @@ export function KolCooperationPage() {
 
   const [kolForm, setKolForm] = useState({
     kolName: '',
-    platformCode: 'xiaohongshu',
+    platformCode: currentPlatform?.platform_code || 'xiaohongshu',
     platformUid: '',
     tier: 'waist',
     fansCount: '120000',
@@ -90,7 +92,7 @@ export function KolCooperationPage() {
   const { getShopsByPlatform, getDefaultShopId } = useShops()
   const [coopForm, setCoopForm] = useState({
     kolId: '',
-    platformCode: 'douyin',
+    platformCode: currentPlatform?.platform_code || 'douyin',
     shopId: '',
     coopType: 'live_slot',
     campaignName: '',
@@ -99,6 +101,15 @@ export function KolCooperationPage() {
     gmv: '50000',
     refundAmount: '2500',
   })
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      const p = currentPlatform.platform_code
+      setKolForm((prev) => ({ ...prev, platformCode: p }))
+      setCoopForm((prev) => ({ ...prev, platformCode: p, shopId: getDefaultShopId(p) }))
+    }
+  }, [currentPlatform?.platform_code, getDefaultShopId])
 
   useEffect(() => {
     const nextShopId = getDefaultShopId(coopForm.platformCode, coopForm.shopId)
@@ -364,9 +375,12 @@ export function KolCooperationPage() {
               <input required placeholder="达人昵称" value={kolForm.kolName} onChange={(e) => setKolForm({ ...kolForm, kolName: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
               <div className="grid grid-cols-2 gap-3">
                 <select value={kolForm.platformCode} onChange={(e) => setKolForm({ ...kolForm, platformCode: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
-                  <option value="xiaohongshu">小红书</option>
                   <option value="douyin">抖音</option>
                   <option value="kuaishou">快手</option>
+                  <option value="wechat">视频号</option>
+                  <option value="taobao">淘宝</option>
+                  <option value="tmall">天猫</option>
+                  <option value="xiaohongshu">小红书</option>
                 </select>
                 <select value={kolForm.tier} onChange={(e) => setKolForm({ ...kolForm, tier: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
                   <option value="head">头部达人</option>

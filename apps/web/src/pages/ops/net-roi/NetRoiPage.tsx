@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
+import { usePlatform } from '@/hooks/usePlatform'
 
 interface NetRoiOverview {
   range: { from: string; to: string }
@@ -89,9 +90,10 @@ const statusVariant: Record<string, 'success' | 'warning' | 'info' | 'danger'> =
 
 export function NetRoiPage() {
   const { hasRole } = useAuth()
+  const { currentPlatform } = usePlatform()
   const canWrite = hasRole(WRITE_ROLES)
 
-  const [platform, setPlatform] = useState('')
+  const [platform, setPlatform] = useState(() => currentPlatform?.platform_code || '')
   const [overview, setOverview] = useState<NetRoiOverview | null>(null)
   const [tools, setTools] = useState<AttributionTool[]>([])
   const [shops, setShops] = useState<ShopOption[]>([])
@@ -100,7 +102,7 @@ export function NetRoiPage() {
   const [showAddSpend, setShowAddSpend] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
-    platformCode: 'douyin',
+    platformCode: currentPlatform?.platform_code || 'douyin',
     shopId: '',
     bizDate: new Date().toISOString().slice(0, 10),
     adToolCode: 'qianchuan',
@@ -112,6 +114,14 @@ export function NetRoiPage() {
     clicks: '',
     attributedOrders: '',
   })
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      setPlatform(currentPlatform.platform_code)
+      setForm((prev) => ({ ...prev, platformCode: currentPlatform.platform_code }))
+    }
+  }, [currentPlatform?.platform_code])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -185,11 +195,10 @@ export function NetRoiPage() {
           >
             <option value="">全部平台</option>
             <option value="douyin">抖音</option>
+            <option value="kuaishou">快手</option>
+            <option value="wechat">视频号</option>
             <option value="taobao">淘宝</option>
             <option value="tmall">天猫</option>
-            <option value="jd">京东</option>
-            <option value="pdd">拼多多</option>
-            <option value="kuaishou">快手</option>
             <option value="xiaohongshu">小红书</option>
           </select>
           <Button size="sm" variant="secondary" onClick={load} disabled={loading}>
@@ -232,7 +241,7 @@ export function NetRoiPage() {
                   }}
                   className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
                 >
-                  {['douyin', 'taobao', 'tmall', 'jd', 'pdd', 'kuaishou', 'xiaohongshu'].map((p) => (
+                  {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>

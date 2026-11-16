@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/Badge'
 import { api } from '@/services/api'
 import { DataPage, type ColumnDef } from '@/components/common/DataPage'
 import { useTable } from '@/components/common/useTable'
+import { usePlatform } from '@/hooks/usePlatform'
 import type { LiveRoom } from '@/types'
 
 interface Props {
@@ -24,11 +25,35 @@ interface Props {
   onRoomsChange: (rooms: LiveRoom[]) => void
 }
 
+const PLATFORM_CODE_TO_NAME: Record<string, string> = {
+  douyin: '抖音',
+  kuaishou: '快手',
+  wechat: '视频号',
+  taobao: '淘宝',
+  tmall: '天猫',
+  xiaohongshu: '小红书',
+}
+
 export function RoomsSection({ rooms, onRoomsChange }: Props) {
+  const { currentPlatform } = usePlatform()
   const [showModal, setShowModal] = useState(false)
   const [editingRoom, setEditingRoom] = useState<LiveRoom | null>(null)
-  const [form, setForm] = useState({ name: '', platform: '抖音', status: 'active' })
+  const [form, setForm] = useState({
+    name: '',
+    platform: (currentPlatform?.platform_code && PLATFORM_CODE_TO_NAME[currentPlatform.platform_code]) || '抖音',
+    status: 'active',
+  })
   const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      const platName = PLATFORM_CODE_TO_NAME[currentPlatform.platform_code]
+      if (platName) {
+        setForm((prev) => ({ ...prev, platform: platName }))
+      }
+    }
+  }, [currentPlatform?.platform_code])
 
   const table = useTable<LiveRoom, { platform: string; status: string }>({
     initialFilters: { platform: 'all', status: 'all' },
@@ -367,9 +392,10 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
                     className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200 outline-none focus:border-primary"
                   >
                     <option value="抖音">抖音</option>
-                    <option value="视频号">视频号</option>
                     <option value="快手">快手</option>
+                    <option value="视频号">视频号</option>
                     <option value="淘宝">淘宝</option>
+                    <option value="天猫">天猫</option>
                     <option value="小红书">小红书</option>
                   </select>
                 </div>

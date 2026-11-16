@@ -4,6 +4,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { useShops } from '@/hooks/useShops'
+import { usePlatform } from '@/hooks/usePlatform'
 import { api } from '@/services/api'
 import { DataPage, type ColumnDef } from '@/components/common/DataPage'
 import { useTable } from '@/components/common/useTable'
@@ -76,6 +77,7 @@ const STATUS_BADGE: Record<string, { label: string; variant: 'warning' | 'danger
 }
 
 export function FulfillmentSlaPage() {
+  const { currentPlatform } = usePlatform()
   const [overview, setOverview] = useState<FulfillmentOverview | null>(null)
   const [rules, setRules] = useState<SlaRule[]>([])
   const [showModal, setShowModal] = useState(false)
@@ -83,7 +85,7 @@ export function FulfillmentSlaPage() {
 
   const { getShopsByPlatform, getDefaultShopId } = useShops()
   const [form, setForm] = useState({
-    platformCode: 'pdd',
+    platformCode: currentPlatform?.platform_code || 'douyin',
     shopId: '',
     orderNo: '',
     orderAmount: '199',
@@ -91,6 +93,15 @@ export function FulfillmentSlaPage() {
     waybillNo: '',
     isCustomPresale: false,
   })
+
+  // 监听顶栏平台切换
+  useEffect(() => {
+    if (currentPlatform?.platform_code) {
+      const p = currentPlatform.platform_code
+      table.setFilter('platformCode', p)
+      setForm((prev) => ({ ...prev, platformCode: p, shopId: getDefaultShopId(p) }))
+    }
+  }, [currentPlatform?.platform_code, getDefaultShopId])
 
   useEffect(() => {
     const nextShopId = getDefaultShopId(form.platformCode, form.shopId)
@@ -117,7 +128,7 @@ export function FulfillmentSlaPage() {
   }, [loadAuxData])
 
   const table = useTable<WaybillRow, { platformCode: string; riskOnly: boolean }>({
-    initialFilters: { platformCode: '', riskOnly: false },
+    initialFilters: { platformCode: currentPlatform?.platform_code || '', riskOnly: false },
     initialPageSize: 20,
     fetchData: async ({ filters, search, page, pageSize }) => {
       const wb = await api.get<WaybillRow[]>('/fulfillment/waybills', {
@@ -422,11 +433,12 @@ export function FulfillmentSlaPage() {
               className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
             >
               <option value="">全部平台</option>
-              <option value="pdd">拼多多</option>
-              <option value="kuaishou">快手</option>
               <option value="douyin">抖音</option>
-              <option value="jd">京东</option>
+              <option value="kuaishou">快手</option>
+              <option value="wechat">视频号</option>
               <option value="taobao">淘宝</option>
+              <option value="tmall">天猫</option>
+              <option value="xiaohongshu">小红书</option>
             </select>
             <Button
               size="sm"
@@ -488,12 +500,12 @@ export function FulfillmentSlaPage() {
                   }}
                   className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
                 >
-                  <option value="pdd">拼多多</option>
-                  <option value="kuaishou">快手</option>
                   <option value="douyin">抖音</option>
-                  <option value="jd">京东</option>
+                  <option value="kuaishou">快手</option>
+                  <option value="wechat">视频号</option>
                   <option value="taobao">淘宝</option>
                   <option value="tmall">天猫</option>
+                  <option value="xiaohongshu">小红书</option>
                 </select>
                 <select
                   required
