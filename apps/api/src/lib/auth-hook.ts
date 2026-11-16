@@ -18,11 +18,14 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { env } from '../config/env.js'
 import { getPool } from './db.js'
 import { findSessionUser, type AuthUser } from './guard.js'
+import { checkModuleAccess } from './module-guard.js'
+import { resolveAccess } from './access-resolver.js'
 
 /** 无需登录即可访问的路径前缀 */
 const PUBLIC_PREFIXES = [
   '/api/v1/health',
   '/api/v1/ready',
+  '/api/v1/metrics',
   '/api/v1/auth/login',
   '/api/v1/auth/me',       // 未登录时返回 401 由 handler 自己处理
   '/docs',
@@ -73,7 +76,37 @@ export function registerAuthHook(app: FastifyInstance): void {
       return reply
     }
 
-    // 3) 全局 fail-closed 写保护：brand_viewer 为品牌方只读视角，禁止非账号安全类的写操作
+    // 3) 模块权限守卫（P0-D-1）
+    //    审计发现：canAccessModule() 此前全仓 0 调用，后端完全没有模块校验。
+    //    这里按 URL 前缀 → 模块的映射统一校验，fail-closed。
+    if (request.user) {
+      try {
+        const access = await resolveAccess({
+          userId: request.user.id,
+          role: request.user.role,
+          userType: (request.user as any).userType,
+          tenantId: (request.user as any).tenantId,
+        })
+        const guard = checkModuleAccess(request, access)
+        if (!guard.ok) {
+          reply.code(guard.status || 403).send({
+            success: false,
+            message: guard.reason || '无权访问该模块',
+            module: guard.module,
+          })
+          return reply
+        }
+      } catch (err) {
+        // 解析失败按 fail-closed 处理，但仅对非超管
+        request.log.warn({ err }, '[auth-hook] module guard failed')
+        if (request.user.role !== 'super_admin') {
+          reply.code(403).send({ success: false, message: '权限校验失败' })
+          return reply
+        }
+      }
+    }
+
+    // 4) 全局 fail-closed 写保护：brand_viewer 为品牌方只读视角，禁止非账号安全类的写操作
     const WRITE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
     if (request.user?.userType === 'brand_viewer' && WRITE_METHODS.includes(request.method)) {
       const cleanPath = request.url.split('?')[0]

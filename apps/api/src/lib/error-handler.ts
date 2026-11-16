@@ -2,13 +2,14 @@ import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify'
 import { ZodError } from 'zod'
 
 export function errorHandler(error: FastifyError | Error, request: FastifyRequest, reply: FastifyReply) {
-  // Zod validation errors
+  // Zod validation errors (zod v4 uses .issues)
   if (error instanceof ZodError) {
+    const issues = (error as any).issues ?? []
     return reply.code(400).send({
       success: false,
       message: '请求参数校验失败',
-      errors: error.errors.map(e => ({
-        path: e.path.join('.'),
+      errors: issues.map((e: any) => ({
+        path: e.path?.join('.') ?? '',
         message: e.message,
       })),
     })

@@ -1,8 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
-import { requireAuth } from '../lib/guard.js'
+import { canAccessAdSpend, requireAuth } from '../lib/guard.js'
 import { computeRefundRatePct } from '../services/metrics-caliber.js'
+import { queryMetric, comparePeriods } from '../query/primitives.js'
 
 const REASON_LABELS: Record<string, { label: string; barColor: string; dotColor: string }> = {
   size_mismatch: { label: '尺码不合适', barColor: 'from-violet-500 to-violet-400', dotColor: 'bg-violet-400' },
@@ -25,11 +26,11 @@ const TICKET_STATUS_LABELS: Record<string, string> = {
 function normalizePlatformSql(expr: string): string {
   return `CASE LOWER(COALESCE(${expr}, 'douyin'))
     WHEN '抖音' THEN 'douyin'
+    WHEN '快手' THEN 'kuaishou'
+    WHEN '视频号' THEN 'wechat'
+    WHEN '微信' THEN 'wechat'
     WHEN '淘宝' THEN 'taobao'
     WHEN '天猫' THEN 'tmall'
-    WHEN '京东' THEN 'jd'
-    WHEN '拼多多' THEN 'pdd'
-    WHEN '快手' THEN 'kuaishou'
     WHEN '小红书' THEN 'xiaohongshu'
     ELSE LOWER(COALESCE(${expr}, 'douyin'))
   END`
@@ -130,7 +131,17 @@ export async function biRoutes(app: FastifyInstance) {
         }))
 
         const platRows = await client.query(
-          `SELECT COALESCE(r.platform, '抖音') AS platform,
+          `SELECT (
+                    CASE LOWER(COALESCE(r.platform, r.platform_code, 'douyin'))
+                      WHEN 'douyin'      THEN '抖音'
+                      WHEN 'kuaishou'    THEN '快手'
+                      WHEN 'wechat'      THEN '视频号'
+                      WHEN 'taobao'      THEN '淘宝'
+                      WHEN 'tmall'       THEN '天猫'
+                      WHEN 'xiaohongshu' THEN '小红书'
+                      ELSE COALESCE(r.platform, '抖音')
+                    END
+                  ) AS platform,
                   COALESCE(SUM(lb.payment_amount), 0) AS gmv,
                   COALESCE(SUM(om.deal_users), 0)::int AS orders,
                   COALESCE(SUM(om.refund_amount), 0) AS refund_amount
@@ -139,7 +150,7 @@ export async function biRoutes(app: FastifyInstance) {
              ON om.room_id = lb.room_id AND om.business_date = lb.business_date
            LEFT JOIN live_rooms r ON r.id = lb.room_id
            ${trendWhere}
-           GROUP BY r.platform`,
+           GROUP BY 1`,
           trendParams
         )
         const platforms = platRows.rows.map((r: any) => ({
@@ -375,6 +386,120 @@ export async function biRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'bi/anomalies query failed')
       return sendError(reply, 500, '查询异常检测失败')
+    }
+  })
+
+  // ── GET /api/v1/bi/metric-query ── P1/P3 统一指标查询端点 (代理至 queryMetric 取数原语)
+  app.get('/api/v1/bi/metric-query', { preHandler: [requireAuth] }, async (request, reply) => {
+    try {
+      const q = request.query as Record<string, any>
+      const metricsStr = q.metrics || q.metric || ''
+      if (!metricsStr) {
+        return sendError(reply, 400, '缺少必选参数: metrics')
+      }
+      const metrics = String(metricsStr).split(',').map((s) => s.trim()).filter(Boolean)
+      const dimensions = q.dimensions ? String(q.dimensions).split(',').map((s) => s.trim()).filter(Boolean) : undefined
+
+      const user = (request as any).user
+      const allowAd = canAccessAdSpend(user)
+
+      const platforms = q.platforms
+        ? String(q.platforms).split(',').map((s) => s.trim().toLowerCase())
+        : (q.platform && q.platform !== 'all' ? [String(q.platform).trim().toLowerCase()] : undefined)
+
+      const shopIds = q.shopIds
+        ? String(q.shopIds).split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n))
+        : (q.shopId ? [Number(q.shopId)] : undefined)
+
+      const startDate = q.startDate || q.start_date || q.from
+      const endDate = q.endDate || q.end_date || q.to
+      const limit = q.limit ? Number(q.limit) : undefined
+      const offset = q.offset ? Number(q.offset) : undefined
+      const granularity = q.granularity
+
+      const result = await withRlsContext(request, async (client, rlsScope) => {
+        const scope = {
+          allowedPlatforms: rlsScope.allowedPlatforms ? Array.from(rlsScope.allowedPlatforms) : null,
+        }
+        return queryMetric(
+          client,
+          {
+            metrics,
+            dimensions,
+            startDate,
+            endDate,
+            platforms,
+            shopIds,
+            granularity,
+            limit,
+            offset,
+          },
+          scope,
+          { role: user?.role, userType: user?.userType, allowAdSpend: allowAd },
+        )
+      })
+
+      return sendOk(reply, result)
+    } catch (err: any) {
+      request.log.warn({ err }, 'bi/metric-query failed')
+      return sendError(reply, 400, err?.message || '指标查询失败')
+    }
+  })
+
+  // ── GET /api/v1/bi/compare ── P1/P3 周期对比与环比分析端点 (代理至 comparePeriods 原语)
+  app.get('/api/v1/bi/compare', { preHandler: [requireAuth] }, async (request, reply) => {
+    try {
+      const q = request.query as Record<string, any>
+      const metricsStr = q.metrics || q.metric || ''
+      if (!metricsStr) {
+        return sendError(reply, 400, '缺少必选参数: metrics')
+      }
+      const metrics = String(metricsStr).split(',').map((s) => s.trim()).filter(Boolean)
+
+      const currentStartDate = q.currentStartDate || q.current_start_date || q.from
+      const currentEndDate = q.currentEndDate || q.current_end_date || q.to
+      const previousStartDate = q.previousStartDate || q.previous_start_date
+      const previousEndDate = q.previousEndDate || q.previous_end_date
+
+      if (!currentStartDate || !currentEndDate || !previousStartDate || !previousEndDate) {
+        return sendError(reply, 400, '缺少必需对比周期日期 (currentStartDate, currentEndDate, previousStartDate, previousEndDate)')
+      }
+
+      const user = (request as any).user
+      const allowAd = canAccessAdSpend(user)
+
+      const platforms = q.platforms
+        ? String(q.platforms).split(',').map((s) => s.trim().toLowerCase())
+        : (q.platform && q.platform !== 'all' ? [String(q.platform).trim().toLowerCase()] : undefined)
+
+      const shopIds = q.shopIds
+        ? String(q.shopIds).split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n))
+        : (q.shopId ? [Number(q.shopId)] : undefined)
+
+      const result = await withRlsContext(request, async (client, rlsScope) => {
+        const scope = {
+          allowedPlatforms: rlsScope.allowedPlatforms ? Array.from(rlsScope.allowedPlatforms) : null,
+        }
+        return comparePeriods(
+          client,
+          {
+            metrics,
+            currentStartDate,
+            currentEndDate,
+            previousStartDate,
+            previousEndDate,
+            platforms,
+            shopIds,
+          },
+          scope,
+          { role: user?.role, userType: user?.userType, allowAdSpend: allowAd },
+        )
+      })
+
+      return sendOk(reply, result)
+    } catch (err: any) {
+      request.log.warn({ err }, 'bi/compare failed')
+      return sendError(reply, 400, err?.message || '周期对比查询失败')
     }
   })
 }

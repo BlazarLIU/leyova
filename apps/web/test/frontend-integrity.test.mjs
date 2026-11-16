@@ -181,3 +181,4 @@ describe('@leyova/web 前端架构、导航路由与权限契约测试', () => {
     assert.match(apiSource, /credentials:\s*'include'/)
   })
 })
+

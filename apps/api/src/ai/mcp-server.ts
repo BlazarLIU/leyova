@@ -1,20 +1,14 @@
 /**
- * leyova MCP Server — Streamable HTTP MCP Server（供 DeerFlow 调用）
+ * leyova MCP Server — 标准 Streamable HTTP Model Context Protocol (MCP) 服务端
  *
- * 将 leyova 的业务工具（tool-registry 已注册）与共享上下文工具
- * （search_memory / write_memory / search_knowledge）暴露为 MCP 工具。
+ * 将 leyova 的经营分析与业务工具（tool-registry 已注册）与上下文工具暴露为标准 MCP 协议。
  *
- * - 业务工具：复用 executeTool()，风险分级 / ai_tool_logs 审计 / 写审批流不变
- * - 共享上下文工具：仅在本 MCP Server 注册，不进入主 registry
- *   （保证 OpenClaw 兜底路径不变，仍由 ai-gateway 请求前检索注入）
- * - 身份映射：Bearer token 鉴权（LEYOVA_MCP_TOKEN），按 X-Leyova-User-Id 头
- *   映射 leyova 用户（DeerFlow 不转发每请求用户身份，headers 为静态配置），
- *   缺省走 LEYOVA_MCP_DEFAULT_USER_ID
+ * - 业务工具：复用 executeTool()，风险分级 / ai_tool_logs 审计 / 写审批流严格保全
+ * - 共享上下文工具：标准化注册，供任何兼容 MCP 的外部智能体客户端调用
+ * - 身份映射：Bearer token 鉴权（LEYOVA_MCP_TOKEN）+ X-Leyova-User-Id 头映射
  *
  * 路由：POST /mcp（JSON-RPC）、GET /mcp（SSE standalone）
- * 模式：无状态（每个 HTTP 请求创建独立 McpServer+transport，DeerFlow
- *   每次工具发现/会话都会重新 initialize；避免单例 Protocol 仅可
- *   初始化一次的 400/500 问题）
+ * 模式：无状态（每个 HTTP 请求创建独立 McpServer+transport，避免单例 Protocol 初始化冲突）
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks'
@@ -25,7 +19,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { env } from '../config/env.js'
 import { getPool } from '../lib/db.js'
 import { listTools, executeTool, type ToolContext } from './tool-registry.js'
-import type { AiScopeContext } from '../lib/ai-gateway.js'
+import type { AiScopeContext } from '../lib/ai-types.js'
 import { searchMemory, writeMemory } from '../lib/openviking-client.js'
 import { searchKnowledge } from '../lib/anythingllm-client.js'
 import { sendError } from '../lib/http.js'

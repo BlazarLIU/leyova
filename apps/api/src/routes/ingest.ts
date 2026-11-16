@@ -25,6 +25,7 @@ import {
   suggestMapping,
   summarizeTemplate,
 } from '../ingest/platform-templates.js'
+import { UnifiedDataPipelineService } from '../services/data-pipeline.js'
 
 /**
  * 读取上传的文件为行对象数组。
@@ -167,7 +168,7 @@ function parseFileToRows(
     return { headers, rows }
   }
 
-  const wb = XLSX.read(buffer, { type: 'buffer', raw: false })
+  const wb = XLSX.read(buffer, { type: 'buffer', raw: false, dense: true })
   const sheet = wb.Sheets[wb.SheetNames[0]]
   const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' })
   const headers = rows.length > 0 ? Object.keys(rows[0]) : []
@@ -193,7 +194,7 @@ export async function ingestRoutes(app: FastifyInstance) {
       dataType?: SyncDataType
       since?: string
     }
-  }>('/api/v1/ingest/sync', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/ingest/sync', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const { platformCode, shopId, dataType = 'trade', since } = request.body || {}
       if (!platformCode) return sendError(reply, 400, '缺少 platformCode')
@@ -334,7 +335,7 @@ export async function ingestRoutes(app: FastifyInstance) {
       headers: string[]
       columnMappings: Record<string, string | null>
     }
-  }>('/api/v1/ingest/mappings', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/ingest/mappings', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const { templateCode, platformCode, headers, columnMappings } = request.body || {}
       if (!platformCode || !Array.isArray(headers) || !columnMappings) {
@@ -362,7 +363,7 @@ export async function ingestRoutes(app: FastifyInstance) {
   // ── POST /api/v1/ingest/fingerprint ── 计算表头指纹并查询已有映射
   app.post<{
     Body: { platformCode: string; headers: string[] }
-  }>('/api/v1/ingest/fingerprint', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/ingest/fingerprint', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const { platformCode, headers } = request.body || {}
       if (!platformCode || !Array.isArray(headers)) return sendError(reply, 400, '缺少必要参数')
@@ -384,7 +385,7 @@ export async function ingestRoutes(app: FastifyInstance) {
   // ═══════════════════════════════════════════════════════════════
 
   // ── POST /api/v1/ingest/preview ── 上传文件 → 解析 + 映射建议 + 清洗预演 Diff
-  app.post('/api/v1/ingest/preview', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/ingest/preview', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const parts = request.parts()
       let fileBuffer: Buffer | null = null
@@ -417,6 +418,7 @@ export async function ingestRoutes(app: FastifyInstance) {
       }
 
       if (!fileBuffer) return sendError(reply, 400, '未选择文件')
+      if (fileBuffer.length > 20 * 1024 * 1024) return sendError(reply, 413, '文件大小超过限制 (最大 20MB)')
       if (!platformCode) return sendError(reply, 400, '缺少 platform_code')
 
       const { headers, rows } = parseFileToRows(fileBuffer, fileName)
@@ -502,7 +504,7 @@ export async function ingestRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/ingest/manual-upload ── 正式导入（绑定模板+映射+规则集）
-  app.post('/api/v1/ingest/manual-upload', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/ingest/manual-upload', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const parts = request.parts()
       let fileBuffer: Buffer | null = null
@@ -539,6 +541,7 @@ export async function ingestRoutes(app: FastifyInstance) {
       }
 
       if (!fileBuffer) return sendError(reply, 400, '未选择文件')
+      if (fileBuffer.length > 20 * 1024 * 1024) return sendError(reply, 413, '文件大小超过限制 (最大 20MB)')
       if (!platformCode) return sendError(reply, 400, '缺少 platform_code')
       if (!shopId) return sendError(reply, 400, '缺少 shop_id')
 
@@ -655,13 +658,12 @@ export async function ingestRoutes(app: FastifyInstance) {
   }>, reply: FastifyReply) => {
     try {
       const platform = request.query.platform
-      const templates = platform
-        ? getTemplatesByPlatform(platform)
-        : []
+      const legacyTemplates = platform ? getTemplatesByPlatform(platform) : []
+      const unifiedTemplates = UnifiedDataPipelineService.getTemplates(platform)
       return sendOk(reply, {
         platform: platform || null,
-        templates: templates.map(summarizeTemplate),
-        count: templates.length,
+        templates: legacyTemplates.length > 0 ? legacyTemplates.map(summarizeTemplate) : unifiedTemplates,
+        count: legacyTemplates.length > 0 ? legacyTemplates.length : unifiedTemplates.length,
       })
     } catch (err) {
       return sendError(reply, 500, '获取平台模板失败')
@@ -684,7 +686,7 @@ export async function ingestRoutes(app: FastifyInstance) {
   // ── POST /api/v1/ingest/detect-template ── 根据表头识别模板 + 映射建议
   app.post<{
     Body: { headers: string[]; platformCode?: string }
-  }>('/api/v1/ingest/detect-template', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/ingest/detect-template', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const { headers, platformCode } = request.body || ({} as any)
       if (!Array.isArray(headers) || headers.length === 0) {

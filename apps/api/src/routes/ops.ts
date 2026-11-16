@@ -1,7 +1,9 @@
 import type { FastifyInstance } from 'fastify'
-import { sendOk } from '../lib/http.js'
+import type { PoolClient } from 'pg'
+import { writeAuditLog } from '../lib/audit.js'
+import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext, type DbExecutor } from '../lib/db.js'
-import { canAccessCost, requireAuth, requireRole } from '../lib/guard.js'
+import { canAccessCost, canAccessCostAsync, requireAuth, requireRole } from '../lib/guard.js'
 import { getAnchorCapabilitiesAndRankings } from '../services/anchor-ranking.js'
 
 const OPS_PLAN_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'controller']
@@ -40,7 +42,8 @@ export async function opsRoutes(app: FastifyInstance) {
     if (!user) return
 
     try {
-      const showCost = canAccessCost(user)
+      const showCost = await canAccessCostAsync(
+        (user as any).id, user.role, user.userType, undefined)
       const periodKey = (((request.query as { period?: string })?.period) || '').toString().toLowerCase()
       const periodMap: Record<string, string> = { month: 'monthly', quarter: 'quarterly', year: 'yearly' }
       const dbPeriod = periodMap[periodKey] || ''
@@ -75,8 +78,102 @@ export async function opsRoutes(app: FastifyInstance) {
       )
       return sendOk(reply, rows)
     } catch (err) {
+      // P1-B18：不再静默吞错返回 []
+      //   原实现 `catch → sendOk(reply, [])` 让「查询失败」和「真的没数据」表现一致，
+      //   运营看到空页面无法判断是没数据还是系统坏了。
       request.log.warn({ err }, 'ops/script-library query failed')
-      return sendOk(reply, [])
+      return sendError(reply, 500, '话术库查询失败，请稍后重试或联系管理员')
+    }
+  })
+
+  // ── POST /api/v1/ops/script-library ── 新建话术（P1-B13）
+  //    审计断点：此前话术库只有 GET，运营/编导写好话术无法入库，只能手工改数据库
+  app.post('/api/v1/ops/script-library', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const { title, category, content } = request.body ?? {}
+    if (!title?.trim() || !content?.trim()) {
+      return reply.status(400).send({ error: '标题与内容为必填项' })
+    }
+    try {
+      const row = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(
+          `INSERT INTO script_library (title, category, content, use_count, likes)
+           VALUES ($1, $2, $3, 0, 0)
+           RETURNING id, title, category, content`,
+          [title.trim(), (category || '通用').trim(), content.trim()],
+        )
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'ops.script_library.create',
+          resourceType: 'script_library',
+          resourceId: String(rows[0].id),
+          afterData: { title: rows[0].title, category: rows[0].category },
+          request,
+        })
+        return rows[0]
+      })
+      return sendOk(reply, row)
+    } catch (err) {
+      request.log.warn({ err }, 'ops/script-library create failed')
+      return reply.status(500).send({ error: '保存失败' })
+    }
+  })
+
+  // ── PUT /api/v1/ops/script-library/:id ── 修改话术
+  app.put('/api/v1/ops/script-library/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const id = Number(request.params.id)
+    if (!Number.isFinite(id)) return reply.status(400).send({ error: 'ID 非法' })
+    const { title, category, content } = request.body ?? {}
+    try {
+      const row = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(
+          `UPDATE script_library
+              SET title    = COALESCE($2, title),
+                  category = COALESCE($3, category),
+                  content  = COALESCE($4, content),
+                  updated_at = now()
+            WHERE id = $1
+            RETURNING id, title, category, content`,
+          [id, title ?? null, category ?? null, content ?? null],
+        )
+        if (rows.length > 0) {
+          await writeAuditLog(client, {
+            actorUserId: (request as any).user?.id,
+            action: 'ops.script_library.update',
+            resourceType: 'script_library',
+            resourceId: String(id),
+            afterData: { title: rows[0].title },
+            request,
+          })
+        }
+        return rows[0]
+      })
+      if (!row) return reply.status(404).send({ error: '话术不存在' })
+      return sendOk(reply, row)
+    } catch (err) {
+      request.log.warn({ err }, 'ops/script-library update failed')
+      return reply.status(500).send({ error: '更新失败' })
+    }
+  })
+
+  // ── DELETE /api/v1/ops/script-library/:id ── 删除话术
+  app.delete('/api/v1/ops/script-library/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const id = Number(request.params.id)
+    if (!Number.isFinite(id)) return reply.status(400).send({ error: 'ID 非法' })
+    try {
+      await withRlsContext(request, async (client) => {
+        await client.query('DELETE FROM script_library WHERE id = $1', [id])
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'ops.script_library.delete',
+          resourceType: 'script_library',
+          resourceId: String(id),
+          request,
+        })
+      })
+      return sendOk(reply, { deleted: true })
+    } catch (err) {
+      request.log.warn({ err }, 'ops/script-library delete failed')
+      return reply.status(500).send({ error: '删除失败' })
     }
   })
 
@@ -115,8 +212,9 @@ export async function opsRoutes(app: FastifyInstance) {
       )
       return sendOk(reply, rows)
     } catch (err) {
+      // P1-B18：同上，不再静默吞错
       request.log.warn({ err }, 'ops/room-health query failed')
-      return sendOk(reply, [])
+      return sendError(reply, 500, '直播间健康度查询失败')
     }
   })
 
@@ -168,14 +266,83 @@ export async function opsRoutes(app: FastifyInstance) {
     }
   })
 
-  // ── POST /api/v1/ops/session-plans ── 创建排品计划
+async function validateSessionPlanStock(
+  client: PoolClient,
+  products?: Record<string, { code?: string; price?: number }>,
+): Promise<{ passed: boolean; warnings: string[]; items: any[] }> {
+  if (!products || typeof products !== 'object') {
+    return { passed: true, warnings: [], items: [] }
+  }
+
+  const groupLetters = ['a', 'b', 'c', 'd', 'e']
+  const productCodes = groupLetters
+    .map((k) => products[k]?.code)
+    .filter((c): c is string => Boolean(c && typeof c === 'string'))
+
+  if (productCodes.length === 0) {
+    return { passed: true, warnings: [], items: [] }
+  }
+
+  const stockRes = await client.query(
+    `SELECT p.id, p.sku_code, p.spu_code, p.product_name, p.status, p.safety_stock,
+            COALESCE(SUM(s.available_qty), 0)::int AS available_qty,
+            COALESCE(SUM(s.on_hand_qty), 0)::int AS on_hand_qty
+     FROM public.dim_product p
+     LEFT JOIN public.fact_inventory_stock s ON s.product_id = p.id
+     WHERE p.sku_code = ANY($1) OR p.spu_code = ANY($1)
+     GROUP BY p.id, p.sku_code, p.spu_code, p.product_name, p.status, p.safety_stock`,
+    [productCodes],
+  )
+
+  const stockMap = new Map<string, any>()
+  for (const row of stockRes.rows) {
+    stockMap.set(row.sku_code, row)
+    stockMap.set(row.spu_code, row)
+  }
+
+  const warnings: string[] = []
+  const items: any[] = []
+
+  for (const code of productCodes) {
+    const item = stockMap.get(code)
+    if (!item) {
+      warnings.push(`商品编码 ${code} 在商品中心未找到登记档案`)
+      items.push({ code, status: 'unregistered', availableQty: 0, safetyStock: 0 })
+    } else if (item.status !== 'active') {
+      warnings.push(`商品 ${item.product_name} (${code}) 当前处于非在售状态 (${item.status})`)
+      items.push({ code, name: item.product_name, status: item.status, availableQty: item.available_qty, safetyStock: item.safety_stock })
+    } else if (item.available_qty <= 0) {
+      warnings.push(`商品 ${item.product_name} (${code}) 可用库存为 0，存在超卖断货风险`)
+      items.push({ code, name: item.product_name, status: 'out_of_stock', availableQty: 0, safetyStock: item.safety_stock })
+    } else if (item.available_qty < item.safety_stock) {
+      warnings.push(`商品 ${item.product_name} (${code}) 可用库存低于安全线 (${item.available_qty} < ${item.safety_stock})`)
+      items.push({ code, name: item.product_name, status: 'low_stock', availableQty: item.available_qty, safetyStock: item.safety_stock })
+    } else {
+      items.push({ code, name: item.product_name, status: 'healthy', availableQty: item.available_qty, safetyStock: item.safety_stock })
+    }
+  }
+
+  return {
+    passed: warnings.length === 0,
+    warnings,
+    items,
+  }
+}
+
+  // ── POST /api/v1/ops/session-plans ── 创建排品计划（含库存健康度与缺货校验）
   app.post('/api/v1/ops/session-plans', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
-    const { roomId, date, anchorId, products, campaignId, notes } = request.body ?? {}
+    const { roomId, date, anchorId, products, campaignId, notes, strictStock } = request.body ?? {}
     if (!roomId || !date || !anchorId) {
       return reply.status(400).send({ error: '直播间、日期、主播为必填项' })
     }
     try {
-      const planId = await withRlsContext(request, async (client) => {
+      const outcome = await withRlsContext(request, async (client) => {
+        // 校验库存健康度
+        const stockCheck = await validateSessionPlanStock(client, products)
+        if (strictStock && stockCheck.items.some((i) => i.status === 'out_of_stock' || i.status === 'unregistered')) {
+          return { error: '严格模式：存在缺货或未登记商品，已阻断排品入库', stockValidation: stockCheck }
+        }
+
         const { rows: [plan] } = await client.query(
           `INSERT INTO session_plans (room_id, plan_date, anchor_id, campaign_id, notes)
            VALUES ($1, $2::date, $3, $4, $5) RETURNING id`,
@@ -192,12 +359,98 @@ export async function opsRoutes(app: FastifyInstance) {
             )
           }
         }
-        return plan.id
+        return { planId: plan.id, stockValidation: stockCheck }
       })
-      return sendOk(reply, { id: planId })
+
+      if ('error' in outcome && outcome.error) {
+        return reply.status(400).send({ error: outcome.error, stockValidation: outcome.stockValidation })
+      }
+
+      return sendOk(reply, { id: outcome.planId, stockValidation: outcome.stockValidation })
     } catch (err) {
       request.log.warn({ err }, 'ops/session-plans insert failed')
       return reply.status(500).send({ error: '保存失败' })
+    }
+  })
+
+  // ── PUT /api/v1/ops/session-plans/:id ── 修改排品计划（P1-B10 + 库存健康度校验）
+  //    审计断点：此前只有 POST/DELETE，运营排完品发现要改一个商品只能删了重建
+  app.put('/api/v1/ops/session-plans/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const planId = Number(request.params.id)
+    if (!Number.isFinite(planId)) {
+      return reply.status(400).send({ error: '排品计划 ID 非法' })
+    }
+    const { roomId, date, anchorId, products, campaignId, notes, strictStock } = request.body ?? {}
+
+    try {
+      const result = await withRlsContext(request, async (client) => {
+        const existing = await client.query(
+          `SELECT id FROM session_plans WHERE id = $1`,
+          [planId],
+        )
+        if (existing.rows.length === 0) return { notFound: true as const }
+
+        // 校验库存健康度
+        const stockCheck = await validateSessionPlanStock(client, products)
+        if (strictStock && stockCheck.items.some((i) => i.status === 'out_of_stock' || i.status === 'unregistered')) {
+          return { error: '严格模式：存在缺货或未登记商品，已阻断排品修改', stockValidation: stockCheck }
+        }
+
+        // 只更新传了值的字段（部分更新）
+        await client.query(
+          `UPDATE session_plans
+              SET room_id    = COALESCE($2, room_id),
+                  plan_date  = COALESCE($3::date, plan_date),
+                  anchor_id  = COALESCE($4, anchor_id),
+                  campaign_id = $5,
+                  notes      = COALESCE($6, notes)
+            WHERE id = $1`,
+          [planId, roomId ?? null, date ?? null, anchorId ?? null,
+           campaignId ?? null, notes ?? null],
+        )
+
+        // 若传了 products，全量替换（与 POST 语义一致）
+        if (products && typeof products === 'object') {
+          await client.query(`DELETE FROM session_plan_products WHERE plan_id = $1`, [planId])
+          const groupLetters = ['a', 'b', 'c', 'd', 'e']
+          for (const letter of groupLetters) {
+            const prod = products[letter]
+            if (prod?.code) {
+              await client.query(
+                `INSERT INTO session_plan_products (plan_id, group_letter, product_code, price)
+                 VALUES ($1, $2, $3, $4)`,
+                [planId, letter.toUpperCase(), prod.code, prod.price || 0],
+              )
+            }
+          }
+        }
+
+        const after = await client.query(
+          `SELECT id, room_id, plan_date, anchor_id, campaign_id, notes
+             FROM session_plans WHERE id = $1`,
+          [planId],
+        )
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'ops.session_plan.update',
+          resourceType: 'session_plans',
+          resourceId: String(planId),
+          afterData: after.rows[0],
+          request,
+        })
+        return { data: after.rows[0], stockValidation: stockCheck }
+      })
+
+      if ('notFound' in result) {
+        return reply.status(404).send({ error: '排品计划不存在' })
+      }
+      if ('error' in result && result.error) {
+        return reply.status(400).send({ error: result.error, stockValidation: result.stockValidation })
+      }
+      return sendOk(reply, result)
+    } catch (err) {
+      request.log.warn({ err }, 'ops/session-plans update failed')
+      return reply.status(500).send({ error: '更新失败' })
     }
   })
 

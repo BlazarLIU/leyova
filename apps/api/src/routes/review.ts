@@ -75,8 +75,12 @@ export async function reviewRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/review/overview ──
   app.get('/api/v1/review/overview', async (request, reply) => {
+    // P1-B2：加 platform 维度
+    // 审计断点：review.ts 全文 grep platform_code 零命中 → 老板问「抖音为什么跌 15%」
+    //           系统物理上答不出来（只有全局数字，无法按平台下钻）。
     const q = request.query as {
       session_id?: string; start_date?: string; end_date?: string; anchor_id?: string
+      platform?: string
     }
     try {
       // Build filter conditions
@@ -103,26 +107,35 @@ export async function reviewRoutes(app: FastifyInstance) {
 
       const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-      // Overall KPI — 从导入数据聚合（session_live_basic_info + session_overview_metrics）
+      // ── 导入数据分支持久化条件（含平台过滤，P1-B2）──
+      // session_live_basic_info 无 platform_code 列，必须经 live_rooms 关联
       const importedParams: any[] = []
-      let importedWhere = ''
+      const importedConds: string[] = []
+      let platformRoomJoin = ''
+
+      if (q.platform) {
+        importedParams.push(q.platform)
+        const pIdx = importedParams.length
+        platformRoomJoin = ` JOIN live_rooms lr ON lr.id = lb.room_id AND lr.platform_code = $${pIdx}::text `
+      }
       if (q.start_date) {
-        importedWhere = `WHERE lb.business_date >= $1::date`
         importedParams.push(q.start_date)
+        importedConds.push(`lb.business_date >= $${importedParams.length}::date`)
       }
       if (q.end_date) {
-        importedWhere = importedWhere
-          ? `${importedWhere} AND lb.business_date <= $2::date`
-          : `WHERE lb.business_date <= $1::date`
         importedParams.push(q.end_date)
+        importedConds.push(`lb.business_date <= $${importedParams.length}::date`)
       }
 
-      const { kpi, comparison, topChannels, avgResult } = await withRlsContext(request, async (client) => {
+      const importedWhere = importedConds.length > 0 ? `WHERE ${importedConds.join(' AND ')}` : ''
+
+      const rlsResult = await withRlsContext(request, async (client) => {
         const overall = await client.query(
           `SELECT
              COALESCE(SUM(lb.payment_amount), 0) AS gmv,
              COALESCE(SUM(om.deal_users), 0)::int AS orders,
-             COALESCE(SUM(lb.gpm), 0) AS gpm,
+             -- GPM 是比率（每千次观看成交额），必须 AVG 不能 SUM
+             COALESCE(AVG(lb.gpm), 0) AS gpm,
              COALESCE(SUM(om.avg_order_value), 0) AS avg_order_value,
              COALESCE(SUM(om.viewers), 0)::int AS views,
              COALESCE(AVG(om.exposure_view_rate), 0) AS exposure_view_rate,
@@ -143,6 +156,7 @@ export async function reviewRoutes(app: FastifyInstance) {
            FROM session_live_basic_info lb
            LEFT JOIN session_overview_metrics om
              ON om.room_id = lb.room_id AND om.business_date = lb.business_date
+           ${platformRoomJoin}
            ${importedWhere}`,
           importedParams
         )
@@ -219,11 +233,45 @@ export async function reviewRoutes(app: FastifyInstance) {
            FROM session_overview_metrics om
            JOIN session_live_basic_info lb ON lb.room_id = om.room_id AND lb.business_date = om.business_date`
         )
-        return { kpi: k, comparison: comp, topChannels: channels, avgResult: avgRes }
-      })
+        // P1-B5：主播归因
+        //
+        // 审计断点：此前硬编码 `const topAnchors = { rows: [] }`，注释自认
+        //   「导入数据无主播归属，主播 TOP3 为空」→ 老板问「哪个主播带得好」系统答不出来。
+        //
+        // 修复：改从 session_staff_assignments（S4 建立的场次×岗位×人员模型）取主播，
+        //   回退到 live_sessions.anchor_id（老数据只有 anchor_id，没有多岗位表记录）。
+        const anchorRes = await client.query(
+          `WITH sess AS (
+             SELECT ls.id, ls.date, COALESCE(ls.duration_min, 0) AS duration_min, COALESCE(ls.gmv, 0) AS gmv,
+                    COALESCE(ls.anchor_id, ssa.staff_id) AS anchor_id
+               FROM live_sessions ls
+               LEFT JOIN session_staff_assignments ssa
+                      ON ssa.session_id = ls.id AND ssa.role_code = 'anchor'
+              WHERE ls.date >= $1::date AND ls.date <= $2::date
+                AND ls.status = 'completed'
+           )
+           SELECT a.anchor_id,
+                  COALESCE(an.name, '未知主播') AS anchor_name,
+                  SUM(a.gmv)::numeric AS gmv,
+                  SUM(a.duration_min)::int AS duration_min,
+                  CASE WHEN SUM(a.duration_min) > 0
+                       THEN ROUND(SUM(a.gmv) / (SUM(a.duration_min) / 60.0), 2)
+                       ELSE 0 END AS gmv_per_hour
+             FROM sess a
+             LEFT JOIN anchors an ON an.id = a.anchor_id
+            WHERE a.anchor_id IS NOT NULL
+            GROUP BY a.anchor_id, an.name
+            -- 按「小时产出」排序：场次时长不同，绝对 GMV 无法横向比较主播效率
+            ORDER BY gmv_per_hour DESC
+            LIMIT 3`,
+          [q.start_date || '1970-01-01', q.end_date || '2999-12-31'],
+        )
 
-      // 导入数据无主播归属，主播 TOP3 为空
-      const topAnchors = { rows: [] as any[] }
+        return { kpi: k, comparison: comp, topChannels: channels, avgResult: avgRes, topAnchors: anchorRes }
+      })
+      const { kpi, comparison, topChannels, avgResult } = rlsResult
+
+      const topAnchors = { rows: (rlsResult as any).topAnchors?.rows ?? [] }
       const avg = avgResult.rows[0] || {}
       const curKpi = {
         interaction_rate: parseFloat(kpi.interaction_rate || '0'),
@@ -270,7 +318,7 @@ export async function reviewRoutes(app: FastifyInstance) {
         },
         comparison,
         top_channels: topChannels,
-        top_anchors: topAnchors.rows.map(r => ({
+        top_anchors: topAnchors.rows.map((r: any) => ({
           anchor_id: r.anchor_id,
           anchor_name: r.anchor_name,
           gmv_per_hour: parseFloat(r.gmv_per_hour),
@@ -464,10 +512,16 @@ export async function reviewRoutes(app: FastifyInstance) {
 
       const liveWhereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-      // Build separate conditions for session_anchor_metrics (no ls. prefix, skip session_id)
+      // P1-B15：修复参数绑定错位
+      //
+      // 审计断点：原实现 liveWhereClause 用 $1..$n、samWhereClause 也用 $1..$m，
+      //   但 query 只传了 `params`（live 分支的），`samParams` 构造后从未传入。
+      //   → 带日期/主播过滤时，session_anchor_metrics 分支的参数会错位引用。
+      //
+      // 修复：把两个分支的参数合并成一个数组，sam 分支编号从 params.length 之后开始。
       const samConditions: string[] = []
       const samParams: any[] = []
-      let samIdx = 1
+      let samIdx = params.length + 1   // 关键：编号接着 live 分支往后排
       if (q.start_date) {
         samConditions.push(`sam.date >= $${samIdx++}::date`)
         samParams.push(q.start_date)
@@ -481,6 +535,7 @@ export async function reviewRoutes(app: FastifyInstance) {
         samParams.push(q.anchor_id)
       }
       const samWhereClause = samConditions.length > 0 ? `WHERE ${samConditions.join(' AND ')}` : ''
+      const allParams = [...params, ...samParams]
 
       const result = await withRlsContext(request, (client) => client.query(
         `SELECT anchor_id, anchor_name,
@@ -526,8 +581,8 @@ export async function reviewRoutes(app: FastifyInstance) {
          ) AS combined
          GROUP BY anchor_id, anchor_name
          ORDER BY gmv DESC`,
-        // 两个子查询都使用 $1/$2（全局参数编号），只需传 params 即可
-        params
+        // P1-B15：必须传合并后的参数（live 分支 + sam 分支），否则 sam 分支参数错位
+        allParams
       ))
       return sendOk(reply, result.rows.map(r => ({
         anchor_id: r.anchor_id,
@@ -889,35 +944,17 @@ export async function reviewRoutes(app: FastifyInstance) {
         return reply.code(400).send({ success: false, message: '缺少 room_id 或 date 参数' })
       }
 
-      const [products, skus] = await withRlsContext(request, async (client) => {
-        const p = await client.query(
-          `SELECT * FROM session_product_details WHERE room_id = $1 AND business_date = $2::date ORDER BY product_order`,
+      const products = await withRlsContext(request, async (client) => {
+        return await client.query(
+          `SELECT *, COALESCE(sku_snapshot_jsonb, '[]'::jsonb) AS skus
+           FROM session_plan_products
+           WHERE room_id = $1 AND business_date = $2::date AND plan_id IS NULL
+           ORDER BY product_order`,
           [roomId, date],
         )
-        const s = await client.query(
-          `SELECT s.* FROM session_product_skus s
-           JOIN session_product_details p ON p.id = s.product_id
-           WHERE p.room_id = $1 AND p.business_date = $2::date
-           ORDER BY p.product_order, s.sku_name`,
-          [roomId, date],
-        )
-        return [p, s]
       })
 
-      // 将 SKU 按 product_id 分组
-      const skuMap: Record<number, any[]> = {}
-      for (const sku of skus.rows) {
-        const pid = sku.product_id
-        if (!skuMap[pid]) skuMap[pid] = []
-        skuMap[pid].push(sku)
-      }
-
-      const productsWithSkus = products.rows.map((p: any) => ({
-        ...p,
-        skus: skuMap[p.id] || [],
-      }))
-
-      return sendOk(reply, productsWithSkus)
+      return sendOk(reply, products.rows)
     } catch (err) {
       request.log.warn({ err }, 'review/products query failed')
       return sendOk(reply, [])

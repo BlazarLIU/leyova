@@ -5,6 +5,7 @@ import { env } from '../config/env.js'
 import { sendError, sendOk } from '../lib/http.js'
 import { getPool } from '../lib/db.js'
 import { writeAuditLog } from '../lib/audit.js'
+import { resolveAccess } from '../lib/access-resolver.js'
 
 const SESSION_MAX_AGE = 24 * 60 * 60 * 1000 // 24 hours (default)
 const REMEMBER_ME_AGE = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -191,6 +192,17 @@ export async function authRoutes(app: FastifyInstance) {
         return sendError(reply, 401, '会话已过期，请重新登录')
       }
 
+      // S2/S3：返回「平台 × 模块」解析后的完整权限（已取消工作模式）
+      const access = await resolveAccess(
+        {
+          userId: user.id,
+          role: user.role,
+          userType: user.user_type,
+          tenantId: user.tenant_id,
+        },
+        pool2,
+      )
+
       return sendOk(reply, {
         user: {
           id: user.id,
@@ -200,6 +212,14 @@ export async function authRoutes(app: FastifyInstance) {
           userType: user.user_type || 'agency_staff',
           tenantId: user.tenant_id ?? 1,
           anchorId: user.anchor_id ? Number(user.anchor_id) : undefined,
+        },
+        access: {
+          dataScope: access.dataScope,
+          modules: Array.from(access.modules).sort(),
+          modulesByPlatform: Object.fromEntries(
+            Array.from(access.modulesByPlatform.entries()).map(([k, v]) => [k, Array.from(v).sort()]),
+          ),
+          platforms: access.platforms === null ? null : Array.from(access.platforms).sort(),
         },
       })
     } catch (err) {

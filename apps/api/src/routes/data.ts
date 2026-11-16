@@ -41,8 +41,10 @@ import type { XlsxWorkbook, NameCache } from '../lib/importer.js'
 
 type WorksheetRow = Record<string, unknown>
 
+const MAX_UPLOAD_SIZE = 20 * 1024 * 1024 // 20MB OOM 防护阈值
+
 function parseXlsxWorkbook(buffer: Buffer): { template: string | null; rows: WorksheetRow[]; workbook?: any } {
-  const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true })
+  const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true, dense: true })
   const sheet = workbook.Sheets[workbook.SheetNames[0]]
   const rows = sheet ? XLSX.utils.sheet_to_json<WorksheetRow>(sheet, { defval: '' }) : []
   const headers = Object.keys(rows[0] ?? {})
@@ -92,8 +94,8 @@ export async function dataRoutes(app: FastifyInstance) {
     }
   })
 
-  const DATA_OPERATE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance']
-  const DATA_ADMIN_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'finance']
+  const DATA_OPERATE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator']
+  const DATA_ADMIN_ROLES = ['super_admin', 'admin', 'ops_director', 'operator']
 
   // ── POST /api/v1/data/tables/:id/refresh ──
   app.post('/api/v1/data/tables/:id/refresh', { preHandler: [requireRole(DATA_OPERATE_ROLES)] }, async (request, reply) => {
@@ -206,7 +208,10 @@ export async function dataRoutes(app: FastifyInstance) {
         }
       }
 
-      if (!fileBuffer) return reply.code(400).send({ success: false, message: '\u672A\u9009\u62E9\u6587\u4EF6' })
+      if (!fileBuffer) return reply.code(400).send({ success: false, message: '未选择文件' })
+      if (fileBuffer.length > MAX_UPLOAD_SIZE) {
+        return reply.code(413).send({ success: false, message: '文件大小超过限制 (最大 20MB)' })
+      }
 
       if (fileType === 'xlsx' || fileType === 'xls') {
         let { template, rows, workbook: parsedWorkbook } = parseXlsxWorkbook(fileBuffer)
@@ -353,7 +358,10 @@ export async function dataRoutes(app: FastifyInstance) {
         }
       }
 
-      if (!fileBuffer) return reply.code(400).send({ success: false, message: '\u672A\u9009\u62E9\u6587\u4EF6' })
+      if (!fileBuffer) return reply.code(400).send({ success: false, message: '未选择文件' })
+      if (fileBuffer.length > MAX_UPLOAD_SIZE) {
+        return reply.code(413).send({ success: false, message: '文件大小超过限制 (最大 20MB)' })
+      }
       const fileSize = fileBuffer.length
 
       // Save file to disk

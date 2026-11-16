@@ -288,6 +288,12 @@ export const openapiSpec = {
     '/api/v1/sessions/{id}/metrics': {
       get: { tags: ['Sessions'], summary: '场次指标', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '指标数据' } } },
     },
+    '/api/v1/sessions/{id}/pnl': {
+      get: { tags: ['Sessions'], summary: '场次真实盈亏核算（缺项返回null）', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '场次盈亏数据' } } },
+    },
+    '/api/v1/sessions/{id}/full-trace': {
+      get: { tags: ['Sessions'], summary: '场次全链路穿透查询（人货场+排品+投流+PnL+履约售后）', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '全链路穿透数据' } } },
+    },
 
     // ── AI ──
     '/api/v1/ai/sessions': {
@@ -298,6 +304,62 @@ export const openapiSpec = {
     },
     '/api/v1/ai/messages/{conversationId}': {
       get: { tags: ['AI'], summary: '对话消息历史', parameters: [{ name: 'conversationId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: '消息列表' } } },
+    },
+
+    // ── AI Selection & Campaign Plan (Phase 2) ──
+    '/api/v1/selection/categories': {
+      get: { tags: ['Selection'], summary: '商品类目树与信号源权重', parameters: [{ name: 'withSignals', in: 'query', schema: { type: 'boolean' } }], responses: { '200': { description: '类目列表' } } },
+    },
+    '/api/v1/selection/recommend': {
+      post: { tags: ['Selection'], summary: '全品类多因子选品推荐运行', requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } }, responses: { '200': { description: '推荐运行结果' } } },
+    },
+    '/api/v1/selection/recommendations': {
+      get: { tags: ['Selection'], summary: '历史选品推荐记录分页列表', responses: { '200': { description: '选品记录' } } },
+    },
+    '/api/v1/selection/recommendations/{id}': {
+      get: { tags: ['Selection'], summary: '选品推荐详情与商品明细', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '选品详情' } } },
+    },
+    '/api/v1/selection/recommendations/{id}/adopt': {
+      post: { tags: ['Selection'], summary: '采纳选品推荐方案', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '采纳成功' } } },
+    },
+    '/api/v1/campaign-plan/templates': {
+      get: { tags: ['CampaignPlan'], summary: '运营方案模板列表', responses: { '200': { description: '模板列表' } } },
+    },
+    '/api/v1/campaign-plan/generate': {
+      post: { tags: ['CampaignPlan'], summary: '一键生成12模块全域运营方案', requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } }, responses: { '200': { description: '生成方案结果' } } },
+    },
+    '/api/v1/campaign-plan/plans/{id}': {
+      get: { tags: ['CampaignPlan'], summary: '运营方案实例详情', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '方案详情' } } },
+      patch: { tags: ['CampaignPlan'], summary: '审批或修改运营方案状态', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '更新结果' } } },
+    },
+    '/api/v1/campaign-plan/plans/{id}/dispatch': {
+      post: { tags: ['CampaignPlan'], summary: '运营方案审批后自动拆解下发（话术库+排品+投流计划）', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '拆解汇总结果' } } },
+    },
+
+    // ── Compliance Rules Radar & Scan ──
+    '/api/v1/compliance/rules': {
+      get: { tags: ['ComplianceRules'], summary: '合规规则快照列表', responses: { '200': { description: '规则列表' } } },
+    },
+    '/api/v1/compliance/rules/{id}': {
+      get: { tags: ['ComplianceRules'], summary: '规则详情与历史抓取版本', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '规则详情' } } },
+    },
+    '/api/v1/compliance/rules/manual': {
+      post: { tags: ['ComplianceRules'], summary: '手工补录平台规则（拼多多等受限渠道兜底）', responses: { '200': { description: '录入成功' } } },
+    },
+    '/api/v1/compliance/changes': {
+      get: { tags: ['ComplianceRules'], summary: '合规变更事件流与未读统计', responses: { '200': { description: '变更流' } } },
+    },
+    '/api/v1/compliance/changes/{id}/assessment': {
+      get: { tags: ['ComplianceRules'], summary: '变更对应AI风险评估详情', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '评估详情' } } },
+    },
+    '/api/v1/compliance/changes/{id}/ack': {
+      post: { tags: ['ComplianceRules'], summary: '运营确认已读并标记处理', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '确认成功' } } },
+    },
+    '/api/v1/compliance/scan': {
+      post: { tags: ['ComplianceRules'], summary: '手动即时触发全网规则巡检扫描', responses: { '200': { description: '巡检结果' } } },
+    },
+    '/api/v1/compliance/reminders': {
+      get: { tags: ['ComplianceRules'], summary: '平台大促与活动报名提醒', responses: { '200': { description: '活动列表' } } },
     },
 
     // ── Livereg ──
@@ -350,6 +412,25 @@ export const openapiSpec = {
     '/api/v1/inventory/stock': {
       get: { tags: ['Inventory'], summary: '全渠道商品主数据与可用库存台账', responses: { '200': { description: '库存台账' } } },
     },
+    '/api/v1/inventory/channel-listings': {
+      get: { tags: ['Inventory'], summary: '各渠道商品定价与库存配额', responses: { '200': { description: '渠道商品列表' } } },
+      post: { tags: ['Inventory'], summary: '创建/绑定渠道定价与配额', responses: { '200': { description: '保存成功' } } },
+    },
+    '/api/v1/inventory/channel-listings/{id}': {
+      put: { tags: ['Inventory'], summary: '调整渠道定价与配额', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '更新成功' } } },
+    },
+    '/api/v1/inventory/reservations/reserve': {
+      post: { tags: ['Inventory'], summary: '原子悲观锁预留库存防超卖', responses: { '200': { description: '预留成功' } } },
+    },
+    '/api/v1/inventory/reservations/{reservationNo}/commit': {
+      post: { tags: ['Inventory'], summary: '支付完成核销预留出库', parameters: [{ name: 'reservationNo', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: '核销成功' } } },
+    },
+    '/api/v1/inventory/reservations/{reservationNo}/release': {
+      post: { tags: ['Inventory'], summary: '订单取消或超时释放预留', parameters: [{ name: 'reservationNo', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: '释放成功' } } },
+    },
+    '/api/v1/inventory/reservations': {
+      get: { tags: ['Inventory'], summary: '库存预留记录列表', responses: { '200': { description: '预留列表' } } },
+    },
     '/api/v1/fulfillment/waybills': {
       get: { tags: ['Fulfillment'], summary: '多平台 48h 履约 SLA 监控与赔付风控运单', responses: { '200': { description: '履约运单' } } },
     },
@@ -393,8 +474,70 @@ export const openapiSpec = {
     '/api/v1/governance/batches': {
       get: { tags: ['Governance'], summary: '数据治理接入批次与质量校验发布闸门清单', responses: { '200': { description: '批次列表' } } },
     },
+    '/api/v1/governance/batches/{id}/run-quality-gates': {
+      post: { tags: ['Governance'], summary: '执行 8 条 SQL 质量门禁断言评估', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '门禁评估报告' } } },
+    },
+    '/api/v1/governance/batches/{id}/quarantine': {
+      get: { tags: ['Governance'], summary: '查询批次质量隔离区异常数据', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '隔离区列表' } } },
+      post: { tags: ['Governance'], summary: '写入批次数据质量隔离区', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '已写入隔离区' } } },
+    },
+    '/api/v1/governance/quarantine/{id}/status': {
+      put: { tags: ['Governance'], summary: '处置隔离区异常行状态', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '状态已更新' } } },
+    },
+    '/api/v1/governance/batches/{id}/staging-load': {
+      post: { tags: ['Governance'], summary: '集合式批量暂存与哨兵去重', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '暂存结果' } } },
+    },
     '/mcp': {
       post: { tags: ['MCP'], summary: 'Streamable HTTP MCP Server 端点（Bearer + X-Leyova-User-Id + HMAC 鉴权）', responses: { '200': { description: 'JSON-RPC 响应' }, '401': { description: '未认证或缺少用户身份头' }, '403': { description: 'HMAC 签名无效' } } },
+    },
+
+    // ── Master Plan §5.2 #11: General Ledger & Voucher Chain ──
+    '/api/v1/finance/accounting-subjects': {
+      get: { tags: ['Finance'], summary: '会计科目主档字典', responses: { '200': { description: '科目列表' } } },
+    },
+    '/api/v1/finance/gl-vouchers': {
+      get: { tags: ['Finance'], summary: '会计总账凭证列表', responses: { '200': { description: '凭证列表' } } },
+      post: { tags: ['Finance'], summary: '录入复式记账总账凭证', responses: { '200': { description: '凭证已创建' } } },
+    },
+    '/api/v1/finance/gl-vouchers/{id}': {
+      get: { tags: ['Finance'], summary: '凭证详情与借贷明细', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '凭证详情' } } },
+    },
+    '/api/v1/finance/sessions/{sessionId}/voucher-chain': {
+      get: { tags: ['Finance'], summary: '直播单场净利凭证链完整追溯', parameters: [{ name: 'sessionId', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '凭证链与对账结果' } } },
+    },
+    '/api/v1/finance/trial-balance': {
+      get: { tags: ['Finance'], summary: '会计期间试算平衡表', responses: { '200': { description: '试算平衡结果' } } },
+    },
+
+    // ── Master Plan §5.2 #12: Line-Level RMA & Order Event Stream ──
+    '/api/v1/after-sales/rma-items': {
+      get: { tags: ['AfterSales'], summary: '行级售后退换单列表 (Line RMA)', responses: { '200': { description: 'RMA列表' } } },
+      post: { tags: ['AfterSales'], summary: '申请行级售后退换', responses: { '200': { description: '创建成功' } } },
+    },
+    '/api/v1/after-sales/rma-items/{id}/status': {
+      put: { tags: ['AfterSales'], summary: '审核行级RMA并联动入库回仓', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '状态已更新' } } },
+    },
+    '/api/v1/orders/{orderId}/timeline': {
+      get: { tags: ['Orders'], summary: '订单全生命周期不可篡改事件流时间轴', parameters: [{ name: 'orderId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: '事件流时间轴' } } },
+    },
+    '/api/v1/orders/{orderId}/events': {
+      post: { tags: ['Orders'], summary: '记录订单状态变更事件', parameters: [{ name: 'orderId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: '事件已记录' } } },
+    },
+
+    // ── Master Plan §5.2 #13: Custom Field Engine ──
+    '/api/v1/system/custom-fields/definitions': {
+      get: { tags: ['System'], summary: '实体自定义字段元定义列表', responses: { '200': { description: '定义列表' } } },
+      post: { tags: ['System'], summary: '新增自定义字段定义', responses: { '200': { description: '定义已创建' } } },
+    },
+    '/api/v1/system/custom-fields/definitions/{id}': {
+      put: { tags: ['System'], summary: '更新自定义字段定义', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '更新成功' } } },
+      delete: { tags: ['System'], summary: '停用自定义字段定义', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }], responses: { '200': { description: '已停用' } } },
+    },
+    '/api/v1/system/custom-fields/values': {
+      get: { tags: ['System'], summary: '获取指定实体的自定义字段值', responses: { '200': { description: '字段值' } } },
+    },
+    '/api/v1/system/custom-fields/values/batch-save': {
+      post: { tags: ['System'], summary: '批量校验并保存实体自定义字段', responses: { '200': { description: '保存成功' } } },
     },
   },
 
@@ -459,7 +602,7 @@ export const openapiSpec = {
           real_name: { type: 'string' },
           role: {
             type: 'string',
-            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'finance', 'hrbp', 'controller', 'employee', 'brand_viewer'],
+            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'hrbp', 'controller', 'employee', 'brand_viewer'],
           },
           status: { type: 'integer', enum: [0, 1] },
           last_login: { type: 'string', format: 'date-time' },
@@ -473,7 +616,7 @@ export const openapiSpec = {
           realName: { type: 'string' },
           role: {
             type: 'string',
-            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'finance', 'hrbp', 'controller', 'employee', 'brand_viewer'],
+            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'hrbp', 'controller', 'employee', 'brand_viewer'],
           },
           status: { type: 'integer', enum: [0, 1] },
         },

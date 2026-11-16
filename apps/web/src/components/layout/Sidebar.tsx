@@ -6,7 +6,6 @@ import { cn } from '@/utils/cn'
 import { buildNavigation } from '@/data/platform-navigation'
 import { useSidebar } from '@/hooks/useSidebar'
 import { usePlatform } from '@/hooks/usePlatform'
-import { useWorkMode } from '@/hooks/useWorkMode'
 import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/services/api'
 import type { NavItem, NavSection } from '@/types'
@@ -236,7 +235,6 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
   }
 
   const { currentPlatform, isModuleSupported } = usePlatform()
-  const { workMode, currentModeInfo } = useWorkMode()
 
   // 严格 fail-closed 权限过滤：未定义模块、品牌方只读或权限未就绪时默认拒绝
   const canSee = (m?: string) => {
@@ -270,11 +268,11 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
     const cap = currentPlatform?.capabilities
       ? { ...currentPlatform.capabilities, platformCode: currentPlatform.platform_code }
       : null
-    let sections = buildNavigation(cap, workMode)
+    let sections = buildNavigation(cap)
 
     // 基层员工与中控 → 严格不显示「系统」与「代运营对账」
     if (role === 'controller' || role === 'employee') {
-      sections = sections.filter(section => section.title !== '系统' && section.title !== '系统工具' && section.title !== '代运营管理' && section.title !== '代播客户与对账')
+      sections = sections.filter(section => section.title !== '系统与设置' && section.title !== '系统')
     }
 
     // 严格两段式过滤（支持所有角色的深度子菜单与模块过滤，统一 fail-closed）
@@ -302,17 +300,6 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
       className="fixed left-0 top-0 h-screen bg-orbit-surface border-r border-orbit-border flex flex-col z-40 overflow-hidden"
     >
       <LeyovaLogo collapsed={collapsed && !isMobile} />
-
-      {(!collapsed || isMobile) && !isBrandViewer && (
-        <div className="px-3 pt-2 pb-1">
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-orbit-border/60 text-[11px]">
-            <span className="text-slate-400 font-medium truncate">系统模式</span>
-            <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold border', currentModeInfo.badgeColor)}>
-              {currentModeInfo.shortLabel}
-            </span>
-          </div>
-        </div>
-      )}
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-6">
         {getVisibleNavigation(userRole).map(section => (

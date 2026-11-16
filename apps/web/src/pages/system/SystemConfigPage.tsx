@@ -1,7 +1,7 @@
 // @ts-nocheck — false positives from stale TS server cache (tsc --noEmit passes)
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Settings, ShieldCheck, Target, BookKey, Brain, User, Users, Radio } from 'lucide-react'
+import { Settings, ShieldCheck, Target, BookKey, User, Users, Radio } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -10,7 +10,6 @@ import type { UserAccount, RoleInfo, ModuleInfo, LiveRoom } from '@/types'
 import { AccountsSection } from './AccountsSection'
 import { PersonnelSection } from './PersonnelSection'
 import { RoomsSection } from './RoomsSection'
-import { OpenClawConfigSection } from './OpenClawConfigSection'
 
 const fadeIn = {
   initial: { opacity: 0, y: 12 },
@@ -28,13 +27,12 @@ const METRIC_OPTIONS = [
   '平均停留时长', '场均订单数', '人气峰值',
 ]
 
-type TabKey = 'threshold' | 'target' | 'dict' | 'ai' | 'accounts' | 'personnel' | 'rooms'
+type TabKey = 'threshold' | 'target' | 'dict' | 'accounts' | 'personnel' | 'rooms'
 
 const tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: 'threshold', label: '阈值规则', icon: ShieldCheck },
   { key: 'target', label: '目标管理', icon: Target },
   { key: 'dict', label: '字典管理', icon: BookKey },
-  { key: 'ai', label: 'AI 配置', icon: Brain },
   { key: 'accounts', label: '账号管理', icon: User },
   { key: 'personnel', label: '人员管理', icon: Users },
   { key: 'rooms', label: '直播间管理', icon: Radio },
@@ -47,7 +45,7 @@ const severityColorMap: Record<string, 'danger' | 'warning' | 'info'> = {
 }
 
 const roleTabMap: Record<string, TabKey[]> = {
-  super_admin: ['threshold', 'target', 'dict', 'ai', 'accounts', 'personnel', 'rooms'],
+  super_admin: ['threshold', 'target', 'dict', 'accounts', 'personnel', 'rooms'],
   ops_director: ['threshold', 'target', 'personnel', 'rooms'],
   ops_staff: ['threshold', 'target', 'personnel'],
   controller: ['threshold', 'target', 'personnel'],
@@ -545,13 +543,6 @@ export function SystemConfigPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* ─── ai（OpenClaw 配置）─── */}
-      {activeTab === 'ai' && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
-          <OpenClawConfigSection />
-        </motion.div>
       )}
 
       {/* ─── accounts ─── */}

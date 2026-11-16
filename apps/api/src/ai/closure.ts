@@ -107,7 +107,7 @@ export interface ReviewReport {
   title: string
   markdown: string
   range: { from: string; to: string }
-  runId: number | null
+  runId: string | number | null
   verificationPassed: boolean
   assets: {
     findings: number

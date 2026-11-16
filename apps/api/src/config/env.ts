@@ -18,38 +18,21 @@ const envSchema = z.object({
   // 管理员创建账号时未填密码则使用该值；留空则由调用方显式指定
   DEFAULT_USER_PASSWORD: z.string().optional(),
 
-  // ── AI Integration ──
-  // Master switch: when false, /api/v1/ai/chat uses the rule-based fallback only.
+  // ── AI Integration (OpenAI-compatible v2 provider) ──
+  // Master switch: when false, AI queries run on deterministic rule/schema-mapper engine.
   AI_ENABLED: z.coerce.boolean().default(false),
-  // DeerFlow (Super Agent) — LangGraph-compatible Gateway endpoint (fallback /
-  // rollback path; OpenClaw 为主底座，DeerFlow 仅在 OpenClaw 不可用时兜底).
-  DEERFLOW_API_BASE: z.string().url().default('http://localhost:2026/api/langgraph'),
-  // DeerFlow 服务间认证头 X-DeerFlow-Internal-Token 的值
-  DEERFLOW_INTERNAL_TOKEN: z.string().default(''),
-  DEERFLOW_MODEL: z.string().default('deepseek-ai/DeepSeek-V4-Flash'),
-  // 非流式超时（毫秒）；运行时仍可经 system_config 表 deerflow_timeout_ms 单独调整
-  DEERFLOW_TIMEOUT_MS: z.coerce.number().int().positive().default(900000),
-  // OpenClaw (Agent Runtime, 主引擎) — OpenAI-compatible Gateway endpoint.
-  OPENCLAW_API_BASE: z.string().url().default('http://127.0.0.1:18789/v1'),
-  OPENCLAW_API_KEY: z.string().default(''),
-  OPENCLAW_MODEL: z.string().default('openclaw/default'),
-  OPENCLAW_TIMEOUT_MS: z.coerce.number().int().positive().default(120000),
-  // OpenClaw 配置文件路径（AI 配置页写入目标）；留空则取 <OPENCLAW_HOME>/state/openclaw.json
-  OPENCLAW_CONFIG_PATH: z.string().default(''),
-  // OpenClaw 安装目录；未配置时「AI 配置写入 / 重启」能力视为未启用
-  OPENCLAW_HOME: z.string().default(''),
-  // 运行 OpenClaw 的 node 二进制；留空则使用当前进程的 process.execPath
-  OPENCLAW_NODE_BIN: z.string().default(''),
-  // OpenClaw 网关端口（重启时按此端口 pkill）
-  OPENCLAW_GATEWAY_PORT: z.coerce.number().int().positive().default(18789),
+  LLM_API_BASE: z.string().url().default('http://127.0.0.1:11434/v1'),
+  LLM_API_KEY: z.string().default(''),
+  LLM_MODEL: z.string().default('deepseek-chat'),
+  LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
   // AnythingLLM (knowledge / RAG)
   ANYTHINGLLM_API_BASE: z.string().url().default('http://localhost:3001/api'),
   ANYTHINGLLM_API_KEY: z.string().default(''),
   // OpenViking (Context / Memory)
   OPENVIKING_API_BASE: z.string().url().default('http://localhost:1933'),
   OPENVIKING_API_KEY: z.string().default(''),
-  // ── MCP Server（供 DeerFlow 兜底链路调用）──
-  // Bearer token：DeerFlow extensions_config 中 headers 引用同值
+  // ── MCP Server（标准 Model Context Protocol 出口）──
+  // Bearer token：供外部客户端请求头 Authorization: Bearer 认证
   LEYOVA_MCP_TOKEN: z.string().default('dev-leyova-mcp-token'),
   // HMAC 签名密钥（用于签名/校验 X-Leyova-User-Sig；未设时回退使用 LEYOVA_MCP_TOKEN）
   LEYOVA_MCP_SIGNING_SECRET: z.string().default(''),

@@ -1,5 +1,5 @@
 /**
- * adapters/index.ts — 7 大平台适配器注册中心
+ * adapters/index.ts — 5 大平台适配器注册中心（京东/拼多多已于 2026-11-14 移除）
  */
 
 import { PlatformAdapterContract } from './base-adapter.js'
@@ -8,9 +8,8 @@ import {
   KuaishouGovernanceAdapter,
   TaobaoGovernanceAdapter,
   TmallGovernanceAdapter,
-  JdGovernanceAdapter,
-  PddGovernanceAdapter,
   XiaohongshuGovernanceAdapter,
+  WechatGovernanceAdapter,
 } from './platform-adapters.js'
 
 export * from './base-adapter.js'
@@ -22,10 +21,9 @@ class PlatformGovernanceRegistry {
   constructor() {
     this.register(new DouyinGovernanceAdapter())
     this.register(new KuaishouGovernanceAdapter())
+    this.register(new WechatGovernanceAdapter())
     this.register(new TaobaoGovernanceAdapter())
     this.register(new TmallGovernanceAdapter())
-    this.register(new JdGovernanceAdapter())
-    this.register(new PddGovernanceAdapter())
     this.register(new XiaohongshuGovernanceAdapter())
   }
 

@@ -4,15 +4,12 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App'
 import { PlatformProvider } from './hooks/usePlatform'
-import { WorkModeProvider } from './hooks/useWorkMode'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <PlatformProvider>
-        <WorkModeProvider>
-          <App />
-        </WorkModeProvider>
+        <App />
       </PlatformProvider>
     </BrowserRouter>
   </StrictMode>,

@@ -1,13 +1,13 @@
 import type { FastifyInstance } from 'fastify'
 import { sendError, sendOk } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
-import { canAccessCost, requireAuth, requireRole } from '../lib/guard.js'
+import { canAccessCost, canAccessCostAsync, requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
 
-const PROMO_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'ad_buyer', 'finance']
+const PROMO_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'ad_buyer']
 const MEMBER_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff']
-const COMPLIANCE_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'finance']
+const COMPLIANCE_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator']
 
 interface SimRuleInput {
   ruleLayer: number
@@ -167,7 +167,8 @@ export async function growthComplianceRoutes(app: FastifyInstance): Promise<void
     }
   }>('/api/v1/promotions/simulate', { preHandler: [requireAuth] }, async (request, reply) => {
     const user = (request as any).user
-    const showCost = canAccessCost(user)
+    const showCost = await canAccessCostAsync(
+      (user as any).id, user.role, user.userType, undefined)
     const b = request.body || ({} as any)
     const retailPrice = Number(b.retailPrice)
     if (!Number.isFinite(retailPrice) || retailPrice <= 0) {

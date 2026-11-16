@@ -160,38 +160,6 @@ describe('开放平台 HTTP/OAuth 传输与适配器收敛测试', () => {
         return
       }
 
-      // 京东
-      if (url.startsWith('/access_token')) {
-        res.end(JSON.stringify({ code: '0', access_token: 'real_jd_tok', refresh_token: 'real_jd_ref', expires_in: 86400 }))
-        return
-      }
-      if (url === '/jd' && body.includes('jingdong.pop.order.search')) {
-        res.end(JSON.stringify({
-          jingdong_pop_order_search_responce: {
-            searchorderinfo_result: {
-              orderTotal: 1,
-              orderInfoList: [{ orderId: 'JD-ORD-1', orderPayment: '450.00', orderStartTime: '2026-11-11 13:00:00' }],
-            },
-          },
-        }))
-        return
-      }
-
-      // 拼多多
-      if (url === '/pdd-oauth/token') {
-        res.end(JSON.stringify({ access_token: 'real_pdd_tok', refresh_token: 'real_pdd_ref', expires_in: 86400 }))
-        return
-      }
-      if (url === '/pdd') {
-        res.end(JSON.stringify({
-          order_list_get_response: {
-            has_next: false,
-            order_list: [{ order_sn: 'PDD-ORD-1', payAmount: '89.00', created_at: '2026-11-11 14:00:00' }],
-          },
-        }))
-        return
-      }
-
       // 小红书 Ark
       if (url === '/xhs') {
         const parsed = JSON.parse(body || '{}')
@@ -250,7 +218,7 @@ describe('开放平台 HTTP/OAuth 传输与适配器收敛测试', () => {
 
   test('fail-closed：manual_only 或 mock_* 凭证严格拦截且不发出任何 HTTP 请求', async () => {
     requestLog = []
-    for (const code of ['douyin', 'kuaishou', 'taobao', 'tmall', 'jd', 'pdd', 'xiaohongshu']) {
+    for (const code of ['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu']) {
       const adapter = governancePlatformRegistry.get(code)!
       const manualCreds: PlatformCredentials = {
         appKey: 'real_app_key',
@@ -353,20 +321,6 @@ describe('开放平台 HTTP/OAuth 传输与适配器收敛测试', () => {
       authStatus: 'authorized', gatewayBaseUrl: `${baseUrl}/open`, oauthBaseUrl: `${baseUrl}/oauth2`,
     }, {})
     assert.equal(ksOrders.records[0].sourceOrderId, 'KS-ORD-1')
-
-    const jd = governancePlatformRegistry.get('jd')!
-    const jdOrders = await jd.fetchOrders({
-      appKey: 'jd_k', appSecret: 'jd_s', accessToken: 'real_jd_tok', shopId: 4, platformCode: 'jd',
-      authStatus: 'authorized', gatewayBaseUrl: `${baseUrl}/jd`, oauthBaseUrl: baseUrl,
-    }, {})
-    assert.equal(jdOrders.records[0].sourceOrderId, 'JD-ORD-1')
-
-    const pdd = governancePlatformRegistry.get('pdd')!
-    const pddOrders = await pdd.fetchOrders({
-      appKey: 'pdd_k', appSecret: 'pdd_s', accessToken: 'real_pdd_tok', shopId: 5, platformCode: 'pdd',
-      authStatus: 'authorized', gatewayBaseUrl: `${baseUrl}/pdd`, oauthBaseUrl: `${baseUrl}/pdd-oauth`,
-    }, {})
-    assert.equal(pddOrders.records[0].sourceOrderId, 'PDD-ORD-1')
 
     const xhs = governancePlatformRegistry.get('xiaohongshu')!
     const xhsToken = await xhs.exchangeCodeForToken({

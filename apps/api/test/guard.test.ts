@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import { requireAuth, findSessionUser, hasPermission } from '../src/lib/guard.js'
+import { requireAuth, findSessionUser } from '../src/lib/guard.js'
 
 // ── findSessionUser：会话命中的 DB 判定 ──
 test('findSessionUser: 命中有效会话返回用户', async () => {
@@ -40,24 +40,4 @@ test('requireAuth: 无会话 cookie 返回 401「未登录」且业务返回 nul
   assert.ok(captured)
   assert.equal(captured.success, false)
   assert.equal(captured.message, '未登录')
-})
-
-// ── hasPermission：RBAC 判定（pool 可注入）──
-test('hasPermission: 命中权限返回 true', async () => {
-  const pool = { query: async () => ({ rows: [{ cnt: 1 }] }) }
-  assert.equal(await hasPermission(1, 'ai.chat', pool), true)
-})
-
-test('hasPermission: 无权限返回 false', async () => {
-  const pool = { query: async () => ({ rows: [{ cnt: 0 }] }) }
-  assert.equal(await hasPermission(1, 'ai.chat', pool), false)
-})
-
-test('hasPermission: 查询异常 fail-closed 返回 false', async () => {
-  const pool = {
-    query: async () => {
-      throw new Error('db down')
-    },
-  }
-  assert.equal(await hasPermission(1, 'ai.chat', pool), false)
 })

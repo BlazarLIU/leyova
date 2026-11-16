@@ -40,7 +40,7 @@ export async function analysisRoutes(app: FastifyInstance) {
       /** 当前选中的平台，启用平台专属分析 */
       platformCode?: string
     }
-  }>('/api/v1/analysis/run', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance', 'ad_buyer'])] }, async (request, reply) => {
+  }>('/api/v1/analysis/run', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'ad_buyer'])] }, async (request, reply) => {
     try {
       const body = request.body || ({} as any)
       const question = (body.question || '').trim()

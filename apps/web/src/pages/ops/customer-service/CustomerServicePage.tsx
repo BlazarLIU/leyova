@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Clock, Plus, RefreshCw, Award } from 'lucide-react'
-import { Card, CardHeader, CardBody } from '@/components/ui/Card'
+import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
+import { DataPage, type ColumnDef } from '@/components/common/DataPage'
+import { useTable } from '@/components/common/useTable'
 
 interface CsOverview {
   totalAgents: number
@@ -49,6 +51,7 @@ interface CsSessionRow {
   session_date: string
   agent_code: string
   agent_name: string
+  platform_code: string
   platform_name: string
   shop_name: string
   shift_type: string
@@ -63,10 +66,9 @@ interface CsSessionRow {
 }
 
 export function CustomerServicePage() {
+  const [activeTab, setActiveTab] = useState<'sessions' | 'agents'>('sessions')
   const [overview, setOverview] = useState<CsOverview | null>(null)
   const [agents, setAgents] = useState<CsAgent[]>([])
-  const [sessions, setSessions] = useState<CsSessionRow[]>([])
-  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -84,31 +86,75 @@ export function CustomerServicePage() {
     satisfactionRate: '97.2',
   })
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    setErrorMsg('')
+  const loadAuxData = useCallback(async () => {
     try {
-      const [ov, ag, ss] = await Promise.all([
+      const [ov, ag] = await Promise.all([
         api.get<CsOverview>('/cs/overview'),
         api.get<CsAgent[]>('/cs/agents'),
-        api.get<CsSessionRow[]>('/cs/sessions'),
       ])
       setOverview(ov)
       setAgents(ag || [])
-      setSessions(ss || [])
       if (ag && ag.length > 0 && !form.agentId) {
         setForm((prev) => ({ ...prev, agentId: String(ag[0].id) }))
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || '加载客服会话与绩效失败')
-    } finally {
-      setLoading(false)
+      setErrorMsg(err?.message || '加载客服概览数据失败')
     }
-  }, [])
+  }, [form.agentId])
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
+    loadAuxData()
+  }, [loadAuxData])
+
+  // Sessions Table
+  const sessionsTable = useTable<CsSessionRow, { platformCode: string; shiftType: string }>({
+    initialFilters: { platformCode: '', shiftType: '' },
+    initialPageSize: 20,
+    fetchData: async ({ filters, search, page, pageSize }) => {
+      const ss = await api.get<CsSessionRow[]>('/cs/sessions', {
+        platformCode: filters.platformCode || undefined,
+        shiftType: filters.shiftType || undefined,
+      })
+      let list = ss || []
+      if (search) {
+        const q = search.toLowerCase()
+        list = list.filter(
+          (s) =>
+            s.agent_name.toLowerCase().includes(q) ||
+            s.agent_code.toLowerCase().includes(q) ||
+            s.platform_name.toLowerCase().includes(q) ||
+            s.shop_name.toLowerCase().includes(q)
+        )
+      }
+      return {
+        items: list.slice((page - 1) * pageSize, page * pageSize),
+        total: list.length,
+      }
+    },
+  })
+
+  // Agents Table
+  const agentsTable = useTable<CsAgent, Record<string, any>>({
+    initialPageSize: 20,
+    fetchData: async ({ search, page, pageSize }) => {
+      const ag = await api.get<CsAgent[]>('/cs/agents')
+      let list = ag || []
+      if (search) {
+        const q = search.toLowerCase()
+        list = list.filter(
+          (a) =>
+            a.agent_name.toLowerCase().includes(q) ||
+            a.agent_code.toLowerCase().includes(q) ||
+            a.platform_name.toLowerCase().includes(q) ||
+            a.shop_name.toLowerCase().includes(q)
+        )
+      }
+      return {
+        items: list.slice((page - 1) * pageSize, page * pageSize),
+        total: list.length,
+      }
+    },
+  })
 
   const handleSaveSession = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -128,31 +174,156 @@ export function CustomerServicePage() {
         satisfactionRate: Number(form.satisfactionRate),
       })
       setShowModal(false)
-      await loadData()
+      await Promise.all([sessionsTable.reload(), agentsTable.reload(), loadAuxData()])
     } catch (err: any) {
       setErrorMsg(err?.message || '录入班次绩效失败')
     }
   }
 
+  const sessionColumns: ColumnDef<CsSessionRow>[] = useMemo(
+    () => [
+      {
+        key: 'session_date',
+        header: '日期 / 班次',
+        sortable: true,
+        render: (_, s) => (
+          <div>
+            <span className="font-mono text-slate-200">{s.session_date?.slice(0, 10)}</span>
+            <Badge variant="neutral" className="ml-2 text-xs">
+              {s.shift_type === 'night' ? '晚班' : '白班 (9-23)'}
+            </Badge>
+          </div>
+        ),
+      },
+      {
+        key: 'agent_name',
+        header: '坐席 / 平台',
+        render: (_, s) => (
+          <div>
+            <span className="font-medium text-slate-100">{s.agent_name}</span>
+            <span className="text-xs text-slate-500 ml-1">({s.agent_code})</span>
+            <div className="text-xs text-slate-400 mt-0.5">
+              <Badge variant="info" className="text-[10px] mr-1">
+                {s.platform_name}
+              </Badge>
+              {s.shop_name}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'total_sessions',
+        header: '接待 / 响应 / 超时',
+        align: 'right',
+        sortable: true,
+        render: (_, s) => (
+          <span className="font-mono tabular-nums text-slate-200">
+            {s.total_sessions} / {s.responded_sessions} /{' '}
+            <span className="text-red-400">{s.timeout_sessions}</span>
+          </span>
+        ),
+      },
+      {
+        key: 'avg_first_response_sec',
+        header: '首响秒数',
+        align: 'right',
+        sortable: true,
+        render: (_, s) => (
+          <span className="font-mono tabular-nums text-cyan-400 font-semibold">
+            {s.avg_first_response_sec}s
+          </span>
+        ),
+      },
+      {
+        key: 'inquiry_buyers',
+        header: '询单 → 成交',
+        align: 'right',
+        sortable: true,
+        render: (_, s) => (
+          <span className="font-mono tabular-nums text-slate-200">
+            {s.inquiry_buyers} → {s.converted_buyers}
+          </span>
+        ),
+      },
+      {
+        key: 'converted_gmv',
+        header: '转化 GMV / 满意度',
+        align: 'right',
+        sortable: true,
+        render: (_, s) => (
+          <span className="font-mono tabular-nums text-emerald-400 font-semibold">
+            ¥{Number(s.converted_gmv).toLocaleString()} ({s.satisfaction_rate}%)
+          </span>
+        ),
+      },
+    ],
+    []
+  )
+
+  const agentColumns: ColumnDef<CsAgent>[] = useMemo(
+    () => [
+      {
+        key: 'agent_name',
+        header: '工号 / 坐席姓名',
+        sortable: true,
+        render: (_, a) => (
+          <div>
+            <span className="font-medium text-slate-100">{a.agent_name}</span>
+            <span className="text-xs text-slate-500 ml-1 font-mono">({a.agent_code})</span>
+          </div>
+        ),
+      },
+      {
+        key: 'shop_name',
+        header: '服务店铺与班次',
+        render: (_, a) => (
+          <div className="text-xs">
+            <Badge variant="info">{a.platform_name}</Badge>
+            <span className="ml-2 text-slate-300">
+              {a.shop_name} · {a.shift_group === 'night' ? '晚班' : '白班 (9-23)'}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: 'total_sessions',
+        header: '累计会话 / 超时数',
+        align: 'right',
+        sortable: true,
+        render: (_, a) => (
+          <span className="font-mono tabular-nums text-slate-200">
+            {a.total_sessions} / <span className="text-red-400">{a.timeout_sessions}</span>
+          </span>
+        ),
+      },
+      {
+        key: 'avg_first_response_sec',
+        header: '加权首响秒数',
+        align: 'right',
+        sortable: true,
+        render: (_, a) => (
+          <span className="font-mono tabular-nums text-cyan-400 font-semibold">
+            {a.avg_first_response_sec}s
+          </span>
+        ),
+      },
+      {
+        key: 'converted_gmv',
+        header: '累计询单转化 GMV',
+        align: 'right',
+        sortable: true,
+        render: (_, a) => (
+          <span className="font-mono tabular-nums text-emerald-400 font-bold">
+            ¥{Number(a.converted_gmv).toLocaleString()}
+          </span>
+        ),
+      },
+    ],
+    []
+  )
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-100">客服咨询会话与响应绩效中心</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            覆盖京东 9:00–23:00 咚咚响应考核时段与全平台首响时长、超时率、询单转化率及客服静默转化 GMV 归因
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={loadData} loading={loading} icon={<RefreshCw className="w-3.5 h-3.5" />}>
-            刷新
-          </Button>
-          <Button size="sm" onClick={() => setShowModal(true)} icon={<Plus className="w-4 h-4" />}>
-            录入班次会话绩效
-          </Button>
-        </div>
-      </div>
-
       {errorMsg && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
           {errorMsg}
@@ -164,13 +335,19 @@ export function CustomerServicePage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-slate-400">总接待会话 / 坐席</p>
-              <p className="mt-1 text-2xl font-bold text-slate-100">{overview.totalSessions} / {overview.totalAgents}</p>
+              <p className="mt-1 text-2xl font-bold text-slate-100">
+                {overview.totalSessions} / {overview.totalAgents}
+              </p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-slate-400">平均首响时长</p>
-              <p className={`mt-1 text-2xl font-bold ${overview.avgFirstResponseSec > 25 ? 'text-amber-400' : 'text-emerald-400'}`}>
+              <p
+                className={`mt-1 text-2xl font-bold ${
+                  overview.avgFirstResponseSec > 25 ? 'text-amber-400' : 'text-emerald-400'
+                }`}
+              >
                 {overview.avgFirstResponseSec}s
               </p>
             </CardBody>
@@ -178,7 +355,11 @@ export function CustomerServicePage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-slate-400">超时率 (&gt;30s)</p>
-              <p className={`mt-1 text-2xl font-bold ${overview.timeoutRate > 5 ? 'text-red-400' : 'text-slate-100'}`}>
+              <p
+                className={`mt-1 text-2xl font-bold ${
+                  overview.timeoutRate > 5 ? 'text-red-400' : 'text-slate-100'
+                }`}
+              >
                 {overview.timeoutRate}%
               </p>
             </CardBody>
@@ -186,7 +367,9 @@ export function CustomerServicePage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-slate-400">询单下单转化率</p>
-              <p className="mt-1 text-2xl font-bold text-cyan-400">{overview.inquiryConversionRate}%</p>
+              <p className="mt-1 text-2xl font-bold text-cyan-400">
+                {overview.inquiryConversionRate}%
+              </p>
             </CardBody>
           </Card>
           <Card>
@@ -219,78 +402,119 @@ export function CustomerServicePage() {
         </div>
       )}
 
-      <Card>
-        <CardHeader className="flex items-center gap-2">
-          <Award className="w-4 h-4 text-amber-400" />
-          <span className="font-semibold text-slate-100">客服坐席效能榜</span>
-        </CardHeader>
-        <CardBody className="p-0 overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="border-b border-orbit-border text-xs text-slate-400 bg-orbit-surface2/50">
-              <tr>
-                <th className="px-4 py-3">工号 / 坐席姓名</th>
-                <th className="px-4 py-3">服务店铺与班次</th>
-                <th className="px-4 py-3 text-right">累计会话 / 超时数</th>
-                <th className="px-4 py-3 text-right">加权首响秒数</th>
-                <th className="px-4 py-3 text-right">累计询单转化 GMV</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-orbit-border">
-              {agents.map((a) => (
-                <tr key={a.id} className="hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 font-medium text-slate-100">
-                    {a.agent_name} <span className="text-xs text-slate-500 ml-1">({a.agent_code})</span>
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    <Badge variant="info">{a.platform_name}</Badge>
-                    <span className="ml-2 text-slate-300">{a.shop_name} · {a.shift_group === 'night' ? '晚班' : '白班 (9-23)'}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-slate-200">
-                    {a.total_sessions} / <span className="text-red-400">{a.timeout_sessions}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-cyan-400">{a.avg_first_response_sec}s</td>
-                  <td className="px-4 py-3 text-right font-semibold tabular-nums text-emerald-400">
-                    ¥{Number(a.converted_gmv).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardBody>
-      </Card>
+      {/* View Switcher Bar */}
+      <div className="flex items-center justify-between border-b border-orbit-border pb-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('sessions')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'sessions'
+                ? 'bg-orbit-primary/20 text-orbit-primary-light border border-orbit-primary/30'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            班次会话流水明细
+          </button>
+          <button
+            onClick={() => setActiveTab('agents')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'agents'
+                ? 'bg-orbit-primary/20 text-orbit-primary-light border border-orbit-primary/30'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Award className="w-4 h-4" />
+            客服坐席效能榜
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => setShowModal(true)}
+            icon={<Plus className="w-4 h-4" />}
+          >
+            录入班次会话绩效
+          </Button>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-orbit-primary-light" />
-          <span className="font-semibold text-slate-100">班次会话流水明细</span>
-        </CardHeader>
-        <CardBody className="p-0 overflow-x-auto">
-          <table className="w-full text-xs text-left">
-            <thead className="border-b border-orbit-border text-slate-400 bg-orbit-surface2/50">
-              <tr>
-                <th className="px-4 py-2.5">日期 / 班次</th>
-                <th className="px-4 py-2.5">坐席 / 平台</th>
-                <th className="px-4 py-2.5 text-right">接待 / 响应 / 超时</th>
-                <th className="px-4 py-2.5 text-right">首响秒数</th>
-                <th className="px-4 py-2.5 text-right">询单 → 成交人数</th>
-                <th className="px-4 py-2.5 text-right">转化 GMV / 满意度</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-orbit-border">
-              {sessions.map((s) => (
-                <tr key={s.id} className="hover:bg-white/[0.02]">
-                  <td className="px-4 py-2.5 text-slate-300">{s.session_date?.slice(0, 10)} · {s.shift_type === 'night' ? '晚班' : '白班'}</td>
-                  <td className="px-4 py-2.5 text-slate-200">{s.agent_name} ({s.platform_name})</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{s.total_sessions} / {s.responded_sessions} / <span className="text-red-400">{s.timeout_sessions}</span></td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-cyan-400">{s.avg_first_response_sec}s</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{s.inquiry_buyers} → {s.converted_buyers}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400">¥{Number(s.converted_gmv).toLocaleString()} ({s.satisfaction_rate}%)</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardBody>
-      </Card>
+      {activeTab === 'sessions' ? (
+        <DataPage<CsSessionRow>
+          title="客服咨询会话流水明细"
+          subtitle="覆盖京东 9:00–23:00 咚咚响应考核时段与全平台首响时长、超时率及询单转化 GMV 归因"
+          badge={
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-emerald-400 border border-orbit-border">
+              DataPage + useTable
+            </span>
+          }
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => Promise.all([sessionsTable.reload(), loadAuxData()])}
+              loading={sessionsTable.loading}
+              icon={<RefreshCw className="w-3.5 h-3.5" />}
+            >
+              刷新
+            </Button>
+          }
+          table={sessionsTable}
+          columns={sessionColumns}
+          searchPlaceholder="搜索坐席姓名、工号或店铺..."
+          exportFilename="cs_sessions_detail"
+          filterControls={
+            <div className="flex items-center gap-2">
+              <select
+                value={sessionsTable.filters.platformCode}
+                onChange={(e) => sessionsTable.setFilter('platformCode', e.target.value)}
+                className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+              >
+                <option value="">全部平台</option>
+                <option value="jd">京东 (咚咚)</option>
+                <option value="douyin">抖音</option>
+                <option value="kuaishou">快手</option>
+                <option value="pdd">拼多多</option>
+                <option value="taobao">淘宝</option>
+              </select>
+              <select
+                value={sessionsTable.filters.shiftType}
+                onChange={(e) => sessionsTable.setFilter('shiftType', e.target.value)}
+                className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+              >
+                <option value="">全部班次</option>
+                <option value="day">白班 (9:00–23:00)</option>
+                <option value="night">晚班</option>
+              </select>
+            </div>
+          }
+        />
+      ) : (
+        <DataPage<CsAgent>
+          title="客服坐席效能排行榜"
+          subtitle="全平台坐席累计接待人次、加权平均首响秒数、超时次数与转化 GMV 总榜"
+          badge={
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-cyan-400 border border-orbit-border">
+              坐席效能榜
+            </span>
+          }
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => Promise.all([agentsTable.reload(), loadAuxData()])}
+              loading={agentsTable.loading}
+              icon={<RefreshCw className="w-3.5 h-3.5" />}
+            >
+              刷新
+            </Button>
+          }
+          table={agentsTable}
+          columns={agentColumns}
+          searchPlaceholder="搜索坐席姓名、工号或服务店铺..."
+          exportFilename="cs_agent_leaderboard"
+        />
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -298,23 +522,76 @@ export function CustomerServicePage() {
             <h3 className="text-lg font-semibold text-slate-100">录入每日客服班次绩效</h3>
             <form onSubmit={handleSaveSession} className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <select value={form.agentId} onChange={(e) => setForm({ ...form, agentId: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
-                  {agents.map((a) => <option key={a.id} value={a.id}>{a.agent_name} ({a.platform_name})</option>)}
+                <select
+                  value={form.agentId}
+                  onChange={(e) => setForm({ ...form, agentId: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                >
+                  {agents.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.agent_name} ({a.platform_name})
+                    </option>
+                  ))}
                 </select>
-                <input type="date" value={form.sessionDate} onChange={(e) => setForm({ ...form, sessionDate: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <input
+                  type="date"
+                  value={form.sessionDate}
+                  onChange={(e) => setForm({ ...form, sessionDate: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                />
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <input type="number" placeholder="总会话" value={form.totalSessions} onChange={(e) => setForm({ ...form, totalSessions: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input type="number" placeholder="超时数" value={form.timeoutSessions} onChange={(e) => setForm({ ...form, timeoutSessions: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input type="number" step="0.1" placeholder="首响秒数" value={form.avgFirstResponseSec} onChange={(e) => setForm({ ...form, avgFirstResponseSec: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <input
+                  type="number"
+                  placeholder="总会话"
+                  value={form.totalSessions}
+                  onChange={(e) => setForm({ ...form, totalSessions: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                />
+                <input
+                  type="number"
+                  placeholder="超时数"
+                  value={form.timeoutSessions}
+                  onChange={(e) => setForm({ ...form, timeoutSessions: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                />
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="首响秒数"
+                  value={form.avgFirstResponseSec}
+                  onChange={(e) => setForm({ ...form, avgFirstResponseSec: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                />
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <input type="number" placeholder="询单人数" value={form.inquiryBuyers} onChange={(e) => setForm({ ...form, inquiryBuyers: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input type="number" placeholder="成交人数" value={form.convertedBuyers} onChange={(e) => setForm({ ...form, convertedBuyers: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input type="number" step="0.01" placeholder="转化GMV" value={form.convertedGmv} onChange={(e) => setForm({ ...form, convertedGmv: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <input
+                  type="number"
+                  placeholder="询单人数"
+                  value={form.inquiryBuyers}
+                  onChange={(e) => setForm({ ...form, inquiryBuyers: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                />
+                <input
+                  type="number"
+                  placeholder="成交人数"
+                  value={form.convertedBuyers}
+                  onChange={(e) => setForm({ ...form, convertedBuyers: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="转化GMV"
+                  value={form.convertedGmv}
+                  onChange={(e) => setForm({ ...form, convertedGmv: e.target.value })}
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>取消</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>
+                  取消
+                </Button>
                 <Button type="submit">保存绩效</Button>
               </div>
             </form>

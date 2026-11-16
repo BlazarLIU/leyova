@@ -194,7 +194,7 @@ export async function kolRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/kol/cooperations ── 登记达人带货/种草排期并计算净佣金
-  app.post('/api/v1/kol/cooperations', { preHandler: [requireRole([...opsRoles, 'finance'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/kol/cooperations', { preHandler: [requireRole([...opsRoles])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     const body = request.body as {
       kolId?: number
       platformCode?: string
@@ -253,7 +253,7 @@ export async function kolRoutes(app: FastifyInstance) {
   // ── PATCH /api/v1/kol/cooperations/:id/settle ── 确认/打款结算达人佣金
   app.patch<{ Params: { id: string } }>(
     '/api/v1/kol/cooperations/:id/settle',
-    { preHandler: [requireRole(['super_admin', 'admin', 'finance'])] },
+    { preHandler: [requireRole(['super_admin', 'admin'])] },
     async (request, reply) => {
       const body = request.body as {
         settlementStatus?: 'confirmed' | 'paid' | 'disputed'

@@ -10,7 +10,23 @@ import { runAllPlatformsSync } from '../ingest/sync-job.js'
 import { rotateAllFiles } from '../cli/cleanup-logs.js'
 import { searchMemory } from '../lib/openviking-client.js'
 import { searchKnowledge } from '../lib/anythingllm-client.js'
-import { requestOpenClawReply, LEYOVA_SYSTEM_PROMPT, type AiScopeContext } from '../lib/ai-gateway.js'
+import { defaultLlmProvider } from '../ai/llm/openai-compatible.js'
+import type { AiScopeContext } from '../lib/ai-types.js'
+
+const LEYOVA_SYSTEM_PROMPT = '你是乐友电商经营分析助手，请基于提供的经营指标输出准确的分析报告。'
+
+async function requestLlmReply(prompt: string): Promise<string | null> {
+  if (defaultLlmProvider.isAvailable()) {
+    const res = await defaultLlmProvider.chat([
+      { role: 'system', content: LEYOVA_SYSTEM_PROMPT },
+      { role: 'user', content: prompt },
+    ])
+    if (res?.reply) return res.reply
+  }
+  return null
+}
+
+import { runCompliancePatrolJob } from './compliance-patrol.js'
 
 /**
  * 统一受控任务执行包装：将每次定时任务运行状态/耗时/异常持久化写入 system_jobs
@@ -133,6 +149,11 @@ export function registerCronJobs(): void {
     await runTrackedJob('ai_review_drafts', 'AI 复盘草稿生成', () => runReviewDrafts())
   })
 
+  // ── Compliance patrol scan: daily 3x (09:30, 13:00, 18:30) (FINAL-PLAN Phase 3) ──
+  cron.schedule('30 9,13,18 * * *', async () => {
+    await runTrackedJob('compliance_patrol', '每日3次全网合规风控巡检', () => runCompliancePatrolJob())
+  })
+
   // ── Health check for dev: every 5 min in development ──
   if (process.env.NODE_ENV !== 'production') {
     cron.schedule('*/5 * * * *', () => {
@@ -178,27 +199,21 @@ async function runDailyAiBriefing(): Promise<void> {
   const summary = rows[0]
   const prompt = `请基于今日经营数据生成一份简短日报，输出：概览、异常、建议。\n\n数据：\n- 日期：${today}\n- 直播场次：${summary.total_sessions}\n- GMV：${summary.total_gmv}\n- 订单：${summary.total_orders}`
 
-  const reply = await requestOpenClawReply({
-    message: prompt,
-    conversationId: `daily-${today}`,
-    modelName: process.env.OPENCLAW_MODEL || 'claude-opus-4.6',
-    context: scope,
-    systemPrompt: LEYOVA_SYSTEM_PROMPT,
-    history: [],
-  })
+  const replyText = await requestLlmReply(prompt) ||
+    `### 📊 今日经营日报（自动汇总）\n- 日期：${today}\n- 直播场次：${summary.total_sessions || 0}\n- 总体 GMV：${summary.total_gmv || 0} 元\n- 支付订单数：${summary.total_orders || 0}\n> 注：系统以底层事实表进行确定性汇总生成。`
 
-  if (reply?.reply) {
+  if (replyText) {
     const { rows: convRows } = await pool.query(
       `INSERT INTO ai_conversations (user_id, title, model_name, status)
        VALUES (1, $1, $2, 'active') RETURNING id`,
-      [`daily-${today}`, process.env.OPENCLAW_MODEL || 'claude-opus-4.6']
+      [`daily-${today}`, process.env.LLM_MODEL || 'deepseek-chat']
     ).catch(() => ({ rows: [] as any[] }))
 
     if (convRows.length > 0) {
       await pool.query(
         `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
-        [convRows[0].id, reply.reply]
-      ).catch(() => {})
+        [convRows[0].id, replyText]
+      ).catch(() => { })
     }
   }
 }
@@ -238,27 +253,21 @@ async function runAnomalyPatrol(): Promise<void> {
     knowledge ? `\n知识库参考：\n${knowledge}` : '',
   ].join('\n')
 
-  const reply = await requestOpenClawReply({
-    message: prompt,
-    conversationId: `patrol-${Date.now()}`,
-    modelName: process.env.OPENCLAW_MODEL || 'claude-opus-4.6',
-    context: scope,
-    systemPrompt: LEYOVA_SYSTEM_PROMPT,
-    history: [],
-  })
+  const replyText = await requestLlmReply(prompt) ||
+    `### ⚠️ 系统异常巡检摘要\n共检测到 ${rows.length} 项待处理业务预警。\n- 建议：请相关运营人员前往预警中心进行复核与核销。`
 
-  if (reply?.reply) {
+  if (replyText) {
     const { rows: convRows } = await pool.query(
       `INSERT INTO ai_conversations (user_id, title, model_name, status)
        VALUES (1, $1, $2, 'active') RETURNING id`,
-      [`patrol-${new Date().toISOString().slice(0,10)}`, process.env.OPENCLAW_MODEL || 'claude-opus-4.6']
+      [`patrol-${new Date().toISOString().slice(0, 10)}`, process.env.LLM_MODEL || 'deepseek-chat']
     ).catch(() => ({ rows: [] as any[] }))
 
     if (convRows.length > 0) {
       await pool.query(
         `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
-        [convRows[0].id, reply.reply]
-      ).catch(() => {})
+        [convRows[0].id, replyText]
+      ).catch(() => { })
     }
 
     // 修复 P0-4 消费闭环：将已完成 AI 巡检分析的 pending 告警推进至 processing 状态，避免无限次重复巡检
@@ -340,27 +349,21 @@ async function runReviewDrafts(): Promise<void> {
       knowledge ? `\n知识库参考：\n${knowledge}` : '',
     ].join('\n')
 
-    const reply = await requestOpenClawReply({
-      message: prompt,
-      conversationId: reviewTitle,
-      modelName: process.env.OPENCLAW_MODEL || 'claude-opus-4.6',
-      context: scope,
-      systemPrompt: LEYOVA_SYSTEM_PROMPT,
-      history: [],
-    })
+    const replyText = await requestLlmReply(prompt) ||
+      `### 🎙️ 直播场次自动复盘（确定性汇总）\n- 场次：${s.title}\n- 主播：${s.anchor_name || '未知'}\n- GMV：${s.gmv} 元\n- 订单：${s.orders}\n- 千次展现成交 (GPM)：${s.gpm} 元`
 
-    if (reply?.reply) {
+    if (replyText) {
       const { rows: convRows } = await pool.query(
         `INSERT INTO ai_conversations (user_id, title, model_name, status)
          VALUES (1, $1, $2, 'active') RETURNING id`,
-        [reviewTitle, process.env.HERMES_MODEL || 'claude-opus-4.6']
+        [reviewTitle, process.env.LLM_MODEL || 'deepseek-chat']
       ).catch(() => ({ rows: [] as any[] }))
 
       if (convRows.length > 0) {
         await pool.query(
           `INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1, 'assistant', $2)`,
-          [convRows[0].id, reply.reply]
-        ).catch(() => {})
+          [convRows[0].id, replyText]
+        ).catch(() => { })
       }
     }
   }

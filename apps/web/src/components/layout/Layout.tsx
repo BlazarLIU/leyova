@@ -6,7 +6,7 @@ import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { Footer } from './Footer'
 import { SidebarContext, useSidebarState } from '@/hooks/useSidebar'
-import { AuthContext, type AuthUser } from '@/hooks/useAuth'
+import { AuthContext, type AuthUser, type AccessInfo } from '@/hooks/useAuth'
 import { usePlatform } from '@/hooks/usePlatform'
 import { checkRoutePlatformCompatibility } from '@/utils/platformRoute'
 import { PlatformMismatchNotice } from '@/components/common/PlatformMismatchNotice'
@@ -22,6 +22,8 @@ export function Layout() {
   const [authChecking, setAuthChecking] = useState(true)
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
   const [roles, setRoles] = useState<RoleInfo[]>([])
+  // S2：服务端解析后的「模式 × 平台 × 模块」权限
+  const [access, setAccess] = useState<AccessInfo | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -34,6 +36,7 @@ export function Layout() {
           return
         }
         setAuthUser(res.user)
+        if (res.access) setAccess(res.access as AccessInfo)
         try {
           const roleList = await api.get<RoleInfo[]>('/system/roles')
           if (!cancelled && Array.isArray(roleList)) {
@@ -60,16 +63,28 @@ export function Layout() {
 
   const allowedModules = useMemo(() => {
     if (!authUser || isBrandViewer) return []
+    // 优先用服务端解析后的权限（含模式、用户覆盖、平台能力过滤）
+    if (access?.modules) return access.modules
+    // 回退：旧路径（/auth/me 未返回 access 时）
     const found = roles.find(r => r.code === authUser.role)
     return Array.isArray(found?.modules) ? found.modules : []
-  }, [authUser, roles, isBrandViewer])
+  }, [authUser, roles, isBrandViewer, access])
+
+  /** 当前平台下实际可用的模块（平台能力矩阵已扣除非适用项） */
+  const platformModules = useMemo(() => {
+    if (!authUser || isBrandViewer) return []
+    if (isSuperAdmin) return allowedModules
+    const code = currentPlatform?.platform_code
+    if (!code || !access?.modulesByPlatform) return allowedModules
+    return access.modulesByPlatform[code] ?? allowedModules
+  }, [authUser, isBrandViewer, isSuperAdmin, currentPlatform, access, allowedModules])
 
   const hasModule = useCallback((moduleCode?: string): boolean => {
     if (!authUser || authChecking || isBrandViewer) return false
     if (isSuperAdmin) return true
-    if (!moduleCode || allowedModules.length === 0) return false
-    return allowedModules.includes(moduleCode)
-  }, [authUser, authChecking, isBrandViewer, isSuperAdmin, allowedModules])
+    if (!moduleCode || platformModules.length === 0) return false
+    return platformModules.includes(moduleCode)
+  }, [authUser, authChecking, isBrandViewer, isSuperAdmin, platformModules])
 
   const hasAnyModule = useCallback((moduleCodes: string[]): boolean => {
     return moduleCodes.some(m => hasModule(m))
@@ -85,13 +100,15 @@ export function Layout() {
     user: authUser,
     roles,
     allowedModules,
+    platformModules,
+    access,
     loading: authChecking,
     isBrandViewer,
     isSuperAdmin,
     hasModule,
     hasAnyModule,
     hasRole,
-  }), [authUser, roles, allowedModules, authChecking, isBrandViewer, isSuperAdmin, hasModule, hasAnyModule, hasRole])
+  }), [authUser, roles, allowedModules, platformModules, access, authChecking, isBrandViewer, isSuperAdmin, hasModule, hasAnyModule, hasRole])
 
   return (
     <AuthContext.Provider value={authValue}>

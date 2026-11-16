@@ -4,7 +4,7 @@ import { Layout } from '@/components/layout/Layout'
 import { RequireAccess } from '@/components/auth/RequireAccess'
 import { useAuth, getDefaultHomePath } from '@/hooks/useAuth'
 import { SignInPage } from '@/pages/auth/SignInPage'
-import { BrandLoginPage } from '@/pages/brand-portal/BrandLoginPage'
+import { PlatformInsightPage } from '@/pages/insights/PlatformInsightPage'
 
 function lazyPage<M extends Record<string, any>, K extends keyof M>(
   loader: () => Promise<M>,
@@ -30,6 +30,9 @@ const DataLivePage = lazyPage(() => import('@/pages/live/DataLivePage'), 'DataLi
 // AI
 const ChatPage = lazyPage(() => import('@/pages/ai/ChatPage'), 'ChatPage')
 const WeatherSelectionPage = lazyPage(() => import('@/pages/ai/WeatherSelectionPage'), 'WeatherSelectionPage')
+const SelectionPage = lazyPage(() => import('@/pages/ai/SelectionPage'), 'SelectionPage')
+const CampaignPlanPage = lazyPage(() => import('@/pages/ai/CampaignPlanPage'), 'CampaignPlanPage')
+const SelectionHistoryPage = lazyPage(() => import('@/pages/ai/SelectionHistoryPage'), 'SelectionHistoryPage')
 const AnalysisWorkbenchPage = lazyPage(() => import('@/pages/ai/AnalysisWorkbenchPage'), 'AnalysisWorkbenchPage')
 
 // 数据管理 & 全渠道店铺
@@ -44,15 +47,9 @@ const ShopProductsPage = lazyPage(() => import('@/pages/shop/ShopProductsPage'),
 const TaobaoShopBoardPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoShopBoardPage'), 'TaobaoShopBoardPage')
 const TaobaoAdReconciliationPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoAdReconciliationPage'), 'TaobaoAdReconciliationPage')
 const TaobaoProductChannelPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoProductChannelPage'), 'TaobaoProductChannelPage')
-const PddGroupFunnelPage = lazyPage(() => import('@/pages/shop/pdd/PddGroupFunnelPage'), 'PddGroupFunnelPage')
-const PddCaliberComparePage = lazyPage(() => import('@/pages/shop/pdd/PddCaliberComparePage'), 'PddCaliberComparePage')
-const PddRefundAnalysisPage = lazyPage(() => import('@/pages/shop/pdd/PddRefundAnalysisPage'), 'PddRefundAnalysisPage')
 const KsTrafficSplitPage = lazyPage(() => import('@/pages/shop/kuaishou/KsTrafficSplitPage'), 'KsTrafficSplitPage')
 const KsIndirectGmvPage = lazyPage(() => import('@/pages/shop/kuaishou/KsIndirectGmvPage'), 'KsIndirectGmvPage')
 const KsFansTeamPage = lazyPage(() => import('@/pages/shop/kuaishou/KsFansTeamPage'), 'KsFansTeamPage')
-const JdBusinessBoardPage = lazyPage(() => import('@/pages/shop/jd/JdBusinessBoardPage'), 'JdBusinessBoardPage')
-const JdFulfillmentPage = lazyPage(() => import('@/pages/shop/jd/JdFulfillmentPage'), 'JdFulfillmentPage')
-const JdStoreRatingPage = lazyPage(() => import('@/pages/shop/jd/JdStoreRatingPage'), 'JdStoreRatingPage')
 const XhsNoteBoardPage = lazyPage(() => import('@/pages/shop/xiaohongshu/XhsNoteBoardPage'), 'XhsNoteBoardPage')
 const XhsConversionPage = lazyPage(() => import('@/pages/shop/xiaohongshu/XhsConversionPage'), 'XhsConversionPage')
 
@@ -66,11 +63,20 @@ const ContentCenterConfigPage = lazyPage(() => import('@/pages/content/ContentCe
 const RefundAnalysisPage = lazyPage(() => import('@/pages/bi/RefundAnalysisPage'), 'RefundAnalysisPage')
 const BiDashboardPage = lazyPage(() => import('@/pages/bi/BiDashboardPage'), 'BiDashboardPage')
 const AnomalyDetectionPage = lazyPage(() => import('@/pages/bi/AnomalyDetectionPage'), 'AnomalyDetectionPage')
+const UnifiedDashboardHub = lazyPage(() => import('@/pages/bi/UnifiedDashboardHub'), 'UnifiedDashboardHub')
+const UnifiedScheduleHub = lazyPage(() => import('@/pages/ops/schedule/UnifiedScheduleHub'), 'UnifiedScheduleHub')
 
 // 主播赋能
 const AnchorListPage = lazyPage(() => import('@/pages/anchors/AnchorListPage'), 'AnchorListPage')
 const AnchorProfilePage = lazyPage(() => import('@/pages/anchors/AnchorProfilePage'), 'AnchorProfilePage')
 const TrainingPage = lazyPage(() => import('@/pages/anchors/TrainingPage'), 'TrainingPage')
+const HrbpWorkspacePage = lazyPage(() => import('@/pages/anchors/HrbpWorkspacePage'), 'HrbpWorkspacePage')
+const LiveScheduleCalendarPage = lazyPage(() => import('@/pages/anchors/LiveScheduleCalendarPage'), 'LiveScheduleCalendarPage')
+const DouyinShortVideoFunnelPage = lazyPage(() => import('@/pages/shop/douyin/DouyinShortVideoFunnelPage'), 'DouyinShortVideoFunnelPage')
+const TaobaoShopSessionPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoShopSessionPage'), 'TaobaoShopSessionPage')
+const XhsNoteToLivePage = lazyPage(() => import('@/pages/shop/xiaohongshu/XhsNoteToLivePage'), 'XhsNoteToLivePage')
+const WechatPrivatePublicPage = lazyPage(() => import('@/pages/shop/wechat/WechatPrivatePublicPage'), 'WechatPrivatePublicPage')
+const BrandPortalPage = lazyPage(() => import('@/pages/brand-portal/BrandPortalPage'), 'BrandPortalPage')
 const ScriptTemplatesPage = lazyPage(() => import('@/pages/anchors/ScriptTemplatesPage'), 'ScriptTemplatesPage')
 const ScheduleRecommendPage = lazyPage(() => import('@/pages/anchors/ScheduleRecommendPage'), 'ScheduleRecommendPage')
 const ScheduleManagementPage = lazyPage(() => import('@/pages/anchors/ScheduleManagementPage'), 'ScheduleManagementPage')
@@ -79,7 +85,6 @@ const MyPerformancePage = lazyPage(() => import('@/pages/anchors/MyPerformancePa
 
 // 运营提效 & 业务中台
 const CapabilitiesPage = lazyPage(() => import('@/pages/ops/CapabilitiesPage'), 'CapabilitiesPage')
-const CostStructurePage = lazyPage(() => import('@/pages/ops/CostStructurePage'), 'CostStructurePage')
 const IssueLibraryPage = lazyPage(() => import('@/pages/ops/IssueLibraryPage'), 'IssueLibraryPage')
 const GoalTrackingPage = lazyPage(() => import('@/pages/ops/GoalTrackingPage'), 'GoalTrackingPage')
 const RoomHealthPage = lazyPage(() => import('@/pages/ops/RoomHealthPage'), 'RoomHealthPage')
@@ -94,10 +99,6 @@ const SearchKeywordsPage = lazyPage(() => import('@/pages/ops/search-seo/SearchK
 const MembersPage = lazyPage(() => import('@/pages/ops/members/MembersPage'), 'MembersPage')
 
 // MCN 代运营与品牌方
-const ClientsPage = lazyPage(() => import('@/pages/agency/ClientsPage'), 'ClientsPage')
-const ProjectsPage = lazyPage(() => import('@/pages/agency/ProjectsPage'), 'ProjectsPage')
-const SettlementPage = lazyPage(() => import('@/pages/agency/SettlementPage'), 'SettlementPage')
-const BrandDashboardPage = lazyPage(() => import('@/pages/brand-portal/BrandDashboardPage'), 'BrandDashboardPage')
 
 // 直播复盘
 const ReviewOverviewPage = lazyPage(() => import('@/pages/review/ReviewOverviewPage'), 'ReviewOverviewPage')
@@ -122,6 +123,10 @@ const PromotionCampaignsPage = lazyPage(() => import('@/pages/system/PromotionCa
 const CompetitorWatchPage = lazyPage(() => import('@/pages/system/CompetitorWatchPage'), 'CompetitorWatchPage')
 const MultiRoomOverviewPage = lazyPage(() => import('@/pages/system/MultiRoomOverviewPage'), 'MultiRoomOverviewPage')
 const CompliancePage = lazyPage(() => import('@/pages/system/CompliancePage'), 'CompliancePage')
+const RolesPage = lazyPage(() => import('@/pages/system/RolesPage'), 'RolesPage')
+const SystemJobsPage = lazyPage(() => import('@/pages/system/SystemJobsPage'), 'SystemJobsPage')
+const RuleRadarPage = lazyPage(() => import('@/pages/compliance/RuleRadarPage'), 'RuleRadarPage')
+const ChangeDetailPage = lazyPage(() => import('@/pages/compliance/ChangeDetailPage'), 'ChangeDetailPage')
 
 function HomeLandingRedirect() {
   const { user, allowedModules, loading } = useAuth()
@@ -141,16 +146,16 @@ export default function App() {
       <Routes>
         {/* Auth routes — no sidebar layout */}
         <Route path="/sign-in" element={<SignInPage />} />
-        <Route path="/brand-login" element={<BrandLoginPage />} />
 
         {/* Main app routes — with sidebar layout */}
         <Route element={<Layout />}>
           {/* 默认按角色与权限智能跳转首页 */}
           <Route path="/" element={<HomeLandingRedirect />} />
 
-          {/* ===== 总览 ===== */}
+          {/* ===== 总览与 8合1 看板 ===== */}
           <Route path="/overview/home" element={<RequireAccess module="overview"><PlatformAwareHomePage /></RequireAccess>} />
-          <Route path="/overview/cockpit" element={<RequireAccess module="overview"><CockpitPage /></RequireAccess>} />
+          <Route path="/overview/cockpit" element={<RequireAccess module="overview"><UnifiedDashboardHub defaultView="cockpit" /></RequireAccess>} />
+          <Route path="/overview/cockpit/standalone" element={<RequireAccess module="overview"><CockpitPage /></RequireAccess>} />
           <Route path="/overview/live-monitor" element={<RequireAccess module="overview"><LiveMonitorPage /></RequireAccess>} />
           <Route path="/overview/sessions" element={<RequireAccess module="session"><SessionsPage /></RequireAccess>} />
           <Route path="/overview/analytics" element={<RequireAccess module="overview"><AnalyticsPage /></RequireAccess>} />
@@ -162,6 +167,9 @@ export default function App() {
 
           {/* ===== AI 助手 ===== */}
           <Route path="/ai/chat" element={<RequireAccess module="ai"><ChatPage /></RequireAccess>} />
+          <Route path="/ai/selection" element={<RequireAccess module="ai"><SelectionPage /></RequireAccess>} />
+          <Route path="/ai/campaign-plan" element={<RequireAccess module="ai"><CampaignPlanPage /></RequireAccess>} />
+          <Route path="/ai/selection/history" element={<RequireAccess module="ai"><SelectionHistoryPage /></RequireAccess>} />
           <Route path="/ai/weather" element={<RequireAccess module="ai"><WeatherSelectionPage /></RequireAccess>} />
 
           {/* ===== 数据管理 ===== */}
@@ -170,27 +178,24 @@ export default function App() {
           <Route path="/data/uploaded-data" element={<RequireAccess module="data"><UploadedDataPage /></RequireAccess>} />
           <Route path="/data/quality" element={<RequireAccess module="data"><DataQualityPage /></RequireAccess>} />
           <Route path="/data/ingest" element={<RequireAccess module="data"><IngestWizardPage /></RequireAccess>} />
-          <Route path="/omnichannel/dashboard" element={<RequireAccess module="overview"><OmniDashboardPage /></RequireAccess>} />
+          <Route path="/omnichannel/dashboard" element={<RequireAccess module="overview"><UnifiedDashboardHub defaultView="omnichannel" /></RequireAccess>} />
+          <Route path="/omnichannel/dashboard/standalone" element={<RequireAccess module="overview"><OmniDashboardPage /></RequireAccess>} />
+          <Route path="/brand-portal" element={<RequireAccess allowBrandViewer><BrandPortalPage /></RequireAccess>} />
           <Route path="/content/center-config" element={<RequireAccess anyModules={['content', 'system_ai']}><ContentCenterConfigPage /></RequireAccess>} />
           <Route path="/ai/workbench" element={<RequireAccess module="overview"><AnalysisWorkbenchPage /></RequireAccess>} />
           <Route path="/shop/overview" element={<RequireAccess module="overview"><ShopOverviewPage /></RequireAccess>} />
           <Route path="/shop/products" element={<RequireAccess module="product_center"><ShopProductsPage /></RequireAccess>} />
           <Route path="/shop/taobao/board" element={<RequireAccess module="overview"><TaobaoShopBoardPage /></RequireAccess>} />
           <Route path="/shop/taobao/ad-reconciliation" element={<RequireAccess anyModules={['overview', 'ops']}><TaobaoAdReconciliationPage /></RequireAccess>} />
-          <Route path="/shop/pdd/group-funnel" element={<RequireAccess module="bi"><PddGroupFunnelPage /></RequireAccess>} />
-          <Route path="/shop/pdd/caliber-compare" element={<RequireAccess module="bi"><PddCaliberComparePage /></RequireAccess>} />
           <Route path="/shop/kuaishou/traffic-split" element={<RequireAccess module="bi"><KsTrafficSplitPage /></RequireAccess>} />
           <Route path="/shop/kuaishou/indirect-gmv" element={<RequireAccess module="bi"><KsIndirectGmvPage /></RequireAccess>} />
           <Route path="/shop/kuaishou/fans-team" element={<RequireAccess module="ops"><KsFansTeamPage /></RequireAccess>} />
-          <Route path="/shop/jd/board" element={<RequireAccess module="overview"><JdBusinessBoardPage /></RequireAccess>} />
-          <Route path="/shop/jd/fulfillment" element={<RequireAccess module="fulfillment"><JdFulfillmentPage /></RequireAccess>} />
-          <Route path="/shop/jd/store-rating" element={<RequireAccess module="fulfillment"><JdStoreRatingPage /></RequireAccess>} />
-          <Route path="/shop/pdd/refund" element={<RequireAccess module="bi"><PddRefundAnalysisPage /></RequireAccess>} />
           <Route path="/shop/taobao/product-channel" element={<RequireAccess anyModules={['overview', 'ops']}><TaobaoProductChannelPage /></RequireAccess>} />
           <Route path="/shop/xiaohongshu/notes" element={<RequireAccess module="content"><XhsNoteBoardPage /></RequireAccess>} />
           <Route path="/shop/xiaohongshu/conversion" element={<RequireAccess module="content"><XhsConversionPage /></RequireAccess>} />
           <Route path="/system/platforms" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><PlatformManagementPage /></RequireAccess>} />
           <Route path="/system/users" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><UsersPage /></RequireAccess>} />
+          <Route path="/system/roles" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><RolesPage /></RequireAccess>} />
           <Route path="/system/audit-logs" element={<RequireAccess roles={['super_admin', 'admin']} module="audit_logs"><AuditLogsPage /></RequireAccess>} />
           <Route path="/system/dict" element={<RequireAccess roles={['super_admin']} module="system_dict"><DictPage /></RequireAccess>} />
 
@@ -200,7 +205,8 @@ export default function App() {
           <Route path="/content/schedule" element={<RequireAccess module="content_schedule"><ContentSchedulePage /></RequireAccess>} />
 
           {/* ===== 商业智能 ===== */}
-          <Route path="/bi/dashboard" element={<RequireAccess module="bi"><BiDashboardPage /></RequireAccess>} />
+          <Route path="/bi/dashboard" element={<RequireAccess module="bi"><UnifiedDashboardHub defaultView="bi" /></RequireAccess>} />
+          <Route path="/bi/dashboard/standalone" element={<RequireAccess module="bi"><BiDashboardPage /></RequireAccess>} />
           <Route path="/bi/roi" element={<Navigate to="/ops/net-roi" replace />} />
           <Route path="/bi/refund-analysis" element={<RequireAccess module="bi"><RefundAnalysisPage /></RequireAccess>} />
           <Route path="/bi/anomaly-detection" element={<RequireAccess module="bi"><AnomalyDetectionPage /></RequireAccess>} />
@@ -209,9 +215,31 @@ export default function App() {
           <Route path="/anchors/list" element={<RequireAccess module="anchor"><AnchorListPage /></RequireAccess>} />
           <Route path="/anchors/profile" element={<RequireAccess module="anchor"><AnchorProfilePage /></RequireAccess>} />
           <Route path="/anchors/training" element={<RequireAccess module="anchor"><TrainingPage /></RequireAccess>} />
-          <Route path="/anchors/schedule" element={<RequireAccess module="anchor"><ScheduleManagementPage /></RequireAccess>} />
-          <Route path="/anchors/my-schedule" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><MySchedulePage /></RequireAccess>} />
-          <Route path="/anchors/schedule-recommend" element={<RequireAccess module="anchor"><ScheduleRecommendPage /></RequireAccess>} />
+          <Route path="/hrbp/workspace" element={<RequireAccess anyModules={['anchor', 'system_personnel_ops']}><HrbpWorkspacePage /></RequireAccess>} />
+          <Route path="/anchors/live-schedule" element={<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="calendar" /></RequireAccess>} />
+          <Route path="/anchors/live-schedule/standalone" element={<RequireAccess module="anchor"><LiveScheduleCalendarPage /></RequireAccess>} />
+          <Route path="/insights/douyin/short-video" element={<RequireAccess module="review_channels"><DouyinShortVideoFunnelPage /></RequireAccess>} />
+          <Route path="/insights/taobao/shop-session" element={<RequireAccess module="overview"><TaobaoShopSessionPage /></RequireAccess>} />
+          <Route path="/insights/xiaohongshu/note-live" element={<RequireAccess module="content"><XhsNoteToLivePage /></RequireAccess>} />
+          <Route path="/insights/wechat/private-public" element={<RequireAccess module="review_channels"><WechatPrivatePublicPage /></RequireAccess>} />
+          {/* ── P9 合并项：10 个平台专属套壳页 → 1 个通用配置驱动页 ── */}
+          {/* P9 合并项：10 个平台专属套壳页 → PlatformInsightPage（含显式路径供测试解析） */}
+          <Route path="/insights/douyin/three-pools" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/taobao/three-sources" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/tmall/brand-sessions" element={<RequireAccess module="session"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/tmall/promotion-layers" element={<RequireAccess module="system_promotions"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/tmall/live-promo-link" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/xiaohongshu/buyer-profile" element={<RequireAccess module="anchor"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/xiaohongshu/dandelion" element={<RequireAccess module="kol"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/xiaohongshu/traffic-sources" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/wechat/affiliate" element={<RequireAccess module="anchor"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/insights/wechat/content" element={<RequireAccess module="content"><PlatformInsightPage /></RequireAccess>} />
+          <Route path="/anchors/schedule" element={<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="management" /></RequireAccess>} />
+          <Route path="/anchors/schedule/standalone" element={<RequireAccess module="anchor"><ScheduleManagementPage /></RequireAccess>} />
+          <Route path="/anchors/my-schedule" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><UnifiedScheduleHub defaultView="my-schedule" /></RequireAccess>} />
+          <Route path="/anchors/my-schedule/standalone" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><MySchedulePage /></RequireAccess>} />
+          <Route path="/anchors/schedule-recommend" element={<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="recommend" /></RequireAccess>} />
+          <Route path="/anchors/schedule-recommend/standalone" element={<RequireAccess module="anchor"><ScheduleRecommendPage /></RequireAccess>} />
           <Route path="/anchors/my-performance" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><MyPerformancePage /></RequireAccess>} />
 
           {/* ===== 运营提效 ===== */}
@@ -221,21 +249,16 @@ export default function App() {
           <Route path="/ops/goal-tracking" element={<RequireAccess module="ops"><GoalTrackingPage /></RequireAccess>} />
           <Route path="/ops/room-health" element={<RequireAccess module="ops"><RoomHealthPage /></RequireAccess>} />
           <Route path="/ops/session-products" element={<RequireAccess module="session_products"><SessionProductsPage /></RequireAccess>} />
-          <Route path="/ops/costs" element={<RequireAccess roles={['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance']} module="ops"><CostStructurePage /></RequireAccess>} />
           <Route path="/ops/inventory" element={<RequireAccess module="product_center"><InventoryCenterPage /></RequireAccess>} />
           <Route path="/ops/fulfillment" element={<RequireAccess module="fulfillment"><FulfillmentSlaPage /></RequireAccess>} />
           <Route path="/ops/after-sales" element={<RequireAccess module="after_sales"><AfterSalesPage /></RequireAccess>} />
           <Route path="/ops/kol" element={<RequireAccess module="kol"><KolCooperationPage /></RequireAccess>} />
           <Route path="/ops/cs" element={<RequireAccess module="customer_service"><CustomerServicePage /></RequireAccess>} />
-          <Route path="/ops/net-roi" element={<RequireAccess roles={['super_admin', 'admin', 'finance', 'ops_director', 'ad_buyer']} module="net_roi"><NetRoiPage /></RequireAccess>} />
+          <Route path="/ops/net-roi" element={<RequireAccess roles={['super_admin', 'admin', 'ops_director', 'ad_buyer']} module="net_roi"><NetRoiPage /></RequireAccess>} />
           <Route path="/ops/search-keywords" element={<RequireAccess module="search_seo"><SearchKeywordsPage /></RequireAccess>} />
           <Route path="/ops/members" element={<RequireAccess module="members"><MembersPage /></RequireAccess>} />
 
           {/* ===== MCN 代运营与对账中心 ===== */}
-          <Route path="/agency/clients" element={<RequireAccess module="agency"><ClientsPage /></RequireAccess>} />
-          <Route path="/agency/projects" element={<RequireAccess module="agency"><ProjectsPage /></RequireAccess>} />
-          <Route path="/agency/settlement" element={<RequireAccess module="agency"><SettlementPage /></RequireAccess>} />
-          <Route path="/brand-portal" element={<RequireAccess allowBrandViewer module="agency"><BrandDashboardPage /></RequireAccess>} />
 
           {/* ===== 直播复盘 ===== */}
           <Route path="/review/overview" element={<RequireAccess anyModules={['review_overview', 'review']}><ReviewOverviewPage /></RequireAccess>} />
@@ -248,6 +271,7 @@ export default function App() {
 
           {/* ===== 系统 ===== */}
           <Route path="/system/config" element={<RequireAccess roles={['super_admin']} module="system_config"><SystemConfigPage /></RequireAccess>} />
+          <Route path="/system/jobs" element={<RequireAccess roles={['super_admin', 'admin', 'ops_director', 'operator']} module="system_config"><SystemJobsPage /></RequireAccess>} />
           <Route path="/system/personnel" element={<RequireAccess module="system_personnel_ops"><PersonnelPage /></RequireAccess>} />
           <Route path="/system/rooms" element={<RequireAccess module="system_rooms"><RoomsPage /></RequireAccess>} />
           <Route path="/system/alerts" element={<RequireAccess module="system_alerts"><AlertCenterPage /></RequireAccess>} />
@@ -255,7 +279,9 @@ export default function App() {
           <Route path="/system/promotions" element={<RequireAccess anyModules={['system_promotions', 'ops']}><PromotionCampaignsPage /></RequireAccess>} />
           <Route path="/system/competitors" element={<RequireAccess anyModules={['system_competitors', 'ops']}><CompetitorWatchPage /></RequireAccess>} />
           <Route path="/system/multi-room" element={<RequireAccess module="system_multiroom"><MultiRoomOverviewPage /></RequireAccess>} />
-          <Route path="/system/compliance" element={<RequireAccess module="compliance"><CompliancePage /></RequireAccess>} />
+          <Route path="/compliance/events" element={<RequireAccess module="compliance"><CompliancePage /></RequireAccess>} />
+          <Route path="/compliance/rules" element={<RequireAccess module="compliance"><RuleRadarPage /></RequireAccess>} />
+          <Route path="/compliance/changes/:id" element={<RequireAccess module="compliance"><ChangeDetailPage /></RequireAccess>} />
         </Route>
       </Routes>
     </Suspense>

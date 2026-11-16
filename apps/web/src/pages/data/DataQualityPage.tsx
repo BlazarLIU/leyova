@@ -13,6 +13,8 @@ import {
   Key,
   Globe2,
   Lock,
+  Send,
+  CheckCircle2,
 } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -60,11 +62,37 @@ function SeverityBadge({ severity }: { severity: string }) {
   }
 }
 
+export interface QualityGateRule {
+  ruleCode: string
+  ruleName: string
+  passed: boolean
+  severity: 'warning' | 'error' | 'fatal'
+  tolerance?: string
+  actualMetric: any
+  message: string
+}
+
+export interface BatchQualityReport {
+  batchId: number
+  batchNo: string
+  totalRulesChecked: number
+  passedCount: number
+  failedCount: number
+  isReadyForPublish: boolean
+  results: QualityGateRule[]
+}
+
 export function DataQualityPage() {
   const [activeTab, setActiveTab] = useState<'batches' | 'workbench' | 'reconciliation' | 'platforms' | 'ingest' | 'aliases'>('batches')
   const [batches, setBatches] = useState<any[]>([])
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // 8 条 SQL 质量门禁与异步队列状态
+  const [qualityReport, setQualityReport] = useState<BatchQualityReport | null>(null)
+  const [runningGates, setRunningGates] = useState(false)
+  const [enqueuingJob, setEnqueuingJob] = useState(false)
+  const [jobNotice, setJobNotice] = useState<string | null>(null)
 
   // 审核工作台状态
   const [issues, setIssues] = useState<any[]>([])
@@ -158,12 +186,55 @@ export function DataQualityPage() {
       // 重新执行独立质量校验
       await api.post(`/governance/batches/${selectedBatchId}/validate`, {})
       await fetchBatches()
-      if (selectedBatchId) await fetchIssues(selectedBatchId)
+      if (selectedBatchId) {
+        await fetchIssues(selectedBatchId)
+        // 若已有报告则自动重跑门禁
+        if (qualityReport) {
+          await handleRunQualityGates(selectedBatchId)
+        }
+      }
       setResolveReason('')
     } catch (err: any) {
       alert(`处理失败: ${err.message}`)
     } finally {
       setSubmittingResolve(false)
+    }
+  }
+
+  // 执行 8 条 SQL 质量门禁集合断言
+  const handleRunQualityGates = async (batchId: number) => {
+    try {
+      setRunningGates(true)
+      setJobNotice(null)
+      const res = await api.post<BatchQualityReport>(`/governance/batches/${batchId}/run-quality-gates`, {})
+      setQualityReport(res)
+      await fetchBatches()
+    } catch (err: any) {
+      alert(`运行质量门禁失败: ${err.message}`)
+    } finally {
+      setRunningGates(false)
+    }
+  }
+
+  // 派发质量门禁进系统异步任务队列 (Worker 调度)
+  const handleEnqueueQualityGateJob = async (batchId: number) => {
+    try {
+      setEnqueuingJob(true)
+      setJobNotice(null)
+      const res: any = await api.post('/system/jobs', {
+        jobType: 'quality_gate',
+        jobName: `批次 #${batchId} 8条SQL质量门禁自动化断言`,
+        inputPayload: { batchId },
+      })
+      const jobId = res?.id || res?.data?.id || '已登记'
+      setJobNotice(
+        `🚀 批次 #${batchId} 质量门禁任务已成功投递进队 (任务 #${jobId})，已交由后台独立 Worker 守护进程执行！可在「系统运维 → 异步任务与运维队列」查看执行进度与耗时。`
+      )
+      await fetchBatches()
+    } catch (err: any) {
+      alert(`投递任务进队失败: ${err.message}`)
+    } finally {
+      setEnqueuingJob(false)
     }
   }
 
@@ -451,6 +522,18 @@ export function DataQualityPage() {
                         </td>
                         <td className="py-3.5 px-4 text-right space-x-2">
                           <Button
+                            variant="primary"
+                            size="xs"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedBatchId(b.id)
+                              setActiveTab('workbench')
+                              handleRunQualityGates(b.id)
+                            }}
+                          >
+                            门禁断言
+                          </Button>
+                          <Button
                             variant="secondary"
                             size="xs"
                             onClick={(e) => {
@@ -486,7 +569,7 @@ export function DataQualityPage() {
       {/* ── TAB 2: 人工审核工作台 (Review Workbench · 四屏同显) ── */}
       {activeTab === 'workbench' && (
         <motion.div {...fadeIn} className="space-y-4">
-          <div className="flex items-center justify-between bg-orbit-surface p-4 rounded-xl border border-orbit-border">
+          <div className="flex flex-wrap items-center justify-between bg-orbit-surface p-4 rounded-xl border border-orbit-border gap-3">
             <div className="flex items-center gap-3">
               <span className="text-sm text-slate-400">当前审核批次:</span>
               <select
@@ -500,11 +583,115 @@ export function DataQualityPage() {
                   </option>
                 ))}
               </select>
+              <span className="text-xs text-slate-400">
+                检出 <span className="font-bold text-rose-400">{issues.length}</span> 个待审核异常
+              </span>
             </div>
-            <div className="text-xs text-slate-400">
-              共检出 <span className="font-bold text-rose-400">{issues.length}</span> 个待审核异常
+            <div className="flex items-center gap-2">
+              <Button
+                variant="primary"
+                size="xs"
+                loading={runningGates}
+                disabled={!selectedBatchId}
+                onClick={() => selectedBatchId && handleRunQualityGates(selectedBatchId)}
+                icon={<ShieldCheck className="w-3.5 h-3.5" />}
+              >
+                即时执行 8 质量门禁断言
+              </Button>
+              <Button
+                variant="outline"
+                size="xs"
+                loading={enqueuingJob}
+                disabled={!selectedBatchId}
+                onClick={() => selectedBatchId && handleEnqueueQualityGateJob(selectedBatchId)}
+                icon={<Send className="w-3.5 h-3.5" />}
+              >
+                投递 Worker 异步队列
+              </Button>
             </div>
           </div>
+
+          {jobNotice && (
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{jobNotice}</span>
+              </div>
+              <button
+                onClick={() => setJobNotice(null)}
+                className="text-slate-400 hover:text-slate-200 text-xs px-1"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {qualityReport && (
+            <Card className="border border-orbit-border bg-orbit-surface/90">
+              <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b border-orbit-border pb-3">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-100">
+                        批次 {qualityReport.batchNo} · SQL 质量门禁全量断言报告
+                      </span>
+                      {qualityReport.isReadyForPublish ? (
+                        <Badge variant="success">✅ 准入发布 (Ready For Publish)</Badge>
+                      ) : (
+                        <Badge variant="danger">❌ 阻断发布 (Gate Blocked)</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      全规则集合式秒级 SQL 校验：通过 {qualityReport.passedCount} 项 / 拦截 {qualityReport.failedCount} 项 / 总计 8 门禁
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => setQualityReport(null)}
+                >
+                  收起报告
+                </Button>
+              </CardHeader>
+              <CardBody className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {qualityReport.results.map((r) => (
+                    <div
+                      key={r.ruleCode}
+                      className={cn(
+                        'p-3 rounded-lg border text-xs space-y-1.5 transition-colors',
+                        r.passed
+                          ? 'bg-emerald-500/5 border-emerald-500/20'
+                          : r.severity === 'fatal'
+                          ? 'bg-rose-500/10 border-rose-500/30'
+                          : 'bg-amber-500/10 border-amber-500/30'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-200">{r.ruleName}</span>
+                        {r.passed ? (
+                          <Badge variant="success">通过</Badge>
+                        ) : (
+                          <Badge variant={r.severity === 'fatal' ? 'danger' : 'warning'}>
+                            {r.severity.toUpperCase()}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="font-mono text-[11px] text-slate-400">{r.ruleCode}</p>
+                      <p className={cn('text-xs font-medium', r.passed ? 'text-slate-300' : 'text-rose-300')}>
+                        {r.message}
+                      </p>
+                      {r.tolerance && (
+                        <p className="text-[10px] text-slate-500">容差基准: {r.tolerance}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+          )}
 
           <div className="grid grid-cols-12 gap-6">
             {/* 左侧异常列表 */}

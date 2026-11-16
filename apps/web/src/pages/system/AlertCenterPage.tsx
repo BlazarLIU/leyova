@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertTriangle,
@@ -11,22 +11,22 @@ import {
   Send,
   Radio,
   ShieldAlert,
+  RefreshCw,
+  X,
+  Activity,
+  AlertCircle,
 } from 'lucide-react'
-import { Card, CardHeader, CardBody } from '@/components/ui/Card'
+import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
+import { DataPage, type ColumnDef } from '@/components/common/DataPage'
+import { useTable } from '@/components/common/useTable'
 
-const fadeIn = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4 },
-}
+export type SeverityFilter = 'all' | 'critical' | 'warning' | 'info'
+export type StatusFilter = 'all' | 'pending' | 'resolved'
 
-type SeverityFilter = 'all' | 'critical' | 'warning' | 'info'
-type StatusFilter = 'all' | 'pending' | 'resolved'
-
-interface AlertItem {
+export interface AlertItem {
   id: string
   severity: 'critical' | 'warning' | 'info'
   title: string
@@ -35,7 +35,7 @@ interface AlertItem {
   status: 'pending' | 'resolved'
 }
 
-interface AlertRule {
+export interface AlertRule {
   id: number
   ruleName: string
   shopId?: number
@@ -76,19 +76,10 @@ const METRICS_OPTIONS = [
 export function AlertCenterPage() {
   const [activeTab, setActiveTab] = useState<'events' | 'rules'>('events')
 
-  // Events State
-  const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('all')
-  const [timeFilter, setTimeFilter] = useState('全部')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [alerts, setAlerts] = useState<AlertItem[]>([])
-
-  // Rules State
-  const [rules, setRules] = useState<AlertRule[]>([])
+  // Rule Form State
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false)
   const [testResult, setTestResult] = useState<string | null>(null)
   const [testingId, setTestingId] = useState<number | null>(null)
-
-  // Rule Form State
   const [ruleForm, setRuleForm] = useState({
     ruleName: '',
     metricCode: 'refund_rate',
@@ -100,34 +91,76 @@ export function AlertCenterPage() {
     isActive: true,
   })
 
-  useEffect(() => {
-    fetchAlertEvents()
-    fetchRules()
-  }, [severityFilter, statusFilter, timeFilter])
+  // 1. Events Table via useTable
+  const eventsTable = useTable<AlertItem, { severity: string; status: string; period: string }>({
+    initialFilters: { severity: 'all', status: 'all', period: '全部' },
+    initialPageSize: 20,
+    fetchData: async ({ search, filters }) => {
+      const res = await api.get<any>('/api/system/alerts', {
+        severity: filters.severity !== 'all' ? filters.severity : undefined,
+        status: filters.status !== 'all' ? filters.status : undefined,
+        period: filters.period !== '全部' ? filters.period : undefined,
+      })
 
-  const fetchAlertEvents = () => {
-    api
-      .get<any>('/api/system/alerts', {
-        severity: severityFilter !== 'all' ? severityFilter : undefined,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        period: timeFilter !== '全部' ? timeFilter : undefined,
+      const rawAlerts: AlertItem[] = Array.isArray(res?.alerts) ? res.alerts : []
+      const filtered = rawAlerts.filter((item) => {
+        if (!search) return true
+        const q = search.toLowerCase()
+        return item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q)
       })
-      .then((res) => {
-        if (res.alerts) setAlerts(res.alerts)
-      })
-      .catch(() => {})
-  }
 
-  const fetchRules = () => {
-    api
-      .get<AlertRule[]>('/api/v1/alerts/rules')
-      .then((res) => {
-        if (Array.isArray(res)) {
-          setRules(res)
-        }
+      return {
+        items: filtered,
+        total: filtered.length,
+      }
+    },
+  })
+
+  // 2. Rules Table via useTable
+  const rulesTable = useTable<AlertRule, { severity: string; isActive: string }>({
+    initialFilters: { severity: 'all', isActive: 'all' },
+    initialPageSize: 20,
+    fetchData: async ({ search, filters }) => {
+      const res = await api.get<AlertRule[]>('/api/v1/alerts/rules')
+      const rawRules: AlertRule[] = Array.isArray(res) ? res : []
+
+      const filtered = rawRules.filter((r) => {
+        if (filters.severity !== 'all' && r.severity !== filters.severity) return false
+        if (filters.isActive === 'active' && !r.isActive) return false
+        if (filters.isActive === 'inactive' && r.isActive) return false
+        if (!search) return true
+        const q = search.toLowerCase()
+        return r.ruleName.toLowerCase().includes(q) || r.metricCode.toLowerCase().includes(q)
       })
-      .catch(() => {})
-  }
+
+      return {
+        items: filtered,
+        total: filtered.length,
+      }
+    },
+  })
+
+  // Events Stats
+  const eventsStats = useMemo(() => {
+    const list = eventsTable.data
+    const total = eventsTable.total
+    const critical = list.filter((i) => i.severity === 'critical').length
+    const pending = list.filter((i) => i.status === 'pending').length
+    const resolved = list.filter((i) => i.status === 'resolved').length
+
+    return { total, critical, pending, resolved }
+  }, [eventsTable.data, eventsTable.total])
+
+  // Rules Stats
+  const rulesStats = useMemo(() => {
+    const list = rulesTable.data
+    const total = rulesTable.total
+    const active = list.filter((r) => r.isActive).length
+    const inactive = list.filter((r) => !r.isActive).length
+    const webhooks = list.filter((r) => r.notifyChannels && r.notifyChannels.length > 0).length
+
+    return { total, active, inactive, webhooks }
+  }, [rulesTable.data, rulesTable.total])
 
   const handleCreateRule = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -159,7 +192,7 @@ export function AlertCenterPage() {
         webhookUrl: '',
         isActive: true,
       })
-      fetchRules()
+      await rulesTable.reload()
     } catch (err: any) {
       alert(err.message || '创建规则失败')
     }
@@ -169,7 +202,7 @@ export function AlertCenterPage() {
     if (!confirm('确定删除该预警规则？')) return
     try {
       await api.delete(`/api/v1/alerts/rules/${id}`)
-      fetchRules()
+      await rulesTable.reload()
     } catch (err: any) {
       alert(err.message || '删除失败')
     }
@@ -180,7 +213,7 @@ export function AlertCenterPage() {
       await api.put(`/api/v1/alerts/rules/${rule.id}`, {
         isActive: !rule.isActive,
       })
-      fetchRules()
+      await rulesTable.reload()
     } catch (err: any) {
       alert(err.message || '操作失败')
     }
@@ -208,16 +241,197 @@ export function AlertCenterPage() {
     }
   }
 
-  const filteredAlerts = alerts.filter((alert) => {
-    if (severityFilter !== 'all' && alert.severity !== severityFilter) return false
-    if (statusFilter !== 'all' && alert.status !== statusFilter) return false
-    return true
-  })
+  // Events Table Columns
+  const eventColumns: ColumnDef<AlertItem>[] = useMemo(
+    () => [
+      {
+        key: 'severity',
+        header: '严重级别',
+        width: 100,
+        align: 'center',
+        render: (_, item) => (
+          <Badge variant={severityBadgeMap[item.severity] || 'warning'}>
+            {item.severity === 'critical' ? '严重' : item.severity === 'warning' ? '警告' : '提示'}
+          </Badge>
+        ),
+      },
+      {
+        key: 'title',
+        header: '告警事件与明细',
+        render: (_, item) => (
+          <div className="py-0.5">
+            <div className="font-semibold text-slate-100 flex items-center gap-2">
+              {item.title}
+            </div>
+            <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.description}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'time',
+        header: '发生时间',
+        width: 140,
+        render: (_, item) => (
+          <span className="text-xs text-slate-400 inline-flex items-center gap-1.5 font-mono">
+            <Clock className="w-3.5 h-3.5 text-slate-500" />
+            {item.time}
+          </span>
+        ),
+      },
+      {
+        key: 'status',
+        header: '处置状态',
+        width: 140,
+        render: (_, item) => (
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+              item.status === 'resolved' ? 'text-emerald-400' : 'text-amber-400'
+            }`}
+          >
+            {item.status === 'resolved' ? (
+              <>
+                <CheckCircle2 className="w-4 h-4" /> 已处置解决
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="w-4 h-4" /> 待运营处置
+              </>
+            )}
+          </span>
+        ),
+      },
+      {
+        key: 'actions',
+        header: '操作',
+        width: 120,
+        align: 'right',
+        render: () => (
+          <button className="text-xs text-slate-400 hover:text-white transition-colors">
+            查看现场数据 →
+          </button>
+        ),
+      },
+    ],
+    []
+  )
+
+  // Rules Table Columns
+  const ruleColumns: ColumnDef<AlertRule>[] = useMemo(
+    () => [
+      {
+        key: 'ruleName',
+        header: '规则名称',
+        render: (_, rule) => (
+          <span className="font-semibold text-slate-100">{rule.ruleName}</span>
+        ),
+      },
+      {
+        key: 'metricCode',
+        header: '监控指标',
+        render: (_, rule) => {
+          const metricInfo = METRICS_OPTIONS.find((m) => m.code === rule.metricCode)
+          return (
+            <span className="text-slate-300 text-xs">
+              {metricInfo?.name || rule.metricCode}
+            </span>
+          )
+        },
+      },
+      {
+        key: 'threshold',
+        header: '触发条件与阈值',
+        render: (_, rule) => (
+          <span className="font-mono text-xs text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+            {rule.condition === 'gt' ? '大于' : '小于'} {rule.threshold}
+          </span>
+        ),
+      },
+      {
+        key: 'severity',
+        header: '级别',
+        width: 90,
+        render: (_, rule) => (
+          <Badge variant={severityBadgeMap[rule.severity] || 'warning'}>
+            {rule.severity}
+          </Badge>
+        ),
+      },
+      {
+        key: 'notifyChannels',
+        header: '推送通道 (Webhook)',
+        render: (_, rule) => {
+          const channel = rule.notifyChannels?.[0]
+          if (!channel) {
+            return <span className="text-slate-500 text-xs">仅站内通知</span>
+          }
+          return (
+            <span className="inline-flex items-center gap-1.5 text-slate-300 text-xs">
+              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              {channel.type === 'feishu'
+                ? '飞书群机器人'
+                : channel.type === 'dingtalk'
+                ? '钉钉群机器人'
+                : '企业微信群'}
+            </span>
+          )
+        },
+      },
+      {
+        key: 'isActive',
+        header: '状态',
+        width: 100,
+        render: (_, rule) => (
+          <button
+            onClick={() => handleToggleRuleStatus(rule)}
+            className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
+              rule.isActive
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-slate-800 text-slate-500 border border-slate-700'
+            }`}
+          >
+            {rule.isActive ? '运行中' : '已停用'}
+          </button>
+        ),
+      },
+      {
+        key: 'actions',
+        header: '操作',
+        width: 170,
+        align: 'right',
+        render: (_, rule) => {
+          const channel = rule.notifyChannels?.[0]
+          return (
+            <div className="flex items-center justify-end gap-2">
+              {channel && (
+                <button
+                  onClick={() => handleTestWebhook(rule)}
+                  disabled={testingId === rule.id}
+                  title="向 Webhook 发送一条模拟告警"
+                  className="text-xs text-sky-400 hover:text-sky-300 inline-flex items-center gap-1 disabled:opacity-50"
+                >
+                  <Send className="w-3 h-3" />
+                  {testingId === rule.id ? '推送中...' : '测试通知'}
+                </button>
+              )}
+              <button
+                onClick={() => handleDeleteRule(rule.id)}
+                title="删除规则"
+                className="text-xs text-rose-400 hover:text-rose-300 inline-flex items-center gap-0.5 ml-1"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )
+        },
+      },
+    ],
+    [testingId]
+  )
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px] text-gray-100">
       {/* 顶部标题与 Tab 切换 */}
-      <motion.div {...fadeIn} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ShieldAlert className="w-7 h-7 text-rose-400" />
@@ -239,9 +453,9 @@ export function AlertCenterPage() {
           >
             <Bell className="w-3.5 h-3.5" />
             告警事件动态
-            {alerts.length > 0 && (
+            {eventsTable.total > 0 && (
               <span className="px-1.5 py-0.2 bg-rose-500/30 text-rose-300 rounded-full text-[10px]">
-                {alerts.length}
+                {eventsTable.total}
               </span>
             )}
           </button>
@@ -256,253 +470,265 @@ export function AlertCenterPage() {
             <Sliders className="w-3.5 h-3.5" />
             指标规则与 Webhook 配置
             <span className="px-1.5 py-0.2 bg-gray-800 text-gray-300 rounded-full text-[10px]">
-              {rules.length}
+              {rulesTable.total}
             </span>
           </button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Tab 1: 告警事件动态 */}
-      {activeTab === 'events' && (
-        <motion.div {...fadeIn} className="space-y-6">
-          {/* 筛选条 */}
-          <div className="flex flex-wrap items-center gap-3 bg-gray-900/60 p-3 rounded-xl border border-gray-800/80 text-xs">
-            <span className="text-gray-400">严重级别：</span>
-            <div className="flex gap-1">
-              {(['all', 'critical', 'warning', 'info'] as SeverityFilter[]).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSeverityFilter(s)}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    severityFilter === s ? 'bg-rose-600 text-white font-medium' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  {s === 'all' ? '全部' : s === 'critical' ? '严重' : s === 'warning' ? '警告' : '提示'}
-                </button>
-              ))}
-            </div>
-
-            <span className="text-gray-400 ml-4">处理状态：</span>
-            <div className="flex gap-1">
-              {(['all', 'pending', 'resolved'] as StatusFilter[]).map((st) => (
-                <button
-                  key={st}
-                  onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    statusFilter === st ? 'bg-rose-600 text-white font-medium' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  {st === 'all' ? '全部' : st === 'pending' ? '待处理' : '已解决'}
-                </button>
-              ))}
-            </div>
-
-            <span className="text-gray-400 ml-4">时间周期：</span>
-            <div className="flex gap-1">
-              {['全部', '近1小时', '近24小时', '近7天'].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTimeFilter(t)}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    timeFilter === t ? 'bg-rose-600 text-white font-medium' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 告警列表 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredAlerts.length > 0 ? (
-              filteredAlerts.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-gray-900/60 border border-gray-800/80 rounded-xl p-4 flex flex-col justify-between hover:border-gray-700 transition-all"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={severityBadgeMap[item.severity] || 'warning'}>
-                          {item.severity === 'critical' ? '严重' : item.severity === 'warning' ? '警告' : '提示'}
-                        </Badge>
-                        <h3 className="font-semibold text-sm text-gray-200">{item.title}</h3>
-                      </div>
-                      <span className="text-[11px] text-gray-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {item.time}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400 leading-relaxed">{item.description}</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-gray-800/60 flex items-center justify-between text-xs">
-                    <span
-                      className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-                        item.status === 'resolved' ? 'text-emerald-400' : 'text-amber-400'
-                      }`}
-                    >
-                      {item.status === 'resolved' ? (
-                        <>
-                          <CheckCircle2 className="w-3.5 h-3.5" /> 已处置解决
-                        </>
-                      ) : (
-                        <>
-                          <AlertTriangle className="w-3.5 h-3.5" /> 待运营处置
-                        </>
-                      )}
-                    </span>
-                    <button className="text-gray-400 hover:text-white transition-colors">
-                      查看现场数据 →
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center text-gray-500 bg-gray-900/30 rounded-xl border border-gray-800/40">
-                <CheckCircle2 className="w-8 h-8 text-emerald-500/60 mx-auto mb-2" />
-                当前没有未处理的告警事件，各直播间与货架运转正常
-              </div>
-            )}
-          </div>
-        </motion.div>
+      {testResult && (
+        <div className="p-3 rounded-lg bg-indigo-950/40 border border-indigo-700/50 text-indigo-300 text-xs flex items-center justify-between">
+          <span>{testResult}</span>
+          <button onClick={() => setTestResult(null)} className="text-indigo-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       )}
 
-      {/* Tab 2: 自定义指标规则与 Webhook 配置 */}
-      {activeTab === 'rules' && (
-        <motion.div {...fadeIn} className="space-y-6">
-          <div className="flex items-center justify-between bg-gray-900/60 p-4 rounded-xl border border-gray-800/80">
-            <div>
-              <h2 className="text-sm font-semibold text-gray-200">自动预警触发规则</h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                当直播间/货架经营数据突破设定阈值时，自动记录告警事件并向指定群机器人推送通知
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setIsRuleModalOpen(true)}
-              className="flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              新建指标告警规则
-            </Button>
+      {/* Tab 1: 告警事件动态 */}
+      {activeTab === 'events' ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">告警事件总数</span>
+                  <Activity className="w-4 h-4 text-rose-400" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-slate-100">{eventsStats.total}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">当前监控周期捕获的异常记录</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">严重级别告警</span>
+                  <AlertCircle className="w-4 h-4 text-rose-500" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-rose-400">{eventsStats.critical}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">需立即介入的高风险指标突破</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">待运营处置</span>
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-amber-400">{eventsStats.pending}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">排队处置中的异常工单</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">已处置解决</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-emerald-400">{eventsStats.resolved}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">已完成自愈或运营闭环</p>
+              </CardBody>
+            </Card>
           </div>
 
-          {testResult && (
-            <div className="p-3 rounded-lg bg-indigo-950/40 border border-indigo-700/50 text-indigo-300 text-xs flex items-center justify-between">
-              <span>{testResult}</span>
-              <button onClick={() => setTestResult(null)} className="text-indigo-400 hover:text-white">
-                ✕
-              </button>
-            </div>
-          )}
+          <DataPage<AlertItem>
+            title="告警事件动态流水"
+            subtitle="实时捕获退款率暴跌、ROI离群与直播间流量波动异常，支持即时响应与处置追踪"
+            badge={
+              <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-rose-400 border border-orbit-border">
+                DataPage + useTable
+              </span>
+            }
+            table={eventsTable}
+            columns={eventColumns}
+            searchPlaceholder="搜索告警标题、异常指标或描述..."
+            exportFilename="alert_events"
+            actions={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => eventsTable.reload()}
+                loading={eventsTable.loading}
+                icon={<RefreshCw className="w-3.5 h-3.5" />}
+              >
+                刷新
+              </Button>
+            }
+            filterControls={
+              <div className="flex flex-wrap items-center gap-3 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-400">严重级别:</span>
+                  {(['all', 'critical', 'warning', 'info'] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => eventsTable.setFilter('severity', s)}
+                      className={`px-2 py-0.5 rounded text-xs transition-colors ${
+                        eventsTable.filters.severity === s
+                          ? 'bg-rose-600 text-white font-medium'
+                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                      }`}
+                    >
+                      {s === 'all' ? '全部' : s === 'critical' ? '严重' : s === 'warning' ? '警告' : '提示'}
+                    </button>
+                  ))}
+                </div>
 
-          {/* 规则表格卡片 */}
-          <Card>
-            <CardHeader>
-              <h3 className="text-sm font-semibold text-gray-200">生效中的预警规则</h3>
-            </CardHeader>
-            <CardBody className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-gray-900/80 text-gray-400 border-b border-gray-800 font-medium">
-                    <tr>
-                      <th className="py-3 px-4">规则名称</th>
-                      <th className="py-3 px-4">监控指标</th>
-                      <th className="py-3 px-4">触发条件与阈值</th>
-                      <th className="py-3 px-4">级别</th>
-                      <th className="py-3 px-4">推送通道 (Webhook)</th>
-                      <th className="py-3 px-4">状态</th>
-                      <th className="py-3 px-4 text-right">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800/60">
-                    {rules.length > 0 ? (
-                      rules.map((rule) => {
-                        const metricInfo = METRICS_OPTIONS.find((m) => m.code === rule.metricCode)
-                        const channel = rule.notifyChannels?.[0]
+                <div className="flex items-center gap-1.5 ml-2">
+                  <span className="text-gray-400">处置状态:</span>
+                  {(['all', 'pending', 'resolved'] as const).map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => eventsTable.setFilter('status', st)}
+                      className={`px-2 py-0.5 rounded text-xs transition-colors ${
+                        eventsTable.filters.status === st
+                          ? 'bg-rose-600 text-white font-medium'
+                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                      }`}
+                    >
+                      {st === 'all' ? '全部' : st === 'pending' ? '待处理' : '已解决'}
+                    </button>
+                  ))}
+                </div>
 
-                        return (
-                          <tr key={rule.id} className="hover:bg-gray-800/30 transition-colors">
-                            <td className="py-3.5 px-4 font-medium text-gray-200">
-                              {rule.ruleName}
-                            </td>
-                            <td className="py-3.5 px-4 text-gray-300">
-                              {metricInfo?.name || rule.metricCode}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="font-mono text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                                {rule.condition === 'gt' ? '大于' : '小于'} {rule.threshold}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <Badge variant={severityBadgeMap[rule.severity] || 'warning'}>
-                                {rule.severity}
-                              </Badge>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              {channel ? (
-                                <span className="inline-flex items-center gap-1 text-gray-300">
-                                  <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                                  {channel.type === 'feishu'
-                                    ? '飞书群机器人'
-                                    : channel.type === 'dingtalk'
-                                    ? '钉钉群机器人'
-                                    : '企业微信群'}
-                                </span>
-                              ) : (
-                                <span className="text-gray-500">仅站内通知</span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <button
-                                onClick={() => handleToggleRuleStatus(rule)}
-                                className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
-                                  rule.isActive
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                    : 'bg-gray-800 text-gray-500 border border-gray-700'
-                                }`}
-                              >
-                                {rule.isActive ? '运行中' : '已停用'}
-                              </button>
-                            </td>
-                            <td className="py-3.5 px-4 text-right space-x-2">
-                              {channel && (
-                                <button
-                                  onClick={() => handleTestWebhook(rule)}
-                                  disabled={testingId === rule.id}
-                                  title="向 Webhook 发送一条模拟告警"
-                                  className="text-xs text-sky-400 hover:text-sky-300 inline-flex items-center gap-1 disabled:opacity-50"
-                                >
-                                  <Send className="w-3 h-3" />
-                                  {testingId === rule.id ? '推送中...' : '测试通知'}
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleDeleteRule(rule.id)}
-                                title="删除规则"
-                                className="text-xs text-rose-400 hover:text-rose-300 inline-flex items-center gap-0.5 ml-2"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="py-12 text-center text-gray-500">
-                          暂无自定义告警规则，请点击右上角新建规则
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                <div className="flex items-center gap-1.5 ml-2">
+                  <span className="text-gray-400">时间周期:</span>
+                  <select
+                    value={eventsTable.filters.period}
+                    onChange={(e) => eventsTable.setFilter('period', e.target.value)}
+                    className="h-7 px-2 text-xs rounded border border-gray-700 bg-gray-800 text-gray-300 focus:outline-none focus:border-rose-500"
+                  >
+                    {['全部', '近1小时', '近24小时', '近7天'].map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </CardBody>
-          </Card>
-        </motion.div>
+            }
+          />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">监控规则总数</span>
+                  <Sliders className="w-4 h-4 text-emerald-400" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-slate-100">{rulesStats.total}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">已注册的核心指标预警逻辑</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">运行中规则</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-emerald-400">{rulesStats.active}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">实时对齐数据流守护中</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">已停用规则</span>
+                  <Clock className="w-4 h-4 text-slate-500" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-slate-400">{rulesStats.inactive}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">休眠或临时下线规则</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Webhook 机器人通道</span>
+                  <Radio className="w-4 h-4 text-sky-400" />
+                </div>
+                <p className="mt-1 text-2xl font-bold text-sky-400">{rulesStats.webhooks}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">已挂接飞书/钉钉/企微自动化推送</p>
+              </CardBody>
+            </Card>
+          </div>
+
+          <DataPage<AlertRule>
+            title="自动预警触发规则"
+            subtitle="当直播间/货架经营数据突破设定阈值时，自动记录告警事件并向指定群机器人推送通知"
+            badge={
+              <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-emerald-400 border border-orbit-border">
+                DataPage + useTable
+              </span>
+            }
+            table={rulesTable}
+            columns={ruleColumns}
+            searchPlaceholder="搜索规则名称或监控指标..."
+            exportFilename="alert_rules"
+            actions={
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsRuleModalOpen(true)}
+                  icon={<Plus className="w-4 h-4" />}
+                >
+                  新建指标告警规则
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => rulesTable.reload()}
+                  loading={rulesTable.loading}
+                  icon={<RefreshCw className="w-3.5 h-3.5" />}
+                >
+                  刷新
+                </Button>
+              </div>
+            }
+            filterControls={
+              <div className="flex flex-wrap items-center gap-3 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-400">告警级别:</span>
+                  {['all', '提示', '警告', '严重'].map((sev) => (
+                    <button
+                      key={sev}
+                      onClick={() => rulesTable.setFilter('severity', sev)}
+                      className={`px-2 py-0.5 rounded text-xs transition-colors ${
+                        rulesTable.filters.severity === sev
+                          ? 'bg-rose-600 text-white font-medium'
+                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                      }`}
+                    >
+                      {sev === 'all' ? '全部' : sev}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-1.5 ml-2">
+                  <span className="text-gray-400">运行状态:</span>
+                  {[
+                    { value: 'all', label: '全部' },
+                    { value: 'active', label: '运行中' },
+                    { value: 'inactive', label: '已停用' },
+                  ].map((st) => (
+                    <button
+                      key={st.value}
+                      onClick={() => rulesTable.setFilter('isActive', st.value)}
+                      className={`px-2 py-0.5 rounded text-xs transition-colors ${
+                        rulesTable.filters.isActive === st.value
+                          ? 'bg-rose-600 text-white font-medium'
+                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                      }`}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            }
+          />
+        </div>
       )}
 
       {/* 新建规则弹窗 */}
@@ -524,7 +750,7 @@ export function AlertCenterPage() {
                   onClick={() => setIsRuleModalOpen(false)}
                   className="text-gray-400 hover:text-white"
                 >
-                  ✕
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -653,4 +879,5 @@ export function AlertCenterPage() {
     </div>
   )
 }
+
 export default AlertCenterPage

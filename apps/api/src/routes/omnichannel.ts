@@ -12,7 +12,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext } from '../lib/db.js'
-import { canAccessCost, getUserAllowedPlatforms, requireAuth } from '../lib/guard.js'
+import { canAccessCost, canAccessCostAsync, getUserAllowedPlatforms, requireAuth } from '../lib/guard.js'
 import { checkComparability } from '../platform/caliber.js'
 import { computeRefundRatePct } from '../services/metrics-caliber.js'
 
@@ -74,8 +74,16 @@ function platformClause(
   return { sql: conds.length > 0 ? `AND ${conds.join(' AND ')}` : '', params }
 }
 
-const DEFAULT_CALIBER_JOIN = `LEFT JOIN platform_caliber_config pcc ON pcc.platform_code = f.platform_code AND pcc.metric_code = 'gmv' AND pcc.is_default = true`
-const DEFAULT_CALIBER_COND = `AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`
+// P0-B-2：口径过滤必须 fail-closed
+//
+// 改造前：`LEFT JOIN ... AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`
+//         → 某平台未配默认口径时，IS NULL 为真，该平台**所有 amount_type 全部返回**
+//         → 静默退化成裸 SUM，实测放大 2.42 倍且各平台倍数不等（会导致排名反转）
+//
+// 改造后：内连接 + 精确匹配。未配默认口径的平台返回 0 行（可被 check_caliber_gap() 检出），
+//         而不是静默返回错误的高值。
+const DEFAULT_CALIBER_JOIN = `JOIN platform_caliber_config pcc ON pcc.platform_code = f.platform_code AND pcc.metric_code = 'gmv' AND pcc.is_default = true`
+const DEFAULT_CALIBER_COND = `AND f.amount_type = pcc.amount_type`
 
 async function loadAccessibleShop(
   client: any,
@@ -485,7 +493,8 @@ export async function omnichannelRoutes(app: FastifyInstance) {
       const { from, to, limit } = request.query
       const r = resolveRange(from, to)
       const lim = Math.min(Math.max(parseInt(limit || '50', 10) || 50, 1), 200)
-      const allowCost = canAccessCost(user)
+      const allowCost = await canAccessCostAsync(
+        (user as any).id, user.role, user.userType, undefined)
 
       const scoped = await withRlsContext(request, async (client) => {
         const shopCheck = await loadAccessibleShop(client, request, shopId)

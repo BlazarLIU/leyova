@@ -115,8 +115,8 @@ test('财务分摊: 0元优惠分摊，全部分摊为0', () => {
 // ═══════════════════════════════════════════════════════════════
 // 3. 7 大主流电商平台 API 技术规范与签名测试
 // ═══════════════════════════════════════════════════════════════
-test('7大平台规范: 平台注册中心包含全部 7 个平台且网关规范正确', () => {
-  const codes = ['douyin', 'kuaishou', 'taobao', 'tmall', 'jd', 'pdd', 'xiaohongshu']
+test('6大平台规范: 平台注册中心包含全部 6 个平台且网关规范正确', () => {
+  const codes = ['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu']
   for (const c of codes) {
     const adapter = governancePlatformRegistry.get(c)
     assert.ok(adapter, `平台未注册: ${c}`)

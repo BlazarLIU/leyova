@@ -16,7 +16,7 @@
  *   - transform：特殊处理（如父订单展开、成团状态归一）
  */
 
-export type TemplateDataType = 'trade' | 'traffic' | 'ad' | 'content' | 'pdd_group' | 'jd_po'
+export type TemplateDataType = 'trade' | 'traffic' | 'ad' | 'content'
 
 export interface TemplateColumn {
   /** 标准字段名 */
@@ -159,91 +159,6 @@ const TAOBAO_AD: PlatformTemplate = {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 京东 — 京麦 / 商智
-// ═══════════════════════════════════════════════════════════════
-
-const JD_TRADE: PlatformTemplate = {
-  code: 'jd_trade',
-  platformCode: 'jd',
-  platformName: '京东',
-  reportType: 'trade',
-  reportName: '京麦-交易概况',
-  dataType: 'trade',
-  headerHints: ['成交金额', '成交客户数', '成交单量'],
-  columns: [
-    { field: 'biz_date', label: '日期', required: true, type: 'date', aliases: ['日期', '统计日期', '时间'] },
-    { field: 'channel_name', label: '渠道', required: false, type: 'string', aliases: ['渠道', '流量来源', '来源'] },
-    {
-      field: 'gmv', label: '成交金额', required: true, type: 'currency',
-      aliases: ['成交金额', '成交���额(元)', '下单金额'],
-      note: '京东口径含货到付款与公司转账，比纯在线支付平台大',
-    },
-    { field: 'paid_order_count', label: '成交单量', required: true, type: 'number', aliases: ['成交单量', '订单量', '成交订单数'] },
-    { field: 'paid_buyer_count', label: '成交客户数', required: true, type: 'number', aliases: ['成交客户数', '客户数', '买家数'] },
-    { field: 'refund_amount', label: '退款金额', required: false, type: 'currency', aliases: ['退款金额', '退货金额'] },
-    { field: 'refund_count', label: '退款单量', required: false, type: 'number', aliases: ['退款单量', '退款笔数'] },
-  ],
-  transformNote: '成交金额含 COD，入库时 amount_type 应为 offline_cod_included。若报表区分了在线支付与货到付款，建议分开导入',
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 拼多多 — 商家后台
-// ═══════════════════════════════════════════════════════════════
-
-const PDD_TRADE: PlatformTemplate = {
-  code: 'pdd_trade',
-  platformCode: 'pdd',
-  platformName: '拼多多',
-  reportType: 'trade',
-  reportName: '商家后台-交易数据',
-  dataType: 'trade',
-  headerHints: ['成交金额', '订单数', '已成团'],
-  columns: [
-    { field: 'biz_date', label: '日期', required: true, type: 'date', aliases: ['日期', '统计日期', '时间'] },
-    { field: 'channel_name', label: '渠道', required: false, type: 'string', aliases: ['渠道', '来源', '流量来源'] },
-    {
-      field: 'gmv', label: '交易额', required: true, type: 'currency',
-      aliases: ['交易额', '成交金额', '支付金额', '商家实收金额'],
-      note: '拼多多交易额以已成团订单为准',
-    },
-    { field: 'paid_order_count', label: '订单数', required: true, type: 'number', aliases: ['订单数', '成交订单数', '支付订单数'] },
-    { field: 'paid_buyer_count', label: '买家数', required: false, type: 'number', aliases: ['买家数', '支付买家数', '成交买家数'] },
-    { field: 'refund_amount', label: '退款金额', required: false, type: 'currency', aliases: ['退款金额', '成功退款金额'] },
-    { field: 'refund_count', label: '退款订单数', required: false, type: 'number', aliases: ['退款订单数', '退款笔数', '成功退款订单数'] },
-  ],
-  transformNote: '⚠️ 拼多多售后指标分母必须是「已成团订单数」。若报表同时含「待成团」与「已成团」，应分开导入或只取已成团',
-}
-
-const PDD_GROUP: PlatformTemplate = {
-  code: 'pdd_group',
-  platformCode: 'pdd',
-  platformName: '拼多多',
-  reportType: 'group',
-  reportName: '拼团订单明细',
-  dataType: 'pdd_group',
-  headerHints: ['团号', '成团状态', '拼团状态'],
-  columns: [
-    { field: 'biz_date', label: '日期', required: true, type: 'date', aliases: ['日期', '下单日期', '支付日期'] },
-    {
-      field: 'group_id', label: '团号', required: true, type: 'string',
-      aliases: ['团号', '拼团号', 'group_id', '拼团编号'],
-    },
-    { field: 'product_id', label: '商品ID', required: false, type: 'string', aliases: ['商品ID', '商品编号', 'goods_id'] },
-    { field: 'product_name', label: '商品名称', required: false, type: 'string', aliases: ['商品名称', '商品'] },
-    {
-      field: 'status', label: '成团状态', required: true, type: 'string',
-      aliases: ['成团状态', '拼团状态', '团状态', '订单状态'],
-      note: '需映射为：waiting(待成团) / grouping(拼团中) / grouped(已成团) / expired(已过期)',
-    },
-    { field: 'group_size_required', label: '成团人数', required: false, type: 'number', aliases: ['成团人数', '团人数', '拼团人数'] },
-    { field: 'group_size_actual', label: '当前人数', required: false, type: 'number', aliases: ['当前人数', '已拼人数', '参团人数'] },
-    { field: 'pay_amount', label: '团金额', required: false, type: 'currency', aliases: ['团金额', '支付金额', '订单金额'] },
-    { field: 'refund_amount', label: '退款金额', required: false, type: 'currency', aliases: ['退款金额'] },
-  ],
-  transformNote: '「成团状态」需通过 map_value 规则归一：待分享/待成团→waiting，拼团中→grouping，已成团→grouped，已过期/拼团失败→expired',
-}
-
-// ═══════════════════════════════════════════════════════════════
 // 快手 — 磁力金牛 / 生意通
 // ═══════════════════════════════════════════════════════════════
 
@@ -362,16 +277,68 @@ const XHS_NOTE: PlatformTemplate = {
 // 注册表
 // ═══════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════
+// 视频号 / 微信小店 — 微信小店后台 / 视频号助手
+// ═══════════════════════════════════════════════════════════════
+
+const WECHAT_TRADE: PlatformTemplate = {
+  code: 'wechat_trade',
+  platformCode: 'wechat',
+  platformName: '视频号小店',
+  reportType: 'trade',
+  reportName: '微信小店后台-交易概况',
+  dataType: 'trade',
+  headerHints: ['成交金额', '订单数', '视频号直播'],
+  columns: [
+    { field: 'biz_date', label: '日期', required: true, type: 'date', aliases: ['日期', '统计日期', '时间'] },
+    {
+      field: 'channel_name', label: '成交场景', required: false, type: 'string',
+      aliases: ['成交场景', '来源', '渠道', '场景', '带货场景'],
+      note: '视频号侧需区分「视频号直播」「视频号短视频」「公众号」「小程序」「社群/朋友圈(私域)」',
+    },
+    {
+      field: 'gmv', label: '成交金额', required: true, type: 'currency',
+      aliases: ['成交金额', '成交金额(元)', '支付金额', '订单实付金额'],
+      note: '微信小店仅单一成交口径（订单实付），无抖快式多口径分层',
+    },
+    { field: 'paid_order_count', label: '成交订单数', required: true, type: 'number', aliases: ['成交订单数', '订单数', '支付订单数'] },
+    { field: 'paid_buyer_count', label: '成交人数', required: false, type: 'number', aliases: ['成交人数', '支付人数', '买家数'] },
+    { field: 'refund_amount', label: '退款金额', required: false, type: 'currency', aliases: ['退款金额', '退款金额(元)'] },
+    { field: 'refund_count', label: '退款订单数', required: false, type: 'number', aliases: ['退款订单数', '退款笔数'] },
+  ],
+  transformNote:
+    '成交场景需归一：视频号直播→live_room，视频号短视频→short_video，公众号→official_account，社群/朋友圈→private_social。微信小店金额单位为元（API 侧为分，由适配器换算）',
+}
+
+const WECHAT_TRAFFIC: PlatformTemplate = {
+  code: 'wechat_traffic',
+  platformCode: 'wechat',
+  platformName: '视频号小店',
+  reportType: 'traffic',
+  reportName: '视频号助手-流量分析',
+  dataType: 'traffic',
+  headerHints: ['曝光', '观看人数', '直播'],
+  columns: [
+    { field: 'biz_date', label: '日期', required: true, type: 'date', aliases: ['日期', '统计日期', '时间'] },
+    { field: 'channel_name', label: '流量场景', required: false, type: 'string', aliases: ['流量场景', '来源', '渠道', '场景'] },
+    { field: 'impressions', label: '曝光次数', required: false, type: 'number', aliases: ['曝光次数', '曝光量', '展现量'] },
+    { field: 'clicks', label: '点击次数', required: false, type: 'number', aliases: ['点击次数', '点击量'] },
+    { field: 'visitors', label: '观看/访客人数', required: true, type: 'number', aliases: ['观看人数', '访客数', 'UV', '进房人数'] },
+    { field: 'avg_stay_seconds', label: '平均停留时长(秒)', required: false, type: 'number', aliases: ['平均停留时长', '人均观看时长', '停留时长'] },
+  ],
+  transformNote:
+    '视频号流量公私域混合度最高：推荐流(公域)、朋友点赞(社交裂变)、社群与朋友圈(私域)必须分开统计，否则 GPM 与停留时长会被平均值掩盖',
+}
+
 export const PLATFORM_TEMPLATES: PlatformTemplate[] = [
   TAOBAO_TRADE,
   TAOBAO_TRAFFIC,
   TAOBAO_AD,
-  JD_TRADE,
-  PDD_TRADE,
-  PDD_GROUP,
   KUAISHOU_TRADE,
   KUAISHOU_AD,
   XHS_NOTE,
+  WECHAT_TRADE,
+  WECHAT_TRAFFIC,
 ]
 
 /** 按平台获取模板 */

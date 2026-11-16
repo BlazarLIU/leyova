@@ -17,7 +17,7 @@ import {
   archiveReportToKb,
 } from '../ai/closure.js'
 
-const ANALYSIS_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance']
+const ANALYSIS_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator']
 
 export async function closureRoutes(app: FastifyInstance) {
   // ── POST /api/v1/analysis/tasks/convert ──

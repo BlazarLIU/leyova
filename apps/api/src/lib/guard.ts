@@ -7,7 +7,6 @@ export type RoleCode =
   | 'super_admin'
   | 'admin'
   | 'operator'
-  | 'finance'
   | 'hrbp'
   | 'employee'
   | 'ad_buyer'
@@ -16,7 +15,7 @@ export type RoleCode =
   | 'controller'
   | 'brand_viewer'
 
-export const AD_SPEND_ROLES: RoleCode[] = ['super_admin', 'admin', 'finance', 'ops_director', 'ad_buyer']
+export const AD_SPEND_ROLES: RoleCode[] = ['super_admin', 'admin', 'ops_director', 'ad_buyer']
 
 export interface AuthUser {
   id: number
@@ -101,13 +100,65 @@ export function requireRole(allowedRoles: string[]) {
 }
 
 /**
- * 敏感成本与利润数据访问判断：仅系统管理员、管理员、财务专员可见（排除只读品牌方）
+ * 敏感成本与利润数据访问判断（P0-D-2）
+ *
+ * 改造前：`['super_admin','admin'].includes(role)` —— 硬编码角色白名单，
+ *        导致投手/运营/HRBP 看不到任何成本，无法评估一场直播赚没赚。
+ *
+ * 改造后：改为**模块授权**（cost_visibility），粒度到人。
+ *   同步态版本：仅按角色判断（供 AI orchestrator 等无 DB 上下文场景使用）。
+ *   异步态请用 `canAccessCostAsync(userId, role, userType)` 走 user_module_overrides。
+ *
+ * 默认授权见迁移 144：super_admin / admin / ad_buyer / operator /
+ *   ops_staff / ops_director / hrbp
  */
+const COST_VISIBILITY_ROLES = new Set([
+  'super_admin', 'admin', 'ad_buyer', 'operator', 'ops_staff', 'ops_director', 'hrbp',
+])
+
 export function canAccessCost(
   user: { role?: string | null; userType?: string | null } | null | undefined
 ): boolean {
   if (!user || !user.role || user.userType === 'brand_viewer') return false
-  return ['super_admin', 'admin', 'finance'].includes(user.role)
+  return COST_VISIBILITY_ROLES.has(user.role)
+}
+
+/**
+ * 成本可见性（精确版，走模块授权，支持粒度到人）
+ *
+ * 与同步版的区别：本函数会读 `user_module_overrides`，
+ * 因此管理员可以在「角色与模块权限」页给单个投手单独开关成本可见性。
+ *
+ * 使用场景：HTTP 路由（有 request 上下文、可查库）
+ * 不使用场景：AI orchestrator 等纯计算链路（用同步版即可）
+ */
+export async function canAccessCostAsync(
+  userId: number | null | undefined,
+  role: string | null | undefined,
+  userType: string | null | undefined,
+  pool?: { query: (sql: string, params?: any[]) => Promise<{ rows: any[] }> },
+): Promise<boolean> {
+  if (!userId || !role || userType === 'brand_viewer') return false
+
+  // 超管恒定可见
+  if (role === 'super_admin') return true
+
+  try {
+    const p = pool || getPool()
+    const res = await p.query(
+      `SELECT effect FROM public.user_module_overrides
+        WHERE user_id = $1 AND module_code = 'cost_visibility'`,
+      [userId],
+    )
+    // 用户级覆盖优先
+    if (res.rows.length > 0) {
+      return res.rows[0].effect === 'grant'
+    }
+  } catch {
+    // 查询失败降级到角色判断（fail-open 仅限此处：成本可见性不是安全边界）
+  }
+
+  return COST_VISIBILITY_ROLES.has(role)
 }
 
 /**
@@ -138,9 +189,10 @@ export function canManageTargetUser(
 /**
  * Fail-closed 获取当前用户的合法可见平台集合：
  * - 未登录用户：返回空 Set（不可见任何平台）
- * - brand_viewer：仅限其授权 agency_projects 关联的平台
+ * - brand_viewer：S3 起代运营相关表已下线，品牌方查看者若无独立授权表则返回空 Set
  * - super_admin（非 brand_viewer）：返回 null 表示全平台可见
- * - 其余角色：读取 role_platform_permissions 与 user_platform_permissions 并集；无配置则返回空 Set
+ * - 其余角色：读取 role_platform_permissions 与 user_platform_permissions 并集；
+ *   无配置则退化为全部启用平台
  */
 export async function getUserAllowedPlatforms(
   pool: any,
@@ -151,15 +203,16 @@ export async function getUserAllowedPlatforms(
   }
 
   if (user.userType === 'brand_viewer') {
-    const tenantId = user.tenantId || 1
+    // S3：brand_viewer_permissions 已随代运营域下线；表不存在时安全返回空集
+    const exists = (await pool.query(
+      `SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='brand_viewer_permissions'`,
+    )) as { rows: unknown[] }
+    if (exists.rows.length === 0) {
+      return new Set<string>()
+    }
     const res = (await pool.query(
-      `SELECT DISTINCT p.platform_code
-       FROM public.brand_viewer_permissions bvp
-       JOIN public.agency_projects p
-         ON p.tenant_id = bvp.tenant_id
-        AND p.id = ANY(bvp.project_ids)
-       WHERE bvp.user_id = $1 AND bvp.tenant_id = $2`,
-      [user.id, tenantId]
+      `SELECT DISTINCT platform_code FROM public.brand_viewer_permissions WHERE user_id = $1`,
+      [user.id],
     )) as { rows: Array<{ platform_code: string }> }
     return new Set(res.rows.map((r) => r.platform_code))
   }
@@ -169,7 +222,11 @@ export async function getUserAllowedPlatforms(
   }
 
   const res = (await pool.query(
-    `SELECT platform_code
+    `SELECT substring(resource from 10) AS platform_code
+     FROM public.sys_role_permission
+     WHERE role_code = $1 AND resource LIKE 'platform:%' AND effect = 'allow'
+     UNION
+     SELECT platform_code
      FROM public.role_platform_permissions rpp
      JOIN public.roles r ON r.id = rpp.role_id
      WHERE r.code = $1
@@ -180,47 +237,12 @@ export async function getUserAllowedPlatforms(
     [user.role, user.id]
   )) as { rows: Array<{ platform_code: string }> }
 
-  return new Set(res.rows.map((r) => r.platform_code))
-}
-
-/**
- * Check if user has the required permission.
- */
-export async function hasPermission(
-  userId: number,
-  permissionCode: string,
-  pool: any = getPool()
-): Promise<boolean> {
-  try {
-    const result = await pool.query(
-      `SELECT COUNT(*)::int AS cnt
-       FROM users u
-       JOIN role_permissions rp ON rp.role_id = (SELECT id FROM roles WHERE code = u.role)
-       JOIN permissions p ON p.id = rp.permission_id
-       WHERE u.id = $1 AND p.code = $2`,
-      [userId, permissionCode]
-    ) as { rows: Array<{ cnt: number }> }
-    return result.rows[0]?.cnt > 0
-  } catch {
-    return false
+  const set = new Set(res.rows.map((r) => r.platform_code))
+  if (set.size === 0) {
+    const all = (await pool.query(
+      `SELECT platform_code FROM public.system_platform_configs WHERE is_enabled = true`,
+    )) as { rows: Array<{ platform_code: string }> }
+    return new Set(all.rows.map((r) => r.platform_code))
   }
-}
-
-/**
- * Require a specific permission. Returns true if authorized.
- */
-export async function requirePermission(
-  request: FastifyRequest,
-  reply: FastifyReply,
-  permissionCode: string
-): Promise<boolean> {
-  const user = await requireAuth(request, reply)
-  if (!user) return false
-
-  const ok = await hasPermission(user.id, permissionCode)
-  if (!ok) {
-    sendError(reply, 403, '无权限执行此操作')
-    return false
-  }
-  return true
+  return set
 }

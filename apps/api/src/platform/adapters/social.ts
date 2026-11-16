@@ -34,7 +34,7 @@ export class XiaohongshuAdapter extends GovernanceBackedPlatformAdapter {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      supportsLive: false,
+      supportsLive: true,
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,

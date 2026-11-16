@@ -4,7 +4,15 @@ import { sendOk, sendError } from '../lib/http.js'
 import { requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 
-const SCHEDULE_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'hrbp', 'operator']
+// P1-B11：排班写权限补齐
+//
+// 审计断点：此前缺 controller（中控）/ ad_buyer（投手）/ ops_staff（运营专员）
+//   → 中控和投手「改不了自己的班次」，只能找运营代改，排班流程卡在一个人身上。
+// 保留 hrbp（排班管理是 HRBP 职责）、super_admin/admin（管理）、ops_director/operator（运营）。
+const SCHEDULE_WRITE_ROLES = [
+  'super_admin', 'admin', 'ops_director', 'ops_staff',
+  'hrbp', 'operator', 'controller', 'ad_buyer',
+]
 
 export async function scheduleRoutes(app: FastifyInstance) {
   // ── GET /api/v1/schedule/meta ── 获取排班所需的元数据（直播间、主播、运营人员、项目）
@@ -15,13 +23,8 @@ export async function scheduleRoutes(app: FastifyInstance) {
           client.query("SELECT id, name, platform, status FROM public.live_rooms WHERE status = 'active' ORDER BY id ASC"),
           client.query('SELECT id, name, level, status FROM public.anchors WHERE status = 1 ORDER BY name ASC'),
           client.query("SELECT id, real_name AS name, role FROM public.users WHERE role IN ('admin', 'super_admin', 'operator') ORDER BY real_name ASC"),
-          client.query(`
-            SELECT p.id, p.name, c.brand_name AS "brandName", p.platform_code AS "platformCode"
-            FROM public.agency_projects p
-            LEFT JOIN public.agency_clients c ON p.client_id = c.id
-            WHERE p.status = 'active'
-            ORDER BY p.id ASC
-          `),
+          // S3：代运营项目域已下线，返回空项目列表（保持响应契约）
+          Promise.resolve({ rows: [] as unknown[] }),
         ]),
       )
 
@@ -33,6 +36,359 @@ export async function scheduleRoutes(app: FastifyInstance) {
       })
     } catch (err: any) {
       return sendError(reply, 500, err.message)
+    }
+  })
+
+  // ── GET /api/v1/schedule/staff-roles ── 岗位字典
+  app.get('/api/v1/schedule/staff-roles', { preHandler: [requireAuth] }, async (request, reply) => {
+    try {
+      const rows = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT code, name, sort_order, color, is_multi, description
+             FROM public.staff_role_dict ORDER BY sort_order ASC, code ASC`,
+        ),
+      )
+      return sendOk(reply, rows.rows)
+    } catch (err) {
+      request.log.warn({ err }, 'schedule/staff-roles failed')
+      return sendError(reply, 500, '获取岗位字典失败')
+    }
+  })
+
+  // ── GET /api/v1/schedule/calendar ── 直播排班日历（含多岗位）
+  //   老大要求：按日历方式展示，且不只显示主播，要含中控/运营/投手/拍剪/编导
+  app.get('/api/v1/schedule/calendar', { preHandler: [requireAuth] }, async (request, reply) => {
+    const q = request.query as { from?: string; to?: string; roomId?: string; platform?: string }
+    const from = q.from || new Date().toISOString().slice(0, 10)
+    const to = q.to || from
+
+    try {
+      const data = await withRlsContext(request, async (client) => {
+        const conds: string[] = ['s.date BETWEEN $1::date AND $2::date']
+        const params: any[] = [from, to]
+
+        if (q.roomId) {
+          params.push(Number(q.roomId))
+          conds.push(`s.room_id = $${params.length}`)
+        }
+        if (q.platform) {
+          params.push(String(q.platform))
+          conds.push(`r.platform_code = $${params.length}`)
+        }
+
+        const sessRes = await client.query(
+          `SELECT s.id,
+                  s.date,
+                  s.title,
+                  s.start_time,
+                  s.end_time,
+                  s.status,
+                  s.duration_min,
+                  COALESCE(s.gmv, 0)::numeric(14,2) AS gmv,
+                  s.room_id,
+                  r.name            AS room_name,
+                  r.platform_code,
+                  s.anchor_id
+             FROM public.live_sessions s
+             LEFT JOIN public.live_rooms r ON r.id = s.room_id
+            WHERE ${conds.join(' AND ')}
+            ORDER BY s.date ASC, s.start_time ASC NULLS LAST`,
+          params,
+        )
+
+        const ids = sessRes.rows.map((r: any) => r.id)
+        let staffRows: any[] = []
+        if (ids.length > 0) {
+          const staffRes = await client.query(
+            `SELECT sa.session_id, sa.role_code, sa.staff_name, d.name AS role_name,
+                    d.sort_order, d.color
+               FROM public.session_staff_assignments sa
+               JOIN public.staff_role_dict d ON d.code = sa.role_code
+              WHERE sa.session_id = ANY($1::int[])
+              ORDER BY d.sort_order ASC, sa.staff_name ASC`,
+            [ids],
+          )
+          staffRows = staffRes.rows
+        }
+
+        const staffBySession = new Map<number, any[]>()
+        for (const r of staffRows) {
+          if (!staffBySession.has(r.session_id)) staffBySession.set(r.session_id, [])
+          staffBySession.get(r.session_id)!.push({
+            roleCode: r.role_code,
+            roleName: r.role_name,
+            color: r.color,
+            name: r.staff_name,
+          })
+        }
+
+        const sessions = sessRes.rows.map((r: any) => ({
+          id: r.id,
+          date: typeof r.date === 'string' ? r.date : new Date(r.date).toISOString().slice(0, 10),
+          title: r.title,
+          startTime: r.start_time,
+          endTime: r.end_time,
+          status: r.status,
+          durationMin: r.duration_min,
+          gmv: Number(r.gmv),
+          roomId: r.room_id,
+          roomName: r.room_name,
+          platformCode: r.platform_code,
+          staff: staffBySession.get(r.id) || [],
+        }))
+
+        // 按日期分组，便于前端直接渲染日历格
+        const byDate: Record<string, any[]> = {}
+        for (const s of sessions) {
+          if (!byDate[s.date]) byDate[s.date] = []
+          byDate[s.date].push(s)
+        }
+
+        // 岗位覆盖度：有多少场次配齐了核心岗位
+        const roleSet = new Set(staffRows.map((r: any) => r.role_code))
+        const coreRoles = ['anchor', 'controller', 'operator']
+        const fullyStaffed = sessions.filter(
+          (s: any) => coreRoles.every((rc) => s.staff.some((x: any) => x.roleCode === rc)),
+        ).length
+
+        return {
+          range: { from, to },
+          totals: {
+            sessions: sessions.length,
+            fullyStaffed,
+            rolesCovered: Array.from(roleSet),
+          },
+          byDate,
+          sessions,
+        }
+      })
+      return sendOk(reply, data)
+    } catch (err) {
+      request.log.warn({ err }, 'schedule/calendar failed')
+      return sendError(reply, 500, '获取排班日历失败')
+    }
+  })
+
+  // ── POST /api/v1/schedule/sessions/:id/staff ── 设置某场次的岗位人员（全量替换）
+  app.post('/api/v1/schedule/sessions/:id/staff', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const sessionId = Number(id)
+    if (!Number.isFinite(sessionId)) return sendError(reply, 400, '场次 ID 非法')
+
+    const body = (request.body || {}) as {
+      staff?: Array<{ roleCode: string; staffName: string; staffId?: number; note?: string }>
+    }
+    const staff = Array.isArray(body.staff) ? body.staff : []
+    if (staff.length === 0) return sendError(reply, 400, 'staff 不能为空')
+
+    for (const s of staff) {
+      if (!s.roleCode || !s.staffName) {
+        return sendError(reply, 400, '每个岗位项必须包含 roleCode 与 staffName')
+      }
+    }
+
+    try {
+      const result = await withRlsContext(request, async (client) => {
+        const sess = await client.query(`SELECT id FROM public.live_sessions WHERE id = $1`, [sessionId])
+        if (sess.rows.length === 0) throw new Error('场次不存在')
+
+        const before = await client.query(
+          `SELECT role_code, staff_name FROM public.session_staff_assignments WHERE session_id = $1`,
+          [sessionId],
+        )
+
+        await client.query(`DELETE FROM public.session_staff_assignments WHERE session_id = $1`, [sessionId])
+
+        for (const s of staff) {
+          await client.query(
+            `INSERT INTO public.session_staff_assignments (session_id, role_code, staff_id, staff_name, note)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (session_id, role_code, staff_name) DO NOTHING`,
+            [sessionId, s.roleCode, s.staffId ?? null, s.staffName, s.note ?? ''],
+          )
+        }
+
+        return { before: before.rows, after: staff }
+      })
+
+      await withRlsContext(request, (client) => writeAuditLog(client, {
+        request,
+        action: 'schedule.staff.update',
+        resourceType: 'session_staff_assignments',
+        resourceId: String(sessionId),
+        afterData: result,
+      }))
+
+      return sendOk(reply, result, '岗位排班已更新')
+    } catch (err: any) {
+      request.log.warn({ err }, 'schedule/staff update failed')
+      return sendError(reply, 400, err?.message || '更新岗位排班失败')
+    }
+  })
+
+  // ── GET /api/v1/schedule/day-status ── 人员每日状态（上班/排休/请假）
+  app.get('/api/v1/schedule/day-status', { preHandler: [requireAuth] }, async (request, reply) => {
+    const q = request.query as { from?: string; to?: string }
+    const from = q.from || new Date().toISOString().slice(0, 10)
+    const to = q.to || from
+    try {
+      const rows = await withRlsContext(request, (client) =>
+        client.query(
+          `SELECT staff_name, biz_date, status, note
+             FROM public.staff_day_status
+            WHERE biz_date BETWEEN $1::date AND $2::date
+            ORDER BY biz_date ASC, staff_name ASC`,
+          [from, to],
+        ),
+      )
+      const byDate: Record<string, Array<{ staffName: string; status: string; note: string }>> = {}
+      for (const r of rows.rows) {
+        const d = typeof r.biz_date === 'string' ? r.biz_date : new Date(r.biz_date).toISOString().slice(0, 10)
+        if (!byDate[d]) byDate[d] = []
+        byDate[d].push({ staffName: r.staff_name, status: r.status, note: r.note || '' })
+      }
+      return sendOk(reply, { range: { from, to }, byDate })
+    } catch (err) {
+      request.log.warn({ err }, 'schedule/day-status failed')
+      return sendError(reply, 500, '获取人员每日状态失败')
+    }
+  })
+
+  // ── PUT /api/v1/schedule/day-status ── 批量设置人员每日状态（排班/排休）
+  // ── POST /api/v1/schedule/my/leave ── 本人请假（P1-B24）
+  //
+  // 审计断点：此前主播无法自己请假 —— PUT /schedule/day-status 需要 SCHEDULE_WRITE_ROLES，
+  //   主播（employee）不在其中，只能找运营代填。
+  //
+  // 本端点：登录即可，但**只能给自己**填（staffName 由后端从 user 推导，不接受前端传入），
+  //   防止越权给他人标记请假。
+  app.post('/api/v1/schedule/my/leave', { preHandler: [requireAuth] }, async (request, reply) => {
+    const user = (request as any).user
+    if (!user) return sendError(reply, 401, '未登录')
+
+    const body = (request.body || {}) as {
+      bizDate?: string
+      status?: string
+      note?: string
+    }
+    const VALID = ['leave', 'sick', 'rest']
+    const status = body.status || 'leave'
+    if (!VALID.includes(status)) {
+      return sendError(reply, 400, `请假类型必须是 ${VALID.join('/')}`)
+    }
+    if (!body.bizDate || !/^\d{4}-\d{2}-\d{2}$/.test(body.bizDate)) {
+      return sendError(reply, 400, '请提供合法日期（YYYY-MM-DD）')
+    }
+
+    // 只能申请今天及以后
+    const today = new Date().toISOString().slice(0, 10)
+    if (body.bizDate < today) {
+      return sendError(reply, 400, '不能为已过去的日期申请请假')
+    }
+
+    // 本人姓名：从主播档案取，取不到用 realName
+    let staffName: string | null = null
+    try {
+      staffName = await withRlsContext(request, async (client) => {
+        const r = await client.query(
+          `SELECT COALESCE(
+                    (SELECT name FROM public.anchors WHERE user_id = $1 LIMIT 1),
+                    (SELECT COALESCE(NULLIF(real_name,''), username) FROM public.users WHERE id = $1)
+                  ) AS name`,
+          [user.id],
+        )
+        return r.rows[0]?.name || null
+      })
+    } catch {
+      staffName = null
+    }
+    if (!staffName) return sendError(reply, 400, '未找到你的员工档案，请联系 HRBP')
+
+    try {
+      const result = await withRlsContext(request, async (client) => {
+        // 若当天已有排班，提示需协调（不阻断，但返回 warning）
+        const sched = await client.query(
+          `SELECT COUNT(*)::int AS n
+             FROM session_staff_assignments ssa
+             JOIN live_sessions ls ON ls.id = ssa.session_id
+            WHERE ls.date = $1::date
+              AND ssa.staff_name = $2`,
+          [body.bizDate, staffName],
+        )
+        const conflictCount = sched.rows[0]?.n ?? 0
+
+        await client.query(
+          `INSERT INTO public.staff_day_status (staff_name, biz_date, status, note)
+           VALUES ($1, $2::date, $3, $4)
+           ON CONFLICT (staff_name, biz_date)
+           DO UPDATE SET status = EXCLUDED.status, note = EXCLUDED.note, updated_at = now()`,
+          [staffName, body.bizDate, status, body.note ?? ''],
+        )
+
+        await writeAuditLog(client, {
+          request,
+          action: 'schedule.my_leave.create',
+          resourceType: 'staff_day_status',
+          resourceId: `${staffName}_${body.bizDate}`,
+          afterData: { staffName, bizDate: body.bizDate, status },
+        })
+
+        return { staffName, bizDate: body.bizDate, status, conflictCount }
+      })
+
+      return sendOk(
+        reply,
+        result,
+        result.conflictCount > 0
+          ? `已提交请假，但当天你还有 ${result.conflictCount} 个排班，请尽快与排班负责人协调`
+          : '请假已提交',
+      )
+    } catch (err: any) {
+      request.log.warn({ err }, 'schedule/my/leave failed')
+      return sendError(reply, 400, err?.message || '提交请假失败')
+    }
+  })
+
+  app.put('/api/v1/schedule/day-status', { preHandler: [requireRole(SCHEDULE_WRITE_ROLES)] }, async (request, reply) => {
+    const body = (request.body || {}) as {
+      entries?: Array<{ staffName: string; bizDate: string; status: string; note?: string }>
+    }
+    const entries = Array.isArray(body.entries) ? body.entries : []
+    if (entries.length === 0) return sendError(reply, 400, 'entries 不能为空')
+
+    const VALID = ['work', 'rest', 'leave', 'sick']
+    for (const e of entries) {
+      if (!e.staffName || !e.bizDate || !VALID.includes(e.status)) {
+        return sendError(reply, 400, `非法条目（status 必须是 ${VALID.join('/')}）`)
+      }
+    }
+
+    try {
+      const result = await withRlsContext(request, async (client) => {
+        for (const e of entries) {
+          await client.query(
+            `INSERT INTO public.staff_day_status (staff_name, biz_date, status, note)
+             VALUES ($1, $2::date, $3, $4)
+             ON CONFLICT (staff_name, biz_date)
+             DO UPDATE SET status = EXCLUDED.status, note = EXCLUDED.note, updated_at = now()`,
+            [e.staffName, e.bizDate, e.status, e.note ?? ''],
+          )
+        }
+        return { count: entries.length }
+      })
+
+      await withRlsContext(request, (client) => writeAuditLog(client, {
+        request,
+        action: 'schedule.day_status.update',
+        resourceType: 'staff_day_status',
+        resourceId: 'batch',
+        afterData: result,
+      }))
+
+      return sendOk(reply, result, '人员状态已更新')
+    } catch (err: any) {
+      request.log.warn({ err }, 'schedule/day-status update failed')
+      return sendError(reply, 400, err?.message || '更新人员状态失败')
     }
   })
 
@@ -86,8 +442,8 @@ export async function scheduleRoutes(app: FastifyInstance) {
           s.operator_id AS "operatorId",
           u.real_name AS "operatorName",
           s.project_id AS "projectId",
-          p.name AS "projectName",
-          c.brand_name AS "brandName",
+          NULL::text AS "projectName",
+          NULL::text AS "brandName",
           s.gmv::float AS "gmv",
           s.orders::int AS "orders",
           s.duration_min AS "durationMin",
@@ -97,8 +453,6 @@ export async function scheduleRoutes(app: FastifyInstance) {
         LEFT JOIN public.live_rooms r ON s.room_id = r.id
         LEFT JOIN public.anchors a ON s.anchor_id = a.id
         LEFT JOIN public.users u ON s.operator_id = u.id
-        LEFT JOIN public.agency_projects p ON s.project_id = p.id
-        LEFT JOIN public.agency_clients c ON p.client_id = c.id
         WHERE ${conditions.join(' AND ')}
         ORDER BY s.date DESC, s.start_time ASC
       `
@@ -305,13 +659,17 @@ export async function scheduleRoutes(app: FastifyInstance) {
 
           const title = `AI排班 · ${item.slotName.split(' ')[0]}`
 
+          // 获取直播间归属平台
+          const roomRes = await client.query('SELECT platform_code FROM public.live_rooms WHERE id = $1', [roomId])
+          const roomPlatform = roomRes.rows[0]?.platform_code || 'douyin'
+
           const res = await client.query(
             `
             INSERT INTO public.live_sessions (
               title, date, start_time, end_time, room_id, anchor_id, project_id,
               platform_code, remark, status, duration_min
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 'douyin', $8, 'scheduled', 210)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'scheduled', 210)
             RETURNING id, title, date, start_time, end_time, anchor_id
             `,
             [
@@ -322,6 +680,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
               roomId,
               leadAnchorId,
               projectId || null,
+              roomPlatform,
               `AI智能推导排班：${item.aiReason || ''}`,
             ],
           )
@@ -377,16 +736,14 @@ export async function scheduleRoutes(app: FastifyInstance) {
             s.room_id AS "roomId",
             r.name AS "roomName",
             s.project_id AS "projectId",
-            p.name AS "projectName",
-            c.brand_name AS "brandName",
+            NULL::text AS "projectName",
+            NULL::text AS "brandName",
             s.gmv::float AS "gmv",
             s.orders::int AS "orders",
             s.duration_min AS "durationMin",
             s.remark
           FROM public.live_sessions s
           LEFT JOIN public.live_rooms r ON s.room_id = r.id
-          LEFT JOIN public.agency_projects p ON s.project_id = p.id
-          LEFT JOIN public.agency_clients c ON p.client_id = c.id
           WHERE s.anchor_id = $1
           ORDER BY s.date DESC, s.start_time ASC
           LIMIT 30
@@ -435,12 +792,44 @@ export async function scheduleRoutes(app: FastifyInstance) {
         GROUP BY a.id, a.name, a.level, c.overall
         ORDER BY "historicalGmv" DESC
       `
-      const { rows: anchors } = await withRlsContext(request, (client) => client.query(anchorQuery))
+      const [anchorRes, slotRes] = await withRlsContext(request, (client) =>
+        Promise.all([
+          client.query(anchorQuery),
+          client.query(`
+            SELECT
+              s.anchor_id,
+              CASE
+                WHEN s.start_time >= '06:00:00' AND s.start_time < '11:00:00' THEN 'morning'
+                WHEN s.start_time >= '11:00:00' AND s.start_time < '15:00:00' THEN 'noon'
+                WHEN s.start_time >= '18:00:00' AND s.start_time < '23:30:00' THEN 'prime'
+                ELSE 'late_night'
+              END AS slot_key,
+              COUNT(s.id)::int AS slot_sessions,
+              COALESCE(AVG(s.gmv), 0)::float AS slot_avg_gmv,
+              COALESCE(MAX(s.gmv), 0)::float AS slot_max_gmv,
+              COALESCE(AVG(s.online_peak), 0)::int AS slot_avg_peak
+            FROM public.live_sessions s
+            WHERE s.anchor_id IS NOT NULL AND s.gmv > 0
+            GROUP BY s.anchor_id, slot_key
+          `),
+        ]),
+      )
 
+      const anchors = anchorRes.rows
       if (anchors.length === 0) {
         return sendOk(reply, {
           schedule: [],
           strategy: '暂无活跃主播数据，请先录入主播档案',
+        })
+      }
+
+      const slotStatsMap = new Map<string, { sessions: number; avgGmv: number; maxGmv: number; avgPeak: number }>()
+      for (const row of slotRes.rows) {
+        slotStatsMap.set(`${row.anchor_id}:${row.slot_key}`, {
+          sessions: row.slot_sessions,
+          avgGmv: Number(row.slot_avg_gmv),
+          maxGmv: Number(row.slot_max_gmv),
+          avgPeak: Number(row.slot_avg_peak),
         })
       }
 
@@ -450,39 +839,76 @@ export async function scheduleRoutes(app: FastifyInstance) {
           slotName: '早间清醒场 (07:00 - 10:30)',
           trafficWeight: 0.65,
           requiredTrait: '亲和力强、语速沉稳、适合高客单日用/保暖',
-          leadIndex: 2,
-          supportIndex: 4,
         },
         {
           slotKey: 'noon',
           slotName: '午间白领冲锋场 (11:30 - 14:30)',
           trafficWeight: 0.85,
           requiredTrait: '节奏紧凑、快打快切、适合短平快服饰',
-          leadIndex: 1,
-          supportIndex: 3,
         },
         {
           slotKey: 'prime',
           slotName: '晚间巅峰大促场 (19:00 - 23:30)',
           trafficWeight: 1.0,
           requiredTrait: '全盘气场、压单爆发力、高转化带货一号位',
-          leadIndex: 0,
-          supportIndex: 1,
         },
         {
           slotKey: 'late_night',
           slotName: '深夜长尾捡漏场 (23:30 - 02:00)',
           trafficWeight: 0.55,
           requiredTrait: '陪伴互动、低压力聊天促单、尾货福利',
-          leadIndex: 3,
-          supportIndex: 5,
         },
       ]
 
+      const assignedLeadIds = new Set<number>()
+
       const schedule = slots.map((slot) => {
-        const lead = anchors[slot.leadIndex % anchors.length] || anchors[0]
-        const support = anchors[slot.supportIndex % anchors.length] || anchors[Math.min(1, anchors.length - 1)]
-        const expectedGmv = Math.round(lead.avgSessionGmv * slot.trafficWeight * 1.15)
+        // 计算全员在此 slot 下的实测聚合产出与综合评分
+        const ranked = anchors.map((a) => {
+          const key = `${a.id}:${slot.slotKey}`
+          const stat = slotStatsMap.get(key)
+          const hasHistory = Boolean(stat && stat.sessions > 0)
+          const slotGmv = hasHistory ? stat!.avgGmv : (a.avgSessionGmv * slot.trafficWeight)
+          // 综合分：历史该时段产出 (70%) + 综合能力模型 (30%)
+          const score = (slotGmv * 0.7) + (Number(a.capabilityScore) * 100 * 0.3)
+          return {
+            anchor: a,
+            score,
+            hasHistory,
+            stat: stat || { sessions: 0, avgGmv: Math.round(slotGmv), maxGmv: Math.round(slotGmv), avgPeak: 0 },
+          }
+        }).sort((x, y) => y.score - x.score)
+
+        // 优先挑选本时段综合排名最高且未在前序时段担任主打的主播
+        let leadChoice = ranked.find((r) => !assignedLeadIds.has(r.anchor.id))
+        if (!leadChoice) leadChoice = ranked[0]
+        assignedLeadIds.add(leadChoice.anchor.id)
+
+        // 副播挑选互补主播（非同一人）
+        const supportChoice = ranked.find((r) => r.anchor.id !== leadChoice!.anchor.id) || ranked[0]
+
+        const lead = leadChoice.anchor
+        const support = supportChoice.anchor
+        const stat = leadChoice.stat
+
+        // 真实预测 GMV：基于该主播在该时段真实历史均值（无硬编码假数据兜底）
+        const expectedGmv = Math.round(stat.avgGmv > 0 ? stat.avgGmv : (lead.avgSessionGmv * slot.trafficWeight))
+        const rankInSlot = ranked.findIndex((r) => r.anchor.id === lead.id) + 1
+
+        const evidence = {
+          slotSessions: stat.sessions,
+          slotAvgGmv: Math.round(stat.avgGmv),
+          slotMaxGmv: Math.round(stat.maxGmv),
+          overallAvgGmv: Math.round(lead.avgSessionGmv),
+          capabilityScore: lead.capabilityScore,
+          rankInSlot,
+          timeSlotRange: slot.slotName,
+          dataSource: leadChoice.hasHistory ? 'historical_session_aggregate' : 'overall_capability_weighted',
+        }
+
+        const aiReason = leadChoice.hasHistory
+          ? `基于历史 ${stat.sessions} 场「${slot.slotName}」真实开播数据，${lead.name}在同时段平均 GMV 达 ¥${Math.round(stat.avgGmv).toLocaleString()}（排名第 ${rankInSlot}），综合能力分 ${lead.capabilityScore}，为该时段最优首发主播`
+          : `根据综合能力模型（${lead.capabilityScore}分）与历史场均 GMV ¥${Math.round(lead.avgSessionGmv).toLocaleString()}，${lead.name}与「${slot.slotName}」风格画像（${slot.requiredTrait}）契合度最高`
 
         return {
           slotKey: slot.slotKey,
@@ -499,8 +925,9 @@ export async function scheduleRoutes(app: FastifyInstance) {
             name: support.name,
             score: support.capabilityScore,
           },
-          expectedGmv: expectedGmv > 0 ? expectedGmv : 280000,
-          aiReason: `基于历史场次转化数据，${lead.name}在类似峰值时段平均产出最高，搭配${support.name}中控配合可最大化拉高实时在线停留时长`,
+          expectedGmv,
+          evidence,
+          aiReason,
         }
       })
 
@@ -508,7 +935,7 @@ export async function scheduleRoutes(app: FastifyInstance) {
         platform: 'douyin',
         shopId: 1,
         generatedAt: new Date().toISOString(),
-        strategy: 'AI 根据主播历史时段带货峰值、停留时长与类目匹配度，推导出本周最高预期 GMV 排班矩阵',
+        strategy: 'AI 根据主播历史时段带货峰值、真实场均 GMV 与综合能力评级推导出最优排班矩阵',
         schedule,
       })
     } catch (err: any) {

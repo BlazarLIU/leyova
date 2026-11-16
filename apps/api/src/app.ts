@@ -33,16 +33,15 @@ import { maintenanceRoutes } from './routes/maintenance.js'
 import { caliberRoutes } from './routes/caliber.js'
 import { taobaoRoutes } from './routes/taobao.js'
 import { douyinRoutes } from './routes/douyin.js'
-import { pddRoutes } from './routes/pdd.js'
 import { kuaishouRoutes } from './routes/kuaishou.js'
-import { jdRoutes } from './routes/jd.js'
+import { wechatRoutes } from './routes/wechat.js'
+import { tmallRoutes } from './routes/tmall.js'
 import { xiaohongshuRoutes } from './routes/xiaohongshu.js'
-import { costRoutes } from './routes/costs.js'
-import { agencyClientsRoutes } from './routes/agency/clients.js'
-import { agencyProjectsRoutes } from './routes/agency/projects.js'
-import { agencySettlementRoutes } from './routes/agency/settlement.js'
-import { agencyPortalRoutes } from './routes/agency/portal.js'
 import { weatherRoutes } from './routes/weather.js'
+import { accessControlRoutes } from './routes/access-control.js'
+import { hrbpRoutes } from './routes/hrbp.js'
+import { platformInsightsRoutes } from './routes/platform-insights.js'
+import { platformDedicatedRoutes } from './routes/platform-dedicated.js'
 import { scheduleRoutes } from './routes/schedule.js'
 import { alertRulesRoutes } from './routes/alerts.js'
 import { governanceRoutes } from './routes/governance.js'
@@ -54,6 +53,14 @@ import { customerServiceRoutes } from './routes/customer-service.js'
 import { netRoiRoutes } from './routes/net-roi.js'
 import { searchKeywordRoutes } from './routes/search-keywords.js'
 import { growthComplianceRoutes } from './routes/growth-compliance.js'
+import { selectionRoutes } from './routes/selection.js'
+import { campaignPlanRoutes } from './routes/campaign-plan.js'
+import { complianceRulesRoutes } from './routes/compliance-rules.js'
+import { resourceRoutes } from './routes/resources.js'
+import { generalLedgerRoutes } from './routes/general-ledger.js'
+import { customFieldRoutes } from './routes/custom-fields.js'
+import { metricsRoutes } from './routes/metrics.js'
+import { registerMetricsHooks } from './lib/metrics.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { errorHandler } from './lib/error-handler.js'
@@ -89,6 +96,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await app.register(multipart, { limits: { fileSize: 100 * 1024 * 1024, files: 1 } })
   await app.register(dbPlugin)
 
+  // Prometheus Metrics 监控钩子（无侵入全局采样与吞吐指标收集）
+  registerMetricsHooks(app)
+
   // 全局鉴权钩子：注入 request.user，使二维权限矩阵在运行时生效
   registerAuthHook(app)
 
@@ -110,6 +120,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   // ── routes ──
   await app.register(healthRoutes)
+  await app.register(metricsRoutes)   // Prometheus /metrics 端点
   await app.register(authRoutes)
   await app.register(overviewRoutes)  // real DB-backed routes take priority
   await app.register(anchorRoutes)    // anchor/training/scripts routes
@@ -135,15 +146,14 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await app.register(caliberRoutes) // caliber: platform amount_type model & cross-platform comparability
   await app.register(douyinRoutes)   // douyin: 抖音专属分析（店铺/渠道/主播）
   await app.register(taobaoRoutes)   // taobao: 淘宝/天猫专属分析
-  await app.register(pddRoutes)      // pdd: 拼多多专属分析
   await app.register(kuaishouRoutes) // kuaishou: 快手专属分析
-  await app.register(jdRoutes)       // jd: 京东专属分析（自营/POP/履约）
+  await app.register(wechatRoutes)   // wechat: 视频号专属分析（公私域/全域带货/结算/内容）
+  await app.register(tmallRoutes)    // tmall: 天猫专属分析（品牌场次/五层抵扣/大促对比）
   await app.register(xiaohongshuRoutes) // xiaohongshu: 小红书专属分析（笔记/搜索/种草）
-  await app.register(costRoutes)        // cost: 成本录入与净利计算 (Track 1)
-  await app.register(agencyClientsRoutes) // agency: 品牌自播档案与专属账号 (Track 2)
-  await app.register(agencyProjectsRoutes) // agency: 项目合同与专项看板 (Track 2)
-  await app.register(agencySettlementRoutes) // agency: 月结对账单与不可变保护 (Track 2)
-  await app.register(agencyPortalRoutes) // portal: 品牌自播只读专属看板 (Track 2)
+  await app.register(accessControlRoutes) // access-control: 模式 × 平台 × 模块 三维权限 (S2)
+  await app.register(hrbpRoutes)          // hrbp: HRBP 工作台（人才/考勤/绩效/培训）(S5)
+  await app.register(platformInsightsRoutes) // platform-insights: 4 个平台专属洞察 (S7-B)
+  await app.register(platformDedicatedRoutes) // platform-dedicated: 10 个平台专属洞察 (S7-B 第二批)
   await app.register(weatherRoutes)      // weather: 竞品差异化特色 · 天气 AI 穿搭与智能选品 (Track 1)
   await app.register(scheduleRoutes)     // schedule: AI 智能主播排班建议 (Track 1)
   await app.register(alertRulesRoutes)   // alerts: 自定义指标阈值告警与 Webhook 调度 (Track 1)
@@ -156,6 +166,12 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await app.register(netRoiRoutes)       // net-roi: 官方归因窗口与 T+7 净成交 ROI 双时间线
   await app.register(searchKeywordRoutes) // search-keywords: 搜索词卡位排名与小红书词包同步
   await app.register(growthComplianceRoutes) // promotions/rules, members/overview, compliance/events
+  await app.register(selectionRoutes)    // selection: 全品类多因子 AI 选品与推荐 (FINAL-PLAN Phase 2)
+  await app.register(campaignPlanRoutes) // campaign-plan: 12 模块一键运营方案生成器 (FINAL-PLAN Phase 2)
+  await app.register(complianceRulesRoutes) // compliance-rules: 平台规则巡检雷达、合规变更与活动提醒 (FINAL-PLAN Phase 3)
+  await app.register(resourceRoutes)   // P9-4: 通用资源层（registerResource 生成的 CRUD）
+  await app.register(generalLedgerRoutes) // P7 §5.2 #11: 总账与复式记账凭证链 (General Ledger & Voucher Chain)
+  await app.register(customFieldRoutes)  // P7 §5.2 #13: 自定义字段元数据引擎 (Custom Field Engine)
   // ── mockRoutes removed — all routes migrated to DB-backed ──
 
   app.setNotFoundHandler((_request, reply) => {

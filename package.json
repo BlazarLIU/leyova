@@ -19,6 +19,11 @@
     "start:api": "pnpm -F @leyova/api start",
     "start:mcp": "pnpm -F @leyova/mcp-server start",
     "check:guardrails": "node scripts/check-guardrails.mjs",
+    "schema:check": "node database/generate-schema.js --check",
+    "ops:probe": "node scripts/ops-health-probe.mjs",
+    "ops:bench": "node scripts/benchmark-aggregations.mjs",
+    "ops:smoke": "node scripts/e2e-smoke-flow.mjs",
+    "worker": "pnpm -F @leyova/api worker",
     "test": "pnpm -F @leyova/api test && pnpm -F @leyova/web test"
   }
 }

@@ -27,14 +27,25 @@ export async function overviewRoutes(app: FastifyInstance) {
            ORDER BY r.id`,
         )
         const sumRes = await client.query<{
-          total_online: number; cumulative_views: number; real_time_gmv: string; total_orders: number
+          total_online: number; cumulative_views: number; real_time_gmv: string
+          total_orders: number; views_actual_rows: number
         }>(
-          `SELECT COALESCE(SUM(online_peak), 0)::int AS total_online,
-                  COALESCE(SUM(online_peak) * 15, 0)::int AS cumulative_views,
-                  COALESCE(SUM(gmv), 0) AS real_time_gmv,
-                  COALESCE(SUM(orders), 0)::int AS total_orders
-           FROM live_sessions
-           WHERE date = (SELECT MAX(date) FROM live_sessions WHERE status = 'live') AND status = 'live'`,
+          // P1-B9：累计观看不能凭空乘系数
+          //
+          // 审计断点：原实现 `SUM(online_peak) * 15` —— 峰值在线乘 15 当作累计观看，
+          //   这个 15 没有任何业务依据，是纯粹的伪数据。
+          // 修复：从 session_overview_metrics 取真实 enter_users（进场人数），
+          //   无该数据时回退为 0 并标记 viewsEstimated=true，让前端能提示「数据未接入」。
+          `SELECT COALESCE(SUM(ls.online_peak), 0)::int AS total_online,
+                  COALESCE(SUM(om.enter_users), 0)::int AS cumulative_views,
+                  COALESCE(SUM(ls.gmv), 0) AS real_time_gmv,
+                  COALESCE(SUM(ls.orders), 0)::int AS total_orders,
+                  COUNT(om.enter_users)::int AS views_actual_rows
+           FROM live_sessions ls
+           LEFT JOIN session_overview_metrics om
+                  ON om.session_id = ls.id
+           WHERE ls.date = (SELECT MAX(date) FROM live_sessions WHERE status = 'live')
+             AND ls.status = 'live'`,
         )
         return { rooms: roomsRes, summary: sumRes }
       })
@@ -42,6 +53,8 @@ export async function overviewRoutes(app: FastifyInstance) {
         summary: {
           total_online: summary.rows[0]?.total_online ?? 0,
           cumulative_views: summary.rows[0]?.cumulative_views ?? 0,
+          // 若没有任何真实进场数据，前端应显示「—」而不是 0（避免误读为真没人看）
+          views_estimated: (summary.rows[0]?.views_actual_rows ?? 0) === 0,
           real_time_gmv: parseFloat(summary.rows[0]?.real_time_gmv ?? '0'),
           orders: summary.rows[0]?.total_orders ?? 0,
         },

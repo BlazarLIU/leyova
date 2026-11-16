@@ -1,14 +1,25 @@
-import { useEffect, useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Users, Plus, Trash2, RefreshCw, AlertTriangle } from 'lucide-react'
-import { Card, CardHeader, CardBody } from '@/components/ui/Card'
+import React, { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Users,
+  Plus,
+  Trash2,
+  RefreshCw,
+  AlertTriangle,
+  Shield,
+  CheckCircle2,
+  XCircle,
+  X,
+  UserCheck,
+} from 'lucide-react'
+import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
+import { DataPage, type ColumnDef } from '@/components/common/DataPage'
+import { useTable } from '@/components/common/useTable'
 
-const fadeIn = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4 } }
-
-interface Account {
+export interface Account {
   id: number
   username: string
   realName: string
@@ -17,7 +28,7 @@ interface Account {
   createdAt: string
 }
 
-const ROLE_LABEL: Record<string, string> = {
+export const ROLE_LABEL: Record<string, string> = {
   super_admin: '👑 系统管理员',
   admin: '🏢 管理员 (总监)',
   ops_director: '🧭 运营总监',
@@ -30,7 +41,7 @@ const ROLE_LABEL: Record<string, string> = {
   employee: '🎙️ 员工 (主播/中控)',
 }
 
-const ROLE_BADGE_VARIANT: Record<string, 'danger' | 'warning' | 'success' | 'info' | 'neutral'> = {
+export const ROLE_BADGE_VARIANT: Record<string, 'danger' | 'warning' | 'success' | 'info' | 'neutral'> = {
   super_admin: 'danger',
   admin: 'warning',
   ops_director: 'warning',
@@ -44,204 +55,380 @@ const ROLE_BADGE_VARIANT: Record<string, 'danger' | 'warning' | 'success' | 'inf
 }
 
 export function UsersPage() {
-  const [accounts, setAccounts] = useState<Account[]>([])
-  const [loading, setLoading] = useState(true)
-  const [msg, setMsg] = useState<string | null>(null)
-  const [filterRole, setFilterRole] = useState<string>('all')
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [form, setForm] = useState({ username: '', realName: '', password: '', role: 'operator' })
   const [creating, setCreating] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const d = await api.get<Account[]>('/system/users')
-      setAccounts(d || [])
-    } catch (e: any) {
-      setMsg(e?.message || '加载账号列表失败')
-    } finally {
-      setLoading(false)
+  const table = useTable<Account, { role: string; status: string }>({
+    initialFilters: { role: 'all', status: 'all' },
+    initialPageSize: 20,
+    fetchData: async ({ search, filters }) => {
+      const list = await api.get<Account[]>('/system/users')
+      const rawAccounts: Account[] = Array.isArray(list) ? list : []
+
+      const filtered = rawAccounts.filter((a) => {
+        if (filters.role !== 'all' && a.role !== filters.role) return false
+        if (filters.status !== 'all' && String(a.status) !== filters.status) return false
+        if (!search) return true
+        const q = search.toLowerCase()
+        return (
+          a.username.toLowerCase().includes(q) ||
+          (a.realName && a.realName.toLowerCase().includes(q))
+        )
+      })
+
+      return {
+        items: filtered,
+        total: filtered.length,
+      }
+    },
+  })
+
+  // Quick stats
+  const stats = useMemo(() => {
+    const list = table.data
+    const total = table.total
+    const active = list.filter((a) => a.status === 1).length
+    const inactive = list.filter((a) => a.status !== 1).length
+    const operators = list.filter((a) => ['operator', 'ops_staff', 'ops_director'].includes(a.role)).length
+
+    return { total, active, inactive, operators }
+  }, [table.data, table.total])
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.username.trim() || !form.password.trim()) {
+      alert('请填写用户名与初始密码')
+      return
     }
-  }, [])
-
-  useEffect(() => { load() }, [load])
-
-  const create = async () => {
-    if (!form.username || !form.password) { setMsg('请填写用户名与密码'); return }
     setCreating(true)
     try {
       await api.post('/system/users', form)
-      setMsg('账号已创建')
+      setShowCreateModal(false)
       setForm({ username: '', realName: '', password: '', role: 'operator' })
-      load()
+      setMsg('账号已成功创建')
+      await table.reload()
     } catch (e: any) {
-      setMsg(e?.message || '创建失败')
+      alert(e?.message || '创建账号失败')
     } finally {
       setCreating(false)
     }
   }
 
-  const remove = async (id: number, username: string) => {
+  const handleDelete = async (id: number, username: string) => {
     if (!confirm(`确认删除账号「${username}」？此操作不可撤销。`)) return
     try {
       await api.delete(`/system/users/${id}`)
       setMsg('账号已删除')
-      load()
+      await table.reload()
     } catch (e: any) {
-      setMsg(e?.message || '删除失败')
+      alert(e?.message || '删除失败')
     }
   }
 
-  return (
-    <div className="space-y-6">
-      <motion.div {...fadeIn}>
-        <h1 className="text-2xl font-semibold text-slate-100">账号管理</h1>
-        <p className="mt-1 text-sm text-slate-400">管理系统登录账号与角色分配</p>
-      </motion.div>
+  const columns: ColumnDef<Account>[] = useMemo(
+    () => [
+      {
+        key: 'username',
+        header: '用户名',
+        width: 160,
+        render: (_, a) => (
+          <span className="font-mono font-semibold text-slate-100 flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-cyan-400" />
+            {a.username}
+          </span>
+        ),
+      },
+      {
+        key: 'realName',
+        header: '姓名',
+        width: 140,
+        render: (_, a) => (
+          <span className="text-slate-200">{a.realName || '-'}</span>
+        ),
+      },
+      {
+        key: 'role',
+        header: '角色权限分级',
+        render: (_, a) => (
+          <Badge variant={ROLE_BADGE_VARIANT[a.role] || 'neutral'}>
+            {ROLE_LABEL[a.role] || a.role}
+          </Badge>
+        ),
+      },
+      {
+        key: 'status',
+        header: '账号状态',
+        width: 120,
+        align: 'center',
+        render: (_, a) => (
+          <Badge variant={a.status === 1 ? 'success' : 'neutral'}>
+            {a.status === 1 ? '正常生效' : '已停用'}
+          </Badge>
+        ),
+      },
+      {
+        key: 'createdAt',
+        header: '创建时间',
+        width: 160,
+        render: (_, a) => (
+          <span className="font-mono text-xs text-slate-400">
+            {a.createdAt ? new Date(a.createdAt).toLocaleDateString('zh-CN') : '-'}
+          </span>
+        ),
+      },
+      {
+        key: 'actions',
+        header: '操作',
+        width: 90,
+        align: 'right',
+        render: (_, a) => (
+          <Button
+            size="xs"
+            variant="ghost"
+            onClick={() => handleDelete(a.id, a.username)}
+            title="删除账号"
+            className="text-slate-500 hover:text-red-400"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+        ),
+      },
+    ],
+    []
+  )
 
+  return (
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px] text-gray-100">
       {msg && (
-        <div className="flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-sm text-cyan-300">
+        <div className="flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs text-cyan-300">
           <span>{msg}</span>
-          <button onClick={() => setMsg(null)} className="text-xs text-cyan-500 hover:text-cyan-300">关闭</button>
+          <button onClick={() => setMsg(null)} className="text-xs text-cyan-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
-      <motion.div {...fadeIn}>
+      {/* 统计指标卡片 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2"><Plus className="h-4 w-4" /> 新建账号</div>
-          </CardHeader>
-          <CardBody>
-            <div className="grid gap-2 sm:grid-cols-5">
-              <input
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-                placeholder="用户名"
-                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
-              />
-              <input
-                value={form.realName}
-                onChange={(e) => setForm({ ...form, realName: e.target.value })}
-                placeholder="真实姓名"
-                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
-              />
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="初始密码"
-                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
-              />
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400">系统总账号数</span>
+              <Users className="w-4 h-4 text-cyan-400" />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-slate-100">{stats.total}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">已分配角色的登录主体</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400">正常生效账号</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.active}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">具备登录与功能鉴权凭证</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400">已停用账号</span>
+              <XCircle className="w-4 h-4 text-slate-500" />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-slate-400">{stats.inactive}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">休眠或离职锁定状态</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400">运营操盘中心人员</span>
+              <UserCheck className="w-4 h-4 text-orbit-primary-light" />
+            </div>
+            <p className="mt-1 text-2xl font-bold text-orbit-primary-light">{stats.operators}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">操盘手、运营总监与专员</p>
+          </CardBody>
+        </Card>
+      </div>
+
+      <DataPage<Account>
+        title="账号与系统用户管理"
+        subtitle="集中管理企业各业务角色登录账号、实名绑定与二维权限矩阵访问准入"
+        badge={
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-cyan-400 border border-orbit-border">
+            DataPage + useTable
+          </span>
+        }
+        table={table}
+        columns={columns}
+        searchPlaceholder="搜索用户名或真实姓名..."
+        exportFilename="system_user_accounts"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowCreateModal(true)}
+              icon={<Plus className="w-4 h-4" />}
+            >
+              新建系统账号
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.reload()}
+              loading={table.loading}
+              icon={<RefreshCw className="w-3.5 h-3.5" />}
+            >
+              刷新
+            </Button>
+          </div>
+        }
+        filterControls={
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-slate-500" />
+              <span className="text-gray-400">角色:</span>
               <select
-                value={form.role}
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
-                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+                value={table.filters.role}
+                onChange={(e) => table.setFilter('role', e.target.value)}
+                className="h-7 px-2 text-xs rounded border border-gray-700 bg-gray-800 text-gray-300 focus:outline-none focus:border-cyan-500"
               >
-                {Object.entries(ROLE_LABEL).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
+                <option value="all">全部角色</option>
+                {Object.entries(ROLE_LABEL).map(([code, label]) => (
+                  <option key={code} value={code}>
+                    {label}
+                  </option>
                 ))}
               </select>
-              <Button onClick={create} disabled={creating}>
-                {creating ? '创建中…' : '创建'}
-              </Button>
             </div>
-          </CardBody>
-        </Card>
-      </motion.div>
 
-      <motion.div {...fadeIn}>
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-cyan-400" />
-                <span className="font-semibold text-slate-100">账号列表</span>
-                <span className="text-xs text-slate-500 font-mono">({accounts.length})</span>
-              </div>
-              
-              <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5 ml-2">
+              <span className="text-gray-400">状态:</span>
+              {[
+                { value: 'all', label: '全部' },
+                { value: '1', label: '正常' },
+                { value: '0', label: '停用' },
+              ].map((st) => (
                 <button
-                  onClick={() => setFilterRole('all')}
-                  className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                    filterRole === 'all' ? 'bg-cyan-500/20 text-cyan-300 font-medium' : 'text-slate-400 hover:text-slate-200'
+                  key={st.value}
+                  onClick={() => table.setFilter('status', st.value)}
+                  className={`px-2 py-0.5 rounded text-xs transition-colors ${
+                    table.filters.status === st.value
+                      ? 'bg-cyan-600 text-white font-medium'
+                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
                   }`}
                 >
-                  全部
+                  {st.label}
                 </button>
-                {Object.entries(ROLE_LABEL).map(([code, label]) => (
-                  <button
-                    key={code}
-                    onClick={() => setFilterRole(code)}
-                    className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                      filterRole === code ? 'bg-cyan-500/20 text-cyan-300 font-medium' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    {label.split(' ')[0]}
-                  </button>
-                ))}
-                <button onClick={load} className="ml-2 text-xs text-slate-500 hover:text-slate-300 p-1">
-                  <RefreshCw className="inline h-3 w-3" />
-                </button>
-              </div>
+              ))}
             </div>
-          </CardHeader>
-          <CardBody>
-            {loading ? (
-              <div className="py-10 text-center text-sm text-slate-500">加载中…</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
-                      <th className="py-2 pr-3">用户名</th>
-                      <th className="py-2 pr-3">姓名</th>
-                      <th className="py-2 pr-3">角色权限分级</th>
-                      <th className="py-2 pr-3">状态</th>
-                      <th className="py-2 pr-3">创建时间</th>
-                      <th className="py-2 text-right">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {accounts
-                      .filter((a) => filterRole === 'all' || a.role === filterRole)
-                      .map((a) => (
-                      <tr key={a.id} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
-                        <td className="py-2 pr-3 font-mono text-slate-200">{a.username}</td>
-                        <td className="py-2 pr-3">{a.realName || '-'}</td>
-                        <td className="py-2 pr-3">
-                          <Badge variant={ROLE_BADGE_VARIANT[a.role] || 'neutral'}>
-                            {ROLE_LABEL[a.role] || a.role}
-                          </Badge>
-                        </td>
-                        <td className="py-2 pr-3">
-                          <Badge variant={a.status === 1 ? 'success' : 'neutral'}>
-                            {a.status === 1 ? '正常' : '停用'}
-                          </Badge>
-                        </td>
-                        <td className="py-2 pr-3 text-xs text-slate-500">
-                          {a.createdAt ? new Date(a.createdAt).toLocaleDateString('zh-CN') : '-'}
-                        </td>
-                        <td className="py-2 text-right">
-                          <Button variant="ghost" onClick={() => remove(a.id, a.username)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                    {accounts.length === 0 && (
-                      <tr><td colSpan={6} className="py-8 text-center text-xs text-slate-500">暂无账号</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardBody>
-        </Card>
-      </motion.div>
+          </div>
+        }
+      >
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400/80">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          删除账号前请确认该账号没有正在进行的排班或审批工作流。账号删除将不可撤销。
+        </div>
+      </DataPage>
 
-      <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400/80">
-        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        删除账号前请确认该账号没有正在进行的运营工作。删除不可撤销。
-      </div>
+      {/* 新建账号弹窗 */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-gray-800 mb-4">
+                <h3 className="text-base font-bold text-gray-100 flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-cyan-400" />
+                  新建系统账号
+                </h3>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreate} className="space-y-4 text-xs">
+                <div>
+                  <label className="block text-gray-300 mb-1 font-medium">登录用户名</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="如 operator_zhang"
+                    value={form.username}
+                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-1 font-medium">真实姓名</label>
+                  <input
+                    type="text"
+                    placeholder="如 张三"
+                    value={form.realName}
+                    onChange={(e) => setForm({ ...form, realName: e.target.value })}
+                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-1 font-medium">初始登录密码</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="至少 6 位安全密码"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-1 font-medium">分配系统角色</label>
+                  <select
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    {Object.entries(ROLE_LABEL).map(([code, label]) => (
+                      <option key={code} value={code}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-gray-800">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    取消
+                  </Button>
+                  <Button type="submit" variant="primary" size="sm" disabled={creating}>
+                    {creating ? '创建中...' : '确认创建'}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
+
+export default UsersPage

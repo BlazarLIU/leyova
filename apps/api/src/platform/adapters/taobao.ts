@@ -8,7 +8,7 @@ export class TaobaoAdapter extends GovernanceBackedPlatformAdapter {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      supportsLive: false,
+      supportsLive: true,
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,
@@ -34,7 +34,7 @@ export class TmallAdapter extends GovernanceBackedPlatformAdapter {
 
   getCapabilities(): PlatformCapabilities {
     return {
-      supportsLive: false,
+      supportsLive: true,
       supportsShelf: true,
       supportsContent: true,
       supportsAds: true,

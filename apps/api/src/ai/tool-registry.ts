@@ -15,7 +15,7 @@
 
 import { z } from 'zod'
 import { getPool } from '../lib/db.js'
-import type { AiScopeContext } from '../lib/ai-gateway.js'
+import type { AiScopeContext } from '../lib/ai-types.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -186,28 +186,13 @@ async function logToolCall(
 }
 
 // ---------------------------------------------------------------------------
-// Helper: minimal Zod → JSON Schema
+// Helper: Zod v4 native toJSONSchema
 // ---------------------------------------------------------------------------
 
+/**
+ * 使用 zod v4 内置的 toJSONSchema 将 Zod schema 转为 JSON Schema。
+ * 移除了 v3 时代的手写 shim（访问 _def.typeName）。
+ */
 function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
-  // Zod 3 doesn't have a built-in toJsonSchema; this is a minimal shim
-  // covering the common cases we use (object, string, number, optional).
-  const def = (schema as any)._def
-
-  if (def?.typeName === 'ZodObject') {
-    const shape = def.shape()
-    const properties: Record<string, unknown> = {}
-    const required: string[] = []
-    for (const [key, val] of Object.entries(shape)) {
-      properties[key] = zodToJsonSchema(val as z.ZodTypeAny)
-      if (!(val as any).isOptional()) required.push(key)
-    }
-    return { type: 'object', properties, ...(required.length > 0 ? { required } : {}) }
-  }
-  if (def?.typeName === 'ZodString') return { type: 'string' }
-  if (def?.typeName === 'ZodNumber') return { type: 'number' }
-  if (def?.typeName === 'ZodOptional' || def?.typeName === 'ZodNullable')
-    return zodToJsonSchema(def.innerType)
-  if (def?.typeName === 'ZodArray') return { type: 'array', items: zodToJsonSchema(def.type) }
-  return {}
+  return z.toJSONSchema(schema)
 }

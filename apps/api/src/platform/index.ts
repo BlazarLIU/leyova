@@ -1,8 +1,8 @@
 import type { PlatformAdapter, PlatformCapabilities } from './types.js'
 import { DouyinAdapter } from './adapters/douyin.js'
 import { TaobaoAdapter, TmallAdapter } from './adapters/taobao.js'
-import { JdAdapter, PddAdapter } from './adapters/shelf.js'
 import { KuaishouAdapter, XiaohongshuAdapter } from './adapters/social.js'
+import { WechatAdapter } from './adapters/wechat.js'
 
 class PlatformRegistry {
   private adapters = new Map<string, PlatformAdapter>()
@@ -10,10 +10,9 @@ class PlatformRegistry {
   constructor() {
     this.register(new DouyinAdapter())
     this.register(new KuaishouAdapter())
+    this.register(new WechatAdapter())
     this.register(new TaobaoAdapter())
     this.register(new TmallAdapter())
-    this.register(new JdAdapter())
-    this.register(new PddAdapter())
     this.register(new XiaohongshuAdapter())
   }
 

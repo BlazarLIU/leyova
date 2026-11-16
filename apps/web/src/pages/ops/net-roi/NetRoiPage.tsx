@@ -21,7 +21,6 @@ interface NetRoiOverview {
     avg_cpc: number
     total_attributed_orders: number
     total_platform_fee: number | null
-    total_net_profit: number | null
   }
   dualTimeline: Array<{
     id: number
@@ -40,7 +39,6 @@ interface NetRoiOverview {
     pay_roi: number
     net_roi: number
     platform_fee: number | null
-    net_profit: number | null
     settlement_status: string
     note: string
   }>
@@ -80,7 +78,7 @@ interface ShopOption {
   shop_name: string
 }
 
-const WRITE_ROLES = ['super_admin', 'admin', 'finance', 'ops_director', 'ad_buyer']
+const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ad_buyer']
 
 const statusVariant: Record<string, 'success' | 'warning' | 'info' | 'danger'> = {
   settled: 'success',
@@ -345,14 +343,6 @@ export function NetRoiPage() {
             <Card><CardBody>
               <div className="text-xs text-slate-400">平均点击成本 (CPC)</div>
               <div className="text-xl font-bold text-slate-200 mt-1 tabular-nums">¥{overview.summary.avg_cpc.toFixed(2)}</div>
-            </CardBody></Card>
-            <Card><CardBody>
-              <div className="text-xs text-slate-400">T+N 结算净利</div>
-              <div className="text-xl font-bold text-slate-100 mt-1 tabular-nums">
-                {overview.costMasked || overview.summary.total_net_profit === null
-                  ? '*** (需成本权限)'
-                  : `¥${overview.summary.total_net_profit.toLocaleString()}`}
-              </div>
             </CardBody></Card>
           </div>
 

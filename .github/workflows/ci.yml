@@ -53,11 +53,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Bootstrap empty PostgreSQL & apply migrations (100-121)
+      - name: Bootstrap empty PostgreSQL & apply migrations (100-165)
         run: node database/migrate.js
 
       - name: Verify idempotent re-run of database/migrate.js
         run: node database/migrate.js
+
+      - name: Verify 01_schema.sql matches database (schema drift check)
+        run: node database/generate-schema.js --check
 
       - name: Run static security & caliber guardrails
         run: pnpm check:guardrails
@@ -65,8 +68,10 @@ jobs:
       - name: Build all workspace packages
         run: pnpm build
 
-      - name: Type-check API tests
-        run: pnpm --filter @leyova/api exec tsc -p tsconfig.test.json --noEmit
+      - name: Type-check API & Web packages
+        run: |
+          pnpm --filter @leyova/api exec tsc -p tsconfig.test.json --noEmit
+          pnpm --filter @leyova/web exec tsc -b
 
       - name: Run API unit & integration tests
         run: pnpm --filter @leyova/api test

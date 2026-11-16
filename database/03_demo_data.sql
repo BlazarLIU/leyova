@@ -1,5 +1,8 @@
 --
--- leyova 数据库演示数据（demo）
+-- 【注意】本脚本已被 database/04_demo_data_v2.sql 和 database/04b_demo_data_v2_facts.sql 取代。
+-- 保留本文件仅作历史归档与回滚参考，日常请通过 database/scripts/reset-demo-v2.sh 执行新版演示数据重建。
+--
+-- leyova 数据库演示数据（demo - 旧版）
 --
 -- 依赖：先执行 database/01_schema.sql 与 database/02_seed.sql
 -- 用法：psql -d leyova -f database/03_demo_data.sql

@@ -72,13 +72,13 @@ export async function getTaobaoShopMetrics(
        COALESCE(SUM(f.paid_order_count), 0)::int    AS pay_order,
        COALESCE(SUM(f.refund_amount), 0)::numeric   AS refund_amount
      FROM fact_trade_daily f
-     LEFT JOIN platform_caliber_config pcc
+     JOIN platform_caliber_config pcc
        ON pcc.platform_code = f.platform_code
       AND pcc.metric_code = 'gmv'
       AND pcc.is_default = true
      WHERE f.shop_id = $1
        AND f.biz_date BETWEEN $2::date AND $3::date
-       AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)`,
+       AND f.amount_type = pcc.amount_type  -- P0-B-2: fail-closed`,
     [shopId, from, to],
   )
   const t = tradeRes.rows[0]
@@ -202,13 +202,13 @@ export async function getTaobaoChannelSplit(
        COALESCE(SUM(f.gmv), 0)::numeric AS gmv
      FROM fact_trade_daily f
      LEFT JOIN dim_traffic_source ds ON ds.code = f.source_code
-     LEFT JOIN platform_caliber_config pcc
+     JOIN platform_caliber_config pcc
        ON pcc.platform_code = f.platform_code
       AND pcc.metric_code = 'gmv'
       AND pcc.is_default = true
      WHERE f.shop_id = $1
        AND f.biz_date BETWEEN $2::date AND $3::date
-       AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)
+       AND f.amount_type = pcc.amount_type  -- P0-B-2: fail-closed
      GROUP BY 1, 2
      ORDER BY gmv DESC`,
     [shopId, from, to],

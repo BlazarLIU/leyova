@@ -9,7 +9,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/services/api'
 import { PlatformShopSelector } from '@/components/common/PlatformShopSelector'
 import { GlobalSearch } from '@/components/common/GlobalSearch'
-import { WorkModeSwitcher } from '@/components/common/WorkModeSwitcher'
 
 const routeLabels: Record<string, string> = {
   '/overview/home': '首页',
@@ -69,7 +68,9 @@ const routeLabels: Record<string, string> = {
   '/shop/xiaohongshu/notes': '笔记经营看板',
   '/shop/xiaohongshu/conversion': '种草转化链路',
   '/shop/kuaishou/fans-team': '粉丝团运营',
-  '/system/compliance': '合规风控',
+  '/compliance/events': '违规事件看板',
+  '/compliance/rules': '平台规则雷达',
+  '/compliance/changes': '合规变更评估',
 }
 
 type Notification = { id: string; text: string; time: string; unread: boolean }
@@ -107,7 +108,9 @@ const ROUTE_MODULE_REQUIREMENTS: Record<string, string> = {
   '/ops/members': 'members',
   '/overview/sessions': 'session',
   '/content/schedule': 'content_schedule',
-  '/system/compliance': 'compliance',
+  '/compliance/events': 'compliance',
+  '/compliance/rules': 'compliance',
+  '/compliance/changes': 'compliance',
   '/agency/clients': 'agency',
   '/agency/projects': 'agency',
   '/agency/settlement': 'agency',
@@ -210,13 +213,6 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
         <span className="text-slate-600">/</span>
         <span className="text-slate-200 font-medium">{pageTitle}</span>
       </div>
-
-      {/* 3 种展示模式快速切换器：代运营 MCN / 品牌自播 (全渠道) / 全功能总览 */}
-      {!isBrandViewer && (
-        <div className="ml-2 hidden sm:block">
-          <WorkModeSwitcher />
-        </div>
-      )}
 
       {/* Platform & Shop Quick Selector */}
       <div className="ml-2 hidden sm:block">

@@ -3,16 +3,7 @@ import { sendOk, sendError } from '../lib/http.js'
 import { withRlsContext, withRlsPool, type DbExecutor } from '../lib/db.js'
 import { requireAuth } from '../lib/guard.js'
 import { env } from '../config/env.js'
-import {
-  requestDeerFlowReply,
-  streamDeerFlowReply,
-  requestOpenClawReply,
-  streamOpenClawReply,
-  toDeerFlowThreadId,
-  LEYOVA_SYSTEM_PROMPT,
-  type AiScopeContext,
-} from '../lib/ai-gateway.js'
-import { refreshAiRuntimeConfig } from '../lib/ai-config.js'
+import type { AiScopeContext } from '../lib/ai-types.js'
 import {
   isAdminRole,
   buildSessionsQuery,
@@ -254,16 +245,12 @@ export async function aiRoutes(app: FastifyInstance) {
           const { rows: convRows } = await pool.query(
             `INSERT INTO ai_conversations (user_id, title, model_name, status)
              VALUES ($1, $2, $3, 'active') RETURNING id`,
-            [user.id, title, env.DEERFLOW_MODEL],
+            [user.id, title, 'agentic-bi-v4'],
           )
           convId = convRows[0]?.id?.toString()
           if (!convId) {
             return { errStatus: 500 as const, errMsg: '创建会话失败' }
           }
-          await pool.query(
-            `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
-            [convId, toDeerFlowThreadId(convId)],
-          ).catch(() => {})
         }
 
         await pool.query(
@@ -393,16 +380,12 @@ export async function aiRoutes(app: FastifyInstance) {
           const { rows: convRows } = await pool.query(
             `INSERT INTO ai_conversations (user_id, title, model_name, status)
              VALUES ($1, $2, $3, 'active') RETURNING id`,
-            [user.id, title, env.DEERFLOW_MODEL],
+            [user.id, title, 'agentic-bi-v4'],
           )
           convId = convRows[0]?.id?.toString()
           if (!convId) {
             return { errStatus: 500 as const, errMsg: '创建会话失败' }
           }
-          await pool.query(
-            `UPDATE ai_conversations SET deerflow_thread_id = $2 WHERE id = $1`,
-            [convId, toDeerFlowThreadId(convId)],
-          ).catch(() => {})
         }
 
         await pool.query(
@@ -820,7 +803,7 @@ export async function aiRoutes(app: FastifyInstance) {
              updated_at = NOW()
            RETURNING *`,
           [user.id, scopeType, scopeId, openvikingAccount, openvikingUser,
-           anythingllmWorkspace, knowledgeRoleWorkspace, knowledgePublicWorkspace, visibility],
+            anythingllmWorkspace, knowledgeRoleWorkspace, knowledgePublicWorkspace, visibility],
         ),
       )
 

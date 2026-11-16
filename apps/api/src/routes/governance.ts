@@ -21,6 +21,7 @@ import {
   IngestionService,
   CleanerService,
   ValidationService,
+  SqlQualityGateEngine,
   ReconciliationService,
   ReviewService,
   PublishingService,
@@ -117,7 +118,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   // ── 4. POST /api/v1/governance/ingest/api ── 客户类型 1: 官方 OpenAPI 同步
   app.post<{
     Body: { platformCode: string; shopId: number; datasetType?: 'orders' | 'refunds'; sinceTime?: string }
-  }>('/api/v1/governance/ingest/api', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/governance/ingest/api', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const user = (request as any).user
       const result = await withRlsPool(request, (rlsPool) =>
@@ -137,7 +138,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   // ── 5. POST /api/v1/governance/ingest/file ── 客户类型 2: 手动上传文件
-  app.post('/api/v1/governance/ingest/file', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/governance/ingest/file', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const data = await request.file()
       if (!data) {
@@ -145,6 +146,9 @@ export async function governanceRoutes(app: FastifyInstance) {
       }
 
       const fileBuffer = await data.toBuffer()
+      if (fileBuffer.length > 20 * 1024 * 1024) {
+        return sendError(reply, 413, '文件大小超过限制 (最大 20MB)')
+      }
       const fields = (data.fields || {}) as Record<string, any>
       const platformCode = fields.platformCode?.value || 'douyin'
       const shopId = Number(fields.shopId?.value || 1)
@@ -173,7 +177,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   // ── 6. POST /api/v1/governance/batches/:id/clean ── 触发清洗任务
   app.post<{
     Params: { id: string }
-  }>('/api/v1/governance/batches/:id/clean', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/governance/batches/:id/clean', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       const result = await withRlsPool(request, (rlsPool) =>
@@ -189,7 +193,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   app.post<{
     Params: { id: string }
     Body?: { cleaningRunId?: number; controlTotalAmount?: number; tolerance?: number }
-  }>('/api/v1/governance/batches/:id/validate', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/governance/batches/:id/validate', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       const outcome = await withRlsPool(request, async (rlsPool) => {
@@ -239,7 +243,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   app.post<{
     Params: { id: string }
     Body: { decision: 'CONFIRM_FIX' | 'REJECT' | 'OVERRIDE_ALLOW'; reason: string; fixedValues?: any }
-  }>('/api/v1/governance/issues/:id/resolve', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/governance/issues/:id/resolve', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])] }, async (request, reply) => {
     try {
       const issueId = parseInt(request.params.id)
       const user = (request as any).user
@@ -270,7 +274,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   app.post<{
     Params: { id: string }
     Body: { expectedRowCount?: number; expectedTotalAmount?: number; tolerance?: number }
-  }>('/api/v1/governance/batches/:id/reconcile', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/governance/batches/:id/reconcile', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       const results = await withRlsPool(request, (rlsPool) =>
@@ -293,7 +297,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   app.post<{
     Params: { id: string }
     Body?: { policyVersion?: string; allowPartial?: boolean }
-  }>('/api/v1/governance/batches/:id/publish', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/governance/batches/:id/publish', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     try {
       const batchId = parseInt(request.params.id)
       const user = (request as any).user
@@ -324,7 +328,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   app.post<{
     Params: { id: string }
     Body: { reason: string }
-  }>('/api/v1/governance/publishes/:id/reverse', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/governance/publishes/:id/reverse', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
     try {
       const publishRunId = parseInt(request.params.id)
       const user = (request as any).user
@@ -385,7 +389,7 @@ export async function governanceRoutes(app: FastifyInstance) {
       validTo?: string
     }
   }>('/api/v1/governance/entity-aliases', {
-    preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator', 'finance'])],
+    preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'operator'])],
   }, async (request, reply) => {
     const b = request.body || ({} as any)
     if (!b.entityType || !b.sourcePlatform || !b.externalId || !b.internalId) {
@@ -429,7 +433,7 @@ export async function governanceRoutes(app: FastifyInstance) {
   })
 
   app.delete<{ Params: { id: string } }>('/api/v1/governance/entity-aliases/:id', {
-    preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])],
+    preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])],
   }, async (request, reply) => {
     const id = Number(request.params.id)
     if (!Number.isInteger(id) || id <= 0) return sendError(reply, 400, '无效 ID')
@@ -486,7 +490,7 @@ export async function governanceRoutes(app: FastifyInstance) {
       approvalStatus?: string
     }
   }>('/api/v1/governance/field-mappings', {
-    preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'finance'])],
+    preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])],
   }, async (request, reply) => {
     const b = request.body || ({} as any)
     if (!b.mappingCode || !b.sourcePlatform || !b.datasetType || !b.sourceField || !b.canonicalField) {
@@ -525,6 +529,284 @@ export async function governanceRoutes(app: FastifyInstance) {
       return res
     })
     return sendOk(reply, rows[0], '字段映射规则已保存')
+  })
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ── Master Plan §8.3 & §8.6: 八条 SQL 质量门禁与隔离区机制
+  // ═══════════════════════════════════════════════════════════════════
+
+  // ── POST /api/v1/governance/batches/:id/run-quality-gates ── 执行 8 条 SQL 质量门禁断言
+  app.post<{ Params: { id: string } }>('/api/v1/governance/batches/:id/run-quality-gates', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+
+    const batchId = Number(request.params.id)
+    if (!batchId) return sendError(reply, 400, '无效的批次 ID')
+
+    try {
+      const report = await withRlsContext(request, async (client) => {
+        return await SqlQualityGateEngine.evaluateBatch(client, batchId)
+      })
+      return sendOk(reply, report)
+    } catch (err: any) {
+      request.log.error({ err }, 'Failed to evaluate SQL quality gates')
+      return sendError(reply, 500, err?.message || '执行 SQL 质量门禁失败')
+    }
+  })
+
+  // ── GET /api/v1/governance/batches/:id/quarantine ── 查询批次隔离区异常数据
+  app.get<{
+    Params: { id: string }
+    Querystring: { status?: string; ruleCode?: string; limit?: string; offset?: string }
+  }>('/api/v1/governance/batches/:id/quarantine', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+
+    const batchId = Number(request.params.id)
+    const { status, ruleCode, limit = '20', offset = '0' } = request.query || {}
+
+    try {
+      const result = await withRlsContext(request, async (client) => {
+        const params: any[] = [batchId]
+        const conds: string[] = ['batch_id = $1']
+
+        if (status) {
+          params.push(status)
+          conds.push(`status = $${params.length}`)
+        }
+        if (ruleCode) {
+          params.push(ruleCode)
+          conds.push(`rule_code = $${params.length}`)
+        }
+
+        const countRes = await client.query(
+          `SELECT COUNT(*)::int AS total FROM public.dq_quarantine WHERE ${conds.join(' AND ')}`,
+          params,
+        )
+
+        const take = Math.min(Number(limit) || 20, 100)
+        const skip = Math.max(Number(offset) || 0, 0)
+        params.push(take, skip)
+
+        const listRes = await client.query(
+          `SELECT id, batch_id, row_num, rule_code, severity, raw_payload,
+                  failure_reason, status, resolved_by, resolved_at, created_at
+           FROM public.dq_quarantine
+           WHERE ${conds.join(' AND ')}
+           ORDER BY id DESC
+           LIMIT $${params.length - 1} OFFSET $${params.length}`,
+          params,
+        )
+
+        return {
+          total: Number(countRes.rows[0]?.total || 0),
+          items: listRes.rows.map((r) => ({
+            id: Number(r.id),
+            batchId: Number(r.batch_id),
+            rowNum: Number(r.row_num),
+            ruleCode: r.rule_code,
+            severity: r.severity,
+            rawPayload: r.raw_payload,
+            failureReason: r.failure_reason,
+            status: r.status,
+            resolvedBy: r.resolved_by,
+            resolvedAt: r.resolved_at,
+            createdAt: r.created_at,
+          })),
+        }
+      })
+
+      return sendOk(reply, result)
+    } catch (err: any) {
+      request.log.error({ err }, 'Failed to fetch quarantine list')
+      return sendError(reply, 500, '获取质量隔离区数据失败')
+    }
+  })
+
+  // ── POST /api/v1/governance/batches/:id/quarantine ── 人工或规则写入隔离区
+  app.post<{
+    Params: { id: string }
+    Body: {
+      rowNum: number
+      ruleCode: string
+      severity?: 'warning' | 'error' | 'fatal'
+      rawPayload?: Record<string, any>
+      failureReason: string
+    }
+  }>('/api/v1/governance/batches/:id/quarantine', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
+    const batchId = Number(request.params.id)
+    const b = request.body
+    if (!batchId || !b?.ruleCode || !b?.failureReason) {
+      return sendError(reply, 400, '必须提供批次 ID、门禁规则码与拦截原因')
+    }
+
+    try {
+      const row = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `INSERT INTO public.dq_quarantine (
+             batch_id, row_num, rule_code, severity, raw_payload, failure_reason, status
+           ) VALUES (
+             $1, $2, $3, $4, $5::jsonb, $6, 'quarantined'
+           ) RETURNING *`,
+          [
+            batchId,
+            Number(b.rowNum) || 0,
+            b.ruleCode,
+            b.severity || 'error',
+            JSON.stringify(b.rawPayload || {}),
+            b.failureReason,
+          ],
+        )
+        return res.rows[0]
+      })
+      return sendOk(reply, row)
+    } catch (err: any) {
+      request.log.error({ err }, 'Failed to insert quarantine item')
+      return sendError(reply, 500, err?.message || '写入隔离区失败')
+    }
+  })
+
+  // ── PUT /api/v1/governance/quarantine/:id/status ── 处置隔离区异常行 (解决/忽略)
+  app.put<{
+    Params: { id: string }
+    Body: { status: 'quarantined' | 'resolved' | 'ignored'; remark?: string }
+  }>('/api/v1/governance/quarantine/:id/status', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director'])] }, async (request, reply) => {
+    const id = Number(request.params.id)
+    const b = request.body
+    if (!id || !b?.status) return sendError(reply, 400, '必须提供隔离记录 ID 与目标状态')
+
+    const user = (request as any).user
+
+    try {
+      const row = await withRlsContext(request, async (client) => {
+        const res = await client.query(
+          `UPDATE public.dq_quarantine
+           SET status = $1,
+               resolved_by = $2,
+               resolved_at = now()
+           WHERE id = $3
+           RETURNING *`,
+          [b.status, user?.name || user?.username || 'admin', id],
+        )
+        return res.rows[0]
+      })
+      if (!row) return sendError(reply, 404, '隔离记录不存在')
+      return sendOk(reply, row)
+    } catch (err: any) {
+      request.log.error({ err }, 'Failed to update quarantine status')
+      return sendError(reply, 500, err?.message || '更新隔离状态失败')
+    }
+  })
+
+  // ── POST /api/v1/governance/batches/:id/staging-load ── 集合式高速导入暂存表并校验去重哨兵
+  app.post<{
+    Params: { id: string }
+    Body: {
+      rows: Array<{
+        sourceOrderId: string
+        sourceSubOrderId?: string
+        orderStatus: string
+        paidAmount: number
+        orderDate: string
+        rawJson?: Record<string, any>
+      }>
+    }
+  }>('/api/v1/governance/batches/:id/staging-load', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
+    const batchId = Number(request.params.id)
+    const b = request.body
+    if (!batchId || !Array.isArray(b?.rows) || b.rows.length === 0) {
+      return sendError(reply, 400, '必须提供批次 ID 与非空导入数据行集合 rows')
+    }
+
+    try {
+      const summary = await withRlsContext(request, async (client) => {
+        const batchRes = await client.query(
+          `SELECT id, source_platform, store_id FROM public.import_batches WHERE id = $1`,
+          [batchId],
+        )
+        if (batchRes.rows.length === 0) throw new Error('批次不存在')
+        const batch = batchRes.rows[0]
+
+        let loadedCount = 0
+        let duplicateCount = 0
+
+        for (let i = 0; i < b.rows.length; i++) {
+          const r = b.rows[i]
+          const rawStr = JSON.stringify(r.rawJson || r)
+          // 简单的 sha256 逻辑由 PG 的 digest 或 node crypto 生成
+          const hashRes = await client.query(
+            `SELECT encode(sha256($1::bytea), 'hex') AS h`,
+            [rawStr],
+          )
+          const payloadHash = hashRes.rows[0]?.h || '0000000000000000000000000000000000000000000000000000000000000000'
+
+          // 写入 land_raw_dedup 哨兵去重
+          const dedupRes = await client.query(
+            `INSERT INTO public.land_raw_dedup (
+               source_platform, payload_hash, batch_id, biz_date
+             ) VALUES ($1, $2, $3, $4::date)
+             ON CONFLICT (source_platform, payload_hash) DO NOTHING
+             RETURNING id`,
+            [batch.source_platform, payloadHash, batchId, r.orderDate],
+          )
+
+          const isUnique = dedupRes.rows.length > 0
+          if (!isUnique) {
+            duplicateCount++
+            // 写入隔离区
+            await client.query(
+              `INSERT INTO public.dq_quarantine (
+                 batch_id, row_num, rule_code, severity, raw_payload, failure_reason, status
+               ) VALUES ($1, $2, 'RULE_BATCH_KEY_UNIQUE', 'warning', $3::jsonb, '跨分区或批次哈希重复，已自动去重隔离', 'quarantined')`,
+              [batchId, i + 1, JSON.stringify(r)],
+            )
+          }
+
+          // 无论是否去重，均暂存至 UNLOGGED 表供集合校验
+          await client.query(
+            `INSERT INTO public.stg_order_import (
+               batch_id, row_num, source_platform, store_id, source_order_id, source_sub_order_id,
+               order_status, paid_amount, order_date, payload_hash, raw_json, validation_status
+             ) VALUES (
+               $1, $2, $3, $4, $5, $6,
+               $7, $8, $9::date, $10, $11::jsonb, $12
+             )`,
+            [
+              batchId,
+              i + 1,
+              batch.source_platform,
+              batch.store_id,
+              r.sourceOrderId.trim(),
+              (r.sourceSubOrderId || '').trim(),
+              r.orderStatus,
+              Number(r.paidAmount) || 0,
+              r.orderDate,
+              payloadHash,
+              JSON.stringify(r.rawJson || r),
+              isUnique ? 'passed' : 'quarantined',
+            ],
+          )
+          loadedCount++
+        }
+
+        // 更新批次行数指标
+        await client.query(
+          `UPDATE public.import_batches
+           SET total_raw_rows = total_raw_rows + $1,
+               clean_candidate_rows = clean_candidate_rows + $2,
+               updated_at = now()
+           WHERE id = $3`,
+          [loadedCount, loadedCount - duplicateCount, batchId],
+        )
+
+        return { batchId, loadedCount, uniqueCount: loadedCount - duplicateCount, duplicateCount }
+      })
+
+      return sendOk(reply, summary)
+    } catch (err: any) {
+      request.log.error({ err }, 'Failed to stage order rows')
+      return sendError(reply, 500, err?.message || '批量暂存订单行失败')
+    }
   })
 }
 

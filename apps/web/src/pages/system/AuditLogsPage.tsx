@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Shield, Search, RefreshCw, Eye, ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { Card, CardHeader, CardBody } from '@/components/ui/Card'
+import { useState, useCallback, useMemo } from 'react'
+import { Shield, Eye, X } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { DataPage, type ColumnDef } from '@/components/common/DataPage'
+import { useTable, type TableFetchParams } from '@/components/common/useTable'
 import { api } from '@/services/api'
 
 interface AuditLogItem {
@@ -37,7 +38,6 @@ const RESOURCE_OPTIONS = [
   { value: 'platform_permission', label: '平台权限矩阵 (platform_permission)' },
   { value: 'system_config', label: '系统配置 (system_config)' },
   { value: 'kb_config', label: '知识库配置 (kb_config)' },
-  { value: 'openclaw_config', label: 'OpenClaw 配置 (openclaw_config)' },
   { value: 'agency_client', label: '品牌客户 (agency_client)' },
   { value: 'agency_project', label: '代播项目 (agency_project)' },
   { value: 'settlement_bill', label: '结算对账单 (settlement_bill)' },
@@ -64,266 +64,174 @@ function formatJson(value: any): string {
   }
 }
 
+interface AuditLogFilters {
+  resourceType: string
+  from: string
+  to: string
+}
+
 export function AuditLogsPage() {
-  const [items, setItems] = useState<AuditLogItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const pageSize = 20
-
-  const [actionFilter, setActionFilter] = useState('')
-  const [resourceFilter, setResourceFilter] = useState('')
-  const [fromFilter, setFromFilter] = useState('')
-  const [toFilter, setToFilter] = useState('')
-
-  const [applied, setApplied] = useState({ action: '', resourceType: '', from: '', to: '' })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null)
 
-  const fetchLogs = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
+  const fetchLogs = useCallback(
+    async (params: TableFetchParams<AuditLogFilters>) => {
       const data = await api.get<AuditLogResponse>('/system/audit-logs', {
-        page,
-        pageSize,
-        action: applied.action || undefined,
-        resourceType: applied.resourceType || undefined,
-        from: applied.from || undefined,
-        to: applied.to ? `${applied.to}T23:59:59Z` : undefined,
+        page: params.page,
+        pageSize: params.pageSize,
+        action: params.search || undefined,
+        resourceType: params.filters.resourceType || undefined,
+        from: params.filters.from || undefined,
+        to: params.filters.to ? `${params.filters.to}T23:59:59Z` : undefined,
       })
-      setItems(data?.items || [])
-      setTotal(data?.total || 0)
-    } catch (err: any) {
-      setError(err?.message || '获取操作审计日志失败')
-    } finally {
-      setLoading(false)
-    }
-  }, [page, applied])
 
-  useEffect(() => {
-    fetchLogs()
-  }, [fetchLogs])
+      return {
+        items: data?.items || [],
+        total: data?.total || 0,
+      }
+    },
+    []
+  )
 
-  const handleSearch = () => {
-    setPage(1)
-    setApplied({
-      action: actionFilter.trim(),
-      resourceType: resourceFilter,
-      from: fromFilter,
-      to: toFilter,
-    })
-  }
+  const table = useTable<AuditLogItem, AuditLogFilters>({
+    fetchData: fetchLogs,
+    initialPageSize: 20,
+    initialFilters: {
+      resourceType: '',
+      from: '',
+      to: '',
+    },
+    getRowId: (row) => row.id,
+  })
 
-  const handleReset = () => {
-    setActionFilter('')
-    setResourceFilter('')
-    setFromFilter('')
-    setToFilter('')
-    setPage(1)
-    setApplied({ action: '', resourceType: '', from: '', to: '' })
-  }
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const columns = useMemo<ColumnDef<AuditLogItem>[]>(
+    () => [
+      {
+        key: 'createdAt',
+        header: '时间',
+        sortable: true,
+        render: (v) => (
+          <span className="font-mono text-xs text-slate-400">
+            {v ? new Date(v).toLocaleString('zh-CN') : '-'}
+          </span>
+        ),
+      },
+      {
+        key: 'actor',
+        header: '操作人',
+        render: (_, row) => (
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-200 font-medium">
+                {row.actorRealName || row.actorUsername || `UID:${row.actorUserId ?? 'system'}`}
+              </span>
+              {row.actorRole && <Badge variant="neutral">{row.actorRole}</Badge>}
+            </div>
+            {row.actorUsername && (
+              <div className="text-[11px] text-slate-500 font-mono">@{row.actorUsername}</div>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'action',
+        header: '动作',
+        render: (v) => (
+          <Badge variant={actionBadgeVariant(v)}>
+            <span className="font-mono text-xs">{v}</span>
+          </Badge>
+        ),
+      },
+      {
+        key: 'resourceType',
+        header: '资源对象',
+        render: (v, row) => (
+          <div>
+            <span className="text-slate-300 font-mono text-xs">{v}</span>
+            {row.resourceId && (
+              <span className="ml-1.5 text-xs text-slate-500 font-mono">#{row.resourceId}</span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'ipAddress',
+        header: '来源 IP',
+        render: (v) => <span className="font-mono text-xs text-slate-400">{v || '-'}</span>,
+      },
+      {
+        key: 'diff',
+        header: '变更详情',
+        align: 'right',
+        render: (_, row) => (
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={(e) => {
+              e.stopPropagation()
+              setSelectedLog(row)
+            }}
+          >
+            <Eye className="w-3.5 h-3.5 mr-1" />
+            <span>对比 Diff</span>
+          </Button>
+        ),
+      },
+    ],
+    []
+  )
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-100 flex items-center gap-2.5">
+    <>
+      <DataPage<AuditLogItem>
+        title={
+          <span className="flex items-center gap-2.5">
             <Shield className="w-6 h-6 text-cyan-400" />
             <span>操作审计日志</span>
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            追踪账号权限变更、代运营对账、平台配置与核心数据修改的不可篡改记录（PostgreSQL RLS 受控）
-          </p>
-        </div>
-        <Button variant="secondary" size="sm" onClick={fetchLogs} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>刷新</span>
-        </Button>
-      </motion.div>
-
-      <Card>
-        <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">动作关键词</label>
-              <input
-                type="text"
-                value={actionFilter}
-                onChange={(e) => setActionFilter(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="如 user.create / config.update"
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">资源类型</label>
-              <select
-                value={resourceFilter}
-                onChange={(e) => setResourceFilter(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-              >
-                {RESOURCE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">开始日期</label>
-              <input
-                type="date"
-                value={fromFilter}
-                onChange={(e) => setFromFilter(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">结束日期</label>
-              <input
-                type="date"
-                value={toFilter}
-                onChange={(e) => setToFilter(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button onClick={handleSearch} className="flex-1">
-                <Search className="w-4 h-4" />
-                <span>查询</span>
-              </Button>
-              <Button variant="outline" onClick={handleReset}>
-                <span>重置</span>
-              </Button>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-
-      {error && (
-        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
-          {error}
-        </div>
-      )}
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between w-full">
-            <span className="font-semibold text-slate-100">审计记录</span>
-            <span className="text-xs text-slate-400 font-mono">共 {total} 条</span>
-          </div>
-        </CardHeader>
-        <CardBody className="p-0 overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-orbit-border text-xs uppercase text-slate-400 bg-white/[0.02]">
-                <th className="py-3 px-4 font-medium">时间</th>
-                <th className="py-3 px-4 font-medium">操作人</th>
-                <th className="py-3 px-4 font-medium">动作</th>
-                <th className="py-3 px-4 font-medium">资源对象</th>
-                <th className="py-3 px-4 font-medium">来源 IP</th>
-                <th className="py-3 px-4 font-medium text-right">变更详情</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-orbit-border/60">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-10 text-center text-slate-500">
-                    正在加载审计日志...
-                  </td>
-                </tr>
-              ) : items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-10 text-center text-slate-500">
-                    暂无符合条件的审计日志记录
-                  </td>
-                </tr>
-              ) : (
-                items.map((row) => (
-                  <tr key={row.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3 px-4 text-xs font-mono text-slate-400 whitespace-nowrap">
-                      {row.createdAt ? new Date(row.createdAt).toLocaleString('zh-CN') : '-'}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-200 font-medium">
-                          {row.actorRealName || row.actorUsername || `UID:${row.actorUserId ?? 'system'}`}
-                        </span>
-                        {row.actorRole && (
-                          <Badge variant="neutral">{row.actorRole}</Badge>
-                        )}
-                      </div>
-                      {row.actorUsername && (
-                        <div className="text-xs text-slate-500 font-mono">@{row.actorUsername}</div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <Badge variant={actionBadgeVariant(row.action)}>
-                        <span className="font-mono">{row.action}</span>
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <span className="text-slate-300 font-mono text-xs">{row.resourceType}</span>
-                      {row.resourceId && (
-                        <span className="ml-1.5 text-xs text-slate-500 font-mono">#{row.resourceId}</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-xs font-mono text-slate-400 whitespace-nowrap">
-                      {row.ipAddress || '-'}
-                    </td>
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <Button variant="ghost" size="xs" onClick={() => setSelectedLog(row)}>
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>对比 Diff</span>
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </CardBody>
-      </Card>
-
-      {total > 0 && (
-        <div className="flex items-center justify-between text-xs text-slate-400">
-          <span>
-            第 {page} / {totalPages} 页（共 {total} 条）
           </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="xs"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+        }
+        subtitle="追踪账号权限变更、代运营对账、平台配置与核心数据修改的不可篡改记录（PostgreSQL RLS 受控）"
+        badge={
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-400 border border-orbit-border">
+            已接入 DataPage
+          </span>
+        }
+        table={table}
+        columns={columns}
+        searchPlaceholder="搜索动作关键词 (如 user.create / config.update)..."
+        exportFilename="audit_logs"
+        emptyMessage="暂无符合条件的审计日志记录"
+        filterControls={
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={table.filters.resourceType}
+              onChange={(e) => table.setFilter('resourceType', e.target.value)}
+              className="h-9 px-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-xs text-slate-200 focus:outline-none focus:border-orbit-primary"
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
-              <span>上一页</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="xs"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              <span>下一页</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Button>
+              {RESOURCE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            <Input
+              type="date"
+              value={table.filters.from}
+              onChange={(e) => table.setFilter('from', e.target.value)}
+              className="h-9 text-xs w-36"
+              placeholder="开始日期"
+            />
+            <span className="text-slate-500 text-xs">至</span>
+            <Input
+              type="date"
+              value={table.filters.to}
+              onChange={(e) => table.setFilter('to', e.target.value)}
+              className="h-9 text-xs w-36"
+              placeholder="结束日期"
+            />
           </div>
-        </div>
-      )}
+        }
+      />
 
       {/* Before / After Diff Drawer Modal */}
       {selectedLog && (
@@ -394,7 +302,8 @@ export function AuditLogsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
+export default AuditLogsPage

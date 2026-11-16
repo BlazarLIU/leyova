@@ -152,12 +152,12 @@ export async function detectAnomalies(): Promise<void> {
         const refRes = await pool.query(`
           SELECT COALESCE(SUM(f.refund_amount), 0) AS total_refund, COALESCE(SUM(f.gmv), 0) AS total_gmv
           FROM fact_trade_daily f
-          LEFT JOIN platform_caliber_config pcc
+          JOIN platform_caliber_config pcc
             ON pcc.platform_code = f.platform_code
            AND pcc.metric_code = 'gmv'
            AND pcc.is_default = true
           WHERE f.biz_date = CURRENT_DATE
-            AND (pcc.amount_type IS NULL OR f.amount_type = pcc.amount_type)
+            AND f.amount_type = pcc.amount_type  -- P0-B-2: fail-closed
         `)
         const refGmv = parseFloat(refRes.rows[0]?.total_gmv || 0)
         const refAmount = parseFloat(refRes.rows[0]?.total_refund || 0)

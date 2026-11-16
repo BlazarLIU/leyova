@@ -172,6 +172,11 @@ export class IngestionService {
    */
   async ingestFromFile(options: FileUploadOptions) {
     const { platformCode, shopId, datasetType = 'orders', fileBuffer, originalFilename, mimeType, userId } = options
+    if (fileBuffer.length > 20 * 1024 * 1024) {
+      const err: any = new Error('上传文件超过大小限制 (最大 20MB)')
+      err.statusCode = 413
+      throw err
+    }
     const client = await this.pool.connect()
 
     try {
@@ -198,8 +203,8 @@ export class IngestionService {
         }
       }
 
-      // 3. 解析 Excel/CSV 文件为原始行 (防宏与防公式注入)
-      const workbook = XLSX.read(fileBuffer, { type: 'buffer', cellDates: true, raw: false })
+      // 3. 解析 Excel/CSV 文件为原始行 (防宏与防公式注入，采用 dense 模式降低内存占用)
+      const workbook = XLSX.read(fileBuffer, { type: 'buffer', cellDates: true, raw: false, dense: true })
       const firstSheetName = workbook.SheetNames[0] || 'Sheet1'
       const worksheet = workbook.Sheets[firstSheetName]
       const rawRows: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, { defval: null })

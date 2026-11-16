@@ -7,6 +7,7 @@ import { withRlsContext } from '../lib/db.js'
 import { sendError, sendOk } from '../lib/http.js'
 import { canAccessAdSpend, requireAuth } from '../lib/guard.js'
 import { assertShopPlatform } from '../lib/shop-guard.js'
+import { PlatformAdapterService } from '../services/platform-adapter.js'
 
 function defaultRange(from?: string, to?: string) {
   const t = new Date()
@@ -40,56 +41,11 @@ export async function douyinRoutes(app: FastifyInstance) {
         const allowAd = canAccessAdSpend(user)
 
         const outcome = await withRlsContext(request, async (client) => {
-          const check = await assertShopPlatform(client, request.params.id, 'douyin')
-          if (!check.ok || !check.shop) {
-            return { errorStatus: check.statusCode || 400, errorMsg: check.message || '店铺校验失败' }
-          }
-
-          const tradeRes = await client.query(
-            `SELECT
-               COALESCE(SUM(gmv), 0)::float8 AS total_gmv,
-               COALESCE(SUM(pay_amount), 0)::float8 AS total_pay_amount,
-               COALESCE(SUM(paid_order_count), 0)::int AS total_orders,
-               COALESCE(SUM(paid_buyer_count), 0)::int AS total_buyers,
-               COALESCE(SUM(refund_amount), 0)::float8 AS total_refund,
-               COALESCE(SUM(refund_count), 0)::int AS total_refund_count
-             FROM v_fact_trade_default
-             WHERE shop_id = $1 AND platform_code = 'douyin'
-               AND biz_date >= $2::date AND biz_date <= $3::date`,
-            [check.shop.id, range.from, range.to],
-          )
-          const trafficRes = await client.query(
-            `SELECT
-               COALESCE(SUM(impressions), 0)::bigint AS impressions,
-               COALESCE(SUM(clicks), 0)::bigint AS clicks,
-               COALESCE(SUM(visitors), 0)::bigint AS visitors
-             FROM fact_traffic_daily
-             WHERE shop_id = $1 AND platform_code = 'douyin'
-               AND biz_date >= $2::date AND biz_date <= $3::date`,
-            [check.shop.id, range.from, range.to],
-          )
-          const adRes = allowAd
-            ? await client.query(
-                `SELECT
-                   COALESCE(SUM(ad_spend), 0)::float8 AS total_ad_spend,
-                   COALESCE(SUM(attributed_gross_gmv), 0)::float8 AS total_attributed_gmv
-                 FROM fact_ad_spend_daily
-                 WHERE shop_id = $1 AND platform_code = 'douyin'
-                   AND biz_date >= $2::date AND biz_date <= $3::date`,
-                [check.shop.id, range.from, range.to],
-              )
-            : { rows: [{ total_ad_spend: null, total_attributed_gmv: null }] }
-
-          return {
-            shop: check.shop,
-            trade: tradeRes.rows[0],
-            traffic: trafficRes.rows[0],
-            adSummary: adRes.rows[0],
-          }
+          return PlatformAdapterService.getShopMetrics(client, request.params.id, 'douyin', range, allowAd)
         })
 
-        if ('errorStatus' in outcome && outcome.errorStatus !== undefined) {
-          return sendError(reply, outcome.errorStatus, outcome.errorMsg)
+        if (!outcome.ok) {
+          return sendError(reply, outcome.statusCode, outcome.message)
         }
         return sendOk(reply, {
           shop: outcome.shop,

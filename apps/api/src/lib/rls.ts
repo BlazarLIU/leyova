@@ -14,6 +14,8 @@ export interface ResolvedRlsScope {
   canViewAnchors: boolean
   allowedProjectIds: number[]
   allowedPlatforms: string[] | null // null = wildcard '*'
+  /** P1：数据可见范围四档 —— self / team / org / all */
+  dataScope: 'self' | 'team' | 'org' | 'all'
 }
 
 function isFastifyRequest(input: unknown): input is FastifyRequest {
@@ -48,6 +50,7 @@ export async function resolveUserRlsScope(
       canViewAnchors: false,
       allowedProjectIds: [],
       allowedPlatforms: [],
+      dataScope: 'self',
     }
   }
 
@@ -55,11 +58,31 @@ export async function resolveUserRlsScope(
   const userType = user.userType || 'agency_staff'
 
   let brandClientId: number | null = null
-  let canViewCost = ['super_admin', 'admin', 'finance'].includes(user.role) && userType !== 'brand_viewer'
+  let canViewCost = ['super_admin', 'admin'].includes(user.role) && userType !== 'brand_viewer'
   let canViewAnchors = userType !== 'brand_viewer'
   let allowedProjectIds: number[] = []
 
   if (userType === 'brand_viewer') {
+    // S3：brand_viewer_permissions 已随代运营域下线；表不存在时按「最小权限」处理
+    const bvpTableExists = await pool.query(
+      `SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='brand_viewer_permissions'`,
+    )
+    if (bvpTableExists.rows.length === 0) {
+      // 表已下线：品牌方查看者按最小权限处理（不含任何项目授权）
+      return {
+        userId: user.id,
+        role: user.role,
+        userType,
+        tenantId,
+        anchorId: user.anchorId ? Number(user.anchorId) : null,
+        brandClientId: null,
+        canViewCost: false,
+        canViewAnchors: false,
+        allowedProjectIds: [],
+        allowedPlatforms: [],
+        dataScope: 'self',
+      }
+    }
     const bvpRes = await pool.query<{
       client_id: number | null
       project_ids: number[] | null
@@ -84,6 +107,19 @@ export async function resolveUserRlsScope(
   const allowedSet = await getUserAllowedPlatforms(pool, user)
   const allowedPlatforms = allowedSet === null ? null : Array.from(allowedSet)
 
+  // P1：读 data_scope（之前这个字段完全没被使用）
+  let dataScope: 'self' | 'team' | 'org' | 'all' = 'self'
+  try {
+    const dsRes = await pool.query<{ data_scope: string | null }>(
+      `SELECT data_scope FROM public.users WHERE id = $1 LIMIT 1`,
+      [user.id],
+    )
+    const ds = dsRes.rows[0]?.data_scope
+    if (ds === 'team' || ds === 'org' || ds === 'all') dataScope = ds
+  } catch {
+    dataScope = 'self'
+  }
+
   return {
     userId: user.id,
     role: user.role,
@@ -95,6 +131,7 @@ export async function resolveUserRlsScope(
     canViewAnchors,
     allowedProjectIds,
     allowedPlatforms,
+    dataScope,
   }
 }
 
@@ -125,7 +162,8 @@ export async function withRlsContext<T>(
         set_config('app.can_view_cost', $7, true),
         set_config('app.can_view_anchors', $8, true),
         set_config('app.allowed_project_ids', $9, true),
-        set_config('app.allowed_platforms', $10, true)`,
+        set_config('app.allowed_platforms', $10, true),
+        set_config('app.data_scope', $11, true)`,
       [
         scope.userId ? String(scope.userId) : '',
         scope.role,
@@ -137,6 +175,7 @@ export async function withRlsContext<T>(
         scope.canViewAnchors ? 'true' : 'false',
         scope.allowedProjectIds.join(','),
         scope.allowedPlatforms === null ? '*' : scope.allowedPlatforms.join(','),
+        scope.dataScope,
       ]
     )
 
@@ -163,16 +202,17 @@ async function applyRlsConfig(
   await client.query(localOnly ? 'SET LOCAL ROLE leyova_app' : 'SET ROLE leyova_app')
   await client.query(
     `SELECT
-      set_config('app.user_id', $1, $11),
-      set_config('app.user_role', $2, $11),
-      set_config('app.user_type', $3, $11),
-      set_config('app.tenant_id', $4, $11),
-      set_config('app.anchor_id', $5, $11),
-      set_config('app.brand_client_id', $6, $11),
-      set_config('app.can_view_cost', $7, $11),
-      set_config('app.can_view_anchors', $8, $11),
-      set_config('app.allowed_project_ids', $9, $11),
-      set_config('app.allowed_platforms', $10, $11)`,
+      set_config('app.user_id', $1, $12),
+      set_config('app.user_role', $2, $12),
+      set_config('app.user_type', $3, $12),
+      set_config('app.tenant_id', $4, $12),
+      set_config('app.anchor_id', $5, $12),
+      set_config('app.brand_client_id', $6, $12),
+      set_config('app.can_view_cost', $7, $12),
+      set_config('app.can_view_anchors', $8, $12),
+      set_config('app.allowed_project_ids', $9, $12),
+      set_config('app.allowed_platforms', $10, $12),
+      set_config('app.data_scope', $11, $12)`,
     [
       scope.userId ? String(scope.userId) : '',
       scope.role,
@@ -184,6 +224,7 @@ async function applyRlsConfig(
       scope.canViewAnchors ? 'true' : 'false',
       scope.allowedProjectIds.join(','),
       scope.allowedPlatforms === null ? '*' : scope.allowedPlatforms.join(','),
+      scope.dataScope,
       localOnly,
     ]
   )

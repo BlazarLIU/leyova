@@ -45,6 +45,29 @@ async function createTempAccount(
     [username, `Test ${role}`, role, userType, tenantId],
   )
   const userId = Number(rows[0].id)
+
+  // P0-D-1 模块守卫生效后：临时账号必须显式获得角色授权，
+  // 否则 resolveAccess 会因 grants 表无记录而回退到 role_modules（这里是空）。
+  // 把该角色的 role_module_grants 复制到 user_module_overrides，模拟「正常由管理员授权的账号」。
+  await pool.query(
+    `INSERT INTO public.user_module_overrides (user_id, module_code, effect)
+     SELECT $1, module_code, 'grant'
+       FROM public.role_module_grants
+      WHERE role_code = $2 AND effect = 'allow'
+     ON CONFLICT (user_id, module_code) DO NOTHING`,
+    [userId, role],
+  )
+  // 同时把该角色的平台授权复制到 user_platform_permissions
+  await pool.query(
+    `INSERT INTO public.user_platform_permissions (user_id, platform_code)
+     SELECT $1, rpp.platform_code
+       FROM public.role_platform_permissions rpp
+       JOIN public.roles r ON r.id = rpp.role_id
+      WHERE r.code = $2
+     ON CONFLICT DO NOTHING`,
+    [userId, role],
+  ).catch(() => { /* 表可能无唯一约束，忽略 */ })
+
   const sessionId = crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 3600_000)
   await pool.query(
@@ -71,6 +94,7 @@ describe('HTTP API & RBAC 回归测试', () => {
   let adminUser: TempAccount
   let hrbpUser: TempAccount
   let opsDirectorUser: TempAccount
+  let employeeUser: TempAccount
 
   before(async () => {
     app = await buildApp({ logger: false })
@@ -79,10 +103,12 @@ describe('HTTP API & RBAC 回归测试', () => {
     adBuyer = await createTempAccount('ad_buyer', 'agency_staff', 1)
     operatorUser = await createTempAccount('operator', 'agency_staff', 1)
     brandViewer = await createTempAccount('brand_viewer', 'brand_viewer', 1)
-    financeUser = await createTempAccount('finance', 'agency_staff', 1)
+    // S4：finance 角色已下线，改用 admin 承担原「有成本权限」的对照角色
+    financeUser = await createTempAccount('admin', 'agency_staff', 1)
     adminUser = await createTempAccount('admin', 'agency_staff', 1)
     hrbpUser = await createTempAccount('hrbp', 'agency_staff', 1)
     opsDirectorUser = await createTempAccount('ops_director', 'agency_staff', 1)
+    employeeUser = await createTempAccount('employee', 'agency_staff', 1)
     createdUserIds.push(
       adBuyer.userId,
       operatorUser.userId,
@@ -91,6 +117,7 @@ describe('HTTP API & RBAC 回归测试', () => {
       adminUser.userId,
       hrbpUser.userId,
       opsDirectorUser.userId,
+      employeeUser.userId,
     )
   })
 
@@ -165,16 +192,21 @@ describe('HTTP API & RBAC 回归测试', () => {
       url: '/api/v1/costs',
       headers: { cookie: adBuyer.cookie },
     })
-    assert.equal(costsRes.statusCode, 403)
+    // S4：成本台账已下线。P0-D-1 模块守卫生效后，未在映射表声明的路径
+    // 按 fail-closed 返回 403（安全上优于 404：不泄露端点是否存在）
+    assert.ok([403, 404].includes(costsRes.statusCode), `期望 403 或 404，实测 ${costsRes.statusCode}`)
   })
 
-  test('operator 禁止访问 Net-ROI，允许访问退款分析与抖音店铺指标，跨平台店铺越权返回 400', async () => {
+  test('operator 可访问 Net-ROI（P0-D-2 老大要求运营评估成本），且允许访问退款分析与抖音店铺指标，跨平台店铺越权返回 400', async () => {
+    // P0-D-2：老大明确要求「投手、运营、HRBP 需要评估成本」，
+    // 因此 operator 现在有 net_roi 模块 + cost_visibility 授权，可见成本字段。
     const netRoiRes = await app.inject({
       method: 'GET',
       url: '/api/v1/net-roi/overview',
       headers: { cookie: operatorUser.cookie },
     })
-    assert.equal(netRoiRes.statusCode, 403)
+    assert.equal(netRoiRes.statusCode, 200)
+    assert.equal(netRoiRes.json().data.costMasked, false)
 
     const refundRes = await app.inject({
       method: 'GET',
@@ -239,7 +271,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(promoPostRes.statusCode, 403)
   })
 
-  test('大促 5 层试算对非财务角色脱敏成本，对 finance 返回真实净毛利', async () => {
+  test('大促 5 层试算对非成本权限角色脱敏成本，对 admin 返回真实净毛利', async () => {
     const simPayload = {
       retailPrice: 200,
       costPrice: 80,
@@ -249,6 +281,16 @@ describe('HTTP API & RBAC 回归测试', () => {
       ],
     }
 
+    // P0-D-2 后所有能访问大促的角色都默认有 cost_visibility，
+    // 因此用「用户级 revoke」主动制造脱敏对照组 —— 这同时验证了
+    // user_module_overrides 优先级高于角色授权（S2 设计的核心机制）。
+    const pool0 = getPool()
+    await pool0.query(
+      `INSERT INTO public.user_module_overrides (user_id, module_code, effect)
+       VALUES ($1, 'cost_visibility', 'revoke')
+       ON CONFLICT (user_id, module_code) DO UPDATE SET effect='revoke'`,
+      [operatorUser.userId],
+    )
     const opRes = await app.inject({
       method: 'POST',
       url: '/api/v1/promotions/simulate',
@@ -260,6 +302,12 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(opData.costMasked, true)
     assert.equal(opData.costPrice, null)
     assert.equal(opData.netMargin, null)
+
+    // 还原：清掉 revoke，恢复角色默认
+    await pool0.query(
+      `DELETE FROM public.user_module_overrides WHERE user_id=$1 AND module_code='cost_visibility'`,
+      [operatorUser.userId],
+    )
 
     const finRes = await app.inject({
       method: 'POST',
@@ -273,12 +321,13 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.equal(finData.costPrice, 80)
     assert.equal(typeof finData.netMargin, 'number')
 
+    // S4：成本台账端点已下线；守卫 fail-closed 返回 403
     const finCosts = await app.inject({
       method: 'GET',
       url: '/api/v1/costs',
       headers: { cookie: financeUser.cookie },
     })
-    assert.equal(finCosts.statusCode, 200)
+    assert.ok([403, 404].includes(finCosts.statusCode), `期望 403 或 404，实测 ${finCosts.statusCode}`)
   })
 
   test('MCP fail-closed 鉴权：缺失或无效 X-Leyova-User-Id 返回 401，无效 HMAC 签名返回 403，合法 HMAC 放行', async () => {
@@ -413,7 +462,6 @@ describe('HTTP API & RBAC 回归测试', () => {
     const rlsPaths = [
       '/api/v1/after-sales/overview',
       '/api/v1/fulfillment/overview',
-      '/api/v1/jd/mode-breakdown',
       '/api/v1/alerts/rules',
       '/api/v1/review/overview',
       '/api/v1/ai/sessions',
@@ -468,7 +516,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     }
   })
 
-  test('中期架构优化：口径目录 / 退款率函数 / 配置化 SLA / 京东自营与POP费用对账脱敏', async () => {
+  test('中期架构优化：口径目录 / 退款率函数 / 配置化 SLA', async () => {
     // 1. 口径接口鉴权与 metric_definition 目录权限过滤
     const caliberUnauth = await app.inject({ method: 'GET', url: '/api/v1/caliber' })
     assert.equal(caliberUnauth.statusCode, 401)
@@ -499,7 +547,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     })
     assert.equal(analysisMetricsRes.statusCode, 200)
     const refundDef = (analysisMetricsRes.json().data.metrics as Array<any>).find((m) => m.code === 'refund_rate')
-    assert.ok(refundDef && Array.isArray(refundDef.supportedPlatforms) && refundDef.supportedPlatforms.includes('pdd'))
+    assert.ok(refundDef && Array.isArray(refundDef.supportedPlatforms) && refundDef.supportedPlatforms.includes('taobao'))
 
     // 2. 统一退款率公式与 DB 配置化 SLA 逻辑
     assert.equal(computeRefundRatePct(150, 1000, 2), 15)
@@ -517,7 +565,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     const presalePaidAt = new Date('2026-11-01T00:00:00Z')
     const waybillSla = evaluateWaybillSla(
       {
-        platformCode: 'pdd',
+        platformCode: 'taobao',
         orderAmount: 200,
         isCustomPresale: true,
         paidAt: presalePaidAt,
@@ -525,7 +573,7 @@ describe('HTTP API & RBAC 回归测试', () => {
       },
       [
         {
-          platform_code: 'pdd',
+          platform_code: 'taobao',
           sla_type: 'ship',
           sla_name: '常规发货',
           threshold_hours: 48,
@@ -538,7 +586,7 @@ describe('HTTP API & RBAC 回归测试', () => {
           penalty_note: '',
         },
         {
-          platform_code: 'pdd',
+          platform_code: 'taobao',
           sla_type: 'ship_presale',
           sla_name: '预售发货',
           threshold_hours: 120,
@@ -554,56 +602,6 @@ describe('HTTP API & RBAC 回归测试', () => {
     )
     assert.equal(waybillSla.isShipDelayed, true)
     assert.equal(waybillSla.estimatedPenaltyAmount, 3)
-
-    // 3. 京东自营 vs POP 精细化费用对账及成本权限脱敏
-    const jdFeesFinRes = await app.inject({
-      method: 'GET',
-      url: '/api/v1/jd/settlement-fees?from=2026-11-01&to=2026-11-30',
-      headers: { cookie: financeUser.cookie },
-    })
-    assert.equal(jdFeesFinRes.statusCode, 200)
-    const jdFeesFin = jdFeesFinRes.json().data
-    assert.equal(jdFeesFin.costMasked, false)
-    assert.ok(jdFeesFin.items.length >= 7)
-    assert.ok(jdFeesFin.byMode.self_operated)
-    assert.equal(jdFeesFin.byMode.self_operated.rebate, 6150)
-
-    const jdBreakdownFinRes = await app.inject({
-      method: 'GET',
-      url: '/api/v1/jd/mode-breakdown?from=2026-11-01&to=2026-11-30',
-      headers: { cookie: financeUser.cookie },
-    })
-    assert.equal(jdBreakdownFinRes.statusCode, 200)
-    const jdBreakdownFin = jdBreakdownFinRes.json().data
-    assert.equal(jdBreakdownFin.costMasked, false)
-    const selfFin = jdBreakdownFin.modes.find((m: any) => m.businessMode === 'self_operated')
-    if (selfFin) {
-      assert.ok(selfFin.feeSummary)
-      assert.equal(selfFin.feeSummary.grossMarginGuarantee, 4280)
-    }
-
-    for (const maskedUser of [operatorUser, adBuyer]) {
-      const feesMaskedRes = await app.inject({
-        method: 'GET',
-        url: '/api/v1/jd/settlement-fees?from=2026-11-01&to=2026-11-30',
-        headers: { cookie: maskedUser.cookie },
-      })
-      assert.equal(feesMaskedRes.statusCode, 200)
-      assert.equal(feesMaskedRes.json().data.costMasked, true)
-      assert.equal(feesMaskedRes.json().data.items.length, 0)
-
-      const bdMaskedRes = await app.inject({
-        method: 'GET',
-        url: '/api/v1/jd/mode-breakdown?from=2026-11-01&to=2026-11-30',
-        headers: { cookie: maskedUser.cookie },
-      })
-      assert.equal(bdMaskedRes.statusCode, 200)
-      assert.equal(bdMaskedRes.json().data.costMasked, true)
-      for (const m of bdMaskedRes.json().data.modes) {
-        assert.equal(m.grossMargin, null)
-        assert.equal(m.feeSummary, null)
-      }
-    }
   })
 
   test('长期演进与端点一致性：SKU 级订单明细销售聚合脱敏 & 补全闭环接口', async () => {
@@ -619,10 +617,11 @@ describe('HTTP API & RBAC 回归测试', () => {
     assert.ok(skuFin.summary.totalPaidAmount > 0)
     assert.notEqual(skuFin.items[0].estimatedProfit, null)
 
+    // P0-D-2 后 operator 已有 cost_visibility，脱敏对照改用 employee
     const skuOpRes = await app.inject({
       method: 'GET',
       url: '/api/v1/omnichannel/shop/1/products',
-      headers: { cookie: operatorUser.cookie },
+      headers: { cookie: employeeUser.cookie },
     })
     assert.equal(skuOpRes.statusCode, 200)
     const skuOp = skuOpRes.json().data

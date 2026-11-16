@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Search, Plus, RefreshCw, AlertTriangle, Hash } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Search, Plus, Hash, AlertTriangle } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { DataPage, type ColumnDef } from '@/components/common/DataPage'
+import { useTable, type TableFetchParams } from '@/components/common/useTable'
 import { api } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -58,12 +60,10 @@ export function SearchKeywordsPage() {
   const { hasRole } = useAuth()
   const canWrite = hasRole(WRITE_ROLES)
 
-  const [platform, setPlatform] = useState('')
-  const [query, setQuery] = useState('')
-  const [data, setData] = useState<SearchOverviewResponse | null>(null)
   const [shops, setShops] = useState<Array<{ id: number; platform_code: string; shop_name: string }>>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [xhsNotes, setXhsNotes] = useState<XhsNoteKeywordRow[]>([])
+  const [summary, setSummary] = useState<SearchOverviewResponse['summary'] | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
     platformCode: 'xiaohongshu',
@@ -79,29 +79,46 @@ export function SearchKeywordsPage() {
     searchGmv: '',
   })
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const [res, sh] = await Promise.all([
-        api.get<SearchOverviewResponse>('/search-keywords', {
-          ...(platform ? { platform } : {}),
-          ...(query.trim() ? { q: query.trim() } : {}),
-        }),
-        api.get<any[]>('/omnichannel/shops').catch(() => []),
-      ])
-      setData(res)
-      setShops(Array.isArray(sh) ? sh : [])
-    } catch (err: any) {
-      setError(err?.message || '加载搜索词卡位数据失败')
-    } finally {
-      setLoading(false)
-    }
-  }, [platform, query])
-
+  // Load shops on mount
   useEffect(() => {
-    load()
-  }, [load])
+    api.get<any[]>('/omnichannel/shops')
+      .then((sh) => setShops(Array.isArray(sh) ? sh : []))
+      .catch(() => setShops([]))
+  }, [])
+
+  // Provider for useTable
+  const fetchKeywords = useCallback(
+    async (params: TableFetchParams<{ platform: string }>) => {
+      setErrorMsg(null)
+      try {
+        const res = await api.get<SearchOverviewResponse>('/search-keywords', {
+          ...(params.filters.platform ? { platform: params.filters.platform } : {}),
+          ...(params.search ? { q: params.search } : {}),
+        })
+
+        if (res) {
+          setSummary(res.summary)
+          setXhsNotes(res.xhsNotes || [])
+          return {
+            items: res.items || [],
+            total: (res.items || []).length,
+          }
+        }
+        return { items: [], total: 0 }
+      } catch (err: any) {
+        setErrorMsg(err?.message || '加载搜索词卡位数据失败')
+        return { items: [], total: 0 }
+      }
+    },
+    []
+  )
+
+  const table = useTable<KeywordRow, { platform: string }>({
+    fetchData: fetchKeywords,
+    initialPageSize: 20,
+    initialFilters: { platform: '' },
+    getRowId: (r) => r.id,
+  })
 
   const filteredShops = shops.filter((s) => s.platform_code === form.platformCode)
 
@@ -122,64 +139,116 @@ export function SearchKeywordsPage() {
         searchGmv: Number(form.searchGmv || 0),
       })
       setShowForm(false)
-      await load()
+      table.reload()
     } catch (err: any) {
-      setError(err?.message || '保存搜索关键词失败')
+      setErrorMsg(err?.message || '保存搜索关键词失败')
     }
   }
 
+  const columns = useMemo<ColumnDef<KeywordRow>[]>(
+    () => [
+      {
+        key: 'keyword',
+        header: '关键词',
+        sortable: true,
+        render: (_, r) => (
+          <div>
+            <div className="font-semibold text-slate-100 flex items-center gap-1.5">
+              <span>{r.keyword}</span>
+              {r.note_id && (
+                <span className="text-[10px] text-cyan-400 bg-cyan-950/60 px-1.5 py-0.2 rounded border border-cyan-800">
+                  小红书挂载
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-slate-500 font-mono mt-0.5">{r.biz_date}</div>
+          </div>
+        ),
+      },
+      {
+        key: 'platform_name',
+        header: '平台 / 店铺',
+        render: (_, r) => (
+          <div>
+            <Badge variant="neutral">{r.platform_name || r.platform_code}</Badge>
+            <div className="text-slate-400 text-xs mt-0.5">{r.shop_name}</div>
+          </div>
+        ),
+      },
+      {
+        key: 'search_rank',
+        header: '卡位排名',
+        align: 'right',
+        sortable: true,
+        render: (v) => (
+          <span
+            className={`font-bold tabular-nums ${
+              v <= 3 ? 'text-amber-400' : v <= 10 ? 'text-emerald-400' : 'text-slate-400'
+            }`}
+          >
+            #{v}
+          </span>
+        ),
+      },
+      {
+        key: 'search_share_pct',
+        header: '搜推份额',
+        align: 'right',
+        render: (v) => <span className="tabular-nums font-mono">{v}%</span>,
+      },
+      {
+        key: 'impressions',
+        header: '曝光 / 点击',
+        align: 'right',
+        render: (_, r) => (
+          <div className="text-right tabular-nums">
+            <div className="text-slate-200">{Number(r.impressions || 0).toLocaleString()}</div>
+            <div className="text-slate-500 text-[11px]">{Number(r.clicks || 0).toLocaleString()} 点击</div>
+          </div>
+        ),
+      },
+      {
+        key: 'orders',
+        header: '订单',
+        align: 'right',
+        render: (v) => <span className="tabular-nums text-slate-200">{Number(v || 0).toLocaleString()}</span>,
+      },
+      {
+        key: 'cvr',
+        header: 'CVR',
+        align: 'right',
+        render: (v) => <span className="tabular-nums font-mono text-cyan-400">{v}%</span>,
+      },
+      {
+        key: 'search_gmv',
+        header: '搜索 GMV',
+        align: 'right',
+        sortable: true,
+        render: (v) => (
+          <span className="font-semibold text-emerald-400 tabular-nums">
+            ¥{Number(v || 0).toLocaleString()}
+          </span>
+        ),
+      },
+    ],
+    []
+  )
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <Search className="w-5 h-5 text-cyan-400" />
-            搜索词卡位排名与小红书 SEO 词包联动
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            监测天猫/京东/拼多多/小红书核心类目搜索坑位排名、搜推占比、转化率及种草笔记反搜归因
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="检索关键词或笔记词..."
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200 w-44"
-          />
-          <select
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value)}
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200"
-          >
-            <option value="">全部平台</option>
-            <option value="tmall">天猫</option>
-            <option value="taobao">淘宝</option>
-            <option value="jd">京东</option>
-            <option value="pdd">拼多多</option>
-            <option value="xiaohongshu">小红书</option>
-            <option value="douyin">抖音</option>
-          </select>
-          <Button size="sm" variant="secondary" onClick={load} disabled={loading}>
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
-          {canWrite && (
-            <Button size="sm" variant="primary" onClick={() => setShowForm((v) => !v)}>
-              <Plus className="w-3.5 h-3.5" />
-              录入搜索卡位
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {error && (
+      {errorMsg && (
         <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs text-rose-300 flex items-center justify-between">
-          <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</span>
-          <Button size="sm" variant="secondary" onClick={load}>重试</Button>
+          <span className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            {errorMsg}
+          </span>
+          <Button size="sm" variant="secondary" onClick={() => table.reload()}>
+            重试
+          </Button>
         </div>
       )}
 
+      {/* Record Drawer / Form */}
       {showForm && canWrite && (
         <Card>
           <CardHeader title="录入搜索词坑位与小红书笔记联动" />
@@ -197,7 +266,9 @@ export function SearchKeywordsPage() {
                   className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
                 >
                   {['xiaohongshu', 'tmall', 'taobao', 'jd', 'pdd', 'douyin'].map((p) => (
-                    <option key={p} value={p}>{p}</option>
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -210,7 +281,9 @@ export function SearchKeywordsPage() {
                 >
                   <option value="">选择店铺</option>
                   {filteredShops.map((s) => (
-                    <option key={s.id} value={s.id}>{s.shop_name} (#{s.id})</option>
+                    <option key={s.id} value={s.id}>
+                      {s.shop_name} (#{s.id})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -253,139 +326,204 @@ export function SearchKeywordsPage() {
               <div>
                 <label className="text-slate-400 block mb-1">点击量 / 成交订单</label>
                 <div className="grid grid-cols-2 gap-1.5">
-                  <input type="number" placeholder="点击" value={form.clicks} onChange={(e) => setForm({ ...form, clicks: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
-                  <input type="number" placeholder="订单" value={form.orders} onChange={(e) => setForm({ ...form, orders: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
+                  <input
+                    type="number"
+                    placeholder="点击"
+                    value={form.clicks}
+                    onChange={(e) => setForm({ ...form, clicks: e.target.value })}
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                  />
+                  <input
+                    type="number"
+                    placeholder="订单"
+                    value={form.orders}
+                    onChange={(e) => setForm({ ...form, orders: e.target.value })}
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                  />
                 </div>
               </div>
               <div>
                 <label className="text-slate-400 block mb-1">搜索成交 GMV / 笔记 ID</label>
                 <div className="grid grid-cols-2 gap-1.5">
-                  <input type="number" placeholder="GMV" value={form.searchGmv} onChange={(e) => setForm({ ...form, searchGmv: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
-                  <input placeholder="note_id(选填)" value={form.noteId} onChange={(e) => setForm({ ...form, noteId: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
+                  <input
+                    type="number"
+                    placeholder="GMV"
+                    value={form.searchGmv}
+                    onChange={(e) => setForm({ ...form, searchGmv: e.target.value })}
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                  />
+                  <input
+                    placeholder="note_id(选填)"
+                    value={form.noteId}
+                    onChange={(e) => setForm({ ...form, noteId: e.target.value })}
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                  />
                 </div>
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <Button size="sm" variant="secondary" onClick={() => setShowForm(false)}>取消</Button>
-              <Button size="sm" variant="primary" onClick={submitKeyword}>保存关键词</Button>
+              <Button size="sm" variant="secondary" onClick={() => setShowForm(false)}>
+                取消
+              </Button>
+              <Button size="sm" variant="primary" onClick={submitKeyword}>
+                保存关键词
+              </Button>
             </div>
           </CardBody>
         </Card>
       )}
 
-      {data && (
-        <>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <Card><CardBody>
-              <div className="text-xs text-slate-400">追踪关键词数</div>
-              <div className="text-xl font-bold text-slate-100 mt-1 tabular-nums">{data.summary.total_keywords}</div>
-            </CardBody></Card>
-            <Card><CardBody>
-              <div className="text-xs text-slate-400">Top 5 卡位词</div>
-              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">{data.summary.top_rank_count}</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">平均排名 #{data.summary.avg_rank}</div>
-            </CardBody></Card>
-            <Card><CardBody>
-              <div className="text-xs text-slate-400">搜索总曝光</div>
-              <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">{data.summary.total_impressions.toLocaleString()}</div>
-            </CardBody></Card>
-            <Card><CardBody>
-              <div className="text-xs text-slate-400">搜索平均 CVR</div>
-              <div className="text-xl font-bold text-slate-200 mt-1 tabular-nums">{data.summary.avg_cvr}%</div>
-            </CardBody></Card>
-            <Card><CardBody>
-              <div className="text-xs text-slate-400">搜索贡献 GMV</div>
-              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">¥{data.summary.total_search_gmv.toLocaleString()}</div>
-            </CardBody></Card>
-          </div>
-
+      {/* Summary KPI Cards */}
+      {summary && (
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
-            <CardHeader title="全平台搜索词卡位与转化明细" />
-            <CardBody className="px-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-orbit-border text-slate-500">
-                      <th className="text-left px-4 py-2.5">关键词</th>
-                      <th className="text-left px-4 py-2.5">平台/店铺</th>
-                      <th className="text-right px-4 py-2.5">卡位排名</th>
-                      <th className="text-right px-4 py-2.5">搜推份额</th>
-                      <th className="text-right px-4 py-2.5">曝光/点击</th>
-                      <th className="text-right px-4 py-2.5">订单</th>
-                      <th className="text-right px-4 py-2.5">CVR</th>
-                      <th className="text-right px-4 py-2.5">搜索 GMV</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.items.map((r) => (
-                      <tr key={r.id} className="border-b border-orbit-border/60 hover:bg-white/5">
-                        <td className="px-4 py-2.5 font-medium text-slate-100">
-                          <span className="inline-flex items-center gap-1"><Hash className="w-3 h-3 text-cyan-400" />{r.keyword}</span>
-                          {r.note_id && <span className="ml-2 text-[10px] text-slate-500 font-mono">笔记:{r.note_id}</span>}
-                        </td>
-                        <td className="px-4 py-2.5 text-slate-300">{r.platform_name} · {r.shop_name}</td>
-                        <td className="px-4 py-2.5 text-right">
-                          <Badge variant={r.search_rank <= 3 ? 'success' : r.search_rank <= 10 ? 'info' : 'neutral'}>
-                            #{r.search_rank}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-cyan-300">{Number(r.search_share_pct).toFixed(1)}%</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-slate-300">
-                          {Number(r.impressions).toLocaleString()} / {Number(r.clicks).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-slate-200">{r.orders}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-slate-300">{Number(r.cvr).toFixed(2)}%</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400 font-medium">¥{Number(r.search_gmv).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <CardBody>
+              <div className="text-xs text-slate-400">追踪关键词数</div>
+              <div className="text-xl font-bold text-slate-100 mt-1 tabular-nums">
+                {summary.total_keywords}
               </div>
             </CardBody>
           </Card>
+          <Card>
+            <CardBody>
+              <div className="text-xs text-slate-400">Top 5 卡位词</div>
+              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">
+                {summary.top_rank_count}
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">平均排名 #{summary.avg_rank}</div>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <div className="text-xs text-slate-400">搜索总曝光</div>
+              <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">
+                {summary.total_impressions.toLocaleString()}
+              </div>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <div className="text-xs text-slate-400">搜索平均 CVR</div>
+              <div className="text-xl font-bold text-slate-200 mt-1 tabular-nums">
+                {summary.avg_cvr}%
+              </div>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <div className="text-xs text-slate-400">搜索贡献 GMV</div>
+              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">
+                ¥{summary.total_search_gmv.toLocaleString()}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      )}
 
-          {data.xhsNotes.length > 0 && (
-            <Card>
-              <CardHeader title="小红书笔记 search_keywords 词包对齐视图" subtitle="确保站内种草笔记词与搜索排名实时关联，消除断链" />
-              <CardBody className="px-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-orbit-border text-slate-500">
-                        <th className="text-left px-4 py-2.5">笔记 ID & 标题</th>
-                        <th className="text-left px-4 py-2.5">绑定搜索词 (search_keywords)</th>
-                        <th className="text-right px-4 py-2.5">搜索曝光</th>
-                        <th className="text-right px-4 py-2.5">闭环 / 溢出 GMV</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.xhsNotes.map((n) => (
-                        <tr key={n.id} className="border-b border-orbit-border/60">
-                          <td className="px-4 py-2.5 text-slate-200">
-                            <div className="font-medium">{n.title}</div>
-                            <div className="text-[11px] text-slate-500 font-mono">{n.note_id} · {n.shop_name}</div>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <div className="flex flex-wrap gap-1">
-                              {n.search_keywords?.length ? n.search_keywords.map((kw) => (
-                                <Badge key={kw} variant="info">{kw}</Badge>
-                              )) : <span className="text-slate-500">未绑定</span>}
-                            </div>
-                          </td>
-                          <td className="px-4 py-2.5 text-right tabular-nums text-slate-300">{Number(n.search_impressions).toLocaleString()}</td>
-                          <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400">
-                            ¥{Number(n.onsite_gmv).toLocaleString()} / ¥{Number(n.offsite_gmv).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardBody>
-            </Card>
-          )}
-        </>
+      {/* Main Table via DataPage */}
+      <DataPage<KeywordRow>
+        title={
+          <span className="flex items-center gap-2">
+            <Search className="w-5 h-5 text-cyan-400" />
+            <span>搜索词卡位排名与小红书 SEO 词包联动</span>
+          </span>
+        }
+        subtitle="监测天猫/淘宝/京东/拼多多/小红书核心类目搜索坑位排名、搜推占比、转化率及种草笔记反搜归因"
+        badge={
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-400 border border-orbit-border">
+            已接入 DataPage
+          </span>
+        }
+        table={table}
+        columns={columns}
+        searchPlaceholder="检索关键词或笔记词..."
+        exportFilename="search_keywords"
+        emptyMessage="暂无符合条件的搜索词数据"
+        actions={
+          canWrite && (
+            <Button size="sm" variant="primary" onClick={() => setShowForm((v) => !v)}>
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              录入搜索卡位
+            </Button>
+          )
+        }
+        filterControls={
+          <select
+            value={table.filters.platform}
+            onChange={(e) => table.setFilter('platform', e.target.value)}
+            className="h-9 px-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-xs text-slate-200 focus:outline-none focus:border-orbit-primary"
+          >
+            <option value="">全部平台</option>
+            <option value="tmall">天猫</option>
+            <option value="taobao">淘宝</option>
+            <option value="jd">京东</option>
+            <option value="pdd">拼多多</option>
+            <option value="xiaohongshu">小红书</option>
+            <option value="douyin">抖音</option>
+          </select>
+        }
+      />
+
+      {/* Xiaohongshu Reverse Search Note Section */}
+      {xhsNotes.length > 0 && (
+        <Card>
+          <CardHeader
+            title="小红书种草笔记与搜索回流反搜分析"
+            subtitle="监测种草笔记引流词包在站内搜索及全域回流带动的搜索成交"
+          />
+          <CardBody className="px-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-orbit-border text-slate-500">
+                    <th className="text-left px-4 py-2.5">种草笔记</th>
+                    <th className="text-left px-4 py-2.5">关联店铺</th>
+                    <th className="text-left px-4 py-2.5">核心搜索词包</th>
+                    <th className="text-right px-4 py-2.5">搜索回流曝光</th>
+                    <th className="text-right px-4 py-2.5">站内直接 GMV</th>
+                    <th className="text-right px-4 py-2.5">外溢反搜 GMV</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-orbit-border/40">
+                  {xhsNotes.map((n) => (
+                    <tr key={n.id} className="hover:bg-orbit-surface2/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-200">{n.title}</div>
+                        <div className="text-slate-500 font-mono text-[11px] mt-0.5">{n.note_id}</div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-300">{n.shop_name}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {(n.search_keywords || []).map((k) => (
+                            <span
+                              key={k}
+                              className="inline-flex items-center gap-0.5 text-[11px] px-2 py-0.5 rounded bg-orbit-surface2 text-slate-300 border border-orbit-border"
+                            >
+                              <Hash className="w-3 h-3 text-slate-500" />
+                              {k}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-slate-200">
+                        {Number(n.search_impressions || 0).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-cyan-400 font-medium">
+                        ¥{Number(n.onsite_gmv || 0).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-emerald-400 font-medium">
+                        ¥{Number(n.offsite_gmv || 0).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
       )}
     </div>
   )
 }
+
+export default SearchKeywordsPage

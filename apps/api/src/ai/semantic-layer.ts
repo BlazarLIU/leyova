@@ -127,7 +127,7 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
   },
   gpm: {
     code: 'gpm', label: '千次展现成交', unit: '元',
-    expr: '0::numeric',
+    expr: 'CASE WHEN SUM(f.impressions) > 0 THEN ROUND(COALESCE(SUM(tr.gmv), 0)::numeric / SUM(f.impressions) * 1000, 2) ELSE 0 END',
     category: 'traffic', additive: false, source: 'traffic',
   },
 
@@ -143,6 +143,16 @@ export const METRIC_REGISTRY: Record<string, MetricDef> = {
   ad_roi: {
     code: 'ad_roi', label: '投放 ROI', unit: '',
     expr: 'CASE WHEN SUM(f.ad_spend) > 0 THEN ROUND(SUM(f.attributed_gross_gmv) / SUM(f.ad_spend), 2) ELSE 0 END',
+    category: 'ad', additive: false, source: 'ad',
+  },
+  roi: {
+    code: 'roi', label: '综合投产比 (ROI)', unit: '',
+    expr: 'CASE WHEN SUM(f.ad_spend) > 0 THEN ROUND(SUM(f.attributed_gross_gmv) / SUM(f.ad_spend), 2) ELSE 0 END',
+    category: 'ad', additive: false, source: 'ad',
+  },
+  net_roi: {
+    code: 'net_roi', label: '净利润投产比 (Net ROI)', unit: '',
+    expr: 'CASE WHEN SUM(f.ad_spend) > 0 THEN ROUND((SUM(f.attributed_gross_gmv) - SUM(f.attributed_orders)) / SUM(f.ad_spend), 2) ELSE 0 END',
     category: 'ad', additive: false, source: 'ad',
   },
   ad_impressions: {
@@ -337,6 +347,9 @@ export function buildMetricQuery(
     )
   }
 
+  const primarySource = resolveSourceTable(metrics)
+  const fromTable = FACT_TABLE[primarySource]
+
   const granularity: Granularity = input.granularity || (dims.includes('date') ? 'day' : 'total')
 
   const selectParts: string[] = []
@@ -345,8 +358,9 @@ export function buildMetricQuery(
   // 维度
   for (const d of dims) {
     const def = DIMENSION_REGISTRY[d]
-    selectParts.push(`${def.expr} AS ${d}`)
-    groupParts.push(def.expr)
+    const expr = (d === 'channel' && primarySource === 'ad') ? 'f.ad_tool_code' : def.expr
+    selectParts.push(`${expr} AS ${d}`)
+    groupParts.push(expr)
   }
   if (dims.includes('date') || granularity !== 'total') {
     const g = GRANULARITY_SQL[granularity]
@@ -367,6 +381,9 @@ export function buildMetricQuery(
   for (const d of dims) {
     const j = DIMENSION_REGISTRY[d].join
     if (j) joins.add(j)
+  }
+  if (metrics.includes('gpm')) {
+    joins.add('LEFT JOIN v_fact_trade_default tr ON tr.biz_date = f.biz_date AND tr.platform_code = f.platform_code AND tr.shop_id = f.shop_id')
   }
 
   // WHERE
@@ -395,7 +412,8 @@ export function buildMetricQuery(
     params.push(fl.shopId)
   }
   if (fl.channel) {
-    conds.push(`f.channel_name = $${i++}`)
+    const channelCol = primarySource === 'ad' ? 'f.ad_tool_code' : 'f.channel_name'
+    conds.push(`${channelCol} = $${i++}`)
     params.push(fl.channel)
   }
   if (fl.source) {
@@ -417,8 +435,6 @@ export function buildMetricQuery(
   // 按指标来源选择事实表
   const sourceFacts = new Set(metrics.map((m) => METRIC_REGISTRY[m].source))
   const crossTable = sourceFacts.size > 1
-  const primarySource = resolveSourceTable(metrics)
-  const fromTable = FACT_TABLE[primarySource]
 
   // 跨表查询：只保留主表指标，避免不存在的列导致 SQL 报错
   let finalSelectParts = selectParts

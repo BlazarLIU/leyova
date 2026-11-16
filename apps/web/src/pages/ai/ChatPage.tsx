@@ -4,7 +4,7 @@ import {
   Send, Sparkles, ChevronDown,
   Copy, ThumbsUp, ThumbsDown, RefreshCw, Paperclip,
   Plus, Search, MessageSquare, Menu, X, Trash2,
-  Brain, ListTodo, Users, Wrench, FileText, ShieldAlert,
+  Wrench, FileText, ShieldAlert,
 } from 'lucide-react'
 import { api, ApiError } from '@/services/api'
 import { Avatar } from '@/components/ui'
@@ -204,10 +204,6 @@ export function ChatPage() {
   const [showConvList, setShowConvList] = useState(false)
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  // DeerFlow run 开关：深度思考 / 计划模式 / 子代理
-  const [thinkingEnabled, setThinkingEnabled] = useState(false)
-  const [planMode, setPlanMode] = useState(false)
-  const [subagentEnabled, setSubagentEnabled] = useState(false)
   // 本轮流式过程中的工具调用指示条
   const [activeTools, setActiveTools] = useState<string[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -298,9 +294,6 @@ export function ChatPage() {
       const response = await api.streamPost('/api/ai/chat/stream', {
         message: content,
         conversationId: selectedConvId,
-        thinkingEnabled,
-        planMode,
-        subagentEnabled,
       })
 
       if (!response.ok || !response.body) {
@@ -583,27 +576,6 @@ export function ChatPage() {
               <ShieldAlert className="w-3.5 h-3.5" />
               <span className="hidden lg:inline">巡检</span>
             </button>
-            {/* DeerFlow run 开关：深度思考 / 计划模式 / 子代理 */}
-            {[
-              { label: '深度思考', Icon: Brain, active: thinkingEnabled, onToggle: () => setThinkingEnabled(v => !v) },
-              { label: '计划模式', Icon: ListTodo, active: planMode, onToggle: () => setPlanMode(v => !v) },
-              { label: '子代理', Icon: Users, active: subagentEnabled, onToggle: () => setSubagentEnabled(v => !v) },
-            ].map(({ label, Icon, active, onToggle }) => (
-              <button
-                key={label}
-                onClick={onToggle}
-                title={label}
-                className={cn(
-                  'flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border transition-colors',
-                  active
-                    ? 'bg-orbit-primary/15 border-orbit-primary/40 text-orbit-primary-light'
-                    : 'bg-orbit-surface2 border-orbit-border text-slate-500 hover:text-slate-300'
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline">{label}</span>
-              </button>
-            ))}
             <div className="relative">
               <button onClick={() => setShowModelPicker(o => !o)} className="hidden flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-orbit-surface2 px-2.5 py-1.5 rounded-lg border border-orbit-border transition-colors">
                 <div className="w-1.5 h-1.5 rounded-full bg-orbit-accent animate-pulse" />

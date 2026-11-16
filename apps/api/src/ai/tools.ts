@@ -4,3 +4,4 @@
 import './register-default-tools.js'
 import './register-review-task-tools.js'
 import './register-insight-tools.js'
+import './register-selection-tools.js'

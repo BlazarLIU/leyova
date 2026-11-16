@@ -16,7 +16,8 @@
 import { getPool, type DbExecutor } from '../lib/db.js'
 import { canAccessCost } from '../lib/guard.js'
 
-const COST_SENSITIVE_PLATFORM_METRICS = new Set(['jd_gross_margin', 'jd_margin_rate'])
+// 成本敏感指标集合：京东自营毛利类指标已随平台移除（2026-11-14），当前为空集
+const COST_SENSITIVE_PLATFORM_METRICS = new Set<string>([])
 
 export interface PlatformAccessOptions {
   role?: string | null
@@ -35,9 +36,7 @@ function isCostAccessAllowed(access?: PlatformAccessOptions): boolean {
 
 /** 平台扩展事实表 */
 export type PlatformFactSource =
-  | 'pdd_group'
   | 'xhs_note'
-  | 'jd_po'
   | 'ks_fans'
   | 'taobao_order'
 
@@ -54,28 +53,6 @@ export interface PlatformMetricDef {
 }
 
 export const PLATFORM_METRIC_REGISTRY: Record<string, PlatformMetricDef> = {
-  // ── 拼多多：成团 ──
-  group_success_rate: {
-    code: 'group_success_rate', label: '成团成功率', unit: '%',
-    expr: `CASE WHEN COUNT(*) FILTER (WHERE status IN ('grouped','expired')) > 0
-            THEN ROUND(COUNT(*) FILTER (WHERE status = 'grouped')::numeric
-                 / COUNT(*) FILTER (WHERE status IN ('grouped','expired')) * 100, 2)
-            ELSE 0 END`,
-    source: 'pdd_group', platformScope: ['pdd'], additive: false,
-    description: '已成团数 / (已成团数 + 过期数)',
-  },
-  group_expired_amount: {
-    code: 'group_expired_amount', label: '成团损耗金额', unit: '元',
-    expr: `COALESCE(SUM(refund_amount) FILTER (WHERE status = 'expired'), 0)::numeric`,
-    source: 'pdd_group', platformScope: ['pdd'], additive: true,
-    description: '过期拼团自动退款的总额',
-  },
-  group_avg_size: {
-    code: 'group_avg_size', label: '平均成团人数', unit: '人',
-    expr: `COALESCE(AVG(NULLIF(group_size_actual, 0)), 0)::numeric`,
-    source: 'pdd_group', platformScope: ['pdd'], additive: false,
-  },
-
   // ── 小红书：笔记 ──
   note_read_rate: {
     code: 'note_read_rate', label: '笔记阅读率', unit: '%',
@@ -118,25 +95,6 @@ export const PLATFORM_METRIC_REGISTRY: Record<string, PlatformMetricDef> = {
     expr: `COALESCE(SUM(offsite_gmv), 0)::numeric`,
     source: 'xhs_note', platformScope: ['xiaohongshu'], additive: true,
     description: '红猫/红京/红美广告挂链跳转外部平台成交',
-  },
-
-  // ── 京东：采销 ──
-  jd_supply_amount: {
-    code: 'jd_supply_amount', label: '供货金额', unit: '元',
-    expr: `COALESCE(SUM(settle_amount), 0)::numeric`,
-    source: 'jd_po', platformScope: ['jd'], additive: true,
-    description: '自营采销的供货结算额，不等于零售成交额',
-  },
-  jd_gross_margin: {
-    code: 'jd_gross_margin', label: '毛利额', unit: '元',
-    expr: `COALESCE(SUM(gross_margin), 0)::numeric`,
-    source: 'jd_po', platformScope: ['jd'], additive: true,
-  },
-  jd_margin_rate: {
-    code: 'jd_margin_rate', label: '毛利率', unit: '%',
-    expr: `CASE WHEN SUM(retail_price * quantity) > 0
-            THEN ROUND(SUM(gross_margin) / SUM(retail_price * quantity) * 100, 2) ELSE 0 END`,
-    source: 'jd_po', platformScope: ['jd'], additive: false,
   },
 
   // ── 快手：私域 ──
@@ -204,9 +162,7 @@ export const PLATFORM_METRIC_REGISTRY: Record<string, PlatformMetricDef> = {
 
 /** 平台扩展表名映射 */
 export const PLATFORM_FACT_TABLE: Record<PlatformFactSource, string> = {
-  pdd_group: 'pdd_group_buy',
   xhs_note: 'xhs_note',
-  jd_po: 'jd_purchase_order',
   ks_fans: 'kuaishou_fans_ops',
   taobao_order: 'taobao_order_hierarchy',
 }

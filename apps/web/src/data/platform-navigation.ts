@@ -9,7 +9,7 @@
  *   │ 主链路：场次 GMV → 流量结构 → 转化漏斗 → 主播效能 → 复盘
  *   └────────────────────────────────────────────────
  *
- *   ┌ 货架电商（淘宝/天猫/京东/拼多多）──────────────────
+ *   ┌ 货架电商（淘宝/天猫）──────────────────────────────────
  *   │ 核心对象：店铺 / 商品 SKU / 活动
  *   │ 主链路：店铺成交 → 商品结构 → 流量渠道 → 投放 ROI → 退款
  *   │ 没有直播场次概念，绝不该出现「直播复盘」「主播赋能」
@@ -27,12 +27,11 @@
 import {
   LayoutDashboard, BarChart3, Monitor, Radio, TrendingUp, Globe, Bot,
   CalendarDays, ClipboardPlus, Table, Clapperboard, LineChart, Mic, Zap,
-  BarChart4, Database, Settings, AlertTriangle, Store, Package,
-  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Layers, Home, Clock, Undo2, Shield,
-  CloudSun, Building2, Trophy, Receipt, Eye,
+  BarChart4, Database, Settings, Store, Package,
+  Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Home, Shield,
+  CloudSun, Sparkles, UserCog, BookKey, Layers, Compass,
 } from 'lucide-react'
 import type { NavSection, NavSubItem } from '@/types'
-import type { WorkMode } from '@/hooks/useWorkMode'
 
 export type PlatformMode = 'live' | 'shelf' | 'content'
 
@@ -53,7 +52,7 @@ export function resolvePlatformMode(
 ): PlatformMode {
   if (!cap) return 'live'
   const code = platformCode || cap.platformCode
-  // 直播能力最独特，优先；小红书以内容种草为核心主模式；淘系/京东保持货架主模式并辅以内容中心入口
+  // 直播能力最独特，优先；小红书以内容种草为核心主模式；淘系保持货架主模式并辅以内容中心入口
   if (cap.supportsLive) return 'live'
   if (code === 'xiaohongshu') return 'content'
   if (cap.supportsShelf) return 'shelf'
@@ -134,7 +133,9 @@ function buildAiSection(mode: PlatformMode): NavSection {
     title: '智能分析',
     items: [
       { label, icon: Bot, href: '/ai/chat', module: 'ai' },
-      { label: '天气 AI 选品穿搭', icon: CloudSun, href: '/ai/weather', badge: '智能', module: 'ai' },
+      { label: 'AI 全品类选品', icon: Sparkles, href: '/ai/selection', badge: '多因子', module: 'ai' },
+      { label: '一键运营方案', icon: FileText, href: '/ai/campaign-plan', badge: '12模块', module: 'ai' },
+      { label: '天气 AI 穿搭 (旧)', icon: CloudSun, href: '/ai/weather', module: 'ai' },
       {
         label: '商业智能',
         icon: LineChart,
@@ -162,6 +163,15 @@ function buildLiveSections(platformCode?: string): NavSection[] {
       title: '直播运营',
       items: [
         { label: '多直播间总览', icon: Monitor, href: '/system/multi-room', module: 'system_multiroom' },
+        ...(platformCode === 'douyin' ? [
+          { label: '短视频引流→直播承接', icon: Clapperboard, href: '/insights/douyin/short-video', module: 'review_channels' },
+          { label: '三池统一调度', icon: Layers, href: '/insights/douyin/three-pools', module: 'review_channels' },
+        ] : []),
+        ...(platformCode === 'wechat' ? [
+          { label: '公私域流量拆分', icon: Home, href: '/insights/wechat/private-public', module: 'review_channels' },
+          { label: '全域带货者', icon: Users, href: '/insights/wechat/affiliate', module: 'anchor' },
+          { label: '短视频与公众号图文', icon: Clapperboard, href: '/insights/wechat/content', module: 'content' },
+        ] : []),
         { label: '场次管理', icon: Radio, href: '/overview/sessions', module: 'session' },
         { label: '场次排品', href: '/ops/session-products', module: 'session_products' },
       ],
@@ -187,12 +197,14 @@ function buildLiveSections(platformCode?: string): NavSection[] {
             { label: '主播列表', href: '/anchors/list' },
             { label: '主播档案', href: '/anchors/profile' },
             { label: '我的排班', href: '/anchors/my-schedule' },
-            { label: '排班管理', href: '/anchors/schedule' },
+            { label: '直播排班', href: '/anchors/live-schedule' },
+            { label: '排班设置', href: '/anchors/schedule' },
             { label: 'AI智能排班', href: '/anchors/schedule-recommend' },
             { label: '我的业绩', href: '/anchors/my-performance' },
             { label: '训练管理', href: '/anchors/training' },
             { label: '话术模板', href: '/ops/script-library' },
             { label: '能力看板', href: '/ops/capabilities' },
+            { label: 'HRBP 工作台', href: '/hrbp/workspace' },
           ],
         },
       ],
@@ -237,7 +249,6 @@ function buildLiveSections(platformCode?: string): NavSection[] {
             { label: '会员与私域', href: '/ops/members', module: 'members' },
             { label: '问题库', href: '/ops/issue-library', module: 'ops' },
             { label: '目标达成', href: '/ops/goal-tracking', module: 'ops' },
-            { label: '经营成本核算', href: '/ops/costs', module: 'ops' },
             { label: '商品主数据与库存', href: '/ops/inventory', module: 'product_center' },
             { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
             { label: '售后工单与原因归因', href: '/ops/after-sales', module: 'after_sales' },
@@ -266,31 +277,29 @@ function buildLiveSections(platformCode?: string): NavSection[] {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 货架电商专属：淘宝 / 天猫 / 京东 / 拼多多
+// 货架电商专属：淘宝 / 天猫（京东/拼多多已于 2026-11-14 移除）
 // ═══════════════════════════════════════════════════════════════
 
 function buildShelfSections(platformCode?: string): NavSection[] {
   // 淘宝/天猫走专属经营看板（含父子订单、支付转化率、万相台对账）
   const isTaobaoFamily = platformCode === 'taobao' || platformCode === 'tmall'
-  const isPdd = platformCode === 'pdd'
-  const isJd = platformCode === 'jd'
   const shopBoardHref = isTaobaoFamily
     ? '/shop/taobao/board'
-    : isJd ? '/shop/jd/board' : '/shop/overview'
+    : '/shop/overview'
 
   return [
     {
       title: '店铺经营',
       items: [
-        { label: isTaobaoFamily ? '店铺经营看板（淘系）' : isJd ? '京东经营看板（自营/POP）' : '店铺经营看板', icon: Store, href: shopBoardHref, module: 'overview' },
-        ...(isPdd ? [
-          { label: '成团转化分析', icon: Users, href: '/shop/pdd/group-funnel', module: 'bi' },
-          { label: '三口径对账', icon: Layers, href: '/shop/pdd/caliber-compare', module: 'bi' },
-          { label: '售后与店铺健康', icon: Undo2, href: '/shop/pdd/refund', module: 'bi' },
+        { label: isTaobaoFamily ? '店铺经营看板（淘系）' : '店铺经营看板', icon: Store, href: shopBoardHref, module: 'overview' },
+        ...(isTaobaoFamily ? [
+          { label: '店铺×场次联动', icon: Radio, href: '/insights/taobao/shop-session', module: 'overview' },
+          { label: '直播三源流量', icon: Layers, href: '/insights/taobao/three-sources', module: 'review_channels' },
         ] : []),
-        ...(isJd ? [
-          { label: '店铺星级（四维考核）', icon: Shield, href: '/shop/jd/store-rating', module: 'fulfillment' },
-          { label: '履约时效监控', icon: Clock, href: '/shop/jd/fulfillment', module: 'fulfillment' },
+        ...(platformCode === 'tmall' ? [
+          { label: '品牌×场次', icon: Store, href: '/insights/tmall/brand-sessions', module: 'session' },
+          { label: '五层抵扣规则', icon: Layers, href: '/insights/tmall/promotion-layers', module: 'system_promotions' },
+          { label: '直播与官方立减联动', icon: Megaphone, href: '/insights/tmall/live-promo-link', module: 'review_channels' },
         ] : []),
         {
           label: '流量与投放',
@@ -298,17 +307,17 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           module: 'ops',
           children: isTaobaoFamily
             ? [
-                { label: '商品与渠道结构', href: '/shop/taobao/product-channel' },
-                { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
-                { label: '万相台投放对账', href: '/shop/taobao/ad-reconciliation' },
-                { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
-                { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
-              ]
+              { label: '商品与渠道结构', href: '/shop/taobao/product-channel' },
+              { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
+              { label: '万相台投放对账', href: '/shop/taobao/ad-reconciliation' },
+              { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
+              { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
+            ]
             : [
-                { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
-                { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
-                { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
-              ],
+              { label: '渠道流量分析', href: '/review/channels', module: 'review_channels' },
+              { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
+              { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
+            ],
         },
         {
           label: '售后与退款',
@@ -349,9 +358,8 @@ function buildShelfSections(platformCode?: string): NavSection[] {
             { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
             { label: '达人合作与佣金', href: '/ops/kol', module: 'kol' },
             { label: '会员与私域', href: '/ops/members', module: 'members' },
-            ...(isTaobaoFamily || isJd ? [{ label: '内容排产与归因', href: '/content/schedule', module: 'content_schedule' }] : []),
+            ...(isTaobaoFamily ? [{ label: '内容排产与归因', href: '/content/schedule', module: 'content_schedule' }] : []),
             { label: '目标达成', href: '/ops/goal-tracking', module: 'ops' },
-            { label: '经营成本核算', href: '/ops/costs', module: 'ops' },
             { label: '活动管理', href: '/system/promotions', module: 'system_promotions' },
             { label: '改进任务', href: '/system/tasks', module: 'system_tasks' },
             { label: '问题库', href: '/ops/issue-library', module: 'ops' },
@@ -372,6 +380,10 @@ function buildContentSections(): NavSection[] {
       title: '内容经营',
       items: [
         { label: '笔记经营看板', icon: FileText, href: '/shop/xiaohongshu/notes', module: 'content' },
+        { label: '笔记→直播→成交', icon: TrendingUp, href: '/insights/xiaohongshu/note-live', module: 'content' },
+        { label: '直播流量来源', icon: Compass, href: '/insights/xiaohongshu/traffic-sources', module: 'review_channels' },
+        { label: '买手画像', icon: Mic, href: '/insights/xiaohongshu/buyer-profile', module: 'anchor' },
+        { label: '蒲公英达人合作', icon: Users, href: '/insights/xiaohongshu/dandelion', module: 'kol' },
         {
           label: '内容分析',
           icon: Film,
@@ -422,7 +434,6 @@ function buildContentSections(): NavSection[] {
             { label: '售后工单与原因归因', href: '/ops/after-sales', module: 'after_sales' },
             { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
             { label: '目标达成', href: '/ops/goal-tracking', module: 'ops' },
-            { label: '经营成本核算', href: '/ops/costs', module: 'ops' },
             { label: '活动管理', href: '/system/promotions', module: 'system_promotions' },
             { label: '改进任务', href: '/system/tasks', module: 'system_tasks' },
           ],
@@ -433,178 +444,114 @@ function buildContentSections(): NavSection[] {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 代运营与对账管理
-// ═══════════════════════════════════════════════════════════════
-
-function buildAgencySection(): NavSection {
-  return {
-    title: '代运营管理',
-    items: [
-      {
-        label: 'MCN 代运营',
-        icon: Building2,
-        module: 'agency',
-        children: [
-          { label: '品牌自播档案', href: '/agency/clients' },
-          { label: '代播签约项目', href: '/agency/projects' },
-          { label: '月结对账单凭据', href: '/agency/settlement' },
-        ],
-      },
-    ],
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 系统（所有平台共享）
+// 系统与设置（所有平台共享）
+// 2026-11-14 重构：原单一「系统管理」大容器拆为 5 个职责清晰的分组
+//   账号与权限 / 平台与场地 / 运营支撑 / 系统运维 / 合规风控
 // ═══════════════════════════════════════════════════════════════
 
 function buildSystemSection(): NavSection {
   return {
-    title: '系统',
+    title: '系统与设置',
     items: [
       {
-        label: '系统管理',
-        icon: Settings,
+        // 老大明确要求：账号管理单独出来
+        label: '账号与权限',
+        icon: UserCog,
         module: 'system_users',
         children: [
-          { label: '系统配置', href: '/system/config', module: 'system_config' },
-          { label: '运营人员管理', href: '/system/personnel', module: 'system_personnel_ops' },
-          { label: '直播间管理', href: '/system/rooms', module: 'system_rooms' },
-          { label: '平台与渠道管理', href: '/system/platforms', module: 'system_users' },
-          { label: '模型与知识库', href: '/content/center-config', module: 'system_ai' },
           { label: '账号管理', href: '/system/users', module: 'system_users' },
-          { label: '操作审计日志', href: '/system/audit-logs', module: 'audit_logs' },
-          { label: '字典管理', href: '/system/dict', module: 'system_dict' },
+          { label: '角色与模块权限', href: '/system/roles', module: 'system_users' },
+          { label: '运营人员管理', href: '/system/personnel', module: 'system_personnel_ops' },
         ],
       },
-      { label: '异常中心', icon: AlertTriangle, href: '/system/alerts', module: 'system_alerts' },
-      { label: '合规风控', icon: Shield, href: '/system/compliance', module: 'compliance' },
+      {
+        // 直播间不够全面 → 扩为「平台 / 直播间 / 场地资源」
+        label: '平台与场地',
+        icon: Radio,
+        module: 'system_rooms',
+        children: [
+          { label: '平台与渠道管理', href: '/system/platforms', module: 'system_users' },
+          { label: '直播间管理', href: '/system/rooms', module: 'system_rooms' },
+          { label: '多直播间总览', href: '/system/multi-room', module: 'system_multiroom' },
+        ],
+      },
+      {
+        label: '运营支撑',
+        icon: BookKey,
+        module: 'system_dict',
+        children: [
+          { label: '字典管理', href: '/system/dict', module: 'system_dict' },
+          { label: '大促活动管理', href: '/system/promotions', module: 'system_promotions' },
+          { label: '竞品观察', href: '/system/competitors', module: 'system_competitors' },
+          { label: '改进任务', href: '/system/tasks', module: 'system_tasks' },
+        ],
+      },
+      {
+        label: '系统运维',
+        icon: Settings,
+        module: 'system_config',
+        children: [
+          { label: '系统配置', href: '/system/config', module: 'system_config' },
+          { label: '异步任务与运维队列', href: '/system/jobs', module: 'system_config' },
+          { label: '模型与知识库', href: '/content/center-config', module: 'system_ai' },
+          { label: '操作审计日志', href: '/system/audit-logs', module: 'audit_logs' },
+          { label: '异常中心', href: '/system/alerts', module: 'system_alerts' },
+        ],
+      },
+      {
+        label: '合规风控',
+        icon: Shield,
+        module: 'compliance',
+        children: [
+          { label: '平台规则雷达', href: '/compliance/rules', module: 'compliance' },
+          { label: '违规事件看板', href: '/compliance/events', module: 'compliance' },
+        ],
+      },
     ],
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 模式一：纯代运营展示模式（MCN 机构运营架构）
-// ═══════════════════════════════════════════════════════════════
-
-function buildAgencyPureNavigation(): NavSection[] {
-  return [
-    {
-      title: '运营驾驶',
-      items: [
-        { label: '运营驾驶舱', icon: BarChart3, href: '/overview/cockpit', badge: '代播版', module: 'overview' },
-        { label: '实时监控', icon: Radio, href: '/overview/live-monitor', module: 'overview' },
-        { label: '多直播间总览', icon: Monitor, href: '/system/multi-room', module: 'system_multiroom' },
-      ],
-    },
-    {
-      title: '直播管理',
-      items: [
-        { label: '主播管理', icon: Users, href: '/anchors/list', module: 'anchor' },
-        { label: '我的排班', icon: CalendarDays, href: '/anchors/my-schedule', module: 'personal_achievement' },
-        { label: '排班管理', icon: Clock, href: '/anchors/schedule', module: 'anchor' },
-        { label: 'AI排班建议', icon: Bot, href: '/anchors/schedule-recommend', badge: 'AI', module: 'anchor' },
-      ],
-    },
-    {
-      title: '业务分析',
-      items: [
-        { label: '业绩数据', icon: LineChart, href: '/overview/analytics', module: 'overview' },
-        { label: '主播效能数据', icon: Mic, href: '/review/anchors', module: 'review_anchors' },
-        { label: '天气AI穿搭', icon: CloudSun, href: '/ai/weather', badge: '特色', module: 'ai' },
-        { label: '我的业绩', icon: Trophy, href: '/anchors/my-performance', module: 'personal_achievement' },
-        { label: '成本核算', icon: Layers, href: '/ops/costs', module: 'ops' },
-        { label: '竞品观察', icon: Eye, href: '/system/competitors', module: 'system_competitors' },
-      ],
-    },
-    {
-      title: '代播客户与对账',
-      items: [
-        { label: '品牌自播管理', icon: Building2, href: '/agency/clients', module: 'agency' },
-        { label: '代播签约项目', icon: FileText, href: '/agency/projects', module: 'agency' },
-        { label: '月结对账单凭据', icon: Receipt, href: '/agency/settlement', badge: '法律级', module: 'agency' },
-      ],
-    },
-    {
-      title: '系统工具',
-      items: [
-        { label: '数据报警 (Webhook)', icon: AlertTriangle, href: '/system/alerts', module: 'system_alerts' },
-        { label: '系统设置与权限', icon: Settings, href: '/system/users', module: 'system_users' },
-        { label: '操作审计日志', icon: Shield, href: '/system/audit-logs', module: 'audit_logs' },
-      ],
-    },
-  ]
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 模式二：纯品牌自播展示模式（7大平台全渠道决策，隐藏外包中介）
-// ═══════════════════════════════════════════════════════════════
-
-function buildBrandPureNavigation(mode: PlatformMode, capability?: PlatformCapability | null): NavSection[] {
-  const sections: NavSection[] = [
-    {
-      title: '品牌经营总览',
-      items: [
-        { label: '全渠道经营大盘', icon: Globe, href: '/omnichannel/dashboard', badge: '7大平台', module: 'overview' },
-        { label: '店铺经营看板', icon: Store, href: '/shop/overview', module: 'overview' },
-        { label: '经营分析工作台', icon: Bot, href: '/ai/workbench', module: 'overview' },
-      ],
-    },
-  ]
-
-  if (mode === 'live') {
-    sections.push(...buildLiveSections(capability?.platformCode))
-  } else if (mode === 'shelf') {
-    sections.push(...buildShelfSections(capability?.platformCode))
-  } else {
-    sections.push(...buildContentSections())
-  }
-
-  sections.push(buildAiSection(mode))
-  sections.push(buildDataSection(mode))
-  sections.push(buildSystemSection())
-
-  return sections
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 主入口：按 3 个展示模块分流构建导航
+// 主入口：按平台业态构建导航（已取消代运营/品牌自播/全功能三模式，统一为全功能）
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * 根据平台业态与工作模式构建导航。
+ * 根据平台能力构建导航。
+ *
+ * 2026-11-14（S3）取消「代运营 / 品牌自播 / 全功能」三种展示模式，统一为单一导航。
+ * 2026-11-14（S7）修正：5 个平台全部是直播电商平台，导航改为「直播骨架 + 平台专属叠加」，
+ *   不再用单一 mode 互斥判断 —— 否则淘宝/小红书会因为「支持直播」而丢掉店铺/笔记专属分组。
+ *
+ * 组合规则：
+ *   ① 所有平台都有：总览 + 直播骨架（场次/排班/复盘/主播）+ AI + 数据 + 系统
+ *   ② 淘系（taobao/tmall）额外叠加：店铺经营 / 商品中心 / 店铺运营
+ *   ③ 小红书额外叠加：内容经营（笔记）/ 达人合作 / 店铺转化
+ *
  * @param capability 平台能力
- * @param workMode 3 种展示模式：agency(纯代运营) | brand(纯品牌自播) | all(全功能)
  */
-export function buildNavigation(
-  capability?: PlatformCapability | null,
-  workMode: WorkMode = 'all'
-): NavSection[] {
-  // 模式一：纯代运营展示模式
-  if (workMode === 'agency') {
-    return buildAgencyPureNavigation()
-  }
-
+export function buildNavigation(capability?: PlatformCapability | null): NavSection[] {
+  const code = capability?.platformCode
   const mode = resolvePlatformMode(capability)
+  const isLive = capability?.supportsLive !== false
 
-  // 模式二：纯品牌自播展示模式
-  if (workMode === 'brand') {
-    return buildBrandPureNavigation(mode, capability)
-  }
-
-  // 模式三：包含代运营和品牌自播的全功能展示
   const sections: NavSection[] = [buildOverviewSection(mode)]
 
-  if (mode === 'live') {
-    sections.push(...buildLiveSections(capability?.platformCode))
-  } else if (mode === 'shelf') {
-    sections.push(...buildShelfSections(capability?.platformCode))
-  } else {
+  // ① 直播骨架：5 个平台全部适用（leyova 定位是直播电商）
+  if (isLive) {
+    sections.push(...buildLiveSections(code))
+  }
+
+  // ② 淘系专属叠加
+  if (code === 'taobao' || code === 'tmall') {
+    sections.push(...buildShelfSections(code))
+  }
+
+  // ③ 小红书专属叠加
+  if (code === 'xiaohongshu') {
     sections.push(...buildContentSections())
   }
 
   sections.push(buildAiSection(mode))
-  sections.push(buildAgencySection())
   sections.push(buildDataSection(mode))
   sections.push(buildSystemSection())
 

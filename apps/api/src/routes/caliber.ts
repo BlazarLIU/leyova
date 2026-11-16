@@ -69,7 +69,7 @@ export async function caliberRoutes(app: FastifyInstance) {
   // ── POST /api/v1/caliber/check ── 跨平台对比口径校验
   app.post<{
     Body: { platformCodes: string[]; metric?: string }
-  }>('/api/v1/caliber/check', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'finance'])] }, async (request, reply) => {
+  }>('/api/v1/caliber/check', { preHandler: [requireRole(['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator'])] }, async (request, reply) => {
     try {
       const { platformCodes, metric = 'gmv' } = request.body || ({} as any)
       if (!Array.isArray(platformCodes) || platformCodes.length === 0) {

@@ -13,7 +13,7 @@
  */
 
 import { env } from '../config/env.js'
-import type { AiScopeContext } from './ai-gateway.js'
+import type { AiScopeContext } from './ai-types.js'
 
 // ---------------------------------------------------------------------------
 // Types

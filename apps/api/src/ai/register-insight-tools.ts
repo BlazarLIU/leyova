@@ -537,14 +537,15 @@ registerTool({
       conditions.push(`room_id = $${idx++}`)
       values.push(params.roomId)
     }
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    conditions.push('plan_id IS NULL')
+    const where = `WHERE ${conditions.join(' AND ')}`
 
     const { rows } = await ctx.pool.query(
       `SELECT room_id, business_date, product_order, product_name, product_id,
               payment_amount, sold_count, buyer_count, order_count,
               exposure_users, click_users, exposure_click_rate, click_deal_rate,
               refund_users, refund_amount, refund_orders
-       FROM session_product_details
+       FROM session_plan_products
        ${where}
        ORDER BY payment_amount DESC
        LIMIT $${idx}`,
@@ -573,14 +574,15 @@ registerTool({
       conditions.push(`business_date = $${idx++}::date`)
       values.push(params.date)
     }
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    conditions.push('plan_id IS NULL')
+    const where = `WHERE ${conditions.join(' AND ')}`
 
     const { rows } = await ctx.pool.query(
       `SELECT ROW_NUMBER() OVER (ORDER BY ${params.orderBy} DESC)::int AS rank,
               product_name, product_id, room_id, business_date,
               payment_amount, sold_count, buyer_count, order_count,
               exposure_users, click_users
-       FROM session_product_details
+       FROM session_plan_products
        ${where}
        ORDER BY ${params.orderBy} DESC
        LIMIT $${idx}`,

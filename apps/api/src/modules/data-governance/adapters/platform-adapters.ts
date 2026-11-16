@@ -574,254 +574,7 @@ export class TmallGovernanceAdapter extends TaobaoGovernanceAdapter {
   override readonly docUrl = 'https://open.taobao.com/doc.htm?docId=1&docType=1'
 }
 
-/** 5. 京东开放平台 */
-export class JdGovernanceAdapter implements PlatformAdapterContract {
-  readonly platformCode = 'jd'
-  readonly platformName = '京东'
-  readonly gatewayUrl = 'https://api.jd.com/routerjson'
-  readonly docUrl = 'https://open.jd.com/home/home#/doc/api'
-
-  getOAuthUrl(credentials: PlatformCredentials, redirectUri: string, state: string): string {
-    const base = credentials.oauthBaseUrl || 'https://open-oauth.jd.com/oauth2'
-    return `${base.replace(/\/$/, '')}/to_login?app_key=${encodeURIComponent(credentials.appKey)}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=snsapi_base`
-  }
-
-  private async postOAuth(credentials: PlatformCredentials, params: Record<string, string>): Promise<OAuthTokenBundle> {
-    const oauthBase = (credentials.oauthBaseUrl || 'https://open-oauth.jd.com/oauth2').replace(/\/$/, '')
-    const qs = new URLSearchParams({
-      app_key: credentials.appKey,
-      app_secret: credentials.appSecret,
-      ...params,
-    })
-    const res = await httpRequestJson<any>(`${oauthBase}/access_token?${qs.toString()}`, {
-      method: 'GET',
-      timeoutMs: credentials.timeoutMs,
-    })
-    if (res?.code && String(res.code) !== '0') {
-      throw new Error(res?.msg || `京东 OAuth 错误 (${res.code})`)
-    }
-    return normalizeTokenBundle(res, credentials.refreshToken)
-  }
-
-  private async callJdMethod(
-    credentials: PlatformCredentials,
-    method: string,
-    paramObj: Record<string, any>,
-  ): Promise<any> {
-    const gateway = credentials.gatewayBaseUrl || this.gatewayUrl
-    const sysParams: Record<string, any> = {
-      method,
-      app_key: credentials.appKey,
-      access_token: credentials.accessToken,
-      timestamp: formatOpenApiTimestamp(),
-      format: 'json',
-      v: '2.0',
-      '360buy_param_json': JSON.stringify(paramObj),
-    }
-    const sign = topSignMd5(sysParams, credentials.appSecret)
-    const body = new URLSearchParams({ ...sysParams, sign }).toString()
-
-    const res = await httpRequestJson<any>(gateway, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
-      body,
-      timeoutMs: credentials.timeoutMs,
-    })
-    if (res?.error_response) {
-      throw new Error(res.error_response.zh_desc || res.error_response.en_desc || '京东 OpenAPI 错误')
-    }
-    return res
-  }
-
-  async exchangeCodeForToken(credentials: PlatformCredentials, code: string): Promise<OAuthTokenBundle> {
-    assertOAuthCredentials(credentials, this.platformName)
-    return this.postOAuth(credentials, { grant_type: 'authorization_code', code })
-  }
-
-  async refreshAccessToken(credentials: PlatformCredentials): Promise<OAuthTokenBundle> {
-    assertOAuthCredentials(credentials, this.platformName, true)
-    return this.postOAuth(credentials, { grant_type: 'refresh_token', refresh_token: credentials.refreshToken! })
-  }
-
-  verifyWebhookSignature(headers: Record<string, any>, rawBody: string, secret: string): boolean {
-    const sign = HEADER_VALUE(headers, 'x-jd-signature')
-    if (!sign || !secret) return false
-    return constantTimeHexEqual(sign, md5Hex(secret + rawBody + secret))
-  }
-
-  async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
-    const blocked = guardCredentials(credentials, this.platformName)
-    if (blocked) return blocked
-    try {
-      const page = options?.cursor ? Number(options.cursor) : 1
-      const pageSize = options?.pageSize || 50
-      const res = await this.callJdMethod(credentials, 'jingdong.pop.order.search', {
-        start_date: options?.sinceTime ? formatOpenApiTimestamp(new Date(options.sinceTime)) : undefined,
-        page: String(page),
-        page_size: String(pageSize),
-      })
-      const payload = res?.jingdong_pop_order_search_responce?.searchorderinfo_result ?? res
-      const list = payload?.orderInfoList || payload?.list || []
-      const records = normalizeRawOrders(this.platformCode, credentials.shopId, list, false)
-      const hasMore = toNumber(payload?.orderTotal, records.length) > page * pageSize && records.length > 0
-      return {
-        success: true,
-        records,
-        hasMore,
-        nextCursor: hasMore ? String(page + 1) : undefined,
-        rawResponses: list,
-      }
-    } catch (err: any) {
-      return { success: false, records: [], hasMore: false, error: err?.message || String(err) }
-    }
-  }
-
-  async fetchRefunds(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalRefundRecord>> {
-    const blocked = guardCredentials(credentials, this.platformName)
-    if (blocked) return blocked
-    try {
-      const page = options?.cursor ? Number(options.cursor) : 1
-      const res = await this.callJdMethod(credentials, 'jingdong.pop.afs.soa.refundapply.queryPageList', {
-        applyTimeStart: options?.sinceTime ? formatOpenApiTimestamp(new Date(options.sinceTime)) : undefined,
-        pageIndex: page,
-        pageSize: options?.pageSize || 50,
-      })
-      const payload = res?.jingdong_pop_afs_soa_refundapply_queryPageList_responce?.queryResult ?? res
-      const list = payload?.result || payload?.list || []
-      return {
-        success: true,
-        records: normalizeRawRefunds(this.platformCode, credentials.shopId, list, true),
-        hasMore: toNumber(payload?.totalCount, list.length) > page * (options?.pageSize || 50),
-        rawResponses: list,
-      }
-    } catch (err: any) {
-      return { success: false, records: [], hasMore: false, error: err?.message || String(err) }
-    }
-  }
-}
-
-/** 6. 拼多多开放平台 */
-export class PddGovernanceAdapter implements PlatformAdapterContract {
-  readonly platformCode = 'pdd'
-  readonly platformName = '拼多多'
-  readonly gatewayUrl = 'https://gw-api.pinduoduo.com/api/router'
-  readonly docUrl = 'https://open.pinduoduo.com/application/document/browse'
-
-  getOAuthUrl(credentials: PlatformCredentials, redirectUri: string, state: string): string {
-    const base = credentials.oauthBaseUrl || 'https://mms.pinduoduo.com/open.html'
-    return `${base}?response_type=code&client_id=${encodeURIComponent(credentials.appKey)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}`
-  }
-
-  private async postOAuth(credentials: PlatformCredentials, body: Record<string, any>): Promise<OAuthTokenBundle> {
-    const oauthEndpoint = credentials.oauthBaseUrl
-      ? `${credentials.oauthBaseUrl.replace(/\/$/, '')}/token`
-      : 'https://open-api.pinduoduo.com/oauth/token'
-    const res = await httpRequestJson<any>(oauthEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id: credentials.appKey,
-        client_secret: credentials.appSecret,
-        ...body,
-      }),
-      timeoutMs: credentials.timeoutMs,
-    })
-    if (res?.error_response) {
-      throw new Error(res.error_response.error_msg || '拼多多 OAuth 错误')
-    }
-    return normalizeTokenBundle(res, credentials.refreshToken)
-  }
-
-  private async callPddMethod(credentials: PlatformCredentials, type: string, params: Record<string, any>): Promise<any> {
-    const gateway = credentials.gatewayBaseUrl || this.gatewayUrl
-    const payload: Record<string, any> = {
-      type,
-      client_id: credentials.appKey,
-      access_token: credentials.accessToken,
-      timestamp: Math.floor(Date.now() / 1000),
-      data_type: 'JSON',
-      ...params,
-    }
-    const sign = topSignMd5(payload, credentials.appSecret)
-    const res = await httpRequestJson<any>(gateway, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, sign }),
-      timeoutMs: credentials.timeoutMs,
-    })
-    if (res?.error_response) {
-      throw new Error(res.error_response.error_msg || res.error_response.sub_msg || '拼多多 OpenAPI 错误')
-    }
-    return res
-  }
-
-  async exchangeCodeForToken(credentials: PlatformCredentials, code: string): Promise<OAuthTokenBundle> {
-    assertOAuthCredentials(credentials, this.platformName)
-    return this.postOAuth(credentials, { grant_type: 'authorization_code', code })
-  }
-
-  async refreshAccessToken(credentials: PlatformCredentials): Promise<OAuthTokenBundle> {
-    assertOAuthCredentials(credentials, this.platformName, true)
-    return this.postOAuth(credentials, { grant_type: 'refresh_token', refresh_token: credentials.refreshToken })
-  }
-
-  verifyWebhookSignature(headers: Record<string, any>, rawBody: string, secret: string): boolean {
-    const sign = HEADER_VALUE(headers, 'x-pdd-signature')
-    if (!sign || !secret) return false
-    return constantTimeHexEqual(sign, md5Hex(rawBody + secret))
-  }
-
-  async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
-    const blocked = guardCredentials(credentials, this.platformName)
-    if (blocked) return blocked
-    try {
-      const page = options?.cursor ? Number(options.cursor) : 1
-      const res = await this.callPddMethod(credentials, 'pdd.order.list.get', {
-        start_confirm_at: options?.sinceTime ? Math.floor(new Date(options.sinceTime).getTime() / 1000) : Math.floor(Date.now() / 1000) - 86400,
-        end_confirm_at: Math.floor(Date.now() / 1000),
-        page,
-        page_size: options?.pageSize || 50,
-      })
-      const payload = res?.order_list_get_response ?? res
-      const list = payload?.order_list || payload?.list || []
-      return {
-        success: true,
-        records: normalizeRawOrders(this.platformCode, credentials.shopId, list, false),
-        hasMore: Boolean(payload?.has_next),
-        nextCursor: payload?.has_next ? String(page + 1) : undefined,
-        rawResponses: list,
-      }
-    } catch (err: any) {
-      return { success: false, records: [], hasMore: false, error: err?.message || String(err) }
-    }
-  }
-
-  async fetchRefunds(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalRefundRecord>> {
-    const blocked = guardCredentials(credentials, this.platformName)
-    if (blocked) return blocked
-    try {
-      const page = options?.cursor ? Number(options.cursor) : 1
-      const res = await this.callPddMethod(credentials, 'pdd.refund.list.increment.get', {
-        start_updated_at: options?.sinceTime ? Math.floor(new Date(options.sinceTime).getTime() / 1000) : Math.floor(Date.now() / 1000) - 86400,
-        end_updated_at: Math.floor(Date.now() / 1000),
-        page,
-        page_size: options?.pageSize || 50,
-      })
-      const payload = res?.refund_increment_get_response ?? res
-      const list = payload?.refund_list || payload?.list || []
-      return {
-        success: true,
-        records: normalizeRawRefunds(this.platformCode, credentials.shopId, list, true),
-        hasMore: toNumber(payload?.total_count, list.length) > page * (options?.pageSize || 50),
-        rawResponses: list,
-      }
-    } catch (err: any) {
-      return { success: false, records: [], hasMore: false, error: err?.message || String(err) }
-    }
-  }
-}
-
-/** 7. 小红书开放平台 (Ark) */
+/** 6. 小红书开放平台 (Ark) */
 export class XiaohongshuGovernanceAdapter implements PlatformAdapterContract {
   readonly platformCode = 'xiaohongshu'
   readonly platformName = '小红书'
@@ -938,5 +691,227 @@ export class XiaohongshuGovernanceAdapter implements PlatformAdapterContract {
     } catch (err: any) {
       return { success: false, records: [], hasMore: false, error: err?.message || String(err) }
     }
+  }
+}
+
+/**
+ * 7. 微信小店（视频号小店）
+ *
+ * 与抖店/快手的结构性差异（决定了实现方式）：
+ *   1. 无标准 OAuth 跳转：商家在微信小店后台创建「自建应用」，直接持有 appid(appKey) + secret(appSecret)
+ *      → exchangeCodeForToken 走 `stable_token` 用 client_credential 换取 access_token，不使用 code
+ *   2. access_token 无 refresh_token 概念，到期（7200s）后重新获取，refreshAccessToken 等价于重新获取
+ *   3. 订单列表接口只返回 order_id 列表，详情需逐单调用 `/channels/ec/order/get`（两步拉取）
+ *   4. 金额单位统一为「分」，归一化时 amountInCents = true
+ *
+ * 官方文档：https://developers.weixin.qq.com/doc/store/shop/API/
+ */
+export class WechatGovernanceAdapter implements PlatformAdapterContract {
+  readonly platformCode = 'wechat'
+  readonly platformName = '微信小店'
+  readonly gatewayUrl = 'https://api.weixin.qq.com'
+  readonly docUrl = 'https://developers.weixin.qq.com/doc/store/shop/API/'
+
+  getOAuthUrl(credentials: PlatformCredentials, redirectUri: string, state: string): string {
+    // 微信小店无 OAuth 授权码跳转；给出商家后台自建应用的入口，避免前端出现死链
+    const base = credentials.oauthBaseUrl || 'https://channels.weixin.qq.com/shop'
+    const params = new URLSearchParams({ from: 'leyova', state })
+    if (redirectUri) params.set('redirectUri', redirectUri)
+    return `${base}?${params.toString()}`
+  }
+
+  /** 统一 POST 调用（access_token 走 query，失败抛错） */
+  private async callWxApi(
+    credentials: PlatformCredentials,
+    path: string,
+    payload: Record<string, any>,
+    accessToken?: string,
+  ): Promise<any> {
+    const endpoint = (credentials.gatewayBaseUrl || this.gatewayUrl).replace(/\/$/, '')
+    const token = accessToken ?? credentials.accessToken ?? ''
+    const url = `${endpoint}${path}${token ? `?access_token=${encodeURIComponent(token)}` : ''}`
+    const res = await httpRequestJson<any>(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload ?? {}),
+      timeoutMs: credentials.timeoutMs,
+    })
+    const errcode = Number(res?.errcode ?? 0)
+    if (Number.isFinite(errcode) && errcode !== 0) {
+      throw new Error(`微信小店 API 错误 ${errcode}: ${res?.errmsg || '未知错误'}`)
+    }
+    return res
+  }
+
+  async exchangeCodeForToken(credentials: PlatformCredentials, _code: string): Promise<OAuthTokenBundle> {
+    assertOAuthCredentials(credentials, this.platformName)
+    const endpoint = (credentials.oauthBaseUrl || this.gatewayUrl).replace(/\/$/, '')
+    const data = await httpRequestJson<any>(`${endpoint}/cgi-bin/stable_token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        grant_type: 'client_credential',
+        appid: credentials.appKey,
+        secret: credentials.appSecret,
+        force_refresh: false,
+      }),
+      timeoutMs: credentials.timeoutMs,
+    })
+    const errcode = Number(data?.errcode ?? 0)
+    if (Number.isFinite(errcode) && errcode !== 0) {
+      throw new Error(`微信小店获取 access_token 失败 ${errcode}: ${data?.errmsg || ''}`)
+    }
+    return normalizeTokenBundle(data)
+  }
+
+  async refreshAccessToken(credentials: PlatformCredentials): Promise<OAuthTokenBundle> {
+    // 微信 access_token 无 refresh 语义，直接重新签发
+    return this.exchangeCodeForToken(credentials, '')
+  }
+
+  /**
+   * 微信消息推送验签：sha1(sort([token, timestamp, nonce]).join(''))
+   * 兼容 header 名 `x-wechat-signature` 与微信原生 `signature`
+   */
+  verifyWebhookSignature(headers: Record<string, any>, _rawBody: string, secret: string): boolean {
+    const signature =
+      HEADER_VALUE(headers, 'x-wechat-signature') || HEADER_VALUE(headers, 'signature')
+    const timestamp = HEADER_VALUE(headers, 'timestamp')
+    const nonce = HEADER_VALUE(headers, 'nonce')
+    if (!signature || !secret || !timestamp || !nonce) return false
+    const plain = [secret, timestamp, nonce].sort().join('')
+    const expected = crypto.createHash('sha1').update(plain, 'utf8').digest('hex')
+    return constantTimeHexEqual(signature, expected)
+  }
+
+  async fetchOrders(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalOrderRecord>> {
+    const blocked = guardCredentials(credentials, this.platformName)
+    if (blocked) return blocked
+
+    try {
+      const pageSize = Math.min(Math.max(toNumber(options?.pageSize, 50), 1), 100)
+      const endTime = Math.floor(Date.now() / 1000)
+      const startTime = options?.sinceTime
+        ? Math.floor(new Date(options.sinceTime).getTime() / 1000)
+        : endTime - 24 * 3600
+
+      // Step 1：拉取订单 ID 列表
+      const listRes = await this.callWxApi(credentials, '/channels/ec/order/list/get', {
+        create_time_range: { start_time: startTime, end_time: endTime },
+        page_size: pageSize,
+        ...(options?.cursor ? { next_key: String(options.cursor) } : {}),
+      })
+
+      const orderIds: string[] = Array.isArray(listRes?.order_id_list)
+        ? listRes.order_id_list.map((x: any) => String(x))
+        : []
+
+      // Step 2：逐单获取详情（官方列表接口不返回明细）
+      const rawOrders: any[] = []
+      const detailErrors: string[] = []
+      for (const orderId of orderIds) {
+        try {
+          const detail = await this.callWxApi(credentials, '/channels/ec/order/get', { order_id: orderId })
+          if (detail?.order) rawOrders.push(this.flattenOrder(detail.order))
+        } catch (err: any) {
+          detailErrors.push(`${orderId}: ${err?.message || String(err)}`)
+        }
+      }
+
+      const records = normalizeRawOrders(this.platformCode, credentials.shopId, rawOrders, true)
+      const nextKey = listRes?.next_key ? String(listRes.next_key) : ''
+      const hasMore = Boolean(listRes?.has_more) || Boolean(nextKey)
+
+      return {
+        success: true,
+        records,
+        hasMore,
+        nextCursor: hasMore && nextKey ? nextKey : undefined,
+        rawResponses: detailErrors.length > 0 ? [{ detailErrors }] : rawOrders,
+      }
+    } catch (err: any) {
+      return { success: false, records: [], hasMore: false, error: err?.message || String(err) }
+    }
+  }
+
+  async fetchRefunds(credentials: PlatformCredentials, options: any): Promise<FetchResult<CanonicalRefundRecord>> {
+    const blocked = guardCredentials(credentials, this.platformName)
+    if (blocked) return blocked
+
+    try {
+      const pageSize = Math.min(Math.max(toNumber(options?.pageSize, 50), 1), 100)
+      const endTime = Math.floor(Date.now() / 1000)
+      const startTime = options?.sinceTime
+        ? Math.floor(new Date(options.sinceTime).getTime() / 1000)
+        : endTime - 24 * 3600
+
+      // 售后单列表：/channels/ec/aftersale/getaftersalelist
+      // 注：该路径按微信小店「售后管理-获取售后单列表」实现，字段以联调为准
+      const data = await this.callWxApi(credentials, '/channels/ec/aftersale/getaftersalelist', {
+        create_time_range: { start_time: startTime, end_time: endTime },
+        page_size: pageSize,
+        ...(options?.cursor ? { next_key: String(options.cursor) } : {}),
+      })
+
+      const list = data?.after_sale_order_list || data?.list || []
+      const nextKey = data?.next_key ? String(data.next_key) : ''
+      return {
+        success: true,
+        records: normalizeRawRefunds(this.platformCode, credentials.shopId, list, true),
+        hasMore: Boolean(data?.has_more) || Boolean(nextKey),
+        nextCursor: nextKey || undefined,
+        rawResponses: list,
+      }
+    } catch (err: any) {
+      return { success: false, records: [], hasMore: false, error: err?.message || String(err) }
+    }
+  }
+
+  /**
+   * 微信小店订单结构拍平为 normalizeRawOrders 期望的扁平形状
+   * 关键字段：price_info（分为单位）、order_detail.product_infos、pay_info、status
+   */
+  private flattenOrder(order: any): any {
+    const priceInfo = order?.price_info || {}
+    const productInfos = Array.isArray(order?.order_detail?.product_infos)
+      ? order.order_detail.product_infos
+      : []
+
+    return {
+      order_id: order?.order_id,
+      create_time: order?.create_time,
+      update_time: order?.update_time,
+      status: order?.status,
+      order_status_desc: this.describeStatus(order?.status),
+      pay_amount: priceInfo?.order_price,
+      promotion_amount: priceInfo?.discounted_price,
+      post_amount: priceInfo?.freight,
+      buyer_id: order?.openid || order?.order_detail?.openid,
+      pay_time: order?.pay_info?.pay_time,
+      sku_order_list: productInfos.map((p: any, idx: number) => ({
+        sub_order_id: `${order?.order_id}-${idx + 1}`,
+        sku_id: p?.sku_id,
+        product_name: p?.title,
+        item_num: p?.sku_cnt,
+        pay_amount: toNumber(p?.sale_price) * Math.max(1, toNumber(p?.sku_cnt, 1)),
+      })),
+    }
+  }
+
+  /** 微信小店订单状态码 → 可读描述（用于口径判断与退款识别） */
+  private describeStatus(status: unknown): string {
+    const map: Record<string, string> = {
+      '10': '待付款',
+      '12': '礼物待收下',
+      '13': '待成团',
+      '20': '待发货',
+      '21': '部分发货',
+      '30': '待收货',
+      '100': '完成',
+      '200': '全部售后',
+      '250': '撤销',
+    }
+    const key = String(status ?? '')
+    return map[key] || key || 'paid'
   }
 }
