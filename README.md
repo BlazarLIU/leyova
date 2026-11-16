@@ -38,7 +38,7 @@ graph TD
   Core --> D4["📦 大促领域补强: 渠道专享价与配额 · 悲观锁防超卖预留 · 复式记账总账 · 行级RMA"]
   Core --> D5["🤖 受控 AI 重建: 6核心契约 · 实体映射分词 · Ragas Critic核验 · 60题Golden Set"]
   Core --> D6["⚡ 声明式前端: <DataPage> + useTable · 8合1看板 · 4合1排班 · 防乱码CSV导出"]
-  Core --> D7["⚙️ Day-2 生产运维: 独立 Worker (Advisory Lock选举) · Prometheus采样 · E2E冒烟"]
+  Core --> D7["⚙️ 高可用运维: 独立 Worker 异步解耦 · 分布式主备调度 · 全链路监控与健康探针"]
 ```
 
 ---
@@ -111,11 +111,11 @@ graph TD
 
 ---
 
-### 7. Day-2 生产运维与后台任务架构
-- **独立任务 Worker 守护进程 (`apps/api/src/worker.ts`)**：将重度计算（数据清洗、质量门禁、指标日聚合、合规巡检、异常检测、旧数据归档）彻底移出 Fastify HTTP 业务进程，确保 API 进程专注极速 HTTP 响应。
-- **PostgreSQL Advisory Lock 主备 Leader 选举**：基于全局分布式锁 `98234125`，多实例部署下自动选举 1 个 Active Master，其余实例无缝 Standby 待命，支持平滑停机与锁快速释放。
-- **Prometheus 生产级监控端点 (`/metrics`)**：集成标准 `prom-client`，原生暴露 CPU、内存、EventLoop Lag、`leyova_http_requests_total`、`leyova_http_request_duration_seconds`（直方图分桶）与数据库连接池健康指标。
-- **全链路端到端自动化冒烟套件 (`pnpm ops:smoke`)**：在 <5 秒内自动化穿透 8 大核心阶段（用户鉴权会话、数据导入与 8 门禁断言、Worker 队列派发与原子抢占、汇总层免扫大表查询、全渠道防超卖锁库、48h 履约 SLA 风控、客服 9-23 点响应考核、AI 选品 30 品类多模态信号契约）。
+### 7. 高可用后台任务调度与全栈可观测性
+- **API 与重度计算进程解耦**：将批量数据清洗、8 项 SQL 数据质量门禁、核心指标增量预聚合、合规风险巡检等耗时任务彻底剥离出 Fastify Web 进程，移至独立 Worker 集群异步运行，保障前端交互与核心 API 始终具备稳定毫秒级吞吐。
+- **分布式主备 Leader 选举机制 (Active-Standby)**：基于数据库分布式互斥锁，多实例集群部署时自动选举单一活跃 Master 调度节点，其余实例作为备机无缝待命；当 Master 宕机或维护时快速平滑接管，杜绝定时任务并发脏写。
+- **全链路指标可观测体系**：集成标准 Prometheus 监控端点 (`/metrics`)，实时采集与输出 HTTP QPS、P95/P99 接口耗时、Node.js 运行时健康度（CPU、内存、EventLoop Lag）及数据库连接池负载状态。
+- **端到端核心业务闭环健康巡检**：内置一键式探针与业务自动化冒烟套件 (`pnpm ops:smoke`)，可在 5 秒内全自动化穿透用户鉴权、数据入库、任务抢占、库存锁库、履约 SLA 及智能选品等核心链路，实时校验系统健康水准。
 
 ---
 
@@ -123,63 +123,57 @@ graph TD
 
 ```mermaid
 flowchart TD
-  subgraph Client["前端表现层 (apps/web · React 19 + Vite 6 + Tailwind CSS)"]
-    direction TB
-    DP_Comp["声明式表格原语: <DataPage> + useTable (分页/排序/300ms搜索防抖/带BOM CSV导出)"]
-    Hub_Dash["UnifiedDashboardHub (8合1 看板: 驾驶舱/BI/全渠道/ROI/复盘/短视频/渠道/店铺)"]
-    Hub_Sched["UnifiedScheduleHub (4合1 排班: 月历/人员编排/个人打卡/AI智能排班)"]
-    P_Biz["重度业务域: 履约SLA监控 / 客服效能 / 4Tab库存中心 / 预警中心 / 任务中心"]
-    
-    DP_Comp --> Hub_Dash
-    DP_Comp --> Hub_Sched
-    DP_Comp --> P_Biz
+  subgraph Layer1["1. 终端与表现层 (Presentation Layer · React 19 + Vite 6 + Tailwind CSS)"]
+    direction LR
+    UI_Console["多平台经营控制台\n(全渠道驾驶舱 / 实时大屏)"]
+    UI_Live["直播运营中枢\n(场次调度 / 货盘排品 / 复盘看板)"]
+    UI_Ops["履约与供应链看板\n(48h SLA / 售后工单 / 动态库存)"]
+    UI_AI["智能决策工作台\n(AI 全品类选品 / 气象与趋势预测)"]
   end
 
-  subgraph Gateway["安全防护与 API 接口层 (apps/api · Fastify 5 + TypeScript)"]
-    direction TB
-    MW_Auth["安全守卫: sys_role (8→3收敛) + 407个Fastify标准路由 + 290前端契约对齐"]
-    MW_RLS["PostgreSQL RLS 物理深度防御: rls_check_permission + rls_check_scope (统一以 leyova_app 角色执行)"]
-    Route_HTTP["业务路由矩阵: 经营分析 / 平台洞察 / 选品方案 / 库存预留 / 总账凭证 / 任务调度"]
-    Route_Metrics["Prometheus /metrics 端点: prom-client 采样 HTTP QPS / P99 耗时 / PG 连接池状态"]
-    
-    MW_Auth --> MW_RLS
-    MW_RLS --> Route_HTTP
-    MW_RLS --> Route_Metrics
+  subgraph Layer2["2. API 与安全网关层 (API Gateway Layer · Fastify 5 + TypeScript)"]
+    direction LR
+    GW_Auth["统一身份鉴权与 RBAC\n(双重判定 / 租户严格隔离)"]
+    GW_REST["核心业务 REST / SSE 接口\n(标准化契约 / 毫秒级吞吐)"]
+    GW_Obs["Prometheus 生产级观测\n(/metrics 采样 / QPS / 延迟分位)"]
   end
 
-  subgraph Worker_Daemon["后台分布式任务守护进程 (apps/api/src/worker.ts)"]
-    direction TB
-    W_Lock["Advisory Lock (98234125) Leader 自动选举: Active Master / Standby 互斥"]
-    W_Queue["system_jobs 任务队列: SKIP LOCKED 原子行锁抢占任务"]
-    W_Tasks["任务执行集群: 8SQL质量门禁 / 平台数据清洗 / 核心汇总聚合 / 合规巡检 / 异常检测"]
-    
-    W_Lock --> W_Queue
-    W_Queue --> W_Tasks
+  subgraph Layer3["3. 核心领域业务中枢 (Domain Core Services)"]
+    direction LR
+    Biz_Live["直播全链路运营\n(场次流 / 转化漏斗 / 主播效能)"]
+    Biz_Supply["履约与防超卖中枢\n(渠道独占配额 / 原子锁库 / 复式记账)"]
+    Biz_AI["受控 AI 决策引擎\n(意图识别 / 证据链溯源 / 事实核验)"]
   end
 
-  subgraph AI_Engine["受控 AI 决策引擎 (apps/api/src/ai)"]
-    direction TB
-    AI_Mapper["SuperSonic SchemaMapper: 倒排同义词索引 + 贪婪分词毫秒级指标对齐"]
-    AI_Plan["6大核心契约: PlanSchema / EvidenceSchema / ClaimPacketSchema / TraceSchema"]
-    AI_Exec["纯代码执行器: 执行多指标取数、时序预测与归因，全链路 parents[] 血缘打标"]
-    AI_Critic["Ragas Critic 核验器: 逐句断言校验数值精确对齐，拒答幻觉 (60题Golden Set 100%通过)"]
-    
-    AI_Mapper --> AI_Plan --> AI_Exec --> AI_Critic
+  subgraph Layer4["4. 异步计算与任务调度 (Worker & Async Processing)"]
+    direction LR
+    W_Master["分布式主备 Leader 选举\n(单 Master 活跃 / 故障平滑转移)"]
+    W_Pipe["七段流式清洗管道\n(暂存 / 哨兵排重 / 质量门禁隔离)"]
+    W_Cron["核心指标预聚合与巡检\n(分钟级增量出数 / 合规自动巡检)"]
   end
 
-  subgraph Data_Storage["数据底座 (PostgreSQL 14+ / 18 分区表)"]
-    direction TB
-    DB_Agg["核心汇总层 (agg_*): agg_trade_day_platform_channel + agg_traffic_day_live (<5ms响应)"]
-    DB_Pipe["七段清洗管道: stg_order_import (UNLOGGED) + land_raw_dedup (跨分区哨兵) + dq_quarantine"]
-    DB_Facts["核心事实表与实体: 订单事件流 / 渠道独占配额 / 锁库预留单 / 复式记账总账 / EAV自定义字段"]
-    DB_RLS["物理级行安全策略: 108 条 RLS 安全 Policy 严格生效"]
+  subgraph Layer5["5. 全渠道生态适配矩阵 (Omnichannel Adapters)"]
+    direction LR
+    PF_Douyin["抖音电商\n(抖店 / 千川投产)"]
+    PF_Kuaishou["快手电商\n(公私域切片 / 老铁分成)"]
+    PF_Wechat["微信视频号\n(私域联动 / 企微协同)"]
+    PF_Taobao["淘宝 / 天猫\n(万相台 / 满减退款穿透)"]
+    PF_Xhs["小红书\n(种草转化 / 达人撮合)"]
   end
 
-  Client ==>|REST / SSE (归一化请求)| MW_Auth
-  Route_HTTP ==>|连接池事务查询| Data_Storage
-  Route_HTTP -.->|任务入队派发| W_Queue
-  Route_HTTP ==>|语义查询分析| AI_Engine
-  W_Tasks ==>|增量计算与写入| DB_Agg
+  subgraph Layer6["6. 数据底座与物理级安全 (Data & Storage Layer · PostgreSQL 14+)"]
+    direction LR
+    DB_Agg["多维核心汇总层 (agg_*)\n(报表毫秒级响应 / 消灭大表全扫)"]
+    DB_Facts["核心业务事实库\n(订单流 / 库存流水 / 规则知识库)"]
+    DB_RLS["PostgreSQL RLS 物理级行安全\n(防越权旁路 / 租户数据硬隔离)"]
+  end
+
+  Layer1 ==>|HTTPS / WSS| Layer2
+  Layer2 ==> Layer3
+  Layer3 ==> Layer6
+  Layer3 -.->|异步任务派发| Layer4
+  Layer4 ==>|增量物化预聚| Layer6
+  Layer3 <==> Layer5
 ```
 
 ---
@@ -262,7 +256,7 @@ pnpm dev
 
 ---
 
-### 方式三：Day-2 生产自动化运维命令
+### 方式三：生产环境日常巡检与自动化运维指令
 
 系统内置了工业级的日常巡检、压测与闭环冒烟指令：
 
