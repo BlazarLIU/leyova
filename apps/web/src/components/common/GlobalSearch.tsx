@@ -11,9 +11,9 @@ interface SearchItem {
 
 const SEARCH_DIRECTORY: SearchItem[] = [
   { id: 'cockpit', title: '运营驾驶舱 (业绩排行榜/净利)', category: '总览', url: '/overview/cockpit', keywords: ['驾驶舱', '排行', '总览', '大盘', 'gmv'] },
-  { id: 'weather', title: '天气 AI 穿搭与智能选品', category: 'AI 赋能', url: '/ai/weather', keywords: ['天气', '穿搭', '选品', '气象', '话术', '降温'] },
+  { id: 'selection', title: 'AI 全品类选品与排盘', category: '运营工具', url: '/ai/selection', keywords: ['选品', '排盘', '多因子', '品类', '热度'] },
   { id: 'schedule', title: 'AI 智能排班建议', category: '主播赋能', url: '/anchors/schedule-recommend', keywords: ['排班', '主播', '调度', '时段', '早场', '晚场'] },
-  { id: 'omni', title: '全渠道跨平台大盘', category: '业务大盘', url: '/omnichannel/dashboard', keywords: ['全渠道', '多平台', '京东', '拼多多', '淘宝', '快手', '抖音'] },
+  { id: 'omni', title: '全渠道跨平台大盘', category: '业务大盘', url: '/omnichannel/dashboard', keywords: ['全渠道', '多平台', '微信', '淘宝', '快手', '抖音'] },
   { id: 'chat', title: 'AI 助手 (Agentic BI)', category: 'AI 赋能', url: '/ai/chat', keywords: ['ai', '助手', '问答', '归因', '波动', '预测'] },
   { id: 'anchors', title: '主播能力与表现矩阵', category: '主播赋能', url: '/anchors/list', keywords: ['主播', '能力', '评分', '达人'] },
 ]

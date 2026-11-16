@@ -73,11 +73,11 @@ export const MySchedulePage: React.FC = () => {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => navigate('/ai/weather')}
+            onClick={() => navigate('/ops/script-library')}
             className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-sm"
           >
             <Sparkles className="w-4 h-4" />
-            查看今日天气与穿搭选品话术
+            查看今日带货话术模板
           </Button>
         </div>
       </div>

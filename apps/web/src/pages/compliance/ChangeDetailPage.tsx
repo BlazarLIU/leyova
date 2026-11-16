@@ -325,7 +325,7 @@ export function ChangeDetailPage() {
             </Card>
 
             <Card
-              onClick={() => navigate('/ai/campaign-plan')}
+              onClick={() => navigate('/ops/script-library')}
               className="p-4 bg-orbit-surface border-orbit-border hover:border-violet-500 cursor-pointer transition-all group"
             >
               <div className="flex items-center gap-3">
@@ -334,10 +334,10 @@ export function ChangeDetailPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-orbit-text group-hover:text-indigo-300">
-                    一键生成 12 模块运营方案
+                    话术模板库合规校验
                   </h4>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    自动将新规清单注入 M10 合规自检项
+                    核验话术模板中的违禁词与合规规范
                   </p>
                 </div>
               </div>

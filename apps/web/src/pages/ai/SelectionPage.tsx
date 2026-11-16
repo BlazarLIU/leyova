@@ -393,14 +393,10 @@ export const SelectionPage: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() =>
-                    navigate(
-                      `/ai/campaign-plan?recommendationId=${result.id || ''}&categoryCode=${result.categoryCode}`,
-                    )
-                  }
+                  onClick={() => navigate('/ops/session-products')}
                   className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium text-sm rounded-lg shadow-sm flex items-center gap-2 transition"
                 >
-                  一键生成12模块运营方案
+                  去场次排品承接
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

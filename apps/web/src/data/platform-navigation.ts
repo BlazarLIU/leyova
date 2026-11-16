@@ -29,7 +29,7 @@ import {
   CalendarDays, ClipboardPlus, Table, Clapperboard, LineChart, Mic, Zap,
   BarChart4, Database, Settings, Store, Package,
   Megaphone, Users, MessageSquare, TrendingDown, FileText, Film, Home, Shield,
-  CloudSun, Sparkles, UserCog, BookKey, Layers, Compass,
+  UserCog, BookKey, Layers, Compass,
 } from 'lucide-react'
 import type { NavSection, NavSubItem } from '@/types'
 
@@ -73,6 +73,7 @@ function buildOverviewSection(mode: PlatformMode): NavSection {
   if (mode === 'live') {
     items.push(
       { label: '经营驾驶舱', icon: BarChart3, href: '/overview/cockpit', module: 'overview' },
+      { label: '多直播间总览', icon: Monitor, href: '/system/multi-room', module: 'system_multiroom' },
       { label: '实时监控', icon: Radio, href: '/overview/live-monitor', module: 'overview' },
       { label: '数据分析', icon: TrendingUp, href: '/overview/analytics', module: 'overview' },
     )
@@ -133,9 +134,6 @@ function buildAiSection(mode: PlatformMode): NavSection {
     title: '智能分析',
     items: [
       { label, icon: Bot, href: '/ai/chat', module: 'ai' },
-      { label: 'AI 全品类选品', icon: Sparkles, href: '/ai/selection', badge: '多因子', module: 'ai' },
-      { label: '一键运营方案', icon: FileText, href: '/ai/campaign-plan', badge: '12模块', module: 'ai' },
-      { label: '天气 AI 穿搭 (旧)', icon: CloudSun, href: '/ai/weather', module: 'ai' },
       {
         label: '商业智能',
         icon: LineChart,
@@ -159,23 +157,6 @@ function buildLiveSections(platformCode?: string): NavSection[] {
   const isKuaishou = platformCode === 'kuaishou'
 
   return [
-    {
-      title: '直播运营',
-      items: [
-        { label: '多直播间总览', icon: Monitor, href: '/system/multi-room', module: 'system_multiroom' },
-        ...(platformCode === 'douyin' ? [
-          { label: '短视频引流→直播承接', icon: Clapperboard, href: '/insights/douyin/short-video', module: 'review_channels' },
-          { label: '三池统一调度', icon: Layers, href: '/insights/douyin/three-pools', module: 'review_channels' },
-        ] : []),
-        ...(platformCode === 'wechat' ? [
-          { label: '公私域流量拆分', icon: Home, href: '/insights/wechat/private-public', module: 'review_channels' },
-          { label: '全域带货者', icon: Users, href: '/insights/wechat/affiliate', module: 'anchor' },
-          { label: '短视频与公众号图文', icon: Clapperboard, href: '/insights/wechat/content', module: 'content' },
-        ] : []),
-        { label: '场次管理', icon: Radio, href: '/overview/sessions', module: 'session' },
-        { label: '场次排品', href: '/ops/session-products', module: 'session_products' },
-      ],
-    },
     {
       // 人工登记分组：纯手工录入，独立模块，不参与任何分析计算
       // 复盘/驾驶舱用的场次数据来自官方 API 或手动上传（走「数据管理」）
@@ -244,20 +225,33 @@ function buildLiveSections(platformCode?: string): NavSection[] {
           icon: Zap,
           module: 'ops',
           children: [
+            { label: '场次管理', href: '/overview/sessions', module: 'session' },
+            { label: '场次排品', href: '/ops/session-products', module: 'session_products' },
+            { label: 'AI 全品类选品', href: '/ai/selection', module: 'ai' },
+            { label: '话术模板', href: '/ops/script-library', module: 'ops' },
+            ...(platformCode === 'douyin' ? [
+              { label: '短视频引流→直播承接', href: '/insights/douyin/short-video', module: 'review_channels' },
+              { label: '三池统一调度', href: '/insights/douyin/three-pools', module: 'review_channels' },
+            ] : []),
+            ...(platformCode === 'wechat' ? [
+              { label: '公私域流量拆分', href: '/insights/wechat/private-public', module: 'review_channels' },
+              { label: '全域带货者', href: '/insights/wechat/affiliate', module: 'anchor' },
+              { label: '短视频与公众号图文', href: '/insights/wechat/content', module: 'content' },
+            ] : []),
+            { label: '直播间健康度', href: '/ops/room-health', module: 'ops' },
             { label: '全域投放与T+7净ROI', href: '/ops/net-roi', module: 'net_roi' },
             { label: '搜索词卡位', href: '/ops/search-keywords', module: 'search_seo' },
             { label: '会员与私域', href: '/ops/members', module: 'members' },
-            { label: '问题库', href: '/ops/issue-library', module: 'ops' },
-            { label: '目标达成', href: '/ops/goal-tracking', module: 'ops' },
             { label: '商品主数据与库存', href: '/ops/inventory', module: 'product_center' },
             { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
             { label: '售后工单与原因归因', href: '/ops/after-sales', module: 'after_sales' },
             { label: '达人合作与佣金', href: '/ops/kol', module: 'kol' },
             { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
-            { label: '直播间健康度', href: '/ops/room-health', module: 'ops' },
             { label: '改进任务', href: '/system/tasks', module: 'system_tasks' },
             { label: '活动管理', href: '/system/promotions', module: 'system_promotions' },
             { label: '竞品观察', href: '/system/competitors', module: 'system_competitors' },
+            { label: '问题库', href: '/ops/issue-library', module: 'ops' },
+            { label: '目标达成', href: '/ops/goal-tracking', module: 'ops' },
           ],
         },
         {
@@ -354,6 +348,7 @@ function buildShelfSections(platformCode?: string): NavSection[] {
           icon: Zap,
           module: 'ops',
           children: [
+            { label: 'AI 全品类选品', href: '/ai/selection', module: 'ai' },
             { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
             { label: '客服响应与绩效', href: '/ops/cs', module: 'customer_service' },
             { label: '达人合作与佣金', href: '/ops/kol', module: 'kol' },
@@ -429,6 +424,7 @@ function buildContentSections(): NavSection[] {
           icon: Zap,
           module: 'ops',
           children: [
+            { label: 'AI 全品类选品', href: '/ai/selection', module: 'ai' },
             { label: '商品主数据与库存', href: '/ops/inventory', module: 'product_center' },
             { label: '履约SLA与赔付风控', href: '/ops/fulfillment', module: 'fulfillment' },
             { label: '售后工单与原因归因', href: '/ops/after-sales', module: 'after_sales' },
@@ -472,7 +468,6 @@ function buildSystemSection(): NavSection {
         children: [
           { label: '平台与渠道管理', href: '/system/platforms', module: 'system_users' },
           { label: '直播间管理', href: '/system/rooms', module: 'system_rooms' },
-          { label: '多直播间总览', href: '/system/multi-room', module: 'system_multiroom' },
         ],
       },
       {

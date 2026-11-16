@@ -29,9 +29,7 @@ const DataLivePage = lazyPage(() => import('@/pages/live/DataLivePage'), 'DataLi
 
 // AI
 const ChatPage = lazyPage(() => import('@/pages/ai/ChatPage'), 'ChatPage')
-const WeatherSelectionPage = lazyPage(() => import('@/pages/ai/WeatherSelectionPage'), 'WeatherSelectionPage')
 const SelectionPage = lazyPage(() => import('@/pages/ai/SelectionPage'), 'SelectionPage')
-const CampaignPlanPage = lazyPage(() => import('@/pages/ai/CampaignPlanPage'), 'CampaignPlanPage')
 const SelectionHistoryPage = lazyPage(() => import('@/pages/ai/SelectionHistoryPage'), 'SelectionHistoryPage')
 const AnalysisWorkbenchPage = lazyPage(() => import('@/pages/ai/AnalysisWorkbenchPage'), 'AnalysisWorkbenchPage')
 
@@ -168,9 +166,7 @@ export default function App() {
           {/* ===== AI 助手 ===== */}
           <Route path="/ai/chat" element={<RequireAccess module="ai"><ChatPage /></RequireAccess>} />
           <Route path="/ai/selection" element={<RequireAccess module="ai"><SelectionPage /></RequireAccess>} />
-          <Route path="/ai/campaign-plan" element={<RequireAccess module="ai"><CampaignPlanPage /></RequireAccess>} />
           <Route path="/ai/selection/history" element={<RequireAccess module="ai"><SelectionHistoryPage /></RequireAccess>} />
-          <Route path="/ai/weather" element={<RequireAccess module="ai"><WeatherSelectionPage /></RequireAccess>} />
 
           {/* ===== 数据管理 ===== */}
           <Route path="/data/management" element={<RequireAccess module="data"><DataManagementPage /></RequireAccess>} />

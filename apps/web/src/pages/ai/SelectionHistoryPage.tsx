@@ -174,14 +174,10 @@ export const SelectionHistoryPage: React.FC = () => {
                         明细与证据
                       </button>
                       <button
-                        onClick={() =>
-                          navigate(
-                            `/ai/campaign-plan?recommendationId=${row.id}&categoryCode=${row.category_code}`,
-                          )
-                        }
+                        onClick={() => navigate('/ops/session-products')}
                         className="px-2.5 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:hover:bg-indigo-900 dark:text-indigo-300 rounded font-medium"
                       >
-                        编排方案
+                        排品承接
                       </button>
                     </td>
                   </tr>
