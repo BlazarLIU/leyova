@@ -142,9 +142,9 @@ export function AiOpsCockpitPage() {
           {activeTab === 'pending' ? (
             <div className="space-y-3.5">
               {data.pendingDecisionCases.length === 0 && (
-                <div className="rounded-xl border border-orbit-border bg-orbit-surface p-10 text-center text-[12.5px] text-[var(--text-muted)]">
+                <Card className="p-10 text-center text-[12.5px] text-[var(--text-muted)]">
                   暂无待拍板的 AI 决策案
-                </div>
+                </Card>
               )}
               {data.pendingDecisionCases.map((caseItem) => {
                 const decided = decidedCases[caseItem.id]

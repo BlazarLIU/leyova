@@ -9,38 +9,20 @@ const sizeClasses = {
   '2xl': 'w-16 h-16 text-lg',
 }
 
-const colorMap: Record<string, string> = {
-  A: 'bg-orbit-ink',
-  B: 'bg-orbit-primary',
-  C: 'bg-[#2F6B33]',
-  D: 'bg-[#0F7A2E]',
-  E: 'bg-orbit-primary-dark',
-  F: 'bg-[#5A2E28]',
-  G: 'bg-[#8A5518]',
-  H: 'bg-[#3A3A37]',
-  I: 'bg-[#1F4D3A]',
-  J: 'bg-[#0F7A2E]',
-  K: 'bg-[#4A4A45]',
-  L: 'bg-[#7A2C1C]',
-  M: 'bg-[#7A5A12]',
-  N: 'bg-[#2C5A4A]',
-  O: 'bg-orbit-primary',
-  P: 'bg-[#33332F]',
-  Q: 'bg-[#24504A]',
-  R: 'bg-[#7A2C1C]',
-  S: 'bg-[#2A4A5A]',
-  T: 'bg-[#2F6B33]',
-  U: 'bg-[#3A3A37]',
-  V: 'bg-[#0F7A2E]',
-  W: 'bg-[#4A3A52]',
-  X: 'bg-[#3A3A37]',
-  Y: 'bg-[#8A5518]',
-  Z: 'bg-[#4A4A45]',
-}
+/* 品牌头像色板：按首字母散列，深底配雪白字、亮底配墨色字 */
+const tones = [
+  'bg-orbit-ink text-orbit-snow',
+  'bg-orbit-primary text-orbit-snow',
+  'bg-orbit-primary-dark text-orbit-snow',
+  'bg-orbit-info text-orbit-snow',
+  'bg-orbit-success text-orbit-ink',
+  'bg-orbit-accent text-orbit-ink',
+  'bg-orbit-warning text-orbit-ink',
+]
 
-function getGradient(initials: string) {
+function getTone(initials: string) {
   const first = (initials?.[0] ?? 'A').toUpperCase()
-  return colorMap[first] ?? 'bg-orbit-ink'
+  return tones[(first.codePointAt(0) ?? 65) % tones.length]
 }
 
 export interface AvatarProps {
@@ -64,9 +46,9 @@ export function Avatar({ src, alt, initials = '?', size = 'md', className, onlin
       ) : (
         <div
           className={cn(
-            'flex items-center justify-center rounded-full font-semibold text-orbit-snow ring-2 ring-orbit-border',
+            'flex items-center justify-center rounded-full font-semibold ring-2 ring-orbit-border',
             sizeClasses[size],
-            getGradient(initials)
+            getTone(initials)
           )}
         >
           {initials.slice(0, 2).toUpperCase()}

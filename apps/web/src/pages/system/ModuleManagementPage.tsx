@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Shield, ToggleLeft, ToggleRight, Loader2, Lock } from 'lucide-react'
 import { api } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
+import { Card } from '@/components/ui/Card'
 
 interface ModuleRow {
   code: string
@@ -121,7 +122,7 @@ function ModuleSection({
   core?: boolean
 }) {
   return (
-    <div className="rounded-xl border border-orbit-border bg-orbit-surface p-4">
+    <Card className="p-4">
       <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-3">
         {title}（{rows.length}）
       </h2>
@@ -165,6 +166,6 @@ function ModuleSection({
         ))}
         {rows.length === 0 && <p className="text-xs text-[var(--text-muted)] px-3 py-2">暂无</p>}
       </div>
-    </div>
+    </Card>
   )
 }

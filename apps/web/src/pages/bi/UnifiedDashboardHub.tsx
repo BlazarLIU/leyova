@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { Card } from '@/components/ui/Card'
 
 // Lazy load the 8 views to keep code splitting optimal
 const CockpitView = lazy(() =>
@@ -153,7 +154,7 @@ export function UnifiedDashboardHub({ defaultView = 'cockpit' }: UnifiedDashboar
   return (
     <div className="space-y-6">
       {/* ─── 1. Unified Hub Header & View Switcher ─── */}
-      <div className="rounded-xl border border-orbit-border bg-orbit-surface/90 p-4 backdrop-blur shadow-sm">
+      <Card className="/90 p-4 backdrop-blur shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-orbit-border/60">
           <div>
             <div className="flex items-center gap-2.5">
@@ -217,7 +218,7 @@ export function UnifiedDashboardHub({ defaultView = 'cockpit' }: UnifiedDashboar
             })}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* ─── 3. Active View Container ─── */}
       <div className="min-h-[500px]">

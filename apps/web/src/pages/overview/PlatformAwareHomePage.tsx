@@ -281,7 +281,7 @@ function Stat({ icon: Icon, label, value, unit }: {
   icon: any; label: string; value: string; unit: string
 }) {
   return (
-    <div className="rounded-xl border border-orbit-border bg-orbit-surface p-4">
+    <Card className="p-4">
       <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
         <Icon className="h-3.5 w-3.5 text-orbit-primary" />{label}
       </div>
@@ -289,6 +289,6 @@ function Stat({ icon: Icon, label, value, unit }: {
         <span className="metric-num text-[22px] leading-none text-[var(--text-primary)]">{value}</span>
         <span className="text-[10.5px] text-[var(--text-subtle)]">{unit}</span>
       </div>
-    </div>
+    </Card>
   )
 }

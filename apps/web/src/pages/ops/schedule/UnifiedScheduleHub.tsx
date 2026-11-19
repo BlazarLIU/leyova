@@ -10,6 +10,7 @@ import {
   Radio,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { Card } from '@/components/ui/Card'
 
 // Lazy load the 5 schedule views
 const CalendarView = lazy(() =>
@@ -120,7 +121,7 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1750px] w-full mx-auto">
       {/* ─── 1. Header & Tab Switcher ─── */}
-      <div className="rounded-xl border border-orbit-border bg-orbit-surface/90 p-4 backdrop-blur shadow-sm">
+      <Card className="/90 p-4 backdrop-blur shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-orbit-border/60">
           <div>
             <div className="flex items-center gap-2.5">
@@ -184,7 +185,7 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
             })}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* ─── 3. Active Schedule Content ─── */}
       <div className="min-h-[500px]">

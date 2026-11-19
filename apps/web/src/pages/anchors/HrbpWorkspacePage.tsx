@@ -1948,7 +1948,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </div>
 
                 {/* 第二行：中绩效 (Medium Performance) */}
-                <div className="rounded-xl border border-orbit-border bg-orbit-surface2/60 p-3.5 space-y-2">
+                <Card className="2/60 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[var(--text-primary)]">核心中坚 (Core Contributor)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">中绩 · 中潜</span>
@@ -1971,7 +1971,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                         </button>
                       ))}
                   </div>
-                </div>
+                </Card>
 
                 <div className="rounded-xl border border-orbit-info/40 bg-orbit-info/10 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
@@ -1998,7 +1998,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-orbit-border bg-orbit-surface2/60 p-3.5 space-y-2">
+                <Card className="2/60 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[var(--text-primary)]">合格执行 (Effective)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">中绩 · 低潜</span>
@@ -2007,7 +2007,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     <span className="text-[11px] text-[var(--text-muted)] italic">暂无归入此格人员</span>
                   </div>
-                </div>
+                </Card>
 
                 {/* 第三行：低绩效 (Low Performance) */}
                 <div className="rounded-xl border border-orbit-warning/40 bg-orbit-warning/5 p-3.5 space-y-2">

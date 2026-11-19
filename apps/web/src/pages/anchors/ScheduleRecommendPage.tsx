@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Calendar, Sparkles, Clock, Check } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
 
 interface ScheduleItem {
   slotKey: string
@@ -111,9 +112,9 @@ export const ScheduleRecommendPage: React.FC = () => {
         {/* 四大黄金时段排班卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           {data?.schedule?.map((item) => (
-            <div
+            <Card
               key={item.slotKey}
-              className="p-5 rounded-xl border border-orbit-border bg-orbit-surface shadow-xs hover:border-orbit-info/40 transition-all space-y-3"
+              className="p-5 shadow-xs hover:border-orbit-info/40 transition-all space-y-3"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -152,7 +153,7 @@ export const ScheduleRecommendPage: React.FC = () => {
               <div className="text-[11px] text-[var(--text-primary)] leading-relaxed bg-orbit-warning/10 p-2.5 rounded-lg border border-orbit-warning/60">
                 💡 <strong className="text-status-warning">推荐逻辑：</strong>{item.aiReason}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
