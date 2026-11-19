@@ -4,7 +4,8 @@ import type { Theme } from '@/types'
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem('orbit-theme')
-    return (stored as Theme) ?? 'dark'
+    // 品牌默认浅色（Snow White 底），用户显式选择深色后才进入 Ink 主题
+    return stored === 'dark' ? 'dark' : 'light'
   })
 
   useEffect(() => {

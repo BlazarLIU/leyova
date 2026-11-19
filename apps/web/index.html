@@ -1,26 +1,28 @@
 <!doctype html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/orbit-icon.svg" />
+    <link rel="icon" type="image/png" href="/brand/app-icon.png" />
+    <link rel="apple-touch-icon" href="/brand/app-icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="leyova — 全渠道电商数字化运营中枢" />
-    <title>leyova - 全渠道电商数字化运营中枢</title>
+    <meta name="theme-color" content="#FDFDFD" />
+    <meta name="description" content="Leyova — 全渠道电商数字化运营中枢" />
+    <title>Leyova · 全渠道电商数字化运营中枢</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap"
       rel="stylesheet"
     />
-    <!-- Initialize theme synchronously before render to avoid FOUC -->
+    <!-- Initialize theme synchronously before render to avoid FOUC (light is brand default) -->
     <script>
       (function() {
         try {
           var t = localStorage.getItem('orbit-theme');
-          if (t === 'light') {
-            document.documentElement.classList.remove('dark');
-          } else {
+          if (t === 'dark') {
             document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
           }
         } catch(e) {}
       })();

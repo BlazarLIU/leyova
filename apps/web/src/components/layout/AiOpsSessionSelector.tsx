@@ -21,8 +21,8 @@ export function AiOpsSessionSelector({ className }: { className?: string }) {
 
   if (loading && !currentSession) {
     return (
-      <div className={cn("flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400", className)}>
-        <span className="w-2 h-2 rounded-full bg-cyan-500 animate-ping" />
+      <div className={cn('flex items-center gap-2 rounded-[10px] border border-orbit-border bg-orbit-surface2 px-3 py-1.5 text-xs text-[var(--text-muted)]', className)}>
+        <span className="h-2 w-2 animate-ping rounded-full bg-orbit-primary" />
         <span>加载场次数据...</span>
       </div>
     )
@@ -40,60 +40,62 @@ export function AiOpsSessionSelector({ className }: { className?: string }) {
   })
 
   return (
-    <div className={cn("relative inline-block text-left", className)} ref={menuRef}>
+    <div className={cn('relative inline-block text-left', className)} ref={menuRef}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-cyan-500/30 bg-slate-900/80 hover:bg-slate-850 backdrop-blur-md text-xs transition-all shadow-md hover:border-cyan-500/50"
+        className="flex items-center gap-2.5 rounded-[10px] border border-orbit-border bg-orbit-surface px-3 py-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:border-orbit-border2 hover:bg-orbit-surface2"
       >
         <span className="flex items-center gap-1.5">
           {currentSession?.status === 'live' ? (
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orbit-primary opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-orbit-primary" />
             </span>
           ) : currentSession?.status === 'scheduled' ? (
-            <span className="inline-flex rounded-full h-2 w-2 bg-blue-400" />
+            <span className="inline-flex h-2 w-2 rounded-full bg-orbit-info" />
           ) : (
-            <span className="inline-flex rounded-full h-2 w-2 bg-slate-500" />
+            <span className="inline-flex h-2 w-2 rounded-full bg-orbit-border2" />
           )}
-          <span className="font-mono text-cyan-300 font-bold">#{currentSession?.id || '—'}</span>
+          <span className="font-mono font-bold text-orbit-primary dark:text-orbit-primary-light">
+            #{currentSession?.id || '—'}
+          </span>
         </span>
 
-        <div className="flex flex-col text-left max-w-[160px] sm:max-w-[220px]">
-          <span className="truncate text-slate-200 font-semibold text-[11px] leading-tight">
+        <div className="flex max-w-[160px] flex-col text-left sm:max-w-[220px]">
+          <span className="truncate text-[11px] font-semibold leading-tight text-[var(--text-primary)]">
             {currentSession?.title || '未选定场次'}
           </span>
-          <span className="text-[10px] text-slate-400 truncate">
+          <span className="truncate text-[10px] text-[var(--text-muted)]">
             {currentSession?.roomName} · {currentSession?.anchorName}
           </span>
         </div>
 
-        <ChevronDown className={cn("w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ml-0.5", open && "rotate-180")} />
+        <ChevronDown className={cn('ml-0.5 h-3.5 w-3.5 text-[var(--text-subtle)] transition-transform duration-200', open && 'rotate-180')} />
       </button>
 
       {open && (
-        <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-80 sm:w-96 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-2xl shadow-2xl p-3 z-50 animate-in fade-in-0 zoom-in-95">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Radio className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="absolute right-0 z-50 mt-2 w-80 rounded-[14px] border border-orbit-border bg-orbit-surface p-3 shadow-[0_24px_60px_-24px_rgba(23,23,23,0.4)] sm:left-0 sm:right-auto sm:w-96">
+          <div className="mb-2 flex items-center justify-between border-b border-orbit-border pb-2">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
+              <Radio className="h-3.5 w-3.5 text-orbit-primary" />
               <span>选择全系统贯穿场次 (Session)</span>
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">共 {sessionList.length} 场历史记录</span>
+            <span className="font-mono text-[10px] text-[var(--text-subtle)]">共 {sessionList.length} 场历史记录</span>
           </div>
 
           <div className="relative mb-2">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--text-subtle)]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="搜索场次 ID、直播间、主播..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950/80 border border-slate-800 rounded-xl text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
+              className="w-full rounded-[9px] border border-orbit-border bg-orbit-surface2 py-1.5 pl-8 pr-3 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:border-orbit-primary/50 focus:outline-none"
             />
           </div>
 
-          <div className="max-h-64 overflow-y-auto space-y-1 pr-1 divide-y divide-slate-800/40">
+          <div className="max-h-64 divide-y divide-orbit-border/60 space-y-1 overflow-y-auto pr-1">
             {filtered.slice(0, 30).map((sess) => {
               const isSelected = sess.id === selectedSessionId
               return (
@@ -104,18 +106,18 @@ export function AiOpsSessionSelector({ className }: { className?: string }) {
                     setOpen(false)
                   }}
                   className={cn(
-                    "w-full text-left p-2.5 rounded-xl text-xs flex items-center justify-between gap-2 transition-all pt-2",
+                    'flex w-full items-center justify-between gap-2 rounded-[10px] p-2.5 pt-2 text-left text-xs transition-colors',
                     isSelected
-                      ? "bg-cyan-500/15 border border-cyan-500/40 text-cyan-200 font-medium"
-                      : "hover:bg-slate-800/60 text-slate-300"
+                      ? 'border border-orbit-primary/30 bg-orbit-primary/[0.08] font-medium text-orbit-primary dark:text-orbit-primary-light'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--hover-bg)]'
                   )}
                 >
-                  <div className="space-y-1 min-w-0">
+                  <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-cyan-400 text-[11px]">#{sess.id}</span>
-                      <span className="font-medium text-white truncate text-[12px]">{sess.title}</span>
+                      <span className="font-mono text-[11px] font-bold text-orbit-primary dark:text-orbit-primary-light">#{sess.id}</span>
+                      <span className="truncate text-[12px] font-medium text-[var(--text-primary)]">{sess.title}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                    <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
                       <span>{sess.roomName}</span>
                       <span>•</span>
                       <span>主播: {sess.anchorName}</span>
@@ -124,20 +126,20 @@ export function AiOpsSessionSelector({ className }: { className?: string }) {
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                  <div className="flex flex-shrink-0 flex-col items-end gap-1 text-right">
                     <span
                       className={cn(
-                        "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase",
+                        'rounded-[4px] px-1.5 py-0.5 text-[9px] font-bold uppercase',
                         sess.status === 'live'
-                          ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                          ? 'border border-orbit-danger/25 bg-orbit-danger/10 text-orbit-danger'
                           : sess.status === 'scheduled'
-                          ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                          : "bg-slate-800 text-slate-400"
+                          ? 'border border-orbit-info/25 bg-orbit-info/10 text-orbit-info'
+                          : 'bg-orbit-surface3 text-[var(--text-muted)]'
                       )}
                     >
                       {sess.status === 'live' ? '正在直播' : sess.status === 'scheduled' ? '计划开播' : '已完播'}
                     </span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                    {isSelected && <Check className="h-3.5 w-3.5 text-orbit-primary" />}
                   </div>
                 </button>
               )

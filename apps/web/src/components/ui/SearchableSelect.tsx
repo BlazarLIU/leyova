@@ -94,12 +94,12 @@ export function SearchableSelect({
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
       <div
-        className={`flex items-center justify-between w-full h-9 rounded-lg border px-3 text-xs transition-colors cursor-pointer ${
+        className={`flex items-center justify-between w-full h-9 rounded-[8px] border px-3 text-[12.5px] transition-colors cursor-pointer ${
           disabled
-            ? 'bg-orbit-surface2/50 border-orbit-border/50 text-slate-500 cursor-not-allowed'
+            ? 'bg-orbit-surface2/50 border-orbit-border/50 text-[var(--text-subtle)] cursor-not-allowed'
             : isOpen
-            ? 'bg-orbit-surface border-orbit-primary ring-1 ring-orbit-primary/30 text-slate-200'
-            : 'bg-orbit-surface2 border-orbit-border text-slate-200 hover:border-orbit-border2'
+            ? 'bg-orbit-surface border-orbit-primary ring-1 ring-orbit-primary/25 text-[var(--text-primary)]'
+            : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-orbit-border2'
         }`}
         onClick={() => {
           if (!disabled) {
@@ -120,16 +120,16 @@ export function SearchableSelect({
             }}
             onFocus={() => setIsOpen(true)}
             placeholder={placeholder}
-            className="w-full bg-transparent border-none outline-none text-xs text-slate-200 placeholder-slate-500 truncate"
+            className="w-full bg-transparent border-none outline-none text-[12.5px] text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] truncate"
           />
         </div>
 
-        <div className="flex items-center gap-1 shrink-0 ml-1.5 text-slate-400">
+        <div className="flex items-center gap-1 shrink-0 ml-1.5 text-[var(--text-muted)]">
           {allowClear && query && !disabled && (
             <button
               type="button"
               onClick={handleClear}
-              className="p-0.5 rounded hover:text-slate-200 hover:bg-white/10"
+              className="p-0.5 rounded hover:text-[var(--text-primary)] hover:bg-orbit-surface3"
               title="清除选择"
             >
               <X className="w-3 h-3" />
@@ -143,10 +143,10 @@ export function SearchableSelect({
 
       {/* 下拉面板 */}
       {isOpen && !disabled && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 max-h-56 overflow-y-auto rounded-xl border border-orbit-border bg-orbit-surface shadow-2xl p-1 divide-y divide-orbit-border/40">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 max-h-56 overflow-y-auto rounded-[8px] border border-orbit-border bg-orbit-surface shadow-[0_12px_32px_-10px_rgba(23,23,23,0.22)] p-1 divide-y divide-orbit-border/40">
           {filteredOptions.length === 0 ? (
-            <div className="p-3 text-center text-[11px] text-slate-500 flex flex-col items-center gap-1">
-              <Search className="w-3.5 h-3.5 text-slate-600" />
+            <div className="p-3 text-center text-[11px] text-[var(--text-muted)] flex flex-col items-center gap-1">
+              <Search className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
               <span>{emptyMessage}</span>
             </div>
           ) : (
@@ -157,27 +157,27 @@ export function SearchableSelect({
                   <div
                     key={String(opt.value)}
                     onClick={() => handleSelect(opt.value)}
-                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-[5px] text-[12px] cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-orbit-primary/20 text-orbit-primary-light font-semibold'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-slate-100'
+                        ? 'bg-orbit-primary/[0.08] text-orbit-primary font-semibold'
+                        : 'text-[var(--text-secondary)] hover:bg-orbit-surface2 hover:text-[var(--text-primary)]'
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
                       <span className="truncate">{opt.label}</span>
                       {opt.subLabel && (
-                        <span className="text-[10px] text-slate-500 font-mono shrink-0">
+                        <span className="text-[10px] text-[var(--text-subtle)] font-mono shrink-0">
                           {opt.subLabel}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 ml-2">
                       {opt.badge && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-surface2 text-cyan-400 border border-orbit-border/60">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-[3px] bg-orbit-surface2 text-[var(--text-secondary)] border border-orbit-border/60">
                           {opt.badge}
                         </span>
                       )}
-                      {isSelected && <Check className="w-3.5 h-3.5 text-orbit-primary-light" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-orbit-primary" />}
                     </div>
                   </div>
                 )

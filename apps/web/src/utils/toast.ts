@@ -16,14 +16,14 @@ function showToast(message: string, type: ToastType = 'success', duration = 3000
   }
 
   const toastEl = document.createElement('div')
-  toastEl.className = `pointer-events-auto px-4 py-2.5 rounded-xl shadow-2xl border text-xs font-medium flex items-center gap-2.5 transition-all duration-300 transform translate-y-2 opacity-0 backdrop-blur-xl ${
+  toastEl.className = `pointer-events-auto px-4 py-2.5 rounded-[12px] shadow-2xl border text-xs font-medium flex items-center gap-2.5 transition-all duration-300 transform translate-y-2 opacity-0 backdrop-blur-xl bg-[var(--surface)] text-[var(--text-primary)] ${
     type === 'success'
-      ? 'bg-slate-900/95 border-emerald-500/40 text-emerald-300 shadow-emerald-950/40'
+      ? 'border-orbit-success/45'
       : type === 'error'
-      ? 'bg-slate-900/95 border-rose-500/40 text-rose-300 shadow-rose-950/40'
+      ? 'border-orbit-danger/45'
       : type === 'warning'
-      ? 'bg-slate-900/95 border-amber-500/40 text-amber-300 shadow-amber-950/40'
-      : 'bg-slate-900/95 border-cyan-500/40 text-cyan-300 shadow-cyan-950/40'
+      ? 'border-orbit-warning/45'
+      : 'border-orbit-primary/45'
   }`
 
   const icon =
@@ -38,12 +38,12 @@ function showToast(message: string, type: ToastType = 'success', duration = 3000
   toastEl.innerHTML = `
     <span class="w-4 h-4 rounded-full flex items-center justify-center font-bold text-[10px] ${
       type === 'success'
-        ? 'bg-emerald-500/20 text-emerald-400'
+        ? 'bg-orbit-success/15 text-orbit-success'
         : type === 'error'
-        ? 'bg-rose-500/20 text-rose-400'
+        ? 'bg-orbit-danger/15 text-orbit-danger'
         : type === 'warning'
-        ? 'bg-amber-500/20 text-amber-400'
-        : 'bg-cyan-500/20 text-cyan-400'
+        ? 'bg-orbit-warning/15 text-orbit-warning'
+        : 'bg-orbit-primary/12 text-orbit-primary'
     }">${icon}</span>
     <span>${message}</span>
   `

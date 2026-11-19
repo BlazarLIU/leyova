@@ -113,23 +113,24 @@ function GenericPlatformHome() {
     <div className="space-y-6">
       {/* 顶部标题 */}
       <motion.div {...fadeIn}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">
+            <p className="display-eyebrow text-[var(--text-subtle)]">{platformCode || 'OVERVIEW'}</p>
+            <h1 className="mt-1.5 text-[24px] font-extrabold tracking-[-0.035em] text-[var(--text-primary)]">
               {platformName || '经营总览'}
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-[12.5px] text-[var(--text-muted)]">
               {currentShop ? currentShop.name : '未选择店铺'}
-              <span className="ml-2 text-slate-500">
-                · 近 {days} 天
-              </span>
+              <span className="ml-2 text-[var(--text-subtle)]">· 近 {days} 天</span>
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-0.5 rounded-[8px] border border-orbit-border bg-orbit-surface2 p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
-                className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                className={`rounded-[6px] px-3 py-1.5 text-[11.5px] font-semibold transition ${
+                  days === d
+                    ? 'bg-orbit-primary text-white'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -137,7 +138,7 @@ function GenericPlatformHome() {
       </motion.div>
 
       {loading ? (
-        <div className="py-16 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-16 text-center text-[13px] text-[var(--text-muted)]">加载中…</div>
       ) : hasData ? (
         <>
           {/* 核心指标 */}
@@ -151,10 +152,10 @@ function GenericPlatformHome() {
           {/* 退款提示 */}
           {stats!.refundRate > 0 && (
             <motion.div {...fadeIn}>
-              <div className={`flex items-center gap-2 rounded-lg border p-3 text-xs ${
+              <div className={`flex items-center gap-2 rounded-[8px] border p-3 text-[12px] ${
                 stats!.refundRate > 10
-                  ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
-                  : 'border-slate-700/60 bg-slate-800/40 text-slate-400'
+                  ? 'border-orbit-danger/25 bg-orbit-danger/8 text-orbit-danger'
+                  : 'border-orbit-border bg-orbit-surface2 text-[var(--text-muted)]'
               }`}>
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>退款金额 {fmtMoney(stats!.refundAmount)} 元，退款率 {stats!.refundRate.toFixed(2)}%</span>
@@ -167,9 +168,9 @@ function GenericPlatformHome() {
         <motion.div {...fadeIn}>
           <Card><CardBody>
             <div className="py-12 text-center">
-              <Store className="mx-auto h-10 w-10 text-slate-600" />
-              <p className="mt-3 text-sm text-slate-400">该平台暂无经营数据</p>
-              <p className="mt-1 text-xs text-slate-600">请先通过「多平台接入」导入数据</p>
+              <Store className="mx-auto h-9 w-9 text-[var(--text-subtle)]" />
+              <p className="mt-3 text-[13px] font-medium text-[var(--text-secondary)]">该平台暂无经营数据</p>
+              <p className="mt-1 text-[11.5px] text-[var(--text-muted)]">请先通过「多平台接入」导入数据</p>
               <Button className="mt-4" onClick={() => navigate('/data/ingest')}>
                 去导入数据 <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
@@ -181,12 +182,7 @@ function GenericPlatformHome() {
       {/* 平台专属功能入口 */}
       <motion.div {...fadeIn}>
         <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              {platformName} 专属功能
-            </div>
-          </CardHeader>
+          <CardHeader title={`${platformName} 专属功能`} actions={<Zap className="h-4 w-4 text-orbit-primary" />} />
           <CardBody>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {quickEntries.map((e) => {
@@ -195,12 +191,14 @@ function GenericPlatformHome() {
                   <button
                     key={e.href + e.label}
                     onClick={() => navigate(e.href)}
-                    className={`group flex items-center gap-3 rounded-xl border bg-gradient-to-br p-4 text-left transition hover:scale-[1.02] ${e.color} ${e.border}`}
+                    className="group flex items-center gap-3 rounded-[8px] border border-orbit-border bg-orbit-surface p-4 text-left transition-colors hover:border-orbit-ink/30"
                   >
-                    <Icon className={`h-5 w-5 ${e.textColor}`} />
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] bg-orbit-stone text-orbit-ink transition-colors group-hover:bg-orbit-primary group-hover:text-white dark:bg-orbit-surface3 dark:text-white">
+                      <Icon className="h-4 w-4" />
+                    </span>
                     <div className="min-w-0">
-                      <div className={`text-sm font-medium ${e.textColor}`}>{e.label}</div>
-                      <div className="mt-0.5 truncate text-[11px] text-slate-500">{e.desc}</div>
+                      <div className="text-[12.5px] font-semibold text-[var(--text-primary)]">{e.label}</div>
+                      <div className="mt-0.5 truncate text-[11px] text-[var(--text-subtle)]">{e.desc}</div>
                     </div>
                   </button>
                 )
@@ -212,7 +210,7 @@ function GenericPlatformHome() {
 
       {/* 业态提示 */}
       <motion.div {...fadeIn}>
-        <div className="rounded-lg border border-slate-700/50 bg-slate-800/20 p-3 text-xs text-slate-500">
+        <div className="rounded-[8px] border-l-2 border-orbit-primary bg-orbit-surface2 px-3.5 py-3 text-[11.5px] leading-relaxed text-[var(--text-muted)]">
           {mode === 'live' && '当前为直播电商业态：核心链路是「场次 → 流量 → 转化 → 复盘」。'}
           {mode === 'shelf' && '当前为货架电商业态：核心链路是「店铺成交 → 商品结构 → 流量渠道 → 投放 ROI」。'}
           {mode === 'content' && '当前为内容电商业态：核心链路是「笔记曝光 → 兴趣互动 → 搜索决策 → 站内外成交」。'}
@@ -283,13 +281,13 @@ function Stat({ icon: Icon, label, value, unit }: {
   icon: any; label: string; value: string; unit: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-        <Icon className="h-3.5 w-3.5" />{label}
+    <div className="rounded-xl border border-orbit-border bg-orbit-surface p-4">
+      <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+        <Icon className="h-3.5 w-3.5 text-orbit-primary" />{label}
       </div>
-      <div className="mt-1.5 flex items-baseline gap-1">
-        <span className="text-lg font-semibold text-slate-100">{value}</span>
-        <span className="text-[11px] text-slate-500">{unit}</span>
+      <div className="mt-2 flex items-baseline gap-1">
+        <span className="metric-num text-[22px] leading-none text-[var(--text-primary)]">{value}</span>
+        <span className="text-[10.5px] text-[var(--text-subtle)]">{unit}</span>
       </div>
     </div>
   )

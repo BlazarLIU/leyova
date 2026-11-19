@@ -10,12 +10,12 @@ export const Checkbox = forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      'peer h-4 w-4 shrink-0 rounded-sm border border-orbit-border bg-orbit-surface2 text-orbit-primary ring-offset-orbit-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orbit-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-orbit-primary data-[state=checked]:border-orbit-primary',
+      'peer h-4 w-4 shrink-0 rounded-[4px] border border-orbit-border2 bg-orbit-surface text-orbit-primary ring-offset-orbit-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orbit-primary/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-orbit-primary data-[state=checked]:border-orbit-primary',
       className
     )}
     {...props}
   >
-    <CheckboxPrimitive.Indicator className={cn('flex items-center justify-center text-slate-100')}>
+    <CheckboxPrimitive.Indicator className={cn('flex items-center justify-center text-orbit-snow')}>
       <Check className="h-3.5 w-3.5" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>

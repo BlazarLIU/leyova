@@ -1,16 +1,16 @@
+import { BrandLogo } from '@/components/brand/BrandLogo'
+
 export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-orbit-bg border-t border-orbit-border px-6 py-2">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-orbit-text-secondary">
-        <div className="mx-auto flex items-center gap-2">
-          <p className="flex items-center gap-1.5">
-            &copy; {currentYear}
-            <img src="/orbit-icon.svg" alt="logo" className="h-3 w-auto object-contain inline-block dark:invert dark:brightness-[0.85]" />
-            All rights reserved.
-          </p>
-        </div>
+    <footer className="flex-shrink-0 border-t border-[var(--border)] bg-[var(--surface)] px-6 py-2">
+      <div className="flex flex-col items-center justify-between gap-1 text-[11px] text-[var(--text-subtle)] sm:flex-row">
+        <p className="flex items-center gap-1.5">
+          <BrandLogo variant="mark" size={12} />
+          <span>© {currentYear} Leyova · 全渠道电商数字化运营中枢</span>
+        </p>
+        <p className="hidden sm:block">Apache-2.0 License</p>
       </div>
     </footer>
   )

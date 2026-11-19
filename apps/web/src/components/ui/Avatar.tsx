@@ -10,37 +10,37 @@ const sizeClasses = {
 }
 
 const colorMap: Record<string, string> = {
-  A: 'from-violet-500 to-purple-700',
-  B: 'from-violet-600 to-cyan-600',
-  C: 'from-blue-500 to-indigo-600',
-  D: 'from-emerald-500 to-teal-600',
-  E: 'from-cyan-500 to-blue-600',
-  F: 'from-rose-500 to-pink-700',
-  G: 'from-amber-500 to-orange-600',
-  H: 'from-violet-500 to-fuchsia-600',
-  I: 'from-sky-500 to-blue-600',
-  J: 'from-emerald-500 to-cyan-600',
-  K: 'from-violet-400 to-purple-600',
-  L: 'from-rose-400 to-red-600',
-  M: 'from-amber-400 to-yellow-600',
-  N: 'from-teal-500 to-emerald-600',
-  O: 'from-orange-500 to-amber-600',
-  P: 'from-violet-500 to-indigo-600',
-  Q: 'from-cyan-600 to-teal-700',
-  R: 'from-rose-500 to-red-600',
-  S: 'from-sky-500 to-cyan-600',
-  T: 'from-teal-500 to-green-600',
-  U: 'from-violet-500 to-blue-600',
-  V: 'from-emerald-500 to-green-600',
-  W: 'from-purple-500 to-violet-700',
-  X: 'from-slate-500 to-slate-700',
-  Y: 'from-amber-500 to-yellow-500',
-  Z: 'from-zinc-500 to-slate-600',
+  A: 'bg-orbit-ink',
+  B: 'bg-orbit-primary',
+  C: 'bg-[#2F6B33]',
+  D: 'bg-[#0F7A2E]',
+  E: 'bg-orbit-primary-dark',
+  F: 'bg-[#5A2E28]',
+  G: 'bg-[#8A5518]',
+  H: 'bg-[#3A3A37]',
+  I: 'bg-[#1F4D3A]',
+  J: 'bg-[#0F7A2E]',
+  K: 'bg-[#4A4A45]',
+  L: 'bg-[#7A2C1C]',
+  M: 'bg-[#7A5A12]',
+  N: 'bg-[#2C5A4A]',
+  O: 'bg-orbit-primary',
+  P: 'bg-[#33332F]',
+  Q: 'bg-[#24504A]',
+  R: 'bg-[#7A2C1C]',
+  S: 'bg-[#2A4A5A]',
+  T: 'bg-[#2F6B33]',
+  U: 'bg-[#3A3A37]',
+  V: 'bg-[#0F7A2E]',
+  W: 'bg-[#4A3A52]',
+  X: 'bg-[#3A3A37]',
+  Y: 'bg-[#8A5518]',
+  Z: 'bg-[#4A4A45]',
 }
 
 function getGradient(initials: string) {
   const first = (initials?.[0] ?? 'A').toUpperCase()
-  return colorMap[first] ?? 'from-violet-600 to-cyan-600'
+  return colorMap[first] ?? 'bg-orbit-ink'
 }
 
 export interface AvatarProps {
@@ -64,7 +64,7 @@ export function Avatar({ src, alt, initials = '?', size = 'md', className, onlin
       ) : (
         <div
           className={cn(
-            'rounded-full flex items-center justify-center text-white font-semibold bg-gradient-to-br ring-2 ring-orbit-border',
+            'flex items-center justify-center rounded-full font-semibold text-orbit-snow ring-2 ring-orbit-border',
             sizeClasses[size],
             getGradient(initials)
           )}
@@ -76,7 +76,7 @@ export function Avatar({ src, alt, initials = '?', size = 'md', className, onlin
         <span
           className={cn(
             'absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-orbit-surface',
-            online ? 'bg-orbit-success' : 'bg-slate-500'
+            online ? 'bg-orbit-success' : 'bg-[var(--text-subtle)]'
           )}
         />
       )}
@@ -94,7 +94,7 @@ export function AvatarGroup({ avatars, max = 4 }: { avatars: { initials: string;
         <Avatar key={i} initials={a.initials} src={a.src} size="sm" className="ring-2 ring-orbit-surface" />
       ))}
       {overflow > 0 && (
-        <div className="w-7 h-7 rounded-full bg-orbit-surface3 border border-orbit-border flex items-center justify-center text-[10px] text-slate-400 font-medium z-10">
+        <div className="z-10 flex h-7 w-7 items-center justify-center rounded-full border border-orbit-border bg-orbit-surface3 text-[10px] font-medium text-[var(--text-muted)]">
           +{overflow}
         </div>
       )}

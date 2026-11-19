@@ -33,7 +33,7 @@ export function PlatformShopSelector() {
 
   if (loading || !currentPlatform) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orbit-surface/50 border border-orbit-border text-xs text-slate-400">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-orbit-surface2 border border-orbit-border text-xs text-[var(--text-muted)]">
         <Globe className="w-3.5 h-3.5 animate-spin" />
         <span>加载渠道...</span>
       </div>
@@ -47,10 +47,10 @@ export function PlatformShopSelector() {
         type="button"
         onClick={() => setOpen(prev => !prev)}
         className={cn(
-          "flex items-center gap-2.5 px-3 py-1.5 rounded-lg border transition-all text-xs font-medium",
+          "flex items-center gap-2.5 px-3 py-1.5 rounded-[10px] border transition-colors text-xs font-medium",
           open
-            ? "bg-orbit-primary/10 border-orbit-primary/40 text-slate-100 shadow-sm"
-            : "bg-orbit-surface/70 border-orbit-border/80 text-slate-300 hover:text-slate-100 hover:border-orbit-border hover:bg-orbit-surface"
+            ? "bg-orbit-primary/[0.08] border-orbit-primary/40 text-[var(--text-primary)]"
+            : "bg-orbit-surface2 border-orbit-border text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-orbit-border2 hover:bg-[var(--surface3)]"
         )}
       >
         <span className={cn(
@@ -58,10 +58,10 @@ export function PlatformShopSelector() {
           currentPlatform.category === 'live' ? "bg-rose-500 animate-pulse" :
           currentPlatform.category === 'shelf' ? "bg-amber-500" : "bg-emerald-500"
         )} />
-        <span className="font-semibold text-slate-200">{currentPlatform.platform_name}</span>
-        <span className="text-slate-600">/</span>
-        <span className="text-slate-400 max-w-[120px] truncate">{currentShop?.name || '默认店铺'}</span>
-        <ChevronDown className={cn("w-3.5 h-3.5 text-slate-500 transition-transform duration-200", open && "rotate-180")} />
+        <span className="font-semibold text-[var(--text-primary)]">{currentPlatform.platform_name}</span>
+        <span className="text-[var(--text-subtle)]">/</span>
+        <span className="max-w-[120px] truncate text-[var(--text-muted)]">{currentShop?.name || '默认店铺'}</span>
+        <ChevronDown className={cn("w-3.5 h-3.5 text-[var(--text-subtle)] transition-transform duration-200", open && "rotate-180")} />
       </button>
 
       {/* Dropdown Menu */}
@@ -72,14 +72,14 @@ export function PlatformShopSelector() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 top-full mt-2 w-80 rounded-xl bg-orbit-surface2/95 backdrop-blur-xl border border-orbit-border shadow-2xl p-3 z-50 space-y-3"
+            className="absolute left-0 top-full z-50 mt-2 w-80 space-y-3 rounded-[14px] border border-orbit-border bg-orbit-surface p-3 shadow-[0_24px_60px_-24px_rgba(23,23,23,0.4)]"
           >
             {/* Header info */}
             <div className="flex items-center justify-between border-b border-orbit-border/60 pb-2">
-              <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-400">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                 切换经营渠道与店铺
               </span>
-              <span className="text-[10px] text-slate-500 flex items-center gap-1">
+              <span className="flex items-center gap-1 text-[10px] text-[var(--text-subtle)]">
                 <ShieldCheck className="w-3 h-3 text-emerald-400" />
                 权限已过滤
               </span>
@@ -87,7 +87,7 @@ export function PlatformShopSelector() {
 
             {/* Platform Selector Grid */}
             <div className="space-y-1">
-              <span className="text-[10px] text-slate-500 block px-1">电商平台</span>
+              <span className="block px-1 text-[10px] text-[var(--text-subtle)]">电商平台</span>
               <div className="grid grid-cols-2 gap-1.5">
                 {enabledPlatforms.map(platform => {
                   const active = platform.platform_code === currentPlatform.platform_code
@@ -110,10 +110,10 @@ export function PlatformShopSelector() {
                         }
                       }}
                       className={cn(
-                        "flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors text-left",
+                        "flex items-center justify-between rounded-[9px] border px-2.5 py-2 text-left text-xs transition-colors",
                         active
-                          ? "bg-orbit-primary/20 text-orbit-primary-light font-semibold border border-orbit-primary/30"
-                          : "text-slate-300 hover:bg-white/5 border border-transparent"
+                          ? "border-orbit-primary/30 bg-orbit-primary/[0.08] font-semibold text-orbit-primary dark:text-orbit-primary-light"
+                          : "border-transparent text-[var(--text-secondary)] hover:bg-[var(--hover-bg)]"
                       )}
                     >
                       <span className="truncate">{platform.platform_name}</span>
@@ -126,7 +126,7 @@ export function PlatformShopSelector() {
 
             {/* Shops List for Current Platform */}
             <div className="space-y-1 pt-1 border-t border-orbit-border/40">
-              <span className="text-[10px] text-slate-500 block px-1">关联店铺 / 主体</span>
+              <span className="block px-1 text-[10px] text-[var(--text-subtle)]">关联店铺 / 主体</span>
               <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
                 {currentPlatform.shops.map(shop => {
                   const isCurrent = shop.id === currentShop?.id
@@ -138,14 +138,14 @@ export function PlatformShopSelector() {
                         setOpen(false)
                       }}
                       className={cn(
-                        "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left",
+                        "flex w-full items-center justify-between rounded-[9px] px-2.5 py-1.5 text-left text-xs transition-colors",
                         isCurrent
-                          ? "bg-white/10 text-slate-100 font-medium"
-                          : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                          ? "bg-orbit-primary/[0.08] font-medium text-[var(--text-primary)]"
+                          : "text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]"
                       )}
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <Store className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                        <Store className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-subtle)]" />
                         <span className="truncate">{shop.name}</span>
                       </div>
                       {isCurrent && <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" />}

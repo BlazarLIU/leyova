@@ -3,55 +3,60 @@
 /* Enable class-based dark mode (.dark on <html>) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ─── Runtime CSS variables — these change at runtime with the theme ──────── */
-:root {
-  /* Dark mode (default) */
-  --bg:       #09090E;
-  --surface:  #0F0F17;
-  --surface2: #14141E;
-  --surface3: #1A1A26;
-  --border:   #1E1E2E;
-  --border2:  #262636;
+/* ===========================================================================
+   LEYOVA BRAND DESIGN SYSTEM
+   潮流科技 × AI SaaS × 电商经营工具
+   70% Snow White / 20% Ink Black / 7% Orange Red / 3% Yellow Punk
+   =========================================================================== */
 
-  --text-primary:   #F1F5F9;
-  --text-secondary: #CBD5E1;
-  --text-muted:     #94A3B8;
-  --text-subtle:    #64748B;
+/* ─── Runtime surface tokens (light is the brand default) ─────────────────── */
+:root {
+  --bg:       #F6F6F3;
+  --surface:  #FFFFFF;
+  --surface2: #F1F1EE;
+  --surface3: #EAEAE6;
+  --border:   #E8E8E5;
+  --border2:  #D9D9D4;
+
+  --text-primary:   #171717;
+  --text-secondary: #3D3D3A;
+  --text-muted:     #747474;
+  --text-subtle:    #9B9B96;
+
+  --hover-bg:   rgba(23, 23, 23, 0.045);
+  --hover-bg2:  rgba(23, 23, 23, 0.07);
+  --hover-bg3:  rgba(23, 23, 23, 0.025);
+  --glass-bg:   rgba(253, 253, 253, 0.72);
+  --glass-border: #E8E8E5;
+
+  /* Navigation rail — light theme is white, dark theme is ink */
+  --sidebar-bg: #FFFFFF;
+}
+
+/* ─── Dark theme: ink black canvas, never pure violet/blue ────────────────── */
+.dark {
+  --bg:       #101010;
+  --surface:  #171717;
+  --surface2: #1D1D1C;
+  --surface3: #242422;
+  --border:   #2C2C2A;
+  --border2:  #3A3A37;
+
+  --text-primary:   #F5F5F1;
+  --text-secondary: #D3D3CD;
+  --text-muted:     #9B9B96;
+  --text-subtle:    #747474;
 
   --hover-bg:   rgba(255, 255, 255, 0.05);
   --hover-bg2:  rgba(255, 255, 255, 0.08);
-  --hover-bg3:  rgba(255, 255, 255, 0.02);
-  --glass-bg:   rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.07);
+  --hover-bg3:  rgba(255, 255, 255, 0.025);
+  --glass-bg:   rgba(23, 23, 23, 0.75);
+  --glass-border: #2C2C2A;
+
+  --sidebar-bg: #0C0C0C;
 }
 
-/* ─── Light mode overrides - high contrast, zero blur, solid boundaries ─────── */
-html:not(.dark) {
-  --bg:       #F8FAFC;
-  --surface:  #FFFFFF;
-  --surface2: #F1F5F9;
-  --surface3: #E2E8F0;
-  --border:   #CBD5E1;
-  --border2:  #94A3B8;
-
-  --text-primary:   #0F172A;
-  --text-secondary: #1E293B;
-  --text-muted:     #334155;
-  --text-subtle:    #475569;
-
-  --hover-bg:   rgba(0, 0, 0, 0.05);
-  --hover-bg2:  rgba(0, 0, 0, 0.08);
-  --hover-bg3:  rgba(0, 0, 0, 0.03);
-  --glass-bg:   #FFFFFF;
-  --glass-border: #CBD5E1;
-
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-/* ─── Map runtime vars to Tailwind tokens via @theme inline ────────────────── */
-/* @theme inline keeps these as var() references, not static hex values        */
+/* ─── Map runtime vars to Tailwind tokens ─────────────────────────────────── */
 @theme inline {
   --color-orbit-bg:       var(--bg);
   --color-orbit-surface:  var(--surface);
@@ -61,28 +66,43 @@ html:not(.dark) {
   --color-orbit-border2:  var(--border2);
 }
 
-/* ─── Fixed design tokens (never change between themes) ───────────────────── */
+/* ─── Fixed brand + semantic tokens ───────────────────────────────────────── */
 @theme {
-  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family-sans: 'Manrope', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-family-display: 'Manrope', 'Noto Sans SC', 'PingFang SC', sans-serif;
 
-  /* Primary — violet */
-  --color-orbit-primary:       #7C3AED;
-  --color-orbit-primary-light: #8B5CF6;
-  --color-orbit-primary-glow:  rgba(124, 58, 237, 0.25);
+  /* Brand — Orange Red */
+  --color-orbit-primary:       #F42902;
+  --color-orbit-primary-light: #FF5A33;
+  --color-orbit-primary-dark:  #C81F00;
+  --color-orbit-primary-glow:  rgba(244, 41, 2, 0.22);
 
-  /* Accent — electric cyan */
-  --color-orbit-accent:       #06B6D4;
-  --color-orbit-accent-light: #22D3EE;
-  --color-orbit-accent-glow:  rgba(6, 182, 212, 0.2);
+  /* Brand — Yellow Punk (AI / growth only) */
+  --color-orbit-accent:       #83FD80;
+  --color-orbit-accent-light: #A6FFA4;
+  --color-orbit-accent-deep:  #4FD64B;
+  --color-orbit-accent-glow:  rgba(131, 253, 128, 0.35);
 
-  /* Semantic */
-  --color-orbit-success: #10B981;
-  --color-orbit-warning: #F59E0B;
-  --color-orbit-danger:  #EF4444;
-  --color-orbit-info:    #3B82F6;
+  /* Ink neutral scale */
+  --color-orbit-ink:    #171717;
+  --color-orbit-snow:   #FDFDFD;
+  --color-orbit-stone:  #F1F1EF;
+  --color-orbit-line:   #E8E8E5;
+
+  /* Semantic — keep clear, never decorative */
+  --color-orbit-success: #16A34A;
+  --color-orbit-warning: #E0A008;
+  --color-orbit-danger:  #DC2626;
+  --color-orbit-info:    #2563EB;
+
+  /* Radius scale — restrained, never pill-shaped by default */
+  --radius-orbit-sm: 8px;
+  --radius-orbit-md: 10px;
+  --radius-orbit-lg: 14px;
+  --radius-orbit-xl: 18px;
 }
 
-/* ─── Global resets ─────────────────────────────────────────────────────────── */
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, #root { height: 100%; }
@@ -94,222 +114,692 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'tnum' 0, 'ss01' 1;
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-/* ─── Light mode broad-spectrum container backgrounds ────────────────────── */
-html:not(.dark) .bg-\[\#0b0f19\],
-html:not(.dark) [class*="bg-slate-9"],
-html:not(.dark) [class*="bg-gray-9"],
-html:not(.dark) [class*="bg-zinc-9"],
-html:not(.dark) [class*="bg-neutral-9"] {
-  background-color: var(--surface) !important;
+h1, h2, h3, h4 {
+  font-family: var(--font-family-display);
+  letter-spacing: -0.022em;
+  font-weight: 700;
 }
 
-html:not(.dark) [class*="bg-slate-8"],
-html:not(.dark) [class*="bg-gray-8"],
-html:not(.dark) [class*="bg-zinc-8"],
-html:not(.dark) [class*="bg-neutral-8"] {
-  background-color: var(--surface2) !important;
+/* Editorial display type — used on hero bands and auth screens */
+.display-xl {
+  font-family: var(--font-family-display);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+.display-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+/* Big data numerals — tabular, tight */
+.metric-num {
+  font-family: var(--font-family-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Light mode transparent hover & active backgrounds */
-html:not(.dark) .bg-white\/5,
-html:not(.dark) .bg-white\/10,
-html:not(.dark) [class*="hover:bg-slate-800"]:hover,
-html:not(.dark) [class*="hover:bg-gray-800"]:hover,
-html:not(.dark) [class*="hover:bg-white\/"]:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
+/* ─── Brand textures & blocks ─────────────────────────────────────────────── */
+/* Subtle Swiss grid — sits under hero/band sections */
+.brand-grid {
+  background-image:
+    linear-gradient(to right, rgba(23, 23, 23, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 23, 23, 0.055) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
-
-/* Light mode borders — solid, crisp, never fuzzy */
-html:not(.dark) [class*="border-slate-8"],
-html:not(.dark) [class*="border-gray-8"],
-html:not(.dark) [class*="border-zinc-8"],
-html:not(.dark) [class*="border-slate-7"],
-html:not(.dark) [class*="border-gray-7"],
-html:not(.dark) [class*="border-zinc-7"] {
-  border-color: var(--border) !important;
+.dark .brand-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
 }
-
-/* Eliminate backdrop-filter blur fuzziness in light mode */
-html:not(.dark) [class*="backdrop-blur"],
-html:not(.dark) .glass {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* ─── Light mode high-contrast text color overrides (eliminates fuzzy/dim text) ─── */
-html:not(.dark) [class*="text-slate-1"],
-html:not(.dark) [class*="text-slate-2"],
-html:not(.dark) [class*="text-gray-1"],
-html:not(.dark) [class*="text-gray-2"],
-html:not(.dark) [class*="text-zinc-1"],
-html:not(.dark) [class*="text-zinc-2"] {
-  color: #0F172A !important;
-}
-
-html:not(.dark) [class*="text-slate-3"],
-html:not(.dark) [class*="text-gray-3"],
-html:not(.dark) [class*="text-zinc-3"] {
-  color: #1E293B !important;
-}
-
-/* Secondary & muted text: Deep Slate for ultra-crisp readability (WCAG AAA) */
-html:not(.dark) [class*="text-slate-4"],
-html:not(.dark) [class*="text-gray-4"],
-html:not(.dark) [class*="text-zinc-4"] {
-  color: #334155 !important;
-}
-
-html:not(.dark) [class*="text-slate-5"],
-html:not(.dark) [class*="text-gray-5"],
-html:not(.dark) [class*="text-zinc-5"] {
-  color: #475569 !important;
-}
-
-html:not(.dark) [class*="text-slate-6"],
-html:not(.dark) [class*="text-gray-6"],
-html:not(.dark) [class*="text-zinc-6"] {
-  color: #64748B !important;
-}
-
-/* Text white overrides: prevent white-on-white unless element is an accent button/badge */
-html:not(.dark) :is(div, span, p, h1, h2, h3, h4, h5, h6, label, th, td, input, select, textarea, li).text-white:not([class*="bg-indigo-"]):not([class*="bg-blue-"]):not([class*="bg-violet-"]):not([class*="bg-purple-"]):not([class*="bg-emerald-"]):not([class*="bg-red-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-orbit-primary"]) {
-  color: #0F172A !important;
-}
-
-/* High-contrast status colors in light mode */
-html:not(.dark) .text-emerald-300,
-html:not(.dark) .text-emerald-400 { color: #047857 !important; }
-html:not(.dark) .text-amber-300,
-html:not(.dark) .text-amber-400 { color: #b45309 !important; }
-html:not(.dark) .text-red-300,
-html:not(.dark) .text-red-400,
-html:not(.dark) .text-rose-300,
-html:not(.dark) .text-rose-400 { color: #be123c !important; }
-html:not(.dark) .text-blue-300,
-html:not(.dark) .text-blue-400,
-html:not(.dark) .text-sky-300,
-html:not(.dark) .text-sky-400 { color: #0369a1 !important; }
-html:not(.dark) .text-violet-300,
-html:not(.dark) .text-violet-400 { color: #6d28d9 !important; }
-html:not(.dark) .text-cyan-300,
-html:not(.dark) .text-cyan-400 { color: #0e7490 !important; }
-html:not(.dark) .text-orange-300,
-html:not(.dark) .text-orange-400 { color: #c2410c !important; }
-html:not(.dark) .text-purple-300,
-html:not(.dark) .text-purple-400 { color: #7e22ce !important; }
-html:not(.dark) .text-yellow-300,
-html:not(.dark) .text-yellow-400 { color: #a16207 !important; }
-html:not(.dark) .text-indigo-200,
-html:not(.dark) .text-indigo-300 { color: #4338CA !important; }
-html:not(.dark) .text-indigo-400 { color: #4F46E5 !important; }
-
-/* Light mode input & form controls — solid white surface, deep text, crisp border */
-html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
-html:not(.dark) select,
-html:not(.dark) textarea {
-  color: #0F172A !important;
-  background-color: #FFFFFF !important;
-  border-color: #CBD5E1 !important;
-}
-
-html:not(.dark) input.bg-transparent {
-  background-color: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  color: #0F172A !important;
-}
-html:not(.dark) input::placeholder,
-html:not(.dark) textarea::placeholder {
-  color: #64748B !important;
-  opacity: 1 !important;
-}
-
-/* Table headers & Recharts Tooltip in light mode */
-html:not(.dark) thead.bg-orbit-surface,
-html:not(.dark) thead.bg-slate-900 {
-  background-color: var(--surface2) !important;
-}
-html:not(.dark) .recharts-default-tooltip {
-  background-color: var(--surface) !important;
-  border-color: var(--border) !important;
-  color: var(--text-primary) !important;
-}
-html:not(.dark) .recharts-tooltip-item {
-  color: var(--text-secondary) !important;
-}
-
-/* Placeholder colors in light mode */
-html:not(.dark) ::placeholder { color: var(--text-subtle); opacity: 1; }
-
-/* Scrollbar — adapts with theme */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--surface); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--border2); filter: brightness(1.2); }
-
-/* ─── Utility classes ───────────────────────────────────────────────────────── */
-.glow-primary { box-shadow: 0 0 20px var(--color-orbit-primary-glow); }
-.glow-accent  { box-shadow: 0 0 20px var(--color-orbit-accent-glow); }
-
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, #8B5CF6, #06B6D4);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.gradient-border { position: relative; }
-.gradient-border::before {
+/* Halftone / grain overlay for hero blocks */
+.brand-grain { position: relative; }
+.brand-grain::after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.5), rgba(6, 182, 212, 0.5));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
   pointer-events: none;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+.dark .brand-grain::after { mix-blend-mode: screen; opacity: 0.1; }
+
+/* Brand surfaces */
+.brand-ink { background-color: #171717; color: #FDFDFD; }
+.brand-orange { background-color: #F42902; color: #FDFDFD; }
+.brand-punk { background-color: #83FD80; color: #171717; }
+
+/* Accent underline used in headings (editorial detail) */
+.brand-rule {
+  position: relative;
+}
+.brand-rule::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 34px;
+  height: 3px;
+  background: #F42902;
 }
 
+/* ─── Legacy decorative utilities re-pointed to brand ─────────────────────── */
+.glow-primary { box-shadow: 0 0 0 1px rgba(244, 41, 2, 0.14), 0 6px 20px -8px rgba(244, 41, 2, 0.35); }
+.glow-accent  { box-shadow: 0 0 0 1px rgba(131, 253, 128, 0.5), 0 6px 20px -8px rgba(131, 253, 128, 0.55); }
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+}
+
+/* No more violet→cyan gradient text */
+.text-gradient {
+  color: var(--text-primary);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.text-gradient-brand {
+  background: linear-gradient(100deg, #F42902 10%, #FF7A3D 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-border { position: relative; }
+
+/* Ambient page glow — warm ember + hint of punk, no blue/violet */
 .orbit-glow-bg {
   position: fixed;
-  top: -200px;
+  top: -240px;
   left: 50%;
   transform: translateX(-50%);
-  width: 800px;
-  height: 600px;
-  background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.08) 0%, transparent 70%);
+  width: 900px;
+  height: 560px;
+  background:
+    radial-gradient(ellipse at 35% 40%, rgba(244, 41, 2, 0.07) 0%, transparent 62%),
+    radial-gradient(ellipse at 68% 55%, rgba(131, 253, 128, 0.08) 0%, transparent 62%);
   pointer-events: none;
   z-index: 0;
   transition: opacity 0.3s ease;
 }
-html:not(.dark) .orbit-glow-bg { opacity: 0.4; }
 
-/* ─── Light mode hover overrides ────────────────────────────────────────────── */
-/* bg-white/5 and similar transparent whites are invisible on light surfaces.   */
-/* These selectors override hover state backgrounds for light mode.             */
-html:not(.dark) .hover\:bg-white\/5:hover  { background-color: rgba(0, 0, 0, 0.05) !important; }
-html:not(.dark) .hover\:bg-white\/3:hover  { background-color: rgba(0, 0, 0, 0.03) !important; }
-html:not(.dark) .hover\:bg-white\/8:hover  { background-color: rgba(0, 0, 0, 0.06) !important; }
-html:not(.dark) .bg-white\/5  { background-color: rgba(0, 0, 0, 0.04) !important; }
-html:not(.dark) .bg-white\/3  { background-color: rgba(0, 0, 0, 0.02) !important; }
+/* ─── Scrollbars ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #B8B8B8; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #4A4A46; }
 
-/* Notification panel unread highlight */
-html:not(.dark) .bg-orbit-primary\/5 { background-color: rgba(124, 58, 237, 0.06) !important; }
+/* ===========================================================================
+   LEGACY COMPATIBILITY LAYER
+   The codebase still carries slate/zinc/gray + violet utility classes across
+   ~150 page files. These mappings repaint them into the Leyova palette so the
+   entire product reads as one design language without touching业务逻辑.
+   Scoped to main content / dialogs so the ink chrome keeps its own contrast.
+   =========================================================================== */
 
-/* Sidebar border in light mode — make it a bit more visible */
-html:not(.dark) .border-orbit-border { border-color: var(--border); }
+/* --- Light theme: dark-coded surfaces become snow/stone ------------------- */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-slate-9"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-gray-9"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-zinc-9"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-neutral-9"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-\[\#0b0f19\]"] {
+  background-color: var(--surface) !important;
+}
 
-/* Nav active indicator in light mode — make it readable */
-html:not(.dark) .bg-orbit-primary\/15 { background-color: rgba(124, 58, 237, 0.12) !important; }
-html:not(.dark) .bg-orbit-primary\/10 { background-color: rgba(124, 58, 237, 0.10) !important; }
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-slate-8"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-gray-8"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-zinc-8"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-neutral-8"] {
+  background-color: var(--surface2) !important;
+}
+
+/* Transparent whites → ink tint */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-white/"] {
+  background-color: rgba(23, 23, 23, 0.035) !important;
+}
+
+/* Hard-coded deep navy canvases (AI Ops legacy) → theme surface */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-[#0b0f19]"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-[#0a0f1c]"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-[#080c14]"] {
+  background-color: var(--bg) !important;
+}
+
+/* Text ramp */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-1"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-1"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-1"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-neutral-1"] {
+  color: var(--text-primary) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-2"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-2"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-2"] {
+  color: var(--text-secondary) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-3"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-3"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-3"] {
+  color: var(--text-secondary) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-4"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-4"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-4"] {
+  color: var(--text-muted) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-5"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-5"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-5"] {
+  color: var(--text-muted) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-6"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-6"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-6"] {
+  color: var(--text-subtle) !important;
+}
+
+/* Bare white text on light surfaces → ink (preserve text on真实深色/品牌填充) */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"])
+  :is(div, span, p, h1, h2, h3, h4, h5, h6, label, th, td, li, a, strong, input, textarea, select, dt, dd, em, b).text-white:not([class*="bg-orbit-primary"]):not([class*="bg-orbit-accent"]):not([class*="bg-orbit-ink"]):not([class*="bg-black"]):not([class*="bg-red"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-green"]):not([class*="bg-teal"]):not([class*="bg-cyan"]):not([class*="bg-blue"]):not([class*="bg-sky"]):not([class*="bg-indigo"]):not([class*="bg-violet"]):not([class*="bg-purple"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-yellow"]):not([class*="bg-pink"]):not([class*="bg-fuchsia"]):not([class*="bg-gradient"]):not([class*="bg-transparent"]) {
+  color: var(--text-primary) !important;
+}
+/* Restore white text inside real brand / dark fills (NOT on legacy gradient washes) */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"])
+  :is([class*="bg-orbit-primary"], [class*="bg-orbit-ink"], [class*="bg-black"], [class*="bg-red-5"], [class*="bg-orbit-danger"])
+  .text-white {
+  color: #FFFFFF !important;
+}
+
+/* Legacy gradient CTAs: violet/indigo → Orange Red solid; cyan/blue → AI 绿实心 */
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-violet-"]:not([class*="from-violet-500/"]):not([class*="from-violet-400/"]):not([class*="from-violet-600/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-indigo-"]:not([class*="from-indigo-500/"]):not([class*="from-indigo-400/"]):not([class*="from-indigo-600/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-purple-"]:not([class*="from-purple-500/"]):not([class*="from-purple-400/"]):not([class*="from-purple-600/"]) {
+  background-image: none !important;
+  background-color: #F42902 !important;
+}
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-cyan-"]:not([class*="from-cyan-500/"]):not([class*="from-cyan-400/"]):not([class*="from-cyan-600/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-blue-"]:not([class*="from-blue-500/"]):not([class*="from-blue-400/"]):not([class*="from-blue-600/"]) {
+  background-image: none !important;
+  background-color: #0F7A2E !important;
+}
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-cyan-"] .text-white,
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-blue-"] .text-white {
+  color: #FFFFFF !important;
+}
+
+/* Tinted legacy gradients (with opacity) → soft brand washes */
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-violet-"][class*="/"],
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-indigo-"][class*="/"],
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-purple-"][class*="/"] {
+  background-image: linear-gradient(135deg, rgba(244, 41, 2, 0.10), rgba(244, 41, 2, 0.02)) !important;
+}
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-cyan-"][class*="/"],
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-sky-"][class*="/"],
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-teal-"][class*="/"] {
+  background-image: linear-gradient(135deg, rgba(22, 163, 74, 0.10), rgba(131, 253, 128, 0.06)) !important;
+}
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-violet-"]:not([class*="/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-indigo-"]:not([class*="/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-purple-"]:not([class*="/"]) {
+  background-image: none !important;
+  background-color: #F42902 !important;
+}
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-cyan-"]:not([class*="/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-blue-"]:not([class*="/"]) {
+  background-image: none !important;
+  background-color: #83FD80 !important;
+  color: #0B2E0B !important;
+}
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-cyan-"]:not([class*="/"]) .text-white,
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-blue-"]:not([class*="/"]) .text-white {
+  color: #0B2E0B !important;
+}
+
+/* Solid legacy accent buttons → brand semantics */
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-cyan-400"]:not([class*="bg-cyan-400/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-cyan-500"]:not([class*="bg-cyan-500/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-cyan-600"]:not([class*="bg-cyan-600/"]) {
+  background-color: #0F7A2E !important;
+  color: #FFFFFF !important;
+}
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-cyan-500"] .text-white,
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-cyan-600"] .text-white {
+  color: #FFFFFF !important;
+}
+
+.dark :is(main, [role="dialog"])
+  [class*="bg-cyan-400"]:not([class*="bg-cyan-400/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-cyan-500"]:not([class*="bg-cyan-500/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-cyan-600"]:not([class*="bg-cyan-600/"]) {
+  background-color: #83FD80 !important;
+  color: #0B2E0B !important;
+}
+.dark :is(main, [role="dialog"]) [class*="bg-cyan-500"] .text-white,
+.dark :is(main, [role="dialog"]) [class*="bg-cyan-600"] .text-white {
+  color: #0B2E0B !important;
+}
+
+/* Solid blue/indigo/purple CTAs → Orange Red primary */
+.dark :is(main, [role="dialog"])
+  [class*="bg-blue-5"]:not([class*="bg-blue-5/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-blue-6"]:not([class*="bg-blue-6/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-indigo-5"]:not([class*="bg-indigo-5/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-indigo-6"]:not([class*="bg-indigo-6/"]) {
+  background-color: #F42902 !important;
+}
+
+/* Hard-coded navy page roots → ink in dark mode */
+.dark :is(main, [role="dialog"]) [class*="bg-[#0b0f19]"],
+.dark :is(main, [role="dialog"]) [class*="bg-[#0a0f1c]"],
+.dark :is(main, [role="dialog"]) [class*="bg-[#080c14]"] {
+  background-color: var(--bg) !important;
+}
+
+/* White hairline borders / dividers on white surfaces → brand line */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-white/"] {
+  border-color: var(--border) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="divide-white/"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border) !important;
+}
+
+/* Status colors — semantic, high-contrast in light theme */
+html:not(.dark) :is(main, [role="dialog"]) .text-emerald-300,
+html:not(.dark) :is(main, [role="dialog"]) .text-emerald-400 { color: #15803D !important; }
+html:not(.dark) :is(main, [role="dialog"]) .text-amber-300,
+html:not(.dark) :is(main, [role="dialog"]) .text-amber-400 { color: #A16207 !important; }
+html:not(.dark) :is(main, [role="dialog"]) .text-red-300,
+html:not(.dark) :is(main, [role="dialog"]) .text-red-400,
+html:not(.dark) :is(main, [role="dialog"]) .text-rose-300,
+html:not(.dark) :is(main, [role="dialog"]) .text-rose-400 { color: #B91C1C !important; }
+html:not(.dark) :is(main, [role="dialog"]) .text-blue-300,
+html:not(.dark) :is(main, [role="dialog"]) .text-blue-400,
+html:not(.dark) :is(main, [role="dialog"]) .text-sky-300,
+html:not(.dark) :is(main, [role="dialog"]) .text-sky-400 { color: #1D4ED8 !important; }
+/* Legacy violet/cyan accents collapse into the brand */
+html:not(.dark) :is(main, [role="dialog"]) [class*="text-violet-"],
+html:not(.dark) :is(main, [role="dialog"]) [class*="text-indigo-"],
+html:not(.dark) :is(main, [role="dialog"]) [class*="text-purple-"] { color: var(--color-orbit-primary) !important; }
+html:not(.dark) :is(main, [role="dialog"]) [class*="text-cyan-"] { color: #15803D !important; }
+html:not(.dark) :is(main, [role="dialog"]) [class*="text-orange-"],
+html:not(.dark) :is(main, [role="dialog"]) [class*="text-amber-"] { color: #B45309 !important; }
+
+/* Borders */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-slate-"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-gray-"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-zinc-"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-neutral-"] {
+  border-color: var(--border) !important;
+}
+
+/* The old violet/cyan tinted fills become brand tinted fills */
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-violet-"],
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-indigo-"],
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-purple-"] { background-color: rgba(244, 41, 2, 0.08) !important; }
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-cyan-"] { background-color: rgba(22, 163, 74, 0.09) !important; }
+
+/* Solid legacy violet/indigo/purple fills (buttons, chips) → Orange Red CTA */
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-violet-4"]:not([class*="bg-violet-4/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-violet-5"]:not([class*="bg-violet-5/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-violet-6"]:not([class*="bg-violet-6/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-violet-7"]:not([class*="bg-violet-7/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-indigo-4"]:not([class*="bg-indigo-4/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-indigo-5"]:not([class*="bg-indigo-5/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-indigo-6"]:not([class*="bg-indigo-6/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-indigo-7"]:not([class*="bg-indigo-7/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-purple-4"]:not([class*="bg-purple-4/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-purple-5"]:not([class*="bg-purple-5/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-purple-6"]:not([class*="bg-purple-6/"]),
+html:not(.dark) :is(main, [role="dialog"])
+  [class*="bg-purple-7"]:not([class*="bg-purple-7/"]) {
+  background-color: #F42902 !important;
+  color: #FFFFFF !important;
+}
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-violet-4"] .text-white,
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-violet-5"] .text-white,
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-violet-6"] .text-white,
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-indigo-5"] .text-white,
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-indigo-6"] .text-white,
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-purple-5"] .text-white,
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-purple-6"] .text-white {
+  color: #FFFFFF !important;
+}
+
+/* Deep violet/indigo tinted cards → stone surface; pale tints → brand wash */
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-violet-9"],
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-indigo-9"],
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-purple-9"] {
+  background-color: var(--surface2) !important;
+}
+html:not(.dark) :is(main, [role="dialog"]) [class*="bg-indigo-1"] {
+  background-color: rgba(244, 41, 2, 0.07) !important;
+}
+
+/* Inputs / selects / textareas */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) select,
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) textarea {
+  color: var(--text-primary) !important;
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+html:not(.dark) :is(main, [role="dialog"]) input::placeholder,
+html:not(.dark) :is(main, [role="dialog"]) textarea::placeholder {
+  color: var(--text-subtle) !important;
+  opacity: 1 !important;
+}
+
+/* Tables */
+html:not(.dark) :is(main) thead[class*="bg-"] { background-color: var(--surface3) !important; }
+
+/* Hover states */
+html:not(.dark) :is(main, [role="dialog"]) [class*="hover:bg-white/"]:hover,
+html:not(.dark) :is(main, [role="dialog"]) [class*="hover:bg-slate-8"]:hover {
+  background-color: rgba(23, 23, 23, 0.045) !important;
+}
+
+/* Recharts tooltip */
+html:not(.dark) .recharts-default-tooltip {
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 8px 24px -12px rgba(23, 23, 23, 0.24);
+}
+html:not(.dark) .recharts-tooltip-item { color: var(--text-secondary) !important; }
+
+/* --- Dark theme: legacy slate navy → neutral ink surfaces ------------------ */
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-slate-9"] {
+  background-color: var(--surface) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-slate-8"] {
+  background-color: var(--surface2) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-slate-7"] {
+  background-color: var(--surface3) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-1"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-2"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-3"] {
+  color: var(--text-primary) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-4"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-5"] {
+  color: var(--text-muted) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-6"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-slate-7"] {
+  color: var(--text-subtle) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-slate-"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="divide-slate-"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border) !important;
+}
+
+/* --- Dark theme: legacy violet/cyan collapse into brand ------------------- */
+.dark :is(main, [role="dialog"]) [class*="text-violet-"],
+.dark :is(main, [role="dialog"]) [class*="text-indigo-"],
+.dark :is(main, [role="dialog"]) [class*="text-purple-"] { color: var(--color-orbit-primary-light) !important; }
+.dark :is(main, [role="dialog"]) [class*="text-cyan-"] { color: var(--color-orbit-accent) !important; }
+.dark :is(main, [role="dialog"]) [class*="bg-violet-"],
+.dark :is(main, [role="dialog"]) [class*="bg-indigo-"],
+.dark :is(main, [role="dialog"]) [class*="bg-purple-"] { background-color: rgba(244, 41, 2, 0.14) !important; }
+.dark :is(main, [role="dialog"]) [class*="border-violet-"],
+.dark :is(main, [role="dialog"]) [class*="border-indigo-"] { border-color: rgba(244, 41, 2, 0.35) !important; }
+.dark :is(main, [role="dialog"]) [class*="from-violet-"],
+.dark :is(main, [role="dialog"]) [class*="from-purple-"] { --tw-gradient-from: rgba(244, 41, 2, 0.18) !important; }
+
+/* Dark: solid legacy violet/indigo/purple fills stay brand Orange Red */
+.dark :is(main, [role="dialog"])
+  [class*="bg-violet-4"]:not([class*="bg-violet-4/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-violet-5"]:not([class*="bg-violet-5/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-violet-6"]:not([class*="bg-violet-6/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-violet-7"]:not([class*="bg-violet-7/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-indigo-4"]:not([class*="bg-indigo-4/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-indigo-5"]:not([class*="bg-indigo-5/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-indigo-6"]:not([class*="bg-indigo-6/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-indigo-7"]:not([class*="bg-indigo-7/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-purple-4"]:not([class*="bg-purple-4/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-purple-5"]:not([class*="bg-purple-5/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-purple-6"]:not([class*="bg-purple-6/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-purple-7"]:not([class*="bg-purple-7/"]) {
+  background-color: #F42902 !important;
+  color: #FFFFFF !important;
+}
+
+/* Dark: legacy violet/indigo/purple gradient CTAs → solid Orange Red */
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-violet-"]:not([class*="from-violet-500/"]):not([class*="from-violet-400/"]):not([class*="from-violet-600/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-indigo-"]:not([class*="from-indigo-500/"]):not([class*="from-indigo-400/"]):not([class*="from-indigo-600/"]),
+.dark :is(main, [role="dialog"])
+  [class*="bg-gradient"][class*="from-purple-"]:not([class*="from-purple-500/"]):not([class*="from-purple-400/"]):not([class*="from-purple-600/"]) {
+  background-image: none !important;
+  background-color: #F42902 !important;
+}
+
+/* --- 补全：gray / zinc / neutral / stone 旧色族的双向主题映射 ---------------
+   这些色族此前只有 slate 被映射，导致大量页面模块在切换主题时底色不变。 */
+
+/* 浅色主题：深底 700 → 三级面板；stone 800/900 → 二级面板 */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-slate-7"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-gray-7"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-zinc-7"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-neutral-7"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-stone-7"] {
+  background-color: var(--surface3) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-stone-8"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-stone-9"] {
+  background-color: var(--surface2) !important;
+}
+
+/* 深色主题：gray / zinc / neutral / stone 深底 → Ink 面板 */
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-gray-9"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-zinc-9"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-neutral-9"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-stone-9"] {
+  background-color: var(--surface) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-gray-8"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-zinc-8"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-neutral-8"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-stone-8"] {
+  background-color: var(--surface2) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-gray-7"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-zinc-7"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-neutral-7"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="bg-stone-7"] {
+  background-color: var(--surface3) !important;
+}
+
+/* 深色主题：浅色卡片（白底 / 50-200 浅灰）→ Ink 面板
+   排除 rounded-full / ring- 的白色小元件（Switch 滑块、开关圆点、头像圈等） */
+.dark :is(main, [role="dialog"], [role="alertdialog"])
+  :is(
+    [class~="bg-gray-50"], [class~="bg-gray-100"], [class~="bg-gray-200"],
+    [class~="bg-slate-50"], [class~="bg-slate-100"], [class~="bg-slate-200"],
+    [class~="bg-zinc-50"], [class~="bg-zinc-100"],
+    [class~="bg-neutral-50"], [class~="bg-neutral-100"],
+    [class~="bg-stone-50"], [class~="bg-stone-100"], [class~="bg-stone-200"]
+  ) {
+  background-color: var(--surface) !important;
+}
+
+.dark :is(main, [role="dialog"], [role="alertdialog"])
+  [class~="bg-white"]:not([class*="rounded-full"]):not([class*="ring-"]) {
+  background-color: var(--surface) !important;
+}
+
+/* 深色主题：旧色族的描边 / 分隔线 */
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-gray-"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-zinc-"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-neutral-"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-stone-"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="divide-gray-"] > :not([hidden]) ~ :not([hidden]),
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="divide-zinc-"] > :not([hidden]) ~ :not([hidden]),
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="divide-neutral-"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border) !important;
+}
+
+/* 深色主题：旧色族文字阶梯 */
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-9"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-8"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-7"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-9"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-8"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-neutral-9"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-neutral-8"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-9"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-8"] {
+  color: var(--text-primary) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-6"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-5"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-4"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-3"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-6"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-5"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-4"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-neutral-6"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-neutral-5"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-6"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-5"] {
+  color: var(--text-muted) !important;
+}
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-2"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-gray-1"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-2"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-zinc-1"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-neutral-2"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-neutral-1"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-2"],
+.dark :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-1"] {
+  color: var(--text-secondary) !important;
+}
+
+/* 浅色主题：stone 文字阶梯（与 slate/gray/zinc/neutral 对齐） */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-1"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-2"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-3"] {
+  color: var(--text-primary) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-4"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-5"] {
+  color: var(--text-muted) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="text-stone-6"] {
+  color: var(--text-subtle) !important;
+}
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-stone-"],
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"]) [class*="border-zinc-"] {
+  border-color: var(--border) !important;
+}
+
+/* 深色主题下打印凭单必须保持纸面白底黑字 */
+@media print {
+  html.dark #print-sheet,
+  html.dark #print-sheet * {
+    background-color: #FFFFFF !important;
+    color: #171717 !important;
+  }
+}
+
+/* ─── Component-level brand polish ───────────────────────────────────────── */
+/* Tables default to the flat, line-led Swiss look */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface3);
+}
+.data-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.data-table tbody tr:hover { background: var(--hover-bg3); }
+
+/* Focus ring — single brand treatment everywhere */
+:focus-visible {
+  outline: 2px solid rgba(244, 41, 2, 0.55);
+  outline-offset: 2px;
+}
+
+/* Motion: respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

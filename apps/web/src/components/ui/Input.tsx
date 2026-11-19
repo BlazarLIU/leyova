@@ -16,31 +16,35 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-medium text-slate-400 mb-1.5">
+          <label
+            htmlFor={inputId}
+            className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]"
+          >
             {label}
           </label>
         )}
         <div className={cn(
-          'flex items-center gap-2 h-9 rounded-lg border bg-orbit-surface2 px-3 text-sm transition-colors',
-          'border-orbit-border focus-within:border-orbit-primary focus-within:ring-1 focus-within:ring-orbit-primary/30',
-          error && 'border-orbit-danger focus-within:border-orbit-danger focus-within:ring-orbit-danger/30',
-          props.disabled && 'opacity-50 cursor-not-allowed',
+          'flex h-10 items-center gap-2 rounded-[8px] border bg-orbit-surface px-3 text-sm transition-colors',
+          'border-orbit-border hover:border-orbit-border2',
+          'focus-within:border-orbit-primary focus-within:ring-2 focus-within:ring-orbit-primary/15',
+          error && 'border-orbit-danger focus-within:border-orbit-danger focus-within:ring-orbit-danger/15',
+          props.disabled && 'cursor-not-allowed opacity-50',
         )}>
-          {prefix && <span className="text-slate-500 flex-shrink-0">{prefix}</span>}
+          {prefix && <span className="flex-shrink-0 text-[var(--text-subtle)]">{prefix}</span>}
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'flex-1 bg-transparent text-slate-200 placeholder-slate-600 outline-none min-w-0',
+              'min-w-0 flex-1 bg-transparent text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]',
               props.disabled && 'cursor-not-allowed',
               className
             )}
             {...props}
           />
-          {suffix && <span className="text-slate-500 flex-shrink-0">{suffix}</span>}
+          {suffix && <span className="flex-shrink-0 text-[var(--text-subtle)]">{suffix}</span>}
         </div>
         {(error || hint) && (
-          <p className={cn('text-xs mt-1.5', error ? 'text-orbit-danger' : 'text-slate-500')}>
+          <p className={cn('mt-1.5 text-[11.5px]', error ? 'text-orbit-danger' : 'text-[var(--text-muted)]')}>
             {error ?? hint}
           </p>
         )}

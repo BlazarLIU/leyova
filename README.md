@@ -1,4 +1,4 @@
-# Leyova (乐播云) · 全渠道电商数字化运营中枢
+# Leyova · 全渠道电商数字化运营中枢
 
 <p align="center">
   <img src="apps/web/public/orbit-icon.svg" width="96" height="96" alt="Leyova Logo" />
@@ -17,51 +17,60 @@
   <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/postgresql-14%2B-336791.svg" alt="PostgreSQL" /></a>
 </p>
 
----
+***
 
 ## 平台简介
 
 Leyova 是一套覆盖**抖音、快手、淘宝/天猫、微信视频号、小红书**五大主阵地电商运营场景的中台系统，由三个应用组成：
 
-| 应用 | 说明 | 默认端口 |
-| :--- | :--- | :--- |
-| `apps/web` | Web 控制台（React 19 + Vite 6 + Tailwind CSS 4） | 5513 |
-| `apps/api` | 后端 API 服务（Fastify 5 + PostgreSQL，435 条路由） | 8788 |
+| 应用                | 说明                                                | 默认端口 |
+| :---------------- | :------------------------------------------------ | :--- |
+| `apps/web`        | Web 控制台（React 19 + Vite 6 + Tailwind CSS 4）       | 5513 |
+| `apps/api`        | 后端 API 服务（Fastify 5 + PostgreSQL，435 条路由）         | 8788 |
 | `apps/mcp-server` | MCP Server（Model Context Protocol，供外部 AI 客户端安全取数） | 9101 |
 
-系统坚持**真实净利（Net-ROI）**口径而非虚高 GMV：整合平台扣点、投流消耗、退换货折损与履约成本，所有取数经由统一指标目录（Metric Catalog）与 SQL 质量门禁引擎，杜绝同名指标多处手写、口径漂移与数据幻觉。
+系统坚持\*\*真实净利（Net-ROI）\*\*口径而非虚高 GMV：整合平台扣点、投流消耗、退换货折损与履约成本，所有取数经由统一指标目录（Metric Catalog）与 SQL 质量门禁引擎，杜绝同名指标多处手写、口径漂移与数据幻觉。
 
----
+***
 
 ## 业务功能全景
 
 Web 控制台按 9 大导航组织 122 个业务页面（`apps/web/src/data/route-manifest.ts` 为唯一路由真值源，支持模块级热插拔与角色可见性控制）：
 
 ### 今日作战
+
 经营驾驶舱、全渠道大盘、BI 仪表盘、店铺经营看板、目标达成、改进任务、问题库、异常中心。
 
 ### 场次
+
 场次管理与排品调度、智能排品推荐、直播间健康度与多直播间总览、人工登记（个人达成 / 直播登记 / 登记数据）、直播复盘矩阵（复盘总览、商品分析、短视频引流、渠道流量、转化漏斗、改进闭环）。
 
 ### 货盘
+
 商品结构分析、商品主数据与库存中心、平台专属商品与渠道结构视图。
 
 ### 流量与投放
+
 全域投放与净 ROI（限投手相关角色）、搜索词卡位、万相台投放对账、**平台流量洞察**（抖音三池调度、淘系三源流量、天猫品牌×场次与五层抵扣、快手公私域切片与间接成交、小红书流量来源、视频号公私域联动）、活动管理、竞品观察。
 
 ### 订单履约售后
+
 履约 SLA 与赔付风控、售后工单与原因归因、客服响应与绩效、退款分析、异常检测。
 
 ### 内容与达人
+
 内容排产与归因、达人合作与佣金、会员与私域、视频创作与数据、小红书内容矩阵（笔记看板 / 种草转化链路 / 笔记→直播→成交 / 买手画像 / 蒲公英达人）、视频号内容。
 
 ### 人与钱
+
 话术库、主播列表与档案、训练管理与能力看板、直播排班与排班设置、HRBP 工作台。
 
 ### 数据
+
 数据管理、数据上传（CSV / Excel，含列映射建议与导入前校验）、多平台接入向导（自定义清洗映射）、上传数据管理、数据质量看板。
 
 ### 系统
+
 账号管理、角色与模块权限、运营人员管理、平台与渠道管理、直播间管理、系统配置、模块热插拔、异步任务与运维队列、字典管理、操作审计日志、平台规则雷达、违规事件看板。
 
 ### AI Ops 工作区（独立侧栏，4 个工作面 + 内核治理）
@@ -69,10 +78,10 @@ Web 控制台按 9 大导航组织 122 个业务页面（`apps/web/src/data/rout
 - **工作面 1 · 作战台**：AI 助手对话、今日作战单、经营诊断台、待办审批中心、实时告警流
 - **工作面 2 · 场次台与全域复盘**：货盘排品编辑、提词卡与指令、盯盘驾驶舱、单场五段复盘、复盘总览 / 商品 / 短视频 / 渠道 / 漏斗穿透
 - **工作面 3 · 货与内容**：AI 全品类选品、货盘结构分析、价格与渠道价目、内容排产与切片、投放协同与熔断
-- **工作面 4 · 财务与人资工作台**：利润与单位经济 P&L、结算对账分录（仅限财务口径角色）、HRBP 效能总览、主播效能排行、改进闭环追踪、AI 智能排班推荐
+- **工作面 4 · 财务与人资工作台**：利润与单位经济 P\&L、结算对账分录（仅限财务口径角色）、HRBP 效能总览、主播效能排行、改进闭环追踪、AI 智能排班推荐
 - **系统与内核治理**：22+5 指标注册字典、Decision Case 决策流、知识库与模型中心
 
----
+***
 
 ## 数据底座与质量门禁
 
@@ -84,7 +93,7 @@ Web 控制台按 9 大导航组织 122 个业务页面（`apps/web/src/data/rout
   2. **平台 API 同步**：「系统 → 平台与渠道管理」配置店铺凭证后由同步任务拉取（当前已内置抖音 / 淘系 / 视频号适配器，小红书与快手以手动上传为主）。**平台官方 OpenAPI 凭证由用户自行申请配置**，系统不内置任何凭据。
 - **定时任务**（`apps/api/src/cron` + worker 进程）：事实聚合、异常检测、合规巡检、旧数据归档、分区管理。
 
----
+***
 
 ## 受控 AI 能力
 
@@ -94,22 +103,22 @@ Web 控制台按 9 大导航组织 122 个业务页面（`apps/web/src/data/rout
 - **MCP Server**：向外部 AI 客户端（如 Claude Desktop）暴露 6 个只读工具域（直播 / 主播 / 商品 / 复盘 / 任务 / BI），Token 鉴权 + 可选签名校验。
 - **LLM 接入**：通过环境变量配置外部模型服务（`AI_ENABLED`、`KNOWLEDGE_BASE_API_*`、`OPENVIKING_API_*`），未配置时系统功能完整可用，AI 面板显式提示不可用而非返回假数据。
 
----
+***
 
 ## 角色与权限
 
 系统内置 **8 个真实角色**（数据库 `roles` 表单一真值源，前端 `apps/web/src/constants/roles.ts` 对齐）：
 
-| 角色 | 说明 | 演示账号 |
-| :--- | :--- | :--- |
-| `super_admin` | 系统管理员，账号 / 角色权限 / 系统配置 | `admin` |
-| `ops_director` | 运营总监，全盘经营与审批 | `manager_liu`、`director_zhou` |
-| `ops_staff` | 运营专员，场次调度 / 排品 / 复盘 | `operator_wang`、`staff_lin` |
-| `ad_buyer` | 投放专员，投流对账 / ROI / 关键词 | `finance_chen`、`buyer_xu` |
-| `controller` | 直播中控，现场节奏与商品上下架 | `control_zhao`、`ctrl_wu`、`ctrl_douyin`、`ctrl_taobao`、`ctrl_xhs`、`ctrl_wechat` |
-| `video_editor` | 短视频运营 / 编导，脚本与切片排产 | `video_lin` |
-| `cs_agent` | 客服，会话与售后工单 | `cs_qian` |
-| `hrbp` | HRBP，排班 / 人效 / 绩效 | `hr_li` |
+| 角色             | 说明                     | 演示账号                                                                          |
+| :------------- | :--------------------- | :---------------------------------------------------------------------------- |
+| `super_admin`  | 系统管理员，账号 / 角色权限 / 系统配置 | `admin`                                                                       |
+| `ops_director` | 运营总监，全盘经营与审批           | `manager_liu`、`director_zhou`                                                 |
+| `ops_staff`    | 运营专员，场次调度 / 排品 / 复盘    | `operator_wang`、`staff_lin`                                                   |
+| `ad_buyer`     | 投放专员，投流对账 / ROI / 关键词  | `finance_chen`、`buyer_xu`                                                     |
+| `controller`   | 直播中控，现场节奏与商品上下架        | `control_zhao`、`ctrl_wu`、`ctrl_douyin`、`ctrl_taobao`、`ctrl_xhs`、`ctrl_wechat` |
+| `video_editor` | 短视频运营 / 编导，脚本与切片排产     | `video_lin`                                                                   |
+| `cs_agent`     | 客服，会话与售后工单             | `cs_qian`                                                                     |
+| `hrbp`         | HRBP，排班 / 人效 / 绩效      | `hr_li`                                                                       |
 
 > **财务口径说明**：系统不设独立 `finance` 角色。财务 P&L、结算对账等财务口径页面对 `super_admin` / `ops_director` / `hrbp` 开放，其余角色（含 `ad_buyer`）不可见不可访问。
 >
@@ -117,7 +126,7 @@ Web 控制台按 9 大导航组织 122 个业务页面（`apps/web/src/data/rout
 
 所有演示账号初始密码：`Admin@123456`（仅用于演示环境，生产部署请务必修改，可通过 `DEFAULT_USER_PASSWORD` 环境变量调整）。
 
----
+***
 
 ## 快速启动
 
@@ -163,7 +172,7 @@ pnpm demo:reset
 
 > 演示数据为**合成数据**，设计原则与数据清单见 [`database/demo/README.md`](database/demo/README.md)。接入真实生产数据请使用上方两条数据接入路径，或先 `demo:reset` 再导入。
 
----
+***
 
 ## 仓库结构
 
@@ -183,17 +192,17 @@ leyova/
 
 ## 常用命令
 
-| 命令 | 说明 |
-| :--- | :--- |
-| `pnpm dev` / `pnpm dev:api` / `pnpm dev:web` / `pnpm dev:mcp` | 开发启动（全量 / 单应用） |
-| `pnpm build` | 构建全部三个应用 |
-| `pnpm test` | API（18 个测试文件）+ Web（4 个测试文件）测试 |
-| `pnpm db:migrate` | 执行增量迁移 |
-| `pnpm check:guardrails` | 前后端接口契约守卫（前端调用 vs 后端路由对账） |
-| `pnpm schema:check` | 校验 `01_schema.sql` 与数据库实际结构一致 |
-| `pnpm openapi:check` | OpenAPI 文档漂移检查 |
-| `pnpm ops:probe` / `pnpm ops:smoke` / `pnpm ops:bench` | 运维健康探测 / e2e 冒烟 / 聚合基准 |
-| `pnpm worker` | 启动后台定时任务进程（聚合 / 异常检测 / 合规巡检 / 归档 / 分区） |
+| 命令                                                            | 说明                                     |
+| :------------------------------------------------------------ | :------------------------------------- |
+| `pnpm dev` / `pnpm dev:api` / `pnpm dev:web` / `pnpm dev:mcp` | 开发启动（全量 / 单应用）                         |
+| `pnpm build`                                                  | 构建全部三个应用                               |
+| `pnpm test`                                                   | API（18 个测试文件）+ Web（4 个测试文件）测试          |
+| `pnpm db:migrate`                                             | 执行增量迁移                                 |
+| `pnpm check:guardrails`                                       | 前后端接口契约守卫（前端调用 vs 后端路由对账）              |
+| `pnpm schema:check`                                           | 校验 `01_schema.sql` 与数据库实际结构一致          |
+| `pnpm openapi:check`                                          | OpenAPI 文档漂移检查                         |
+| `pnpm ops:probe` / `pnpm ops:smoke` / `pnpm ops:bench`        | 运维健康探测 / e2e 冒烟 / 聚合基准                 |
+| `pnpm worker`                                                 | 启动后台定时任务进程（聚合 / 异常检测 / 合规巡检 / 归档 / 分区） |
 
 ## 可观测性与安全
 

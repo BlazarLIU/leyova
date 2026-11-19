@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/services/api'
 import { PlatformShopSelector } from '@/components/common/PlatformShopSelector'
 import { GlobalSearch } from '@/components/common/GlobalSearch'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 import { AiOpsSessionSelector } from '@/components/layout/AiOpsSessionSelector'
 import { NAV_MANIFEST } from '@/data/route-manifest'
 
@@ -135,28 +136,28 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
   }
 
   return (
-    <header className="h-16 border-b border-orbit-border bg-orbit-surface/80 backdrop-blur-xl flex items-center px-6 gap-4 flex-shrink-0 relative z-30">
-      {/* Left: hamburger + page title */}
+    <header className="relative z-30 flex h-16 flex-shrink-0 items-center gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4">
+      {/* Left: hamburger + breadcrumb */}
       <button
         onClick={toggleSidebar}
-        className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+        className="rounded-[9px] p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]"
       >
-        <Menu className="w-5 h-5" />
+        <Menu className="h-[18px] w-[18px]" />
       </button>
 
-      <div className="flex items-center gap-2 text-sm">
-        <img src="/orbit-icon.svg" alt="logo" className="h-4 w-auto object-contain dark:invert dark:brightness-[0.85]" />
-        <span className="text-slate-600">/</span>
+      <div className="flex min-w-0 items-center gap-2 text-[13px]">
+        <BrandLogo variant="mark" size={20} className="hidden sm:inline-flex" />
+        <span className="hidden text-[var(--text-subtle)] sm:inline">/</span>
         {location.pathname.startsWith('/ai-ops') && (
           <>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 rounded-[6px] border border-orbit-accent-deep/40 bg-orbit-accent/30 px-1.5 py-0.5 text-[10.5px] font-bold text-[#14532D] dark:bg-orbit-accent/15 dark:text-orbit-accent">
+              <span className="h-1.5 w-1.5 rounded-full bg-orbit-accent-deep" />
               AI 运营
             </span>
-            <span className="text-slate-600">/</span>
+            <span className="text-[var(--text-subtle)]">/</span>
           </>
         )}
-        <span className="text-slate-200 font-medium">{pageTitle}</span>
+        <span className="truncate font-semibold tracking-tight text-[var(--text-primary)]">{pageTitle}</span>
       </div>
 
       {/* AI Ops Session Selector (when on /ai-ops) */}
@@ -171,32 +172,32 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
         <PlatformShopSelector />
       </div>
 
-      {/* Global Command/Search Palette */}
+      {/* Global Command/Search Palette — 40px 胶囊，位于中部 */}
       {!isBrandViewer && (
-        <div className="ml-2 hidden md:block">
+        <div className="ml-1 hidden flex-1 md:flex md:max-w-[420px]">
           <GlobalSearch />
         </div>
       )}
 
       {/* Right: actions */}
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-0.5">
         {/* Search */}
         <button
           onClick={() => { setShowSearch(true); setSearchQuery('') }}
-          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+          className="rounded-[7px] p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]"
         >
-          <Search className="w-4.5 h-4.5" />
+          <Search className="h-[17px] w-[17px]" />
         </button>
 
         {/* Notifications */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(o => !o)}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors relative"
+            className="relative rounded-[7px] p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]"
           >
-            <Bell className="w-4.5 h-4.5" />
+            <Bell className="h-[17px] w-[17px]" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orbit-accent rounded-full ring-2 ring-orbit-surface" />
+              <span className="absolute right-1.5 top-1.5 h-[6px] w-[6px] rounded-full bg-orbit-primary ring-2 ring-orbit-surface" />
             )}
           </button>
 
@@ -205,15 +206,15 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
                 <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-80 bg-orbit-surface2 border border-orbit-border rounded-xl shadow-2xl z-50 overflow-hidden"
+                  className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-orbit-border bg-orbit-surface shadow-[0_18px_50px_-20px_rgba(23,23,23,0.35)]"
                 >
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-orbit-border">
-                    <p className="text-sm font-semibold text-slate-200">通知</p>
-                    <span className="text-xs bg-orbit-primary/20 text-orbit-primary-light px-2 py-0.5 rounded-full font-medium">
+                  <div className="flex items-center justify-between border-b border-orbit-border px-4 py-3">
+                    <p className="text-[13px] font-bold tracking-tight text-[var(--text-primary)]">通知</p>
+                    <span className="rounded-[4px] bg-orbit-primary/10 px-1.5 py-0.5 text-[10.5px] font-bold text-orbit-primary dark:text-orbit-primary-light">
                       {unreadCount} 条未读
                     </span>
                   </div>
@@ -222,23 +223,23 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
                       <div
                         key={n.id}
                         className={cn(
-                          'flex items-start gap-3 px-4 py-3 hover:bg-white/3 transition-colors',
-                          n.unread && 'bg-orbit-primary/5'
+                          'flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[var(--hover-bg3)]',
+                          n.unread && 'bg-orbit-primary/[0.04]'
                         )}
                       >
                         <div className={cn(
-                          'w-2 h-2 rounded-full mt-1.5 flex-shrink-0',
-                          n.unread ? 'bg-orbit-accent' : 'bg-orbit-border2'
+                          'mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full',
+                          n.unread ? 'bg-orbit-primary' : 'bg-orbit-border2'
                         )} />
-                        <div>
-                          <p className="text-sm text-slate-200">{n.text}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{n.time}</p>
+                        <div className="min-w-0">
+                          <p className="truncate text-[12.5px] text-[var(--text-secondary)]">{n.text}</p>
+                          <p className="mt-0.5 text-[10.5px] text-[var(--text-subtle)]">{n.time}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="px-4 py-3 border-t border-orbit-border">
-                    <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors">
+                  <div className="border-t border-orbit-border px-4 py-2.5">
+                    <button className="text-[11.5px] font-semibold text-orbit-primary hover:underline dark:text-orbit-primary-light">
                       全部标记为已读
                     </button>
                   </div>
@@ -251,15 +252,15 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+          className="rounded-[7px] p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]"
         >
-          {theme === 'dark' ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+          {theme === 'dark' ? <Sun className="h-[17px] w-[17px]" /> : <Moon className="h-[17px] w-[17px]" />}
         </button>
 
         {/* User avatar with logout */}
         <div className="relative" ref={userAreaRef}>
           <div
-            className="ml-2 w-8 h-8 rounded-full bg-gradient-to-br from-orbit-primary to-orbit-accent flex items-center justify-center text-white text-xs font-bold cursor-pointer"
+            className="ml-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-[7px] bg-orbit-primary text-[11.5px] font-extrabold text-white transition-transform hover:scale-[1.04]"
             onClick={() => setShowLogout(v => !v)}
           >
             {user?.realName?.trim().charAt(0) || user?.username?.charAt(0) || '用'}
@@ -275,9 +276,9 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
               >
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors bg-orbit-surface border border-orbit-border"
+                  className="flex w-full items-center gap-2 rounded-[8px] border border-orbit-border bg-orbit-surface px-3 py-2 text-[12.5px] font-medium text-[var(--text-muted)] transition-colors hover:border-orbit-danger/35 hover:text-orbit-danger"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="h-4 w-4" />
                   <span>退出</span>
                 </button>
               </motion.div>
@@ -293,19 +294,19 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center pt-24 px-4"
+            className="fixed inset-0 z-50 flex items-start justify-center bg-[#171717]/45 px-4 pt-24 backdrop-blur-[2px]"
             onClick={() => setShowSearch(false)}
           >
             <motion.div
-              initial={{ y: -20, opacity: 0, scale: 0.96 }}
+              initial={{ y: -20, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: -20, opacity: 0, scale: 0.96 }}
+              exit={{ y: -20, opacity: 0, scale: 0.97 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-xl bg-orbit-surface2 border border-orbit-border rounded-2xl shadow-2xl overflow-hidden"
+              className="w-full max-w-xl overflow-hidden rounded-xl border border-orbit-border bg-orbit-surface shadow-[0_24px_70px_-24px_rgba(23,23,23,0.4)]"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-orbit-border">
-                <Search className="w-5 h-5 text-slate-500 flex-shrink-0" />
+              <div className="flex items-center gap-3 border-b border-orbit-border px-4 py-3.5">
+                <Search className="h-[18px] w-[18px] flex-shrink-0 text-[var(--text-subtle)]" />
                 <input
                   autoFocus
                   type="text"
@@ -319,41 +320,41 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
                       setSearchQuery('')
                     }
                   }}
-                  className="flex-1 bg-transparent text-slate-200 placeholder-slate-500 outline-none text-sm"
+                  className="flex-1 bg-transparent text-[13.5px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
-                <button onClick={() => { setShowSearch(false); setSearchQuery('') }} className="text-slate-500 hover:text-slate-300">
-                  <X className="w-4 h-4" />
+                <button onClick={() => { setShowSearch(false); setSearchQuery('') }} className="text-[var(--text-subtle)] hover:text-[var(--text-primary)]">
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="px-4 py-3 max-h-80 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto px-3 py-3">
                 {searchQuery.trim() ? (
                   filteredResults.length > 0 ? (
-                    <div className="space-y-1">
-                      <p className="text-xs text-slate-600 uppercase tracking-wider font-medium mb-3">搜索结果</p>
+                    <div className="space-y-0.5">
+                      <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-subtle)]">搜索结果</p>
                       {filteredResults.map(item => (
                         <div
                           key={item.path}
                           onClick={() => { navigate(item.path); setShowSearch(false); setSearchQuery('') }}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
+                          className="flex cursor-pointer items-center gap-3 rounded-[7px] px-3 py-2.5 transition-colors hover:bg-[var(--hover-bg)]"
                         >
-                          <span className="text-sm text-slate-300">{item.label}</span>
+                          <span className="text-[13px] text-[var(--text-secondary)]">{item.label}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-500 text-center py-4">未找到匹配结果</p>
+                    <p className="py-6 text-center text-[13px] text-[var(--text-muted)]">未找到匹配结果</p>
                   )
                 ) : (
                   <>
-                    <p className="text-xs text-slate-600 uppercase tracking-wider font-medium mb-3">快捷入口</p>
-                    <div className="space-y-1">
+                    <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-subtle)]">快捷入口</p>
+                    <div className="space-y-0.5">
                       {searchableRoutes.slice(0, 5).map(item => (
                         <div
                           key={item.path}
                           onClick={() => { navigate(item.path); setShowSearch(false); setSearchQuery('') }}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
+                          className="flex cursor-pointer items-center gap-3 rounded-[7px] px-3 py-2.5 transition-colors hover:bg-[var(--hover-bg)]"
                         >
-                          <span className="text-sm text-slate-300">{item.label}</span>
+                          <span className="text-[13px] text-[var(--text-secondary)]">{item.label}</span>
                         </div>
                       ))}
                     </div>

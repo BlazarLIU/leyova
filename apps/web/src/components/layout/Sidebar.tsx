@@ -6,6 +6,7 @@ import { cn } from '@/utils/cn'
 import { buildNavigation } from '@/data/platform-navigation'
 import { buildAiOpsNavigation } from '@/data/ai-ops-navigation'
 import { SystemBranchSwitcher } from './SystemBranchSwitcher'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useSidebar } from '@/hooks/useSidebar'
 import { usePlatform } from '@/hooks/usePlatform'
 import { useAuth } from '@/hooks/useAuth'
@@ -18,11 +19,15 @@ function LeyovaLogo({ collapsed }: { collapsed: boolean }) {
     <div
       onClick={() => navigate('/')}
       className={cn(
-        "flex items-center justify-center border-b border-orbit-border h-16 cursor-pointer hover:bg-white/[0.02] transition-colors",
-        collapsed ? "px-2" : "px-4"
+        'flex h-16 cursor-pointer items-center transition-colors hover:bg-[var(--hover-bg3)]',
+        collapsed ? 'justify-center px-2' : 'px-4'
       )}
     >
-      <img src="/orbit-icon.svg" alt="logo" className={cn("object-contain dark:invert dark:brightness-[0.85]", collapsed ? "w-7 h-7" : "h-9")} />
+      {collapsed ? (
+        <BrandLogo variant="mark" size={30} />
+      ) : (
+        <BrandLogo variant="full" size={26} />
+      )}
     </div>
   )
 }
@@ -50,17 +55,17 @@ function NavItemLink({
         <button
           onClick={() => setOpen(o => !o)}
           className={cn(
-            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
+            'group flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13px] font-medium transition-colors duration-150',
             isChildActive
-              ? 'text-slate-100 bg-orbit-primary/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              ? 'text-[var(--text-primary)]'
+              : 'text-[var(--text-secondary)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]'
           )}
         >
           {item.icon && (
             <item.icon
               className={cn(
-                'w-[18px] h-[18px] flex-shrink-0 transition-colors',
-                isChildActive ? 'text-orbit-primary-light' : 'text-slate-500 group-hover:text-slate-300'
+                'h-[17px] w-[17px] flex-shrink-0 transition-colors',
+                isChildActive ? 'text-orbit-primary' : 'text-[var(--text-subtle)] group-hover:text-[var(--text-primary)]'
               )}
             />
           )}
@@ -70,7 +75,7 @@ function NavItemLink({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 text-left truncate"
+                className="flex-1 truncate text-left"
               >
                 {item.label}
               </motion.span>
@@ -78,7 +83,7 @@ function NavItemLink({
           </AnimatePresence>
           {!collapsed && (
             <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+              <ChevronDown className="h-3.5 w-3.5 text-[var(--text-subtle)]" />
             </motion.div>
           )}
         </button>
@@ -92,7 +97,7 @@ function NavItemLink({
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="ml-6 mt-1 border-l border-orbit-border pl-3 space-y-0.5">
+              <div className="ml-[19px] mt-0.5 space-y-0.5 border-l border-[var(--border)] pb-1 pl-2.5">
                 {item.children!.map(child => (
                   <NavLink
                     key={child.href}
@@ -100,14 +105,14 @@ function NavItemLink({
                     onClick={onNavClick}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors',
+                        'flex items-center gap-2 rounded-[7px] px-2 py-[7px] text-[12.5px] transition-colors',
                         isActive
-                          ? 'text-orbit-primary-light font-medium'
-                          : 'text-slate-400 hover:text-slate-200'
+                          ? 'bg-orbit-primary/[0.08] font-semibold text-orbit-primary dark:bg-orbit-primary/15 dark:text-orbit-primary-light'
+                          : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg3)] hover:text-[var(--text-primary)]'
                       )
                     }
                   >
-                    <ChevronRight className="w-3 h-3 opacity-50" />
+                    <ChevronRight className="h-3 w-3 opacity-40" />
                     {child.label}
                   </NavLink>
                 ))}
@@ -126,10 +131,10 @@ function NavItemLink({
       className={({ isActive: routerActive }) => {
         const active = routerActive || isActive
         return cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative',
+          'group relative flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-[13px] transition-colors duration-150',
           active
-            ? 'text-slate-100 bg-orbit-primary/15 shadow-sm'
-            : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            ? 'bg-orbit-primary font-semibold text-white shadow-[0_6px_18px_-10px_rgba(244,41,2,0.9)]'
+            : 'font-medium text-[var(--text-secondary)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]'
         )
       }}
     >
@@ -137,17 +142,13 @@ function NavItemLink({
         const active = routerActive || isActive
         return (
           <>
-            {active && (
-              <motion.div
-                layoutId="nav-indicator"
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-orbit-primary rounded-r-full"
-              />
-            )}
             {item.icon && (
               <item.icon
                 className={cn(
-                  'w-[18px] h-[18px] flex-shrink-0 transition-colors',
-                  active ? 'text-orbit-primary-light' : 'text-slate-500 group-hover:text-slate-300'
+                  'h-[17px] w-[17px] flex-shrink-0 transition-colors',
+                  active
+                    ? 'text-white'
+                    : 'text-[var(--text-subtle)] group-hover:text-[var(--text-primary)]'
                 )}
               />
             )}
@@ -171,17 +172,15 @@ function NavItemLink({
 }
 
 const roleLabels: Record<string, string> = {
-  super_admin: '👑 系统管理员',
-  admin: '🏢 管理员 (总监)',
-  operator: '🚀 运营 (操盘手)',
-  ad_buyer: '🎯 投放专员',
-  finance: '💰 财务主管',
-  hrbp: '👥 HRBP',
-  employee: '🎙️ 员工 (主播/中控)',
+  super_admin: '系统管理员',
   ops_director: '运营总监',
   ops_staff: '运营专员',
+  ad_buyer: '投放专员',
   controller: '现场中控',
-  brand_viewer: '🏷️ 品牌自播代表',
+  video_editor: '短视频运营',
+  cs_agent: '客服',
+  hrbp: 'HRBP',
+  brand_viewer: '品牌方代表',
 }
 
 export function Sidebar({ user }: { user?: { username: string; realName: string; role: string } }) {
@@ -297,18 +296,18 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
   return (
     <motion.aside
       animate={{
-        width: isMobile ? 200 : (collapsed ? 72 : 200),
+        width: isMobile ? 220 : (collapsed ? 72 : 220),
         x: isMobile && !mobileOpen ? '-100%' : 0,
       }}
       transition={{ duration: 0.25, ease: 'easeInOut' }}
-      className="fixed left-0 top-0 h-screen bg-orbit-surface border-r border-orbit-border flex flex-col z-40 overflow-hidden"
+      className="fixed left-0 top-0 z-40 flex h-screen flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--sidebar-bg)]"
     >
       <LeyovaLogo collapsed={collapsed && !isMobile} />
 
       {/* 双系统分支切换器 */}
       <SystemBranchSwitcher collapsed={collapsed && !isMobile} />
 
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-6">
+      <nav className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-2.5 py-3">
         {getVisibleNavigation(userRole).map(section => (
           <div key={section.title}>
             <AnimatePresence>
@@ -317,7 +316,7 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 px-3 mb-2"
+                  className="mb-1.5 px-2.5 text-[9.5px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]"
                 >
                   {section.title}
                 </motion.p>
@@ -337,15 +336,15 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
         ))}
       </nav>
 
-      <div className="border-t border-orbit-border p-3 relative" ref={userAreaRef}>
+      <div className="relative border-t border-[var(--border)] p-2.5" ref={userAreaRef}>
         <div
           className={cn(
-            'flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors',
+            'flex cursor-pointer items-center gap-2.5 rounded-[10px] p-1.5 transition-colors hover:bg-[var(--hover-bg)]',
             collapsed && !isMobile && 'justify-center'
           )}
           onClick={() => setShowLogout(v => !v)}
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orbit-primary to-orbit-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[9px] bg-orbit-primary text-xs font-extrabold text-white">
             {avatarLetter}
           </div>
           <AnimatePresence>
@@ -354,10 +353,10 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 min-w-0"
+                className="min-w-0 flex-1"
               >
-                <p className="text-sm font-medium text-slate-200 truncate">{displayName}</p>
-                <p className="text-xs text-slate-500 truncate">{roleLabel}</p>
+                <p className="truncate text-[12.5px] font-semibold text-[var(--text-primary)]">{displayName}</p>
+                <p className="truncate text-[10.5px] text-[var(--text-muted)]">{roleLabel}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -369,14 +368,14 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.15 }}
-              className="absolute bottom-full left-3 right-3 mb-1"
+              className="absolute bottom-full left-2.5 right-2.5 mb-1"
             >
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                className="flex w-full items-center gap-2 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[12.5px] font-medium text-[var(--text-muted)] transition-colors hover:border-orbit-danger/40 hover:text-orbit-danger"
               >
-                <LogOut className="w-4 h-4" />
-                <span>退出</span>
+                <LogOut className="h-4 w-4" />
+                <span>退出登录</span>
               </button>
             </motion.div>
           )}

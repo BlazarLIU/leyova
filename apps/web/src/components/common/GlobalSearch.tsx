@@ -71,23 +71,23 @@ export const GlobalSearch: React.FC = () => {
       {/* 触发搜索栏小组件（嵌入 Topbar） */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100/70 hover:bg-gray-100 text-gray-400 hover:text-gray-600 border border-gray-200/50 text-xs transition-colors"
+        className="flex h-10 w-full items-center gap-2.5 rounded-full border border-transparent bg-[var(--surface2)] px-4 text-[12.5px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface3)] hover:text-[var(--text-secondary)]"
       >
-        <Search className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">全局搜索功能、数据或向 AI 提问...</span>
-        <span className="inline sm:hidden">搜索...</span>
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200 text-gray-500 shadow-2xs">
+        <Search className="h-4 w-4 shrink-0" />
+        <span className="hidden truncate sm:inline">搜索页面、数据或向 AI 提问...</span>
+        <span className="truncate sm:hidden">搜索...</span>
+        <kbd className="ml-auto hidden shrink-0 items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-subtle)] sm:inline-flex">
           ⌘K
         </kbd>
       </button>
 
       {/* 搜索模态框 */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-xl overflow-hidden space-y-0">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-[#171717]/45 p-4 pt-20 backdrop-blur-[2px]">
+          <div className="w-full max-w-xl overflow-hidden rounded-[18px] border border-[var(--border)] bg-[var(--surface)] shadow-[0_24px_70px_-24px_rgba(23,23,23,0.4)]">
             {/* 搜索输入框 */}
-            <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-              <Search className="w-5 h-5 text-gray-400 shrink-0" />
+            <div className="flex items-center gap-3 border-b border-[var(--border)] p-4">
+              <Search className="h-[18px] w-[18px] shrink-0 text-[var(--text-subtle)]" />
               <input
                 ref={inputRef}
                 type="text"
@@ -96,36 +96,36 @@ export const GlobalSearch: React.FC = () => {
                 onChange={(e) => {
                   setQuery(e.target.value)
                 }}
-                className="w-full text-sm outline-hidden text-gray-900 placeholder:text-gray-400"
+                className="w-full bg-transparent text-[13.5px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
               />
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"
+                className="rounded-[8px] p-1 text-[var(--text-subtle)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)]"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* AI 快捷提问项 */}
+            {/* AI 快捷提问项 —— 荧光绿仅用于 AI 语义 */}
             {query.trim() && (
               <div
                 onClick={handleAskAi}
-                className="p-3 bg-blue-50/60 hover:bg-blue-50 border-b border-blue-100 flex items-center justify-between cursor-pointer transition-colors text-xs text-blue-700"
+                className="flex cursor-pointer items-center justify-between border-b border-[var(--border)] bg-orbit-accent/25 px-4 py-3 text-[12px] text-[var(--text-primary)] transition-colors hover:bg-orbit-accent/35"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <Sparkles className="h-4 w-4 text-orbit-accent-deep" />
                   <span>
-                    向 <strong>AI 助手</strong>提问：<span className="font-semibold text-gray-900">"{query}"</span>
+                    向 <strong>AI 助手</strong>提问：<span className="font-semibold">“{query}”</span>
                   </span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-blue-500" />
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)]" />
               </div>
             )}
 
             {/* 匹配结果列表 */}
-            <div className="max-h-80 overflow-y-auto p-2 text-xs divide-y divide-gray-50">
+            <div className="max-h-80 divide-y divide-[var(--border)] overflow-y-auto p-2 text-[12.5px]">
               {filteredItems.length === 0 ? (
-                <div className="py-8 text-center text-gray-400">
+                <div className="py-8 text-center text-[var(--text-muted)]">
                   没有找到匹配的模块或数据，可直接点击上方呼出 AI 分析
                 </div>
               ) : (
@@ -133,30 +133,30 @@ export const GlobalSearch: React.FC = () => {
                   <div
                     key={item.id}
                     onClick={() => handleSelect(item.url)}
-                    className="p-3 rounded-xl hover:bg-gray-50 flex items-center justify-between cursor-pointer transition-colors group"
+                    className="group flex cursor-pointer items-center justify-between rounded-[10px] p-3 transition-colors hover:bg-[var(--hover-bg)]"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-blue-50 text-gray-500 group-hover:text-blue-600 transition-colors">
+                      <div className="rounded-[9px] bg-[var(--surface2)] p-2 text-[var(--text-muted)] transition-colors group-hover:bg-orbit-primary group-hover:text-white">
                         <FileText className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        <div className="font-semibold text-[var(--text-primary)]">
                           {item.title}
                         </div>
-                        <div className="text-[11px] text-gray-400">{item.category}</div>
+                        <div className="text-[11px] text-[var(--text-subtle)]">{item.category}</div>
                       </div>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-600 transition-colors" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[var(--text-subtle)] transition-colors group-hover:text-orbit-primary" />
                   </div>
                 ))
               )}
             </div>
 
             {/* 底部快捷键提示 */}
-            <div className="p-3 bg-gray-50/80 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+            <div className="flex items-center justify-between border-t border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5 text-[11px] text-[var(--text-subtle)]">
               <div className="flex items-center gap-3">
-                <span>按 <kbd className="px-1 py-0.5 bg-white rounded border text-gray-600">ESC</kbd> 退出</span>
-                <span>按 <kbd className="px-1 py-0.5 bg-white rounded border text-gray-600">Enter</kbd> 跳转</span>
+                <span>按 <kbd className="rounded border border-[var(--border)] bg-[var(--surface)] px-1 py-0.5 text-[var(--text-muted)]">ESC</kbd> 退出</span>
+                <span>按 <kbd className="rounded border border-[var(--border)] bg-[var(--surface)] px-1 py-0.5 text-[var(--text-muted)]">Enter</kbd> 跳转</span>
               </div>
               <span>全平台电商与 MCN 代运营系统</span>
             </div>

@@ -9,7 +9,7 @@ export const Label = forwardRef<HTMLLabelElement, LabelProps>(
     <LabelPrimitive.Label
       ref={ref}
       className={cn(
-        'text-xs font-medium text-slate-300 select-none',
+        'text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--text-muted)] select-none',
         className
       )}
       {...props}

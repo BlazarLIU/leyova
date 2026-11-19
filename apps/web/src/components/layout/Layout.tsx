@@ -173,7 +173,7 @@ export function Layout() {
               {/* Main content — no margin on mobile, sidebar-width margin on desktop */}
               <motion.div
                 animate={{
-                  marginLeft: sidebarState.isMobile ? 0 : (sidebarState.collapsed ? 72 : 200),
+                  marginLeft: sidebarState.isMobile ? 0 : (sidebarState.collapsed ? 72 : 220),
                 }}
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
                 className="flex flex-col flex-1 min-w-0 h-screen overflow-hidden"

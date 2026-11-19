@@ -176,11 +176,11 @@ export function DataPage<T>({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-slate-100">{title}</h1>
+            <h1 className="text-[22px] font-extrabold leading-tight tracking-[-0.035em] text-[var(--text-primary)]">{title}</h1>
             {badge && <div>{badge}</div>}
           </div>
           {subtitle && (
-            <p className="mt-1 text-xs text-slate-400">{subtitle}</p>
+            <p className="mt-1 text-[12px] text-[var(--text-muted)]">{subtitle}</p>
           )}
         </div>
         {actions && (
@@ -201,7 +201,7 @@ export function DataPage<T>({
       {children}
 
       {/* ─── 4. Filter Toolbar ─── */}
-      <Card className="p-4 bg-orbit-surface/80 border-orbit-border backdrop-blur">
+      <Card className="border-orbit-border bg-orbit-surface p-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Left: Search & Filter Controls */}
           <div className="flex flex-wrap items-center gap-2.5 flex-1">
@@ -314,7 +314,7 @@ export function DataPage<T>({
         <div className="overflow-x-auto">
           <table className={cn('w-full border-collapse text-left text-xs', tableClassName)}>
             <thead>
-              <tr className="border-b border-orbit-border bg-orbit-surface2/50 text-slate-400 font-medium">
+              <tr className="border-b border-orbit-border bg-orbit-surface3 text-[10.5px] font-bold uppercase tracking-[0.07em] text-[var(--text-muted)]">
                 {selectable && (
                   <th className="w-10 px-4 py-3 text-center">
                     <Checkbox
@@ -338,9 +338,9 @@ export function DataPage<T>({
                       key={col.key}
                       style={{ width: col.width }}
                       className={cn(
-                        'px-4 py-3 font-medium transition-colors select-none whitespace-nowrap',
+                        'px-4 py-3 font-bold transition-colors select-none whitespace-nowrap',
                         alignCls,
-                        col.sortable && 'cursor-pointer hover:text-slate-200 hover:bg-white/5',
+                        col.sortable && 'cursor-pointer hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg3)]',
                         col.className
                       )}
                       onClick={() => col.sortable && setSort(col.key)}
@@ -411,10 +411,10 @@ export function DataPage<T>({
                     className="py-16 text-center"
                   >
                     <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-orbit-surface2 text-slate-500 flex items-center justify-center">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-[9px] border border-orbit-border bg-orbit-surface3 text-[var(--text-subtle)]">
                         <Inbox className="w-5 h-5" />
                       </div>
-                      <div className="text-xs text-slate-400">{emptyMessage}</div>
+                      <div className="text-[12.5px] text-[var(--text-muted)]">{emptyMessage}</div>
                       {emptyAction && <div className="mt-2">{emptyAction}</div>}
                     </div>
                   </td>
@@ -430,11 +430,11 @@ export function DataPage<T>({
                       key={String(rowId)}
                       onClick={() => onRowClick?.(row)}
                       className={cn(
-                        'transition-colors text-slate-300',
+                        'transition-colors text-[var(--text-secondary)]',
                         onRowClick && 'cursor-pointer',
                         isSelected
-                          ? 'bg-orbit-primary/5 hover:bg-orbit-primary/10'
-                          : 'hover:bg-orbit-surface2/40'
+                          ? 'bg-orbit-primary/[0.06] hover:bg-orbit-primary/10'
+                          : 'hover:bg-[var(--hover-bg3)]'
                       )}
                     >
                       {selectable && (
@@ -477,19 +477,19 @@ export function DataPage<T>({
 
         {/* ─── 7. Pagination Footer ─── */}
         {showPagination && total > 0 && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-orbit-border/60 bg-orbit-surface2/30 gap-3 text-xs text-slate-400">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-2.5 border-t border-orbit-border bg-orbit-surface2/40 gap-3 text-[11.5px] text-[var(--text-muted)]">
             {/* Left: Total records summary */}
             <div className="flex items-center gap-3">
               <span>
-                共 <span className="font-semibold text-slate-200">{total.toLocaleString('zh-CN')}</span> 条记录
+                共 <span className="font-bold text-[var(--text-primary)]">{total.toLocaleString('zh-CN')}</span> 条记录
               </span>
-              <span className="text-slate-600">|</span>
+              <span className="text-[var(--text-subtle)]">|</span>
               <span>
                 每页显示
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="ml-1.5 px-2 py-1 rounded bg-orbit-surface border border-orbit-border text-slate-200 text-xs focus:outline-none focus:border-orbit-primary"
+                  className="ml-1.5 px-2 py-1 rounded-[5px] bg-orbit-surface border border-orbit-border text-[var(--text-primary)] text-[11.5px] focus:outline-none focus:border-orbit-primary"
                 >
                   <option value={10}>10</option>
                   <option value={20}>20</option>
