@@ -4,7 +4,6 @@ export interface NavItem {
   label: string
   icon?: React.ComponentType<{ className?: string }>
   href?: string
-  badge?: string
   children?: NavSubItem[]
   module?: string
 }
@@ -12,7 +11,6 @@ export interface NavItem {
 export interface NavSubItem {
   label: string
   href: string
-  badge?: string
   module?: string
 }
 
@@ -221,6 +219,10 @@ export interface ModuleInfo {
   icon: string
   sort_order: number
   assigned_roles?: string[]
+  /** 是否启用（模块热插拔） */
+  is_enabled?: boolean
+  /** 是否核心模块（核心模块不可关闭） */
+  is_core?: boolean
 }
 
 export interface LiveRoom {

@@ -397,8 +397,9 @@ WHERE m.code IN (
 ON CONFLICT DO NOTHING;
 
 -- 为 4 个零账号角色补充可真实登录验证的账号
+-- 密码哈希与 02_seed.sql / 113 保持同源（Admin@123456），不再各写一枚哈希
 INSERT INTO public.users (username, password_hash, real_name, role, user_type, tenant_id, status)
-SELECT v.username, '$2b$10$Aj8Gv2CY1TiZDXOjFSAwXOZHnG17yNIURbokNeO.iF/d2TggRPmZ.', v.real_name, v.role, 'agency_staff', 1, 1
+SELECT v.username, '$2b$10$8uKvULBvWvz09U9sSZp0xedNDnk3ugPVtzF6B.4j2PVxZ9tjc8.Ry', v.real_name, v.role, 'agency_staff', 1, 1
 FROM (VALUES
   ('director_zhou', '周总监 (运营总监)', 'ops_director'),
   ('staff_lin',     '林运营 (常规运营)', 'ops_staff'),
@@ -406,7 +407,7 @@ FROM (VALUES
   ('buyer_xu',      '许投手 (付费投放)', 'ad_buyer')
 ) AS v(username, real_name, role)
 WHERE EXISTS (SELECT 1 FROM public.roles r WHERE r.code = v.role)
-  AND NOT EXISTS (SELECT 1 FROM public.users u WHERE u.role = v.role);
+ON CONFLICT (username) DO NOTHING;
 
 -- 确保新对象与视图对 leyova_app 可用
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO leyova_app;

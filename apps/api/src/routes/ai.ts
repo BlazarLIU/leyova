@@ -638,7 +638,7 @@ export async function aiRoutes(app: FastifyInstance) {
 
         await pool.query(
           `UPDATE ai_action_approvals
-           SET status = 'approved', approved_by = $2, approved_at = NOW(), executed_at = NOW()
+           SET status = 'approved', approved_by = $2, approved_at = NOW()
            WHERE id = $1`,
           [approval.approval_id, user.id],
         )
@@ -665,7 +665,25 @@ export async function aiRoutes(app: FastifyInstance) {
             roomScope: [],
           },
           pool,
-        })
+        }, { approved: true, toolLogId: logId })
+
+        if (!result.ok) {
+          await pool.query(
+            `UPDATE ai_action_approvals SET status = 'failed' WHERE id = $1`,
+            [approval.approval_id],
+          )
+          return {
+            errStatus: 500 as const,
+            errMsg: `写操作执行失败：${result.error || '未知错误'}`,
+          }
+        }
+
+        await pool.query(
+          `UPDATE ai_action_approvals
+           SET status = 'executed', executed_at = NOW()
+           WHERE id = $1`,
+          [approval.approval_id],
+        )
 
         return {
           toolLogId: logId,
@@ -782,7 +800,7 @@ export async function aiRoutes(app: FastifyInstance) {
       const knowledgePublicWorkspace = body.knowledgePublicWorkspace || null
       const visibility = body.visibility || 'private'
 
-      if ((scopeType !== 'user' || visibility !== 'private') && !['super_admin', 'admin'].includes(user.role)) {
+      if ((scopeType !== 'user' || visibility !== 'private') && user.role !== 'super_admin') {
         return sendError(reply, 403, '仅管理员可创建角色/全局范围的 AI 上下文绑定')
       }
 

@@ -35,9 +35,20 @@ END $$;
 -- ────────────────────────────────────────────────────────────────
 -- 1. 平台专属表整表清空
 -- ────────────────────────────────────────────────────────────────
-TRUNCATE TABLE public.jd_purchase_order;
-TRUNCATE TABLE public.pdd_group_buy;
-TRUNCATE TABLE public.fact_jd_settlement_fees;
+-- 2026-11-17：jd/pdd 专属表在更早的 schema 收敛中已删除，加 DO 块做存在性保护，
+-- 使本迁移可重复执行（reset-demo-v2.sh 每次都会跑它）。
+DO $guard$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='jd_purchase_order') THEN
+    TRUNCATE TABLE public.jd_purchase_order;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='pdd_group_buy') THEN
+    TRUNCATE TABLE public.pdd_group_buy;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='fact_jd_settlement_fees') THEN
+    TRUNCATE TABLE public.fact_jd_settlement_fees;
+  END IF;
+END $guard$;
 
 -- ────────────────────────────────────────────────────────────────
 -- 2. 按 platform_code 清理事实表（分区父表 DELETE 自动路由到分区）
@@ -58,16 +69,31 @@ DELETE FROM public.content_attribution_ledger WHERE platform_code IN ('jd','pdd'
 DELETE FROM public.content_schedules          WHERE platform_code IN ('jd','pdd');
 DELETE FROM public.agg_shop_daily             WHERE platform_code IN ('jd','pdd');
 DELETE FROM public.pricing_rules              WHERE platform_code IN ('jd','pdd');
-DELETE FROM public.cost_entries               WHERE platform_code IN ('jd','pdd');
-DELETE FROM public.compliance_events          WHERE platform_code IN ('jd','pdd');
-DELETE FROM public.compliance_rule_snapshot   WHERE platform_code IN ('jd','pdd');
-DELETE FROM public.compliance_rule_change     WHERE platform_code IN ('jd','pdd');
-DELETE FROM public.compliance_activity_reminder WHERE platform_code IN ('jd','pdd');
-
--- 维度表
-DELETE FROM public.dim_sku_mapping            WHERE platform_code IN ('jd','pdd');
-DELETE FROM public.dim_cs_agent               WHERE platform_code IN ('jd','pdd');
-DELETE FROM public.dim_kol                    WHERE platform_code IN ('jd','pdd');
+-- 2026-11-17：以下表在 schema 收敛中已删除，加存在性保护使迁移可重复执行。
+DO $guard2$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='cost_entries') THEN
+    DELETE FROM public.cost_entries WHERE platform_code IN ('jd','pdd');
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='compliance_rule_snapshot') THEN
+    DELETE FROM public.compliance_rule_snapshot WHERE platform_code IN ('jd','pdd');
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='compliance_rule_change') THEN
+    DELETE FROM public.compliance_rule_change WHERE platform_code IN ('jd','pdd');
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='compliance_activity_reminder') THEN
+    DELETE FROM public.compliance_activity_reminder WHERE platform_code IN ('jd','pdd');
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='dim_sku_mapping') THEN
+    DELETE FROM public.dim_sku_mapping WHERE platform_code IN ('jd','pdd');
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='dim_cs_agent') THEN
+    DELETE FROM public.dim_cs_agent WHERE platform_code IN ('jd','pdd');
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='dim_kol') THEN
+    DELETE FROM public.dim_kol WHERE platform_code IN ('jd','pdd');
+  END IF;
+END $guard2$;
 
 -- ────────────────────────────────────────────────────────────────
 -- 2b. 直播间 / 主播（jd/pdd 的场次 platform_code 为 NULL，必须先按 room_id 清场次）

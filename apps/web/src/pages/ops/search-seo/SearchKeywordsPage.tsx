@@ -55,7 +55,7 @@ interface SearchOverviewResponse {
   xhsNotes: XhsNoteKeywordRow[]
 }
 
-const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer']
+const WRITE_ROLES = ['super_admin', 'ops_director', 'ops_staff', 'ad_buyer']
 
 export function SearchKeywordsPage() {
   const { hasRole } = useAuth()

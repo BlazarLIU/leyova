@@ -13,7 +13,7 @@ import type { FastifyInstance } from 'fastify'
 import { getPool } from '../src/lib/db.js'
 import { buildApp } from '../src/app.js'
 import { env } from '../src/config/env.js'
-import { runFactAggregation, runManualAggregate } from '../src/cron/aggregate-facts.ts'
+import { runFactAggregation, runManualAggregate } from '../src/cron/aggregate-facts.js'
 
 describe('P2 阶段：核心汇总层 agg_* + 七段清洗管道与 8 门禁', () => {
   let app: FastifyInstance

@@ -15,6 +15,7 @@ const dashboardHubSource = fs.readFileSync(path.join(SRC_ROOT, 'pages/bi/Unified
 const scheduleHubSource = fs.readFileSync(path.join(SRC_ROOT, 'pages/ops/schedule/UnifiedScheduleHub.tsx'), 'utf8')
 const uploadedDataSource = fs.readFileSync(path.join(SRC_ROOT, 'pages/data/UploadedDataPage.tsx'), 'utf8')
 const appSource = fs.readFileSync(path.join(SRC_ROOT, 'App.tsx'), 'utf8')
+const manifestSource = fs.readFileSync(path.join(SRC_ROOT, 'data/route-manifest.ts'), 'utf8')
 
 describe('P4 前端重构架构契约测试: DataPage + useTable + 8合1看板 + 4合1排班', () => {
   test('useTable 钩子实现完整的分页、排序、筛选、搜索防抖、行选择与 CSV 导出', () => {
@@ -69,7 +70,7 @@ describe('P4 前端重构架构契约测试: DataPage + useTable + 8合1看板 +
 
   test('UnifiedScheduleHub 聚合 4 大排班场景 (月历/人员/个人/AI推荐)', () => {
     assert.match(scheduleHubSource, /export function UnifiedScheduleHub/)
-    const expectedScheduleViews = ['calendar', 'management', 'my-schedule', 'recommend']
+    const expectedScheduleViews = ['calendar', 'management', 'recommend']
     for (const sv of expectedScheduleViews) {
       assert.ok(
         scheduleHubSource.includes(`key: '${sv}'`),
@@ -89,14 +90,32 @@ describe('P4 前端重构架构契约测试: DataPage + useTable + 8合1看板 +
     assert.match(uploadedDataSource, /api\.post\('\/api\/data\/uploaded-data\/channel\/batch-delete'/)
   })
 
-  test('App.tsx 路由无损兼容：主路由挂载 Unified Hub 并保留原 URL 访问能力', () => {
-    assert.match(appSource, /<Route path="\/overview\/cockpit" element=\{<RequireAccess module="overview"><UnifiedDashboardHub defaultView="cockpit" \/><\/RequireAccess>\}/)
-    assert.match(appSource, /<Route path="\/omnichannel\/dashboard" element=\{<RequireAccess module="overview"><UnifiedDashboardHub defaultView="omnichannel" \/><\/RequireAccess>\}/)
-    assert.match(appSource, /<Route path="\/bi\/dashboard" element=\{<RequireAccess module="bi"><UnifiedDashboardHub defaultView="bi" \/><\/RequireAccess>\}/)
-    assert.match(appSource, /<Route path="\/anchors\/live-schedule" element=\{<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="calendar" \/><\/RequireAccess>\}/)
-    assert.match(appSource, /<Route path="\/anchors\/schedule" element=\{<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="management" \/><\/RequireAccess>\}/)
-    assert.match(appSource, /<Route path="\/anchors\/my-schedule" element=\{<RequireAccess anyModules=\{\['personal_achievement', 'anchor'\]\}><UnifiedScheduleHub defaultView="my-schedule" \/><\/RequireAccess>\}/)
-    assert.match(appSource, /<Route path="\/anchors\/schedule-recommend" element=\{<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="recommend" \/><\/RequireAccess>\}/)
+  test('主路由挂载 Unified Hub 并保留原 URL 访问能力（route-manifest）', () => {
+    const hubCases = [
+      ['/overview/cockpit', 'cockpit'],
+      ['/omnichannel/dashboard', 'omnichannel'],
+      ['/bi/dashboard', 'bi'],
+    ]
+    for (const [p, view] of hubCases) {
+      const line = manifestSource.split('\n').find((l) => l.includes(`href: '${p}'`))
+      assert.ok(line, `route-manifest 缺少 ${p}`)
+      assert.ok(line.includes("'UnifiedDashboardHub'"), `${p} 应挂 UnifiedDashboardHub`)
+      assert.ok(line.includes(`defaultView: '${view}'`), `${p} 的 defaultView 应为 ${view}`)
+    }
+    // 2026-11-18 组织收敛：「我的排班」导航已移除（个人考勤落点改为 /live/attendance），
+    // my-schedule tab 已从 UnifiedScheduleHub 删除，仅保留月历与人员调度两个入口
+    const scheduleCases = [
+      ['/anchors/live-schedule', 'calendar'],
+      ['/anchors/schedule', 'management'],
+    ]
+    for (const [p, view] of scheduleCases) {
+      const line = manifestSource.split('\n').find((l) => l.includes(`href: '${p}'`))
+      assert.ok(line, `route-manifest 缺少 ${p}`)
+      assert.ok(line.includes("'UnifiedScheduleHub'"), `${p} 应挂 UnifiedScheduleHub`)
+      assert.ok(line.includes(`defaultView: '${view}'`), `${p} 的 defaultView 应为 ${view}`)
+    }
+    // 2026-11-16：AI 智能排班已迁移至 AI 运营分支，旧 URL 在 App.tsx 以重定向保留（不在 nav manifest 中）
+    assert.match(appSource, /<Route path="\/anchors\/schedule-recommend" element=\{<Navigate to="\/ai-ops\/people\/schedule-recommend" replace \/>\}/)
   })
 
   test('重度业务页推广 DataPage + useTable: FulfillmentSlaPage, CustomerServicePage, InventoryCenterPage, AuditLogsPage', () => {
@@ -141,8 +160,8 @@ describe('P4 前端重构架构契约测试: DataPage + useTable + 8合1看板 +
     assert.match(jobsSource, /api\.post\('\/system\/jobs'/)
     assert.match(jobsSource, /api\.post\(`\/system\/jobs\/\$\{job\.id\}\/cancel`/)
 
-    // App.tsx has /system/jobs
-    assert.match(appSource, /<Route path="\/system\/jobs"/)
+    // /system/jobs 由 route-manifest 驱动
+    assert.ok(manifestSource.includes("href: '/system/jobs'"), 'route-manifest 应包含 /system/jobs')
 
     // DataQualityPage
     assert.match(dqSource, /handleRunQualityGates/)

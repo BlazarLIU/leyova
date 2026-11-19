@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Shield, Save, RefreshCw, Check, Ban, Info, Layers } from 'lucide-react'
+import { Shield, Save, RefreshCw, Check, Ban, Info, Layers, Plus, Trash2, X } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
+import { ROLE_CODES, ROLE_LABELS } from '@/constants/roles'
 
 const fadeIn = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4 } }
 
@@ -32,18 +33,11 @@ interface CapabilityRow {
   note: string
 }
 
-const ROLE_LABEL: Record<string, string> = {
-  super_admin: '👑 系统管理员',
-  admin: '🏢 管理员 (总监)',
-  ops_director: '🧭 运营总监',
-  operator: '🚀 运营 (操盘手)',
-  ops_staff: '📋 运营专员',
-  controller: '🎛️ 直播中控',
-  ad_buyer: '🎯 投放专员',
-  finance: '💰 财务主管',
-  hrbp: '👥 HRBP',
-  employee: '🎙️ 员工 (主播/中控)',
-}
+/** 角色字典唯一来源：@/constants/roles */
+const ROLE_LABEL: Record<string, string> = ROLE_LABELS
+
+/** 内置角色：不可删除（与 roles 表一致） */
+const BUILTIN_ROLES: string[] = [...ROLE_CODES]
 
 /**
  * 角色与模块权限配置页（S3）
@@ -64,6 +58,10 @@ export function RolesPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newRole, setNewRole] = useState({ code: '', name: '', description: '', modules: [] as string[] })
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const loadAll = useCallback(async () => {
     setLoading(true)
@@ -151,6 +149,56 @@ export function RolesPage() {
     setAllowDraft(a => (a.includes(code) ? a.filter(m => m !== code) : [...a, code]))
   }
 
+  /** 新增自定义角色（含初始模块授权） */
+  const createRole = async () => {
+    const code = newRole.code.trim()
+    const name = newRole.name.trim()
+    if (!/^[a-z][a-z0-9_]{2,31}$/.test(code)) {
+      setMsg({ type: 'err', text: '角色编码须为 3-32 位小写字母、数字或下划线，且以字母开头' })
+      return
+    }
+    if (!name) {
+      setMsg({ type: 'err', text: '角色名称不能为空' })
+      return
+    }
+    setCreating(true)
+    try {
+      await api.post('/system/roles', {
+        code,
+        name,
+        description: newRole.description.trim() || undefined,
+        moduleCodes: newRole.modules,
+      })
+      setMsg({ type: 'ok', text: `角色「${name}」创建成功，已授予 ${newRole.modules.length} 个模块` })
+      setShowCreate(false)
+      setNewRole({ code: '', name: '', description: '', modules: [] })
+      // 重新拉取角色列表并选中新建角色，便于继续微调权限
+      const roleList = await api.get<RoleInfo[]>('/system/roles')
+      setRoles(roleList)
+      setSelectedRole(code)
+    } catch (e: any) {
+      setMsg({ type: 'err', text: e?.message || '创建角色失败' })
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  /** 删除自定义角色 */
+  const removeRole = async (code: string) => {
+    setDeleting(code)
+    try {
+      await api.delete(`/system/roles/${code}`)
+      setMsg({ type: 'ok', text: `角色 ${code} 已删除` })
+      const roleList = await api.get<RoleInfo[]>('/system/roles')
+      setRoles(roleList)
+      if (selectedRole === code) setSelectedRole(roleList[0]?.code ?? '')
+    } catch (e: any) {
+      setMsg({ type: 'err', text: e?.message || '删除角色失败' })
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   const toggleDeny = (code: string) => {
     setMsg(null)
     setAllowDraft(a => a.filter(m => m !== code))
@@ -220,23 +268,46 @@ export function RolesPage() {
         <Card>
           <CardHeader>
             <span className="text-sm font-semibold text-slate-200">角色</span>
-            <Badge variant="neutral">{roles.length}</Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="neutral">{roles.length}</Badge>
+              <Button variant="secondary" onClick={() => setShowCreate(true)} className="!px-2 !py-1 !text-[11px]">
+                <Plus className="w-3 h-3" /> 新增
+              </Button>
+            </div>
           </CardHeader>
           <CardBody className="p-2 max-h-[70vh] overflow-y-auto">
-            {roles.map((r) => (
-              <button
-                key={r.code}
-                onClick={() => setSelectedRole(r.code)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-xs mb-1 transition ${
-                  selectedRole === r.code
-                    ? 'bg-orbit-primary/15 text-orbit-primary border border-orbit-primary/30'
-                    : 'text-slate-300 hover:bg-white/5 border border-transparent'
-                }`}
-              >
-                <div className="font-medium">{ROLE_LABEL[r.code] || r.name}</div>
-                <div className="text-[10px] text-slate-500 font-mono mt-0.5">{r.code}</div>
-              </button>
-            ))}
+            {roles.map((r) => {
+              const isBuiltin = BUILTIN_ROLES.includes(r.code)
+              return (
+                <div key={r.code} className="relative group mb-1">
+                  <button
+                    onClick={() => setSelectedRole(r.code)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs transition ${
+                      selectedRole === r.code
+                        ? 'bg-orbit-primary/15 text-orbit-primary border border-orbit-primary/30'
+                        : 'text-slate-300 hover:bg-white/5 border border-transparent'
+                    }`}
+                  >
+                    <div className="font-medium pr-6">{ROLE_LABEL[r.code] || r.name}</div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">{r.code}</div>
+                  </button>
+                  {!isBuiltin && (
+                    <button
+                      onClick={() => {
+                        if (confirm(`确定删除角色「${r.name}」？\n\n删除后该角色的模块授权将一并移除。若仍有账号使用该角色，系统会拒绝删除。`)) {
+                          removeRole(r.code)
+                        }
+                      }}
+                      disabled={deleting === r.code}
+                      title="删除自定义角色"
+                      className="absolute top-1.5 right-1.5 p-1 rounded text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
           </CardBody>
         </Card>
 
@@ -313,6 +384,101 @@ export function RolesPage() {
           </CardBody>
         </Card>
       </div>
+
+      {/* 新增角色弹窗 */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-lg rounded-xl border border-orbit-border bg-orbit-surface p-5 shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                <Shield className="w-4 h-4 text-orbit-primary" /> 新增自定义角色
+              </h3>
+              <button onClick={() => setShowCreate(false)} className="text-slate-500 hover:text-slate-300">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">
+                  角色编码 <span className="text-rose-400">*</span>
+                  <span className="text-slate-600 ml-1">（3-32 位小写字母/数字/下划线，建后不可修改）</span>
+                </label>
+                <input
+                  value={newRole.code}
+                  onChange={(e) => setNewRole(r => ({ ...r, code: e.target.value }))}
+                  placeholder="如 night_ops"
+                  className="w-full px-3 py-2 rounded-lg bg-orbit-bg border border-orbit-border text-xs text-slate-200 font-mono focus:border-orbit-primary outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">
+                  角色名称 <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  value={newRole.name}
+                  onChange={(e) => setNewRole(r => ({ ...r, name: e.target.value }))}
+                  placeholder="如 夜班运营"
+                  className="w-full px-3 py-2 rounded-lg bg-orbit-bg border border-orbit-border text-xs text-slate-200 focus:border-orbit-primary outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">职责描述</label>
+                <input
+                  value={newRole.description}
+                  onChange={(e) => setNewRole(r => ({ ...r, description: e.target.value }))}
+                  placeholder="选填，说明该角色的业务职责"
+                  className="w-full px-3 py-2 rounded-lg bg-orbit-bg border border-orbit-border text-xs text-slate-200 focus:border-orbit-primary outline-none"
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[11px] text-slate-400">
+                    初始模块授权 <span className="text-slate-600">（可稍后在右侧微调）</span>
+                  </label>
+                  <span className="text-[10px] text-orbit-primary">已选 {newRole.modules.length}</span>
+                </div>
+                <div className="max-h-52 overflow-y-auto rounded-lg border border-orbit-border bg-orbit-bg p-2 grid grid-cols-2 gap-1">
+                  {modules.map(m => (
+                    <label
+                      key={m.code}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded text-[11px] cursor-pointer transition ${
+                        newRole.modules.includes(m.code)
+                          ? 'bg-orbit-primary/15 text-orbit-primary'
+                          : 'text-slate-400 hover:bg-white/5'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={newRole.modules.includes(m.code)}
+                        onChange={() => setNewRole(r => ({
+                          ...r,
+                          modules: r.modules.includes(m.code)
+                            ? r.modules.filter(x => x !== m.code)
+                            : [...r.modules, m.code],
+                        }))}
+                        className="w-3 h-3 accent-orbit-primary"
+                      />
+                      <span className="truncate">{m.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="secondary" onClick={() => setShowCreate(false)}>取消</Button>
+              <Button onClick={createRole} disabled={creating}>
+                {creating ? '创建中…' : '创建角色'}
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }

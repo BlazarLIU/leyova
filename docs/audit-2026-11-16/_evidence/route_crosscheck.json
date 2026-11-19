@@ -1,0 +1,2444 @@
+{
+ "registered": 406,
+ "frontend": 272,
+ "dead": [
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/personnel/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/personnel/:id/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/personnel/:id/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  }
+ ],
+ "dynamic": [
+  {
+   "method": "?",
+   "path": "/api/v1/agency/projects",
+   "files": [
+    "components/overview/PerformanceLeaderboard.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/alerts/rules",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/alerts/rules/:id",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/alerts/rules/test-webhook",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/anchors/my/performance",
+   "files": [
+    "pages/anchors/MyPerformancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/anchors/rankings",
+   "files": [
+    "components/overview/PerformanceLeaderboard.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/governance/ingest/file",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ingest/detect-template",
+   "files": [
+    "pages/data/IngestWizardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ingest/manual-upload",
+   "files": [
+    "pages/data/IngestWizardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ingest/preview",
+   "files": [
+    "pages/data/IngestWizardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/capabilities",
+   "files": [
+    "pages/ops/CapabilitiesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/goal-tracking",
+   "files": [
+    "pages/ops/GoalTrackingPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/room-health",
+   "files": [
+    "pages/ops/RoomHealthPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/session-plans",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/session-plans/:id",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/activities",
+   "files": [
+    "pages/overview/HomePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/analytics",
+   "files": [
+    "pages/overview/AnalyticsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/cockpit",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/daily-report",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/daily-reports",
+   "files": [
+    "pages/ai/ChatPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/live-monitor",
+   "files": [
+    "pages/overview/LiveMonitorPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/patrol-records",
+   "files": [
+    "pages/ai/ChatPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/patrol-summary",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/stats",
+   "files": [
+    "pages/overview/HomePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/personnel/anchors",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/platforms",
+   "files": [
+    "hooks/useShops.ts"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/anchors",
+   "files": [
+    "pages/review/AnchorPerformancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/channels",
+   "files": [
+    "pages/review/ChannelAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/compare",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/funnel",
+   "files": [
+    "pages/review/FunnelAnalysisPage.tsx",
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/funnel-data",
+   "files": [
+    "pages/review/FunnelAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/overview",
+   "files": [
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/products",
+   "files": [
+    "pages/review/ProductAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/related-issues",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/session-info",
+   "files": [
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/sessions",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx",
+    "pages/review/FunnelAnalysisPage.tsx",
+    "pages/review/ProductAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/short-videos",
+   "files": [
+    "pages/review/ShortVideoTrafficPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/apply-recommendation",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/meta",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/my",
+   "files": [
+    "pages/anchors/MySchedulePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/recommendations",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx",
+    "pages/anchors/ScheduleRecommendPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/sessions",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/sessions/:id",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/system/promotions",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/system/rooms",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/system/tasks",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  }
+ ],
+ "allRegistered": [
+  {
+   "method": "GET",
+   "path": "/api/v1/access/me",
+   "file": "routes/access-control.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/access/roles/:code/grants",
+   "file": "routes/access-control.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/access/roles/:code/grants",
+   "file": "routes/access-control.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/access/users/:id/overrides",
+   "file": "routes/access-control.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/access/users/:id/overrides",
+   "file": "routes/access-control.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/access/capability-matrix",
+   "file": "routes/access-control.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/after-sales/overview",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/after-sales/tickets",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/after-sales/tickets",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/after-sales/tickets/:id/handle",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/after-sales/rma-items",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/after-sales/rma-items",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/after-sales/rma-items/:id/status",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/orders/:orderId/timeline",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/orders/:orderId/events",
+   "file": "routes/after-sales.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/daily-report",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/sessions",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ai/chat",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ai/chat/stream",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/messages/:conversationId",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/ai/sessions/:conversationId",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/tool-logs",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/pending-approvals",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ai/approve/:toolLogId",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ai/reject/:toolLogId",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/context-bindings",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ai/context-bindings",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/ai/context-bindings/:id",
+   "file": "routes/ai.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/alerts/rules",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/alerts/rules",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/alerts/rules/:id",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/alerts/rules/:id",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/alerts/rules/test-webhook",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/alerts/events",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/alerts/events/:id/status",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/alerts/events/resolve-all",
+   "file": "routes/alerts.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/analysis/metrics",
+   "file": "routes/analysis.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/analysis/run",
+   "file": "routes/analysis.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/analysis/platform-metrics/:platform",
+   "file": "routes/analysis.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/analysis/runs",
+   "file": "routes/analysis.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/analysis/runs/:id",
+   "file": "routes/analysis.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/anchors/list",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/anchors/:id",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/anchors/:id/performance",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/anchors/my/performance",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/training/plans",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/training/records",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/scripts/templates",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/scripts/templates",
+   "file": "routes/anchors.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/auth/login",
+   "file": "routes/auth.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/auth/logout",
+   "file": "routes/auth.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/auth/me",
+   "file": "routes/auth.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/auth/change-password",
+   "file": "routes/auth.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/dashboard",
+   "file": "routes/bi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/refund",
+   "file": "routes/bi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/anomalies",
+   "file": "routes/bi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/metric-query",
+   "file": "routes/bi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/compare",
+   "file": "routes/bi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/caliber",
+   "file": "routes/caliber.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/caliber/metrics",
+   "file": "routes/caliber.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/caliber/:platform",
+   "file": "routes/caliber.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/caliber/check",
+   "file": "routes/caliber.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/campaign-plan/templates",
+   "file": "routes/campaign-plan.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/campaign-plan/generate",
+   "file": "routes/campaign-plan.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/campaign-plan/plans/:id",
+   "file": "routes/campaign-plan.ts"
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/campaign-plan/plans/:id",
+   "file": "routes/campaign-plan.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/campaign-plan/plans/:id/dispatch",
+   "file": "routes/campaign-plan.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/analysis/tasks/convert",
+   "file": "routes/closure.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/analysis/tasks",
+   "file": "routes/closure.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/analysis/report",
+   "file": "routes/closure.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/analysis/report/archive",
+   "file": "routes/closure.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/rules",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/rules/:id",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/changes",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/changes/:id/assessment",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/changes/:id/ack",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/rules/manual",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/scan",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/reminders",
+   "file": "routes/compliance-rules.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/providers",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/providers",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/content/providers/:id",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/content/providers/:id",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/providers/:id/test",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/providers/:id/object-info",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/projects",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/projects",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/tasks",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/tasks",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/tasks/:id",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/assets",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/video-metrics",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/video-metrics",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/schedules",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/schedules",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/content/schedules/:id/stage",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/assets/:id/derive",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/attribution",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/attribution",
+   "file": "routes/content.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/custom-fields/definitions",
+   "file": "routes/custom-fields.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/custom-fields/definitions",
+   "file": "routes/custom-fields.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/custom-fields/definitions/:id",
+   "file": "routes/custom-fields.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/custom-fields/definitions/:id",
+   "file": "routes/custom-fields.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/custom-fields/values",
+   "file": "routes/custom-fields.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/custom-fields/values/batch-save",
+   "file": "routes/custom-fields.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cs/overview",
+   "file": "routes/customer-service.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cs/agents",
+   "file": "routes/customer-service.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/cs/agents",
+   "file": "routes/customer-service.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cs/sessions",
+   "file": "routes/customer-service.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/cs/sessions",
+   "file": "routes/customer-service.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/tables",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/tables/:id/refresh",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/uploads",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/uploads/:id/download",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/uploads/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/upload-preview",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/uploads",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/exports",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/exports",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/live",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/live/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/live/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/data/live/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/quality",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/uploaded-data/anchor",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/uploaded-data/anchor/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/uploaded-data/anchor/batch-delete",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/uploaded-data/channel",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/uploaded-data/channel/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/uploaded-data/channel/batch-delete",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/clean-rules",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/clean-rules",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/data/clean-rules/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/clean-rules/:id",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/clean-rules/test",
+   "file": "routes/data.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/dict",
+   "file": "routes/dict.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/dict",
+   "file": "routes/dict.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/dict/:id",
+   "file": "routes/dict.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/dict/:id",
+   "file": "routes/dict.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/douyin/shop/:id/metrics",
+   "file": "routes/douyin.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/douyin/shop/:id/channels",
+   "file": "routes/douyin.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/douyin/shop/:id/anchors",
+   "file": "routes/douyin.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/fulfillment/sla-rules",
+   "file": "routes/fulfillment.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/fulfillment/overview",
+   "file": "routes/fulfillment.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/fulfillment/waybills",
+   "file": "routes/fulfillment.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/fulfillment/waybills",
+   "file": "routes/fulfillment.ts"
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/fulfillment/waybills/:id/dispatch",
+   "file": "routes/fulfillment.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/finance/accounting-subjects",
+   "file": "routes/general-ledger.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/finance/gl-vouchers",
+   "file": "routes/general-ledger.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/finance/gl-vouchers/:id",
+   "file": "routes/general-ledger.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/finance/gl-vouchers",
+   "file": "routes/general-ledger.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/finance/sessions/:sessionId/voucher-chain",
+   "file": "routes/general-ledger.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/finance/trial-balance",
+   "file": "routes/general-ledger.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/platforms/specs",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/batches",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/batches/:id",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/ingest/api",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/ingest/file",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/clean",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/validate",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/batches/:id/issues",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/issues/:id/resolve",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/reconcile",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/publish",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/publishes/:id/reverse",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/entity-aliases",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/entity-aliases",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/governance/entity-aliases/:id",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/field-mappings",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/field-mappings",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/run-quality-gates",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/batches/:id/quarantine",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/quarantine",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/governance/quarantine/:id/status",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/staging-load",
+   "file": "routes/governance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/promotions/rules",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/promotions/rules",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/promotions/rules/:id",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/promotions/simulate",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/members/overview",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/members/summary",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/events",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/events",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/compliance/events/:id",
+   "file": "routes/growth-compliance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/health",
+   "file": "routes/health.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ready",
+   "file": "routes/health.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/overview",
+   "file": "routes/hrbp.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/attendance",
+   "file": "routes/hrbp.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/performance",
+   "file": "routes/hrbp.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/training",
+   "file": "routes/hrbp.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ingest/sync",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ingest/jobs",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ingest/stats",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ingest/templates",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ingest/mappings",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ingest/fingerprint",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ingest/preview",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ingest/manual-upload",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ingest/platform-templates",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ingest/platform-templates/:code",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ingest/detect-template",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ingest/facts",
+   "file": "routes/ingest.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/overview",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/products",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/products",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/sku-mappings",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/stock/adjust",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/ledger",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/channel-listings",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/channel-listings",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/inventory/channel-listings/:id",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/reservations/reserve",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/reservations/:reservationNo/commit",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/reservations/:reservationNo/release",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/reservations",
+   "file": "routes/inventory.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kb/config",
+   "file": "routes/knowledge-base.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/kb/config",
+   "file": "routes/knowledge-base.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/kb/test",
+   "file": "routes/knowledge-base.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/kb/search",
+   "file": "routes/knowledge-base.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kb/status",
+   "file": "routes/knowledge-base.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kol/overview",
+   "file": "routes/kol.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kol/profiles",
+   "file": "routes/kol.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/kol/profiles",
+   "file": "routes/kol.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kol/cooperations",
+   "file": "routes/kol.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/kol/cooperations",
+   "file": "routes/kol.ts"
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/kol/cooperations/:id/settle",
+   "file": "routes/kol.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/traffic-split",
+   "file": "routes/kuaishou.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/indirect-gmv",
+   "file": "routes/kuaishou.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/fans",
+   "file": "routes/kuaishou.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/ad-roi",
+   "file": "routes/kuaishou.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/livereg/form-data",
+   "file": "routes/livereg.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/livereg/submit",
+   "file": "routes/livereg.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/maintenance/aggregate",
+   "file": "routes/maintenance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/maintenance/aggregate-status",
+   "file": "routes/maintenance.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/maintenance/partitions",
+   "file": "routes/maintenance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/maintenance/partitions",
+   "file": "routes/maintenance.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/metrics",
+   "file": "routes/metrics.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/net-roi/attribution-windows",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/net-roi/overview",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/net-roi/ad-spend",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/net-roi/ad-spend",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/net-roi/settlement-cycles",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/net-roi/settlement-cycles",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/net-roi/ad-plans",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/net-roi/ad-plans",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/net-roi/ad-plans/:id",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/net-roi/ad-plans/:id/receipt",
+   "file": "routes/net-roi.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/overview",
+   "file": "routes/omnichannel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/platforms",
+   "file": "routes/omnichannel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/shops",
+   "file": "routes/omnichannel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/trend",
+   "file": "routes/omnichannel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/shop/:id",
+   "file": "routes/omnichannel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/shop/:id/products",
+   "file": "routes/omnichannel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/capabilities",
+   "file": "routes/omnichannel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/capabilities",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/goal-tracking",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/script-library",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ops/script-library",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/ops/script-library/:id",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/ops/script-library/:id",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/issue-library",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/room-health",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/session-plans",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ops/session-plans",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/ops/session-plans/:id",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/ops/session-plans/:id",
+   "file": "routes/ops.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/live-monitor",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/stats",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/analytics",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/activities",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/cockpit",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/patrol-summary",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/daily-report",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/daily-reports",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/patrol-records",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/sessions",
+   "file": "routes/overview.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/anchors",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/personnel/anchors",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/personnel/anchors/:id",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/operators",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/personnel/operators",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/personnel/anchors/:id",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/personnel/operators/:id",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/personnel/operators/:id",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/managers",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/personnel/managers",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/personnel/managers/:id",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/attendance",
+   "file": "routes/personnel.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/douyin/three-pools",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/taobao/three-sources",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/tmall/brand-sessions",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/tmall/promotion-layers",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/tmall/live-promo-link",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/xiaohongshu/buyer-profile",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/xiaohongshu/dandelion",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/xiaohongshu/traffic-sources",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/wechat/affiliate",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/wechat/content",
+   "file": "routes/platform-dedicated.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/douyin/short-video-funnel",
+   "file": "routes/platform-insights.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/taobao/shop-session-link",
+   "file": "routes/platform-insights.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/xiaohongshu/note-to-live",
+   "file": "routes/platform-insights.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/wechat/private-public-split",
+   "file": "routes/platform-insights.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/platforms",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/platforms/:code",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/platforms/:code/shops",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/platforms/permissions",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/platforms/permissions",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/platforms/:code/oauth/url",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/platforms/:code/oauth/callback",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/platforms/:code/shops/:shopId/credentials",
+   "file": "routes/platforms.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/sessions",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/overview",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/channels",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/channels/:channel",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/anchors",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/funnel",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/compare",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/live-rooms",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/session-info",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/products",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/short-videos",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/funnel-data",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/related-issues",
+   "file": "routes/review.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/meta",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/staff-roles",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/calendar",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/schedule/sessions/:id/staff",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/day-status",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/schedule/my/leave",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/schedule/day-status",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/sessions",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/schedule/sessions",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/schedule/sessions/:id",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/schedule/sessions/:id",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/schedule/apply-recommendation",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/my",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/recommendations",
+   "file": "routes/schedule.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/search-keywords",
+   "file": "routes/search-keywords.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/search-keywords",
+   "file": "routes/search-keywords.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/selection/categories",
+   "file": "routes/selection.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/selection/recommend",
+   "file": "routes/selection.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/selection/recommendations",
+   "file": "routes/selection.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/selection/recommendations/:id",
+   "file": "routes/selection.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/selection/recommendations/:id/adopt",
+   "file": "routes/selection.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/sessions/:id",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/sessions",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/sessions/:id",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/sessions/:id/finalize",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/sessions/:id/start",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/sessions/:id/cancel",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/sessions/:id/metrics",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/sessions/:id/pnl",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/sessions/:id/full-trace",
+   "file": "routes/sessions.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/roles",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/modules",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/roles/modules",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/users",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/users",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/users/:id",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/users/:id",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/rooms",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/rooms",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/rooms/:id",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/rooms/:id",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/target-templates",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/target-templates",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/target-templates/:id",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/target-templates/:id/apply",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/target-templates/:id",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/config",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/config",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/alerts",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/competitors",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/competitors",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/multi-room",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/tasks",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/tasks",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/tasks/:id/status",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/promotions",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/promotions",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/audit-logs",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/jobs",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/jobs",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/jobs/:id",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/jobs/:id/cancel",
+   "file": "routes/system.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/metrics",
+   "file": "routes/taobao.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/products",
+   "file": "routes/taobao.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/channels",
+   "file": "routes/taobao.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/ad-reconciliation",
+   "file": "routes/taobao.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/dsr",
+   "file": "routes/taobao.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/tmall/brands",
+   "file": "routes/tmall.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/tmall/promotion-layers",
+   "file": "routes/tmall.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/tmall/promo-compare",
+   "file": "routes/tmall.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/tmall/shop/:id/overview",
+   "file": "routes/tmall.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/weather/cities",
+   "file": "routes/weather.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/weather/recommendation",
+   "file": "routes/weather.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/wechat/private-public",
+   "file": "routes/wechat.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/wechat/affiliate",
+   "file": "routes/wechat.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/wechat/settlement",
+   "file": "routes/wechat.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/wechat/content",
+   "file": "routes/wechat.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/wechat/shop/:id/overview",
+   "file": "routes/wechat.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/notes",
+   "file": "routes/xiaohongshu.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/search",
+   "file": "routes/xiaohongshu.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/funnel",
+   "file": "routes/xiaohongshu.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/on-offsite",
+   "file": "routes/xiaohongshu.ts"
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/aips",
+   "file": "routes/xiaohongshu.ts"
+  }
+ ]
+}

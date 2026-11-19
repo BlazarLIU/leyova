@@ -58,7 +58,7 @@ export async function resolveUserRlsScope(
   const userType = user.userType || 'agency_staff'
 
   let brandClientId: number | null = null
-  let canViewCost = ['super_admin', 'admin'].includes(user.role) && userType !== 'brand_viewer'
+  let canViewCost = ['super_admin', 'ops_director'].includes(user.role) && userType !== 'brand_viewer'
   let canViewAnchors = userType !== 'brand_viewer'
   let allowedProjectIds: number[] = []
 

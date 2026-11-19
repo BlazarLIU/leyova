@@ -14,8 +14,9 @@
  */
 
 import type { DbExecutor } from '../lib/db.js'
-import { decryptCredential } from '../modules/data-governance/security.js'
+import { decryptCredential, encryptCredential } from '../modules/data-governance/security.js'
 import { isRealCredentials, type PlatformCredentials } from '../modules/data-governance/adapters/base-adapter.js'
+import { governancePlatformRegistry } from '../modules/data-governance/adapters/index.js'
 import { platformRegistry } from '../platform/index.js'
 import type { StandardTradeRecord, StandardTrafficRecord } from '../platform/types.js'
 
@@ -36,15 +37,58 @@ export interface SyncJobResult {
   durationMs: number
 }
 
+/** 东八区日期（YYYY-MM-DD）：避免 UTC 00:00–08:00 被算到前一天 */
+function shanghaiDate(offsetDays = 0): string {
+  const d = new Date(Date.now() + offsetDays * 86400000)
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d)
+}
+
 /** 默认增量起点：昨天（含） */
 function defaultWatermark(): string {
-  const d = new Date()
-  d.setDate(d.getDate() - 1)
-  return d.toISOString().slice(0, 10)
+  return shanghaiDate(-1)
 }
 
 function todayString(): string {
-  return new Date().toISOString().slice(0, 10)
+  return shanghaiDate(0)
+}
+
+/**
+ * 整批写入包事务：中途失败回滚，避免留下半批事实数据。
+ * DbExecutor 可能是 Pool 或已在事务中的 PoolClient。
+ */
+async function withTransaction<T>(
+  executor: DbExecutor,
+  fn: (tx: DbExecutor) => Promise<T>,
+): Promise<T> {
+  const maybePool = executor as unknown as { connect?: () => Promise<any> }
+  if (typeof maybePool.connect === 'function') {
+    const client = await maybePool.connect()
+    try {
+      await client.query('BEGIN')
+      const result = await fn(client)
+      await client.query('COMMIT')
+      return result
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    } finally {
+      client.release()
+    }
+  }
+  await executor.query('BEGIN')
+  try {
+    const result = await fn(executor)
+    await executor.query('COMMIT')
+    return result
+  } catch (err) {
+    await executor.query('ROLLBACK')
+    throw err
+  }
 }
 
 /**
@@ -182,6 +226,17 @@ export async function runSyncJob(
     return { ...base, status: 'failed', error: `未注册的平台适配器: ${platformCode}`, durationMs: Date.now() - startedAt }
   }
 
+  // 流量报表需各开放平台单独申请数据大盘权限，当前所有适配器均未开通。
+  // 明确跳过而不是写 completed + 0 行，避免污染水位与任务监控。
+  if (dataType === 'traffic') {
+    return {
+      ...base,
+      status: 'skipped',
+      reason: `平台 ${platformCode} 流量报表接口尚未开通，请申请数据大盘权限后再同步`,
+      durationMs: Date.now() - startedAt,
+    }
+  }
+
   // ── 校验店铺授权状态与解密凭证 ──
   const shopRes = await pool.query(
     `SELECT auth_status, auth_token_info FROM dim_shop WHERE id = $1 AND platform_code = $2`,
@@ -234,6 +289,32 @@ export async function runSyncJob(
     }
   }
 
+  // ── Token 到期前刷新（不再读到 refreshToken 却弃用） ──
+  const expiresRaw = tokenInfo.expiresAt || tokenInfo.expires_at
+  const expiresAt = expiresRaw ? new Date(expiresRaw).getTime() : NaN
+  if (Number.isFinite(expiresAt) && expiresAt < Date.now() + 5 * 60 * 1000 && credentials.refreshToken) {
+    const govAdapter = governancePlatformRegistry.get(platformCode)
+    if (govAdapter) {
+      try {
+        const bundle = await govAdapter.refreshAccessToken(credentials)
+        credentials.accessToken = bundle.accessToken
+        if (bundle.refreshToken) credentials.refreshToken = bundle.refreshToken
+        const nextInfo = {
+          ...tokenInfo,
+          accessToken: encryptCredential(bundle.accessToken),
+          refreshToken: bundle.refreshToken ? encryptCredential(bundle.refreshToken) : tokenInfo.refreshToken,
+          expiresAt: new Date(Date.now() + bundle.expiresIn * 1000).toISOString(),
+        }
+        await pool.query(
+          `UPDATE dim_shop SET auth_token_info = $1::jsonb WHERE id = $2`,
+          [JSON.stringify(nextInfo), shopId],
+        )
+      } catch (err) {
+        console.warn('[sync-job] token refresh failed:', (err as Error)?.message || err)
+      }
+    }
+  }
+
   // ── 水位 ──
   const stored = await getWatermark(pool, platformCode, shopId, dataType)
   const watermarkFrom = sinceOverride || stored || defaultWatermark()
@@ -267,12 +348,35 @@ export async function runSyncJob(
       (r) => r.bizDate >= watermarkFrom && r.bizDate <= watermarkTo,
     )
 
-    let inserted = 0
-    if (dataType === 'trade') {
-      inserted = await upsertTradeRows(pool, valid as StandardTradeRecord[], jobId)
-    } else {
-      inserted = await upsertTrafficRows(pool, valid as StandardTrafficRecord[], jobId)
+    // 0 行不得标记 completed，否则水印会越过无数据窗口，永久丢失该段数据
+    if (valid.length === 0) {
+      await pool.query(
+        `UPDATE ingest_sync_jobs
+            SET status = 'skipped',
+                input_rows = $1,
+                success_rows = 0,
+                error_summary = $2,
+                completed_at = now()
+          WHERE id = $3`,
+        [records.length, '窗口内无有效数据，水位不推进', jobId],
+      )
+      return {
+        ...base,
+        jobId,
+        status: 'skipped',
+        fetchedRows: records.length,
+        insertedRows: 0,
+        reason: '窗口内无有效数据',
+        durationMs: Date.now() - startedAt,
+      }
     }
+
+    const inserted = await withTransaction(pool, async (tx) => {
+      if (dataType === 'trade') {
+        return upsertTradeRows(tx, valid as StandardTradeRecord[], jobId)
+      }
+      return upsertTrafficRows(tx, valid as StandardTrafficRecord[], jobId)
+    })
 
     await pool.query(
       `UPDATE ingest_sync_jobs

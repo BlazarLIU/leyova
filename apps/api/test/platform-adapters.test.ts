@@ -186,8 +186,8 @@ describe('开放平台 HTTP/OAuth 传输与适配器收敛测试', () => {
 
     app = await buildApp({ logger: false })
     await app.ready()
-    adminUser = await createTempUser('admin')
-    operatorUser = await createTempUser('operator')
+    adminUser = await createTempUser('super_admin')
+    operatorUser = await createTempUser('ops_staff')
 
     const pool = getPool()
     const shopRes = await pool.query<{ id: number }>(

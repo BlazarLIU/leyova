@@ -36,7 +36,7 @@ interface ComplianceResponse {
   }>
 }
 
-const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'operator']
+const WRITE_ROLES = ['super_admin', 'ops_director', 'ops_staff']
 
 export function CompliancePage() {
   const { hasRole } = useAuth()

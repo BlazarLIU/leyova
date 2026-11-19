@@ -73,10 +73,18 @@ export function getToolSchemasForOpenClaw(): Array<{
     }))
 }
 
+export interface ExecuteToolOptions {
+  /** 审批已通过：跳过 pending 分支，直接执行写操作 */
+  approved?: boolean
+  /** 复用原 pending 日志行回写执行结果，避免重复插入 */
+  toolLogId?: number
+}
+
 export async function executeTool(
   name: string,
   rawParams: unknown,
-  ctx: ToolContext
+  ctx: ToolContext,
+  options: ExecuteToolOptions = {}
 ): Promise<{ ok: boolean; result?: unknown; error?: string; toolLogId?: number }> {
   const tool = getTool(name)
   if (!tool) {
@@ -87,7 +95,7 @@ export async function executeTool(
     await logToolCall(ctx, name, rawParams, null, 'rejected', `Tool ${name} is forbidden`)
     return { ok: false, error: `Tool ${name} is forbidden` }
   }
-  if (tool.riskLevel === 'admin_only' && ctx.role !== 'super_admin' && ctx.role !== 'admin') {
+  if (tool.riskLevel === 'admin_only' && ctx.role !== 'super_admin') {
     await logToolCall(ctx, name, rawParams, null, 'rejected', `Tool ${name} requires admin role`)
     return { ok: false, error: `Tool ${name} requires admin privileges` }
   }
@@ -98,8 +106,9 @@ export async function executeTool(
     return { ok: false, error: `Invalid params: ${parsed.error.message}` }
   }
 
-  // write_with_approval: don't execute immediately, create a pending approval
-  if (tool.riskLevel === 'write_with_approval') {
+  // write_with_approval: 未获批准时只落 pending 审批；批准后（options.approved）
+  // 直接进入真正的执行分支，避免「批准 → 再次 pending」死循环。
+  if (tool.riskLevel === 'write_with_approval' && !options.approved) {
     const toolLogId = await logToolCall(
       ctx, name, parsed.data, null, 'success',
       'Pending user approval',
@@ -131,12 +140,20 @@ export async function executeTool(
 
   try {
     const result = await tool.execute(parsed.data, ctx)
-    await logToolCall(ctx, name, parsed.data, result, 'success')
-    return { ok: true, result }
+    if (options.toolLogId) {
+      await updateToolLog(ctx, options.toolLogId, result, 'success')
+    } else {
+      await logToolCall(ctx, name, parsed.data, result, 'success')
+    }
+    return { ok: true, result, toolLogId: options.toolLogId }
   } catch (err) {
     const errorMsg = (err as Error).message
-    await logToolCall(ctx, name, parsed.data, null, 'failed', errorMsg)
-    return { ok: false, error: errorMsg }
+    if (options.toolLogId) {
+      await updateToolLog(ctx, options.toolLogId, null, 'failed', errorMsg)
+    } else {
+      await logToolCall(ctx, name, parsed.data, null, 'failed', errorMsg)
+    }
+    return { ok: false, error: errorMsg, toolLogId: options.toolLogId }
   }
 }
 
@@ -182,6 +199,35 @@ async function logToolCall(
   } catch (err) {
     console.warn('[tool-registry] failed to write ai_tool_logs:', (err as Error)?.message || err)
     return undefined
+  }
+}
+
+/**
+ * 审批通过后复用原 pending 日志行回写真实执行结果，
+ * 避免同一次写操作产生两条互不关联的 ai_tool_logs。
+ */
+async function updateToolLog(
+  ctx: ToolContext,
+  toolLogId: number,
+  result: unknown,
+  status: 'success' | 'failed',
+  errorMsg?: string
+): Promise<void> {
+  try {
+    const resultSummary = result
+      ? JSON.stringify(result).slice(0, 500)
+      : errorMsg || ''
+    await ctx.pool.query(
+      `UPDATE ai_tool_logs
+       SET status = $2,
+           result_summary = $3,
+           approval_status = $4,
+           error_code = $5
+       WHERE id = $1`,
+      [toolLogId, status, resultSummary, 'approved', errorMsg || null]
+    )
+  } catch (err) {
+    console.warn('[tool-registry] failed to update ai_tool_logs:', (err as Error)?.message || err)
   }
 }
 

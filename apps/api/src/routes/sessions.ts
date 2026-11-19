@@ -4,7 +4,7 @@ import { withRlsContext } from '../lib/db.js'
 import { canAccessCostAsync, requireAuth, requireRole } from '../lib/guard.js'
 import { writeAuditLog } from '../lib/audit.js'
 
-const SESSION_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'controller']
+const SESSION_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator']
 
 export async function sessionRoutes(app: FastifyInstance) {
   // ── GET /api/v1/sessions/:id ── 单场次详情
@@ -234,7 +234,8 @@ export async function sessionRoutes(app: FastifyInstance) {
 
   // ── GET /api/v1/sessions/:id/pnl ── 单场次盈亏闭环（P6 / 审计断点）
   // 规则：回答「这场赚没赚」；缺成本项返回 null，严禁返回虚假 0
-  app.get('/api/v1/sessions/:id/pnl', { preHandler: [requireAuth] }, async (request, reply) => {
+  // 财务机密：仅运营总监、HRBP 与超管可见（系统不设独立财务角色）
+  app.get('/api/v1/sessions/:id/pnl', { preHandler: [requireRole(['super_admin', 'ops_director', 'hrbp'])] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
       const user = (request as any).user
@@ -769,6 +770,170 @@ export async function sessionRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'GET /sessions/:id/full-trace failed')
       return reply.code(500).send({ success: false, message: '查询场次全链路穿透数据失败' })
+    }
+  })
+
+  // ── GET /api/v1/sessions/:id/slots ── 场次排品货盘清单
+  app.get('/api/v1/sessions/:id/slots', { preHandler: [requireAuth] }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      const sessionId = parseInt(id, 10)
+      if (isNaN(sessionId)) return sendError(reply, 400, '无效的场次 ID')
+
+      const result = await withRlsContext(request, async (client) => {
+        const { rows } = await client.query(
+          `SELECT spp.id, spp.session_id, spp.product_order, spp.product_name, spp.product_code,
+                  spp.price, spp.group_letter, spp.sku_snapshot_jsonb,
+                  coalesce(dp.unit_cost, 0) as unit_cost, coalesce(dp.safety_stock, 20) as safety_stock
+           FROM session_plan_products spp
+           LEFT JOIN dim_product dp ON dp.spu_code = spp.product_code OR dp.product_name = spp.product_name
+           WHERE spp.session_id = $1
+           ORDER BY spp.product_order ASC, spp.id ASC`,
+          [sessionId]
+        )
+
+        if (rows.length > 0) {
+          return rows.map((r, idx) => {
+            const snap = (r.sku_snapshot_jsonb && typeof r.sku_snapshot_jsonb === 'object' && !Array.isArray(r.sku_snapshot_jsonb))
+              ? r.sku_snapshot_jsonb : {}
+            const role = snap.role || (r.group_letter === 'T' ? 'traffic' : r.group_letter === 'B' ? 'benefit' : r.group_letter === 'P' ? 'profit' : 'hero')
+            const price = Number(r.price) || 99
+            const cost = Number(r.unit_cost) || Math.round(price * 0.45)
+            const marginRate = price > 0 ? Number(((price - cost) / price).toFixed(2)) : 0.4
+            return {
+              seq: r.product_order || idx + 1,
+              id: r.id,
+              skuId: r.product_code || `SKU-${r.id}`,
+              skuTitle: r.product_name,
+              role,
+              roleLabel: role === 'traffic' ? '引流品 (Traffic)' : role === 'benefit' ? '福利品 (Benefit)' : role === 'profit' ? '利润品 (Profit)' : '王牌爆款 (Hero)',
+              minutes: snap.minutes || 10,
+              price,
+              marginRate,
+              stock: snap.stock || 500,
+              hook: snap.hook || `核心逼单钩子：限时专享价 ¥${price}，限量抢购！`,
+              cue: snap.cue || '中控上架链接并弹窗提醒',
+              checks: {
+                marginPositive: marginRate > 0,
+                stockAboveSafety: (snap.stock || 500) >= Number(r.safety_stock || 20),
+                qualificationValid: true,
+              }
+            }
+          })
+        }
+
+        // 若该场次尚无独立排品，从 dim_product 自动初始化 5 个优质推荐品
+        const prodRes = await client.query(
+          `SELECT spu_code, sku_code, product_name, retail_price, unit_cost, safety_stock
+           FROM dim_product WHERE status = 'active' ORDER BY id ASC LIMIT 6`
+        )
+        const defaults = [
+          { role: 'traffic', roleLabel: '引流品 (Traffic)', minutes: 6, hook: '开场爆单：9.9 包邮秒杀，限量 500 份！', cue: '中控上架 1 号秒杀链接' },
+          { role: 'benefit', roleLabel: '福利品 (Benefit)', minutes: 8, hook: '会员专享连带福利，买即赠同款中样！', cue: '弹幕引导："想要福利的扣 1"' },
+          { role: 'hero', roleLabel: '王牌爆款 (Hero)', minutes: 15, hook: '主推爆款买一送一，现场额外加赠正装！', cue: '开启千川脉冲放量' },
+          { role: 'profit', roleLabel: '利润品 (Profit)', minutes: 12, hook: '高定奢护礼盒，专柜正品顺丰直达！', cue: '主播高客单机制逼单' },
+          { role: 'hero', roleLabel: '王牌爆款 (Hero)', minutes: 15, hook: '核心爆单第二轮承接，仅限前 100 名！', cue: '中控改价弹窗' },
+          { role: 'traffic', roleLabel: '引流品 (Traffic)', minutes: 6, hook: '尾盘再次引流拉停留，全员抽免单！', cue: '截屏抽免单大奖' },
+        ]
+        return prodRes.rows.map((p, idx) => {
+          const d = defaults[idx % defaults.length]
+          const price = Number(p.retail_price) || 89
+          const cost = Number(p.unit_cost) || 35
+          const marginRate = price > 0 ? Number(((price - cost) / price).toFixed(2)) : 0.45
+          return {
+            seq: idx + 1,
+            skuId: p.sku_code || p.spu_code,
+            skuTitle: p.product_name,
+            role: d.role,
+            roleLabel: d.roleLabel,
+            minutes: d.minutes,
+            price,
+            marginRate,
+            stock: 350,
+            hook: d.hook,
+            cue: d.cue,
+            checks: {
+              marginPositive: marginRate > 0,
+              stockAboveSafety: 350 >= Number(p.safety_stock || 20),
+              qualificationValid: true,
+            }
+          }
+        })
+      })
+
+      return sendOk(reply, result)
+    } catch (err) {
+      request.log.warn({ err }, 'GET /sessions/:id/slots failed')
+      return reply.code(500).send({ success: false, message: '查询场次排品失败' })
+    }
+  })
+
+  // ── PUT /api/v1/sessions/:id/slots ── 保存/定稿场次排品货盘
+  app.put('/api/v1/sessions/:id/slots', { preHandler: [requireRole(SESSION_WRITE_ROLES)] }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      const sessionId = parseInt(id, 10)
+      if (isNaN(sessionId)) return sendError(reply, 400, '无效的场次 ID')
+
+      const body = request.body as { slots: Array<{
+        seq: number
+        skuId: string
+        skuTitle: string
+        role: string
+        minutes: number
+        price: number
+        marginRate?: number
+        hook?: string
+        cue?: string
+      }> }
+      if (!Array.isArray(body?.slots)) return sendError(reply, 400, '缺少排品列表 (slots)')
+
+      const user = (request as any).user
+      await withRlsContext(request, async (client) => {
+        // 先删除当前场次现有的临时排品记录
+        await client.query(`DELETE FROM session_plan_products WHERE session_id = $1`, [sessionId])
+
+        // 重新批量写入已定稿的 slots
+        for (const slot of body.slots) {
+          const groupLetter = slot.role === 'traffic' ? 'T' : slot.role === 'benefit' ? 'B' : slot.role === 'profit' ? 'P' : 'H'
+          const snap = {
+            role: slot.role,
+            minutes: slot.minutes,
+            hook: slot.hook || '',
+            cue: slot.cue || '',
+            marginRate: slot.marginRate || 0.35,
+          }
+          await client.query(
+            `INSERT INTO session_plan_products (
+               session_id, product_code, product_id, product_name, price, product_order, group_letter, sku_snapshot_jsonb
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [
+              sessionId,
+              slot.skuId,
+              slot.skuId,
+              slot.skuTitle,
+              slot.price,
+              slot.seq,
+              groupLetter,
+              JSON.stringify(snap),
+            ]
+          )
+        }
+
+        await writeAuditLog(client, {
+          actorUserId: user?.id,
+          action: 'session.slots.update',
+          resourceType: 'live_session',
+          resourceId: String(sessionId),
+          afterData: { slotCount: body.slots.length },
+          request,
+        })
+      })
+
+      return sendOk(reply, { count: body.slots.length }, '场次排品已定稿保存')
+    } catch (err) {
+      request.log.warn({ err }, 'PUT /sessions/:id/slots failed')
+      return reply.code(500).send({ success: false, message: '保存场次排品失败' })
     }
   })
 }

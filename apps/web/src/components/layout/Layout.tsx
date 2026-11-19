@@ -7,8 +7,10 @@ import { Topbar } from './Topbar'
 import { Footer } from './Footer'
 import { SidebarContext, useSidebarState } from '@/hooks/useSidebar'
 import { AuthContext, type AuthUser, type AccessInfo } from '@/hooks/useAuth'
+import { AiOpsSessionProvider } from '@/contexts/AiOpsSessionContext'
 import { usePlatform } from '@/hooks/usePlatform'
 import { checkRoutePlatformCompatibility } from '@/utils/platformRoute'
+import { AI_OPS_ROLES, FINANCE_ROLES, isRoleCode } from '@/constants/roles'
 import { PlatformMismatchNotice } from '@/components/common/PlatformMismatchNotice'
 import { api } from '@/services/api'
 import { ApiError } from '@/services/api'
@@ -61,6 +63,13 @@ export function Layout() {
   const isBrandViewer = Boolean(authUser && (authUser.role === 'brand_viewer' || authUser.userType === 'brand_viewer'))
   const isSuperAdmin = authUser?.role === 'super_admin'
 
+  const role = authUser?.role || ''
+  const canAccessAiOps = isRoleCode(role) && AI_OPS_ROLES.includes(role)
+  const canAccessFinance = isRoleCode(role) && FINANCE_ROLES.includes(role)
+  const isOpsUser = isRoleCode(role) && ['ops_director', 'ops_staff'].includes(role)
+  const isFinanceUser = canAccessFinance
+  const isHrbpUser = role === 'hrbp'
+
   const allowedModules = useMemo(() => {
     if (!authUser || isBrandViewer) return []
     // 优先用服务端解析后的权限（含模式、用户覆盖、平台能力过滤）
@@ -102,81 +111,106 @@ export function Layout() {
     allowedModules,
     platformModules,
     access,
+    disabledModules: access?.disabledModules ?? [],
     loading: authChecking,
     isBrandViewer,
     isSuperAdmin,
+    canAccessAiOps,
+    canAccessFinance,
+    isOpsUser,
+    isFinanceUser,
+    isHrbpUser,
     hasModule,
     hasAnyModule,
     hasRole,
-  }), [authUser, roles, allowedModules, platformModules, access, authChecking, isBrandViewer, isSuperAdmin, hasModule, hasAnyModule, hasRole])
+  }), [
+    authUser,
+    roles,
+    allowedModules,
+    platformModules,
+    access,
+    authChecking,
+    isBrandViewer,
+    isSuperAdmin,
+    canAccessAiOps,
+    canAccessFinance,
+    isOpsUser,
+    isFinanceUser,
+    isHrbpUser,
+    hasModule,
+    hasAnyModule,
+    hasRole,
+  ])
 
   return (
     <AuthContext.Provider value={authValue}>
       <SidebarContext.Provider value={sidebarState}>
-        {authChecking ? (
-          <div className="flex h-screen bg-orbit-bg items-center justify-center">
-            <div className="w-5 h-5 border-2 border-orbit-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="flex h-screen bg-orbit-bg overflow-hidden">
-            <div className="orbit-glow-bg" />
+        <AiOpsSessionProvider>
+          {authChecking ? (
+            <div className="flex h-screen bg-orbit-bg items-center justify-center">
+              <div className="w-5 h-5 border-2 border-orbit-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="flex h-screen bg-orbit-bg overflow-hidden">
+              <div className="orbit-glow-bg" />
 
-            <Sidebar user={authUser || undefined} />
+              <Sidebar user={authUser || undefined} />
 
-            {/* Mobile overlay backdrop */}
-            <AnimatePresence>
-              {sidebarState.isMobile && sidebarState.mobileOpen && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="fixed inset-0 bg-black/60 z-30"
-                  onClick={sidebarState.closeMobile}
-                />
-              )}
-            </AnimatePresence>
+              {/* Mobile overlay backdrop */}
+              <AnimatePresence>
+                {sidebarState.isMobile && sidebarState.mobileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="fixed inset-0 bg-black/60 z-30"
+                    onClick={sidebarState.closeMobile}
+                  />
+                )}
+              </AnimatePresence>
 
-            {/* Main content — no margin on mobile, sidebar-width margin on desktop */}
-            <motion.div
-              animate={{
-                marginLeft: sidebarState.isMobile ? 0 : (sidebarState.collapsed ? 72 : 200),
-              }}
-              transition={{ duration: 0.25, ease: 'easeInOut' }}
-              className="flex flex-col flex-1 min-w-0 h-screen overflow-hidden"
-            >
-              <Topbar user={authUser || undefined} />
+              {/* Main content — no margin on mobile, sidebar-width margin on desktop */}
+              <motion.div
+                animate={{
+                  marginLeft: sidebarState.isMobile ? 0 : (sidebarState.collapsed ? 72 : 200),
+                }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                className="flex flex-col flex-1 min-w-0 h-screen overflow-hidden"
+              >
+                <Topbar user={authUser || undefined} />
 
-              {/* Each page manages its own padding and scroll */}
-              <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
-                <ErrorBoundary>
-                  <div className="flex-1 min-h-0 flex flex-col">
-                    {(() => {
-                      const compatibility = checkRoutePlatformCompatibility(
-                        location.pathname,
-                        currentPlatform?.platform_code,
-                        currentPlatform?.capabilities,
-                        currentPlatform?.platform_name
-                      )
-                      if (!isBrandViewer && !compatibility.supported) {
-                        return (
-                          <PlatformMismatchNotice
-                            compatibility={compatibility}
-                            currentPlatformName={currentPlatform?.platform_name}
-                            onSwitchPlatform={(code) => setPlatformCode(code)}
-                            onGoToDashboard={() => navigate(compatibility.redirectUrl, { replace: true })}
-                          />
+                {/* Each page manages its own padding and scroll */}
+                <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                  <ErrorBoundary>
+                    <div className="flex-1 min-h-0 flex flex-col">
+                      {(() => {
+                        const compatibility = checkRoutePlatformCompatibility(
+                          location.pathname,
+                          currentPlatform?.platform_code,
+                          currentPlatform?.capabilities,
+                          currentPlatform?.platform_name
                         )
-                      }
-                      return <Outlet />
-                    })()}
-                  </div>
-                </ErrorBoundary>
-              </main>
-              <Footer />
-            </motion.div>
-          </div>
-        )}
+                        if (!isBrandViewer && !compatibility.supported) {
+                          return (
+                            <PlatformMismatchNotice
+                              compatibility={compatibility}
+                              currentPlatformName={currentPlatform?.platform_name}
+                              onSwitchPlatform={(code) => setPlatformCode(code)}
+                              onGoToDashboard={() => navigate(compatibility.redirectUrl, { replace: true })}
+                            />
+                          )
+                        }
+                        return <Outlet />
+                      })()}
+                    </div>
+                  </ErrorBoundary>
+                </main>
+                <Footer />
+              </motion.div>
+            </div>
+          )}
+        </AiOpsSessionProvider>
       </SidebarContext.Provider>
     </AuthContext.Provider>
   )

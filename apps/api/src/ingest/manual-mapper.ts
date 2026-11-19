@@ -127,7 +127,7 @@ export interface MappedRow {
   channelName: string
   /** 通用渠道编码（来自 platform_source_mapping 映射） */
   sourceCode: string | null
-  values: Record<string, number>
+  values: Record<string, number | undefined>
 }
 
 export interface MapResult {
@@ -161,7 +161,7 @@ export function mapRowsToStandard(
     const channelHit = pick(row, aliases.channel_name)
     const channelName = channelHit ? String(channelHit.value).trim() || '默认渠道' : '默认渠道'
 
-    const values: Record<string, number> = {}
+    const values: Record<string, number | undefined> = {}
     for (const field of Object.keys(aliases)) {
       if (field === 'biz_date' || field === 'channel_name') continue
       const hit = pick(row, aliases[field])
@@ -170,7 +170,7 @@ export function mapRowsToStandard(
         values[field] = toNumber(hit.value)
       } else {
         if (!(field in mapping)) mapping[field] = null
-        values[field] = 0
+        // 缺列保持 undefined：落库时不覆盖已有值（禁止清零）
       }
     }
 
@@ -239,6 +239,25 @@ export async function ingestManualFacts(
   try {
     const mapped = mapRowsToStandard(rows, dataType, defaultBizDate)
 
+    // 只更新文件真实包含的指标列：缺列上传不得把已有 GMV/订单清零
+    const tradeFields = ['gmv', 'pay_amount', 'paid_order_count', 'paid_buyer_count', 'refund_amount', 'refund_count']
+    const trafficFields = ['impressions', 'clicks', 'visitors', 'avg_stay_seconds']
+    const presentTradeFields = tradeFields.filter((f) => mapped.mapping[f] != null)
+    const presentTrafficFields = trafficFields.filter((f) => mapped.mapping[f] != null)
+    const tradeUpdateSet = [
+      'source_code = EXCLUDED.source_code',
+      ...presentTradeFields.map((f) => `${f} = EXCLUDED.${f}`),
+      'source = EXCLUDED.source',
+      'upload_id = EXCLUDED.upload_id',
+      'extra = EXCLUDED.extra',
+    ].join(', ')
+    const trafficUpdateSet = [
+      ...presentTrafficFields.map((f) => `${f} = EXCLUDED.${f}`),
+      'source = EXCLUDED.source',
+      'upload_id = EXCLUDED.upload_id',
+      'extra = EXCLUDED.extra',
+    ].join(', ')
+
     // 渠道名 → 通用渠道编码映射（来自 platform_source_mapping）
     await withOptionalSavepoint(
       pool,
@@ -285,17 +304,7 @@ export async function ingestManualFacts(
               refund_amount, refund_count, source, upload_id, extra, amount_type)
            VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'manual', $12, $13, $14)
            ON CONFLICT (biz_date, platform_code, shop_id, channel_name, amount_type)
-           DO UPDATE SET
-             source_code       = EXCLUDED.source_code,
-             gmv               = EXCLUDED.gmv,
-             pay_amount        = EXCLUDED.pay_amount,
-             paid_order_count  = EXCLUDED.paid_order_count,
-             paid_buyer_count  = EXCLUDED.paid_buyer_count,
-             refund_amount     = EXCLUDED.refund_amount,
-             refund_count      = EXCLUDED.refund_count,
-             source            = EXCLUDED.source,
-             upload_id         = EXCLUDED.upload_id,
-             extra             = EXCLUDED.extra`,
+           DO UPDATE SET ${tradeUpdateSet}`,
           [
             r.bizDate,                       // $1
             platformCode,                    // $2
@@ -320,14 +329,7 @@ export async function ingestManualFacts(
               impressions, clicks, visitors, avg_stay_seconds, source, upload_id, extra)
            VALUES ($1::date, $2, $3, $4, $11, $5, $6, $7, $8, 'manual', $9, $10)
            ON CONFLICT (biz_date, platform_code, shop_id, channel_name)
-           DO UPDATE SET
-             impressions       = EXCLUDED.impressions,
-             clicks            = EXCLUDED.clicks,
-             visitors          = EXCLUDED.visitors,
-             avg_stay_seconds  = EXCLUDED.avg_stay_seconds,
-             source            = EXCLUDED.source,
-             upload_id         = EXCLUDED.upload_id,
-             extra             = EXCLUDED.extra`,
+           DO UPDATE SET ${trafficUpdateSet}`,
           [
             r.bizDate, platformCode, shopId, r.channelName,
             Math.round(r.values.impressions ?? 0),

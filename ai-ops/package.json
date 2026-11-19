@@ -1,0 +1,31 @@
+{
+  "name": "leyova-ai-ops",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Leyova AI 运营系统 — AI 运营系统（私有化单机交付）",
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "dev:worker": "node --watch src/worker.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test src/**/*.test.ts",
+    "verify": "pnpm typecheck && pnpm test && node scripts/verify.mjs",
+    "db:migrate": "bash db/migrate.sh",
+    "db:seed": "bash db/seed.sh",
+    "db:reset": "dropdb --if-exists leyova_ai_ops_test && createdb leyova_ai_ops_test && DATABASE_URL=postgresql://leyova@127.0.0.1:55432/leyova_ai_ops_test bash db/migrate.sh && DATABASE_URL=postgresql://leyova@127.0.0.1:55432/leyova_ai_ops_test bash db/seed.sh"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@node-rs/argon2": "^2.0.2",
+    "fastify": "^5.2.0",
+    "pg": "^8.13.1",
+    "pg-boss": "^10.1.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.2"
+  }
+}

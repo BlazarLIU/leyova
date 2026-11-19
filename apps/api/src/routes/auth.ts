@@ -220,6 +220,7 @@ export async function authRoutes(app: FastifyInstance) {
             Array.from(access.modulesByPlatform.entries()).map(([k, v]) => [k, Array.from(v).sort()]),
           ),
           platforms: access.platforms === null ? null : Array.from(access.platforms).sort(),
+          disabledModules: Array.from(access.disabledModules).sort(),
         },
       })
     } catch (err) {

@@ -25,7 +25,7 @@ import { resolveAccess } from './access-resolver.js'
 const PUBLIC_PREFIXES = [
   '/api/v1/health',
   '/api/v1/ready',
-  '/api/v1/metrics',
+  '/api/v1/metrics',       // 匿名放行由 metrics 路由内部校验 token/会话
   '/api/v1/auth/login',
   '/api/v1/auth/me',       // 未登录时返回 401 由 handler 自己处理
   '/docs',

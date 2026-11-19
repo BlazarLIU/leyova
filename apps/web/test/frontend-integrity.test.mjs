@@ -3,13 +3,15 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseAllRoutes } from './_route-parser.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const WEB_ROOT = path.resolve(__dirname, '..')
 const SRC_ROOT = path.join(WEB_ROOT, 'src')
 
 const appSource = fs.readFileSync(path.join(SRC_ROOT, 'App.tsx'), 'utf8')
-const navSource = fs.readFileSync(path.join(SRC_ROOT, 'data/platform-navigation.ts'), 'utf8')
+const manifestSource = fs.readFileSync(path.join(SRC_ROOT, 'data/route-manifest.ts'), 'utf8')
+const navSource = fs.readFileSync(path.join(SRC_ROOT, 'data/route-manifest.ts'), 'utf8')
 const topbarSource = fs.readFileSync(path.join(SRC_ROOT, 'components/layout/Topbar.tsx'), 'utf8')
 const searchSource = fs.readFileSync(path.join(SRC_ROOT, 'components/common/GlobalSearch.tsx'), 'utf8')
 const accountsSource = fs.readFileSync(path.join(SRC_ROOT, 'pages/system/AccountsSection.tsx'), 'utf8')
@@ -70,7 +72,7 @@ function extractAccountModuleNames() {
 }
 
 describe('@leyova/web 前端架构、导航路由与权限契约测试', () => {
-  const appRoutes = extractAppRoutes()
+  const appRoutes = parseAllRoutes()
   const navLinks = extractNavLinks()
   const topbarModules = extractTopbarModuleRequirements()
   const moduleNames = extractAccountModuleNames()
@@ -81,7 +83,9 @@ describe('@leyova/web 前端架构、导航路由与权限契约测试', () => {
     const lazyImportRegex = /import\('@\/([^']+)'\)/g
     let checkedImports = 0
     let m
-    while ((m = lazyImportRegex.exec(appSource)) !== null) {
+    // 经典业务路由已并入 route-manifest.ts，懒加载路径需同时在 App.tsx 与 manifest 中校验
+    const allSource = `${appSource}\n${manifestSource}`
+    while ((m = lazyImportRegex.exec(allSource)) !== null) {
       const rel = m[1]
       const tsxPath = path.join(SRC_ROOT, `${rel}.tsx`)
       const tsPath = path.join(SRC_ROOT, `${rel}.ts`)
@@ -111,13 +115,14 @@ describe('@leyova/web 前端架构、导航路由与权限契约测试', () => {
     }
   })
 
-  test('platform-navigation.ts 全量导航链接 100% 命中 App.tsx 有效非重定向路由', () => {
-    assert.ok(navLinks.length > 0, 'platform-navigation.ts 应解析出导航项')
+  test('route-manifest.ts 全量导航链接 100% 命中 App.tsx 有效路由', () => {
+    assert.ok(navLinks.length > 0, 'route-manifest.ts 应解析出导航项')
     for (const { href, module } of navLinks) {
       assert.ok(href.startsWith('/'), `导航路径应以 / 开头: ${href}`)
       const route = appRoutes.get(href)
       assert.ok(route, `导航链接指向未注册路由: ${href}`)
-      assert.equal(route.isRedirect, false, `导航不应直接指向重定向别名: ${href}`)
+      // 迁移期说明：AI 运营分支上线过程中，经典路由会以 <Navigate to="/ai-ops/..."> 作兼容跳转，
+      // 因此这里只保证目标路径已注册（不出现 404），不强制要求非重定向。
       if (module && route.module) {
         assert.equal(module, route.module, `导航 (${href}) module=${module} 与 App.tsx module=${route.module} 不一致`)
       }

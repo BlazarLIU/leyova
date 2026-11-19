@@ -19,6 +19,8 @@ export interface AccessInfo {
   modulesByPlatform: Record<string, string[]>
   /** 可见平台；null = 全部 */
   platforms: string[] | null
+  /** 全局停用模块（对所有角色含超管都不可见，仅超管可在模块管理页开关） */
+  disabledModules?: string[]
 }
 
 export interface AuthContextValue {
@@ -29,9 +31,18 @@ export interface AuthContextValue {
   platformModules: string[]
   /** 服务端解析的权限详情 */
   access: AccessInfo | null
+  /** 全局停用的模块（导航与服务端访问都会排除） */
+  disabledModules: string[]
   loading: boolean
   isBrandViewer: boolean
   isSuperAdmin: boolean
+  /** 是否允许进入 AI 运营系统分支（超管、运营、财务、HRBP） */
+  canAccessAiOps: boolean
+  /** 是否允许访问财务板块（财务、controller、超管） */
+  canAccessFinance: boolean
+  isOpsUser: boolean
+  isFinanceUser: boolean
+  isHrbpUser: boolean
   hasModule: (moduleCode?: string) => boolean
   hasAnyModule: (moduleCodes: string[]) => boolean
   hasRole: (allowedRoles: string[]) => boolean
@@ -43,9 +54,15 @@ export const AuthContext = createContext<AuthContextValue>({
   allowedModules: [],
   platformModules: [],
   access: null,
+  disabledModules: [],
   loading: true,
   isBrandViewer: false,
   isSuperAdmin: false,
+  canAccessAiOps: false,
+  canAccessFinance: false,
+  isOpsUser: false,
+  isFinanceUser: false,
+  isHrbpUser: false,
   hasModule: () => false,
   hasAnyModule: () => false,
   hasRole: () => false,
@@ -70,9 +87,8 @@ export function getDefaultHomePath(user: AuthUser | null, allowedModules: string
   }
 
   // 主播/中控（personal_achievement 是他们的核心模块）
-  // P1-B17：此前落到 /live/attendance（考勤表），主播每天最该看的是「我今天播什么」
   if (allowedModules.includes('personal_achievement')) {
-    return '/anchors/my-schedule'
+    return '/live/attendance'
   }
 
   // 其余基层（只有登记权限）
@@ -81,7 +97,7 @@ export function getDefaultHomePath(user: AuthUser | null, allowedModules: string
   }
 
   if (allowedModules.includes('ai')) {
-    return '/ai/chat'
+    return '/ai-ops/chat'
   }
 
   return '/overview/home'

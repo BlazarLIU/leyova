@@ -79,7 +79,7 @@ interface ShopOption {
   shop_name: string
 }
 
-const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ad_buyer']
+const WRITE_ROLES = ['super_admin', 'ops_director', 'ad_buyer']
 
 const statusVariant: Record<string, 'success' | 'warning' | 'info' | 'danger'> = {
   settled: 'success',

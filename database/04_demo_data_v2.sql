@@ -46,7 +46,9 @@ DELETE FROM content_projects;
 -- ════════════════════════════════════════════════════════════
 -- 2. 清理场次/主播/维度扩展表（Group B）
 -- ════════════════════════════════════════════════════════════
-DELETE FROM session_product_skus;
+-- 2026-11-17：session_product_skus 已改为视图（基表 session_plan_products），
+-- 视图不可 DELETE；其内容随基表清理自动清空，故此处改为清基表。
+DELETE FROM session_plan_products;
 DELETE FROM session_product_details;
 DELETE FROM session_short_video_traffic;
 DELETE FROM session_channel_metrics;

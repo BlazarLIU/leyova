@@ -84,36 +84,36 @@ export const MySchedulePage: React.FC = () => {
 
       {/* KPI 概览指标卡 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-5 flex items-center justify-between">
+        <div className="bg-orbit-surface border border-orbit-border rounded-2xl p-5 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-xs text-gray-400">待开播排期场次</span>
+            <span className="text-xs text-orbit-text-secondary">待开播排期场次</span>
             <div className="text-2xl font-bold text-indigo-400 mt-1 font-mono">
               {scheduledSessions.length}
             </div>
-            <span className="text-[11px] text-gray-500 mt-0.5 block">近期准备开播任务</span>
+            <span className="text-[11px] text-orbit-text-secondary mt-0.5 block">近期准备开播任务</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
             <Clock className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-5 flex items-center justify-between">
+        <div className="bg-orbit-surface border border-orbit-border rounded-2xl p-5 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-xs text-gray-400">已完结直播场次</span>
+            <span className="text-xs text-orbit-text-secondary">已完结直播场次</span>
             <div className="text-2xl font-bold text-emerald-400 mt-1 font-mono">
               {completedSessions.length}
             </div>
-            <span className="text-[11px] text-gray-500 mt-0.5 block">本周期实播记录</span>
+            <span className="text-[11px] text-orbit-text-secondary mt-0.5 block">本周期实播记录</span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
             <CheckCircle2 className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-5 flex items-center justify-between">
+        <div className="bg-orbit-surface border border-orbit-border rounded-2xl p-5 flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-xs text-gray-400">个人业绩中心</span>
-            <div className="text-sm font-semibold text-gray-200 mt-2">
+            <span className="text-xs text-orbit-text-secondary">个人业绩中心</span>
+            <div className="text-sm font-semibold text-orbit-text-primary mt-2">
               查看带货 GMV 与五维雷达
             </div>
             <button
@@ -139,11 +139,11 @@ export const MySchedulePage: React.FC = () => {
           </h2>
 
           {loading ? (
-            <div className="p-12 text-center text-xs text-gray-500 bg-gray-900/40 rounded-2xl border border-gray-800">
+            <div className="p-12 text-center text-xs text-orbit-text-secondary bg-orbit-surface rounded-2xl border border-orbit-border">
               加载排班行程中...
             </div>
           ) : sessions.length === 0 ? (
-            <div className="p-12 text-center text-xs text-gray-500 bg-gray-900/40 rounded-2xl border border-gray-800">
+            <div className="p-12 text-center text-xs text-orbit-text-secondary bg-orbit-surface rounded-2xl border border-orbit-border">
               暂无分配给您的排班记录
             </div>
           ) : (
@@ -156,52 +156,51 @@ export const MySchedulePage: React.FC = () => {
                     key={s.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`p-4 rounded-xl border transition-all text-xs ${
-                      isUpcoming
-                        ? 'bg-gray-900/90 border-indigo-500/40 shadow-sm'
-                        : 'bg-gray-900/50 border-gray-800/80 opacity-80'
-                    }`}
+                    className={`p-4 rounded-xl border transition-all text-xs ${isUpcoming
+                      ? 'bg-orbit-surface border-indigo-500/40 shadow-sm'
+                      : 'bg-orbit-surface2 border-orbit-border opacity-90'
+                      }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-gray-800/80">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-orbit-border">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-gray-100">{s.title}</span>
+                        <span className="font-bold text-sm text-orbit-text-primary">{s.title}</span>
                         <Badge variant={isUpcoming ? 'info' : 'neutral'}>
                           {isUpcoming ? '待开播' : s.status === 'live' ? '直播中' : '已完结'}
                         </Badge>
                       </div>
-                      <div className="text-gray-400 font-mono text-[11px] flex items-center gap-1.5">
+                      <div className="text-orbit-text-secondary font-mono text-[11px] flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-indigo-400" />
                         {s.date} {s.startTime?.slice(0, 5)} ~ {s.endTime?.slice(0, 5)}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 text-gray-300">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 text-orbit-text-primary">
                       <div>
-                        <span className="text-gray-500 block text-[11px]">直播间演播室</span>
-                        <span className="font-medium flex items-center gap-1 text-gray-200 mt-0.5">
+                        <span className="text-orbit-text-secondary block text-[11px]">直播间演播室</span>
+                        <span className="font-medium flex items-center gap-1 text-orbit-text-primary mt-0.5">
                           <MapPin className="w-3 h-3 text-rose-400" />
                           {s.roomName || '演播厅1号'}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-gray-500 block text-[11px]">项目归属</span>
-                        <span className="font-medium text-gray-200 mt-0.5 block">
+                        <span className="text-orbit-text-secondary block text-[11px]">项目归属</span>
+                        <span className="font-medium text-orbit-text-primary mt-0.5 block">
                           {s.projectName || '自营自播'}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-gray-500 block text-[11px]">预计时长</span>
-                        <span className="font-mono text-gray-200 mt-0.5 block">
+                        <span className="text-orbit-text-secondary block text-[11px]">预计时长</span>
+                        <span className="font-mono text-orbit-text-primary mt-0.5 block">
                           {s.durationMin ? `${(s.durationMin / 60).toFixed(1)} 小时` : '4.0 小时'}
                         </span>
                       </div>
                     </div>
 
                     {s.remark && (
-                      <div className="mt-3 pt-2 border-t border-gray-800/60 text-[11px] text-gray-400 bg-gray-800/40 p-2 rounded-lg">
-                        <span className="text-indigo-300 font-medium">备播提示：</span>
+                      <div className="mt-3 pt-2 border-t border-orbit-border text-[11px] text-orbit-text-secondary bg-orbit-surface2 p-2 rounded-lg">
+                        <span className="text-indigo-400 font-medium">备播提示：</span>
                         {s.remark}
                       </div>
                     )}

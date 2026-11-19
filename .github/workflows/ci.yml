@@ -65,6 +65,9 @@ jobs:
       - name: Run static security & caliber guardrails
         run: pnpm check:guardrails
 
+      - name: Verify OpenAPI spec matches registered routes (P2-4)
+        run: pnpm openapi:check
+
       - name: Build all workspace packages
         run: pnpm build
 

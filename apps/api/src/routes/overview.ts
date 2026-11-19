@@ -405,10 +405,41 @@ export async function overviewRoutes(app: FastifyInstance) {
         ),
       )
 
+      // P0-2：排班与场次联动
+      // 场次列表原本只返回主播，导致「排班表里排了人，场次详情看不到当班岗位」。
+      // 这里把 session_staff_assignments（378 行）的岗位分工带出来，
+      // 让前端能直接展示「这场谁值班」，也为复盘按岗位归因人效提供输入。
+      const sessionIds = rows.map((r: any) => Number(r.id))
+      const staffMap = new Map<number, Array<{ roleCode: string; roleName: string; staffName: string }>>()
+      if (sessionIds.length > 0) {
+        const { rows: staffRows } = await withRlsContext(request, (client) =>
+          client.query(
+            `SELECT ssa.session_id, ssa.role_code,
+                    COALESCE(srd.name, ssa.role_code) AS role_name,
+                    ssa.staff_name
+               FROM session_staff_assignments ssa
+               LEFT JOIN staff_role_dict srd ON srd.code = ssa.role_code
+              WHERE ssa.session_id = ANY($1::int[])
+              ORDER BY ssa.session_id, ssa.id`,
+            [sessionIds],
+          ),
+        )
+        for (const s of staffRows) {
+          const sid = Number(s.session_id)
+          if (!staffMap.has(sid)) staffMap.set(sid, [])
+          staffMap.get(sid)!.push({
+            roleCode: String(s.role_code),
+            roleName: String(s.role_name),
+            staffName: String(s.staff_name),
+          })
+        }
+      }
+
       return sendOk(reply, {
         sessions: rows.map((r: any) => {
           const gmv = Number(r.gmv || 0)
           const adCost = Number(r.ad_cost || 0)
+          const staff = staffMap.get(Number(r.id)) ?? []
           return {
             id: Number(r.id),
             date: String(r.date).slice(0, 10),
@@ -419,6 +450,8 @@ export async function overviewRoutes(app: FastifyInstance) {
             gmv,
             roi: allowAd && adCost > 0 ? Number((gmv / adCost).toFixed(2)) : 0,
             status: r.status,
+            staff,
+            staffCount: staff.length,
           }
         }),
       })

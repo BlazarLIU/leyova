@@ -3,14 +3,15 @@ import { useSearchParams } from 'react-router-dom'
 import {
   Calendar,
   Users,
-  Clock,
   Sparkles,
   Loader2,
   CalendarDays,
+  Package,
+  Radio,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
-// Lazy load the 4 schedule views
+// Lazy load the 5 schedule views
 const CalendarView = lazy(() =>
   import('@/pages/anchors/LiveScheduleCalendarPage').then((m) => ({
     default: m.LiveScheduleCalendarPage,
@@ -21,9 +22,14 @@ const ManagementView = lazy(() =>
     default: m.ScheduleManagementPage,
   }))
 )
-const MyScheduleView = lazy(() =>
-  import('@/pages/anchors/MySchedulePage').then((m) => ({
-    default: m.MySchedulePage,
+const ProductsView = lazy(() =>
+  import('@/pages/ops/session-products/SessionProductsPage').then((m) => ({
+    default: m.SessionProductsPage,
+  }))
+)
+const SessionsView = lazy(() =>
+  import('@/pages/overview/SessionsPage').then((m) => ({
+    default: m.SessionsPage,
   }))
 )
 const RecommendView = lazy(() =>
@@ -32,7 +38,7 @@ const RecommendView = lazy(() =>
   }))
 )
 
-export type ScheduleView = 'calendar' | 'management' | 'my-schedule' | 'recommend'
+export type ScheduleView = 'calendar' | 'management' | 'products' | 'sessions' | 'recommend'
 
 interface ScheduleTabConfig {
   key: ScheduleView
@@ -56,14 +62,21 @@ const SCHEDULE_TABS: ScheduleTabConfig[] = [
     label: '人员排班管理',
     shortLabel: '人员调度',
     icon: Users,
-    description: '主播、助播、运营排班设置、班次模板与换班审批',
+    description: '主播、助播、现场中控、运营排班设置与双模式智能调度',
   },
   {
-    key: 'my-schedule',
-    label: '我的出勤排班',
-    shortLabel: '我的排班',
-    icon: Clock,
-    description: '个人考勤班次、打卡记录、累计工时与请假换班申请',
+    key: 'products',
+    label: '场次排品规划',
+    shortLabel: '场次排品',
+    icon: Package,
+    description: '场次商品盘点、引流款/爆款/利润款排品与过品动线编排',
+  },
+  {
+    key: 'sessions',
+    label: '场次执行台账',
+    shortLabel: '场次台账',
+    icon: Radio,
+    description: '场次全生命周期状态跟踪、开播实况与结案指标复盘',
   },
   {
     key: 'recommend',
@@ -105,7 +118,7 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
   const currentTabConfig = SCHEDULE_TABS.find((t) => t.key === activeTab) || SCHEDULE_TABS[0]
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1750px] w-full mx-auto">
       {/* ─── 1. Header & Tab Switcher ─── */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface/90 p-4 backdrop-blur shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-orbit-border/60">
@@ -114,19 +127,19 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orbit-primary/15 text-orbit-primary-light">
                 <CalendarDays className="w-4 h-4" />
               </div>
-              <h1 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+              <h1 className="text-lg font-bold text-orbit-text-primary flex items-center gap-2">
                 直播排班调度中心
-                <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-400 font-normal border border-orbit-border">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-orbit-text-secondary font-normal border border-orbit-border">
                   全流程排班工作台
                 </span>
               </h1>
             </div>
-            <p className="mt-1 text-xs text-slate-400 pl-10.5">
+            <p className="mt-1 text-xs text-orbit-text-secondary pl-10.5">
               {currentTabConfig.description}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-400 self-end md:self-auto">
+          <div className="flex items-center gap-2 text-xs text-orbit-text-secondary self-end md:self-auto">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-orbit-surface2 border border-orbit-border">
               <Users className="w-3.5 h-3.5 text-orbit-primary-light" />
               主播 · 助播 · 运营 · 场控全角色调度
@@ -149,10 +162,10 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
                     'relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all duration-150 select-none',
                     isActive
                       ? 'bg-orbit-primary text-white shadow-md shadow-orbit-primary/20'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                      : 'text-orbit-text-secondary hover:text-orbit-text-primary hover:bg-black/5 dark:hover:bg-white/5'
                   )}
                 >
-                  <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-slate-400')} />
+                  <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-orbit-text-secondary')} />
                   <span>{tab.label}</span>
                   {tab.badge && (
                     <span
@@ -185,7 +198,8 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
         >
           {activeTab === 'calendar' && <CalendarView />}
           {activeTab === 'management' && <ManagementView />}
-          {activeTab === 'my-schedule' && <MyScheduleView />}
+          {activeTab === 'products' && <ProductsView />}
+          {activeTab === 'sessions' && <SessionsView />}
           {activeTab === 'recommend' && <RecommendView />}
         </Suspense>
       </div>

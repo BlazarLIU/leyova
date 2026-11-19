@@ -25,6 +25,8 @@ export interface ResolvedAccess {
   modulesByPlatform: Map<string, Set<string>>
   /** 该用户可见的平台（null = 全部） */
   platforms: Set<string> | null
+  /** 全局停用的模块（对所有角色含超管都不可见，仅超管可在模块管理页开关） */
+  disabledModules: Set<string>
 }
 
 interface ResolveInput {
@@ -98,6 +100,14 @@ export async function resolveAccess(
 
   const effectiveModules = new Set([...baseline].filter((m) => !denied.has(m)))
 
+  // ── 3.5 模块热插拔：全局停用模块对所有角色（含超管）一律不可见 ──
+  //   注意：仅影响「可见性/访问」，不影响数据表与 AI 运营子系统的直接数据引用。
+  const disabledRes = await p.query(
+    `SELECT code FROM public.system_modules WHERE is_enabled = false`,
+  )
+  const disabledModules = new Set<string>(disabledRes.rows.map((r: any) => r.code))
+  for (const m of disabledModules) effectiveModules.delete(m)
+
   // ── 4. 平台能力过滤 ──
   const platforms = await resolvePlatforms(p, input)
 
@@ -133,7 +143,7 @@ export async function resolveAccess(
     }
   }
 
-  return { dataScope, modules: effectiveModules, modulesByPlatform, platforms }
+  return { dataScope, modules: effectiveModules, modulesByPlatform, platforms, disabledModules }
 }
 
 /** 解析用户可见平台（null = 全部） */

@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronRight, LogOut, Eye } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { buildNavigation } from '@/data/platform-navigation'
+import { buildAiOpsNavigation } from '@/data/ai-ops-navigation'
+import { SystemBranchSwitcher } from './SystemBranchSwitcher'
 import { useSidebar } from '@/hooks/useSidebar'
 import { usePlatform } from '@/hooks/usePlatform'
 import { useAuth } from '@/hooks/useAuth'
@@ -107,11 +109,6 @@ function NavItemLink({
                   >
                     <ChevronRight className="w-3 h-3 opacity-50" />
                     {child.label}
-                    {child.badge && (
-                      <span className="ml-auto text-[10px] font-semibold bg-orbit-primary/20 text-orbit-primary-light px-1.5 py-0.5 rounded-full">
-                        {child.badge}
-                      </span>
-                    )}
                   </NavLink>
                 ))}
               </div>
@@ -166,11 +163,6 @@ function NavItemLink({
                 </motion.span>
               )}
             </AnimatePresence>
-            {!collapsed && item.badge && (
-              <span className="ml-auto text-[10px] font-bold bg-orbit-accent/20 text-orbit-accent-light px-1.5 py-0.5 rounded-full">
-                {item.badge}
-              </span>
-            )}
           </>
         )
       }}
@@ -198,10 +190,15 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
   const {
     user: authUser,
     allowedModules,
+    disabledModules,
     loading: authLoading,
     isBrandViewer,
     isSuperAdmin,
+    canAccessFinance,
+    isHrbpUser,
   } = useAuth()
+  const location = useLocation()
+  const isAiOps = location.pathname.startsWith('/ai-ops')
 
   const onNavClick = () => {
     if (isMobile) closeMobile()
@@ -239,6 +236,8 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
   // 严格 fail-closed 权限过滤：未定义模块、品牌方只读或权限未就绪时默认拒绝
   const canSee = (m?: string) => {
     if (authLoading || !userRole || isBrandViewer) return false
+    // 模块热插拔：全局停用的模块对所有角色（含超管）都隐藏
+    if (m && disabledModules.includes(m)) return false
     if (!isModuleSupported(m)) return false
     if (isSuperAdmin) return true
     if (!m || allowedModules.length === 0) return false
@@ -254,10 +253,15 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
         {
           title: '品牌方门户',
           items: [
-            { label: '品牌方只读看板', icon: Eye, href: '/brand-portal', badge: '只读' },
+            { label: '品牌方只读看板', icon: Eye, href: '/brand-portal' },
           ],
         },
       ]
+    }
+
+    // 若当前位于 AI 运营系统分支，加载专属 AI-Native 导航（支持财务与人事细分权限）
+    if (isAiOps) {
+      return buildAiOpsNavigation(canAccessFinance, isHrbpUser, isSuperAdmin)
     }
 
     // 按当前平台的实际业态构建菜单：
@@ -270,8 +274,8 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
       : null
     let sections = buildNavigation(cap)
 
-    // 基层员工与中控 → 严格不显示「系统」与「代运营对账」
-    if (role === 'controller' || role === 'employee') {
+    // 基层岗位（直播中控）→ 严格不显示「系统」与「代运营对账」
+    if (role === 'controller') {
       sections = sections.filter(section => section.title !== '系统与设置' && section.title !== '系统')
     }
 
@@ -300,6 +304,9 @@ export function Sidebar({ user }: { user?: { username: string; realName: string;
       className="fixed left-0 top-0 h-screen bg-orbit-surface border-r border-orbit-border flex flex-col z-40 overflow-hidden"
     >
       <LeyovaLogo collapsed={collapsed && !isMobile} />
+
+      {/* 双系统分支切换器 */}
+      <SystemBranchSwitcher collapsed={collapsed && !isMobile} />
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-6">
         {getVisibleNavigation(userRole).map(section => (

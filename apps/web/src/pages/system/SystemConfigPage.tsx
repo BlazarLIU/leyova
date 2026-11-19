@@ -1,15 +1,12 @@
 // @ts-nocheck — false positives from stale TS server cache (tsc --noEmit passes)
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Settings, ShieldCheck, Target, BookKey, User, Users, Radio } from 'lucide-react'
+import { Settings, ShieldCheck, Target, BookKey, User, Users, Radio, Sliders, ArrowRight } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { api } from '@/services/api'
-import type { UserAccount, RoleInfo, ModuleInfo, LiveRoom } from '@/types'
-import { AccountsSection } from './AccountsSection'
-import { PersonnelSection } from './PersonnelSection'
-import { RoomsSection } from './RoomsSection'
+import { ModuleParametersSection } from './ModuleParametersSection'
 
 const fadeIn = {
   initial: { opacity: 0, y: 12 },
@@ -27,15 +24,13 @@ const METRIC_OPTIONS = [
   '平均停留时长', '场均订单数', '人气峰值',
 ]
 
-type TabKey = 'threshold' | 'target' | 'dict' | 'accounts' | 'personnel' | 'rooms'
+type TabKey = 'module_params' | 'threshold' | 'target' | 'dict'
 
 const tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: 'module_params', label: '模块参数', icon: Sliders },
   { key: 'threshold', label: '阈值规则', icon: ShieldCheck },
   { key: 'target', label: '目标管理', icon: Target },
   { key: 'dict', label: '字典管理', icon: BookKey },
-  { key: 'accounts', label: '账号管理', icon: User },
-  { key: 'personnel', label: '人员管理', icon: Users },
-  { key: 'rooms', label: '直播间管理', icon: Radio },
 ]
 
 const severityColorMap: Record<string, 'danger' | 'warning' | 'info'> = {
@@ -45,14 +40,15 @@ const severityColorMap: Record<string, 'danger' | 'warning' | 'info'> = {
 }
 
 const roleTabMap: Record<string, TabKey[]> = {
-  super_admin: ['threshold', 'target', 'dict', 'accounts', 'personnel', 'rooms'],
-  ops_director: ['threshold', 'target', 'personnel', 'rooms'],
-  ops_staff: ['threshold', 'target', 'personnel'],
-  controller: ['threshold', 'target', 'personnel'],
+  super_admin: ['module_params', 'threshold', 'target', 'dict'],
+  ops_director: ['module_params', 'threshold', 'target'],
+  ops_staff: ['module_params', 'threshold', 'target'],
+  controller: ['module_params', 'threshold', 'target'],
+  hrbp: ['module_params', 'threshold', 'target'],
 }
 
 export function SystemConfigPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>('threshold')
+  const [activeTab, setActiveTab] = useState<TabKey>('module_params')
   const [rules, setRules] = useState<any[]>([])
   const [targetTemplates, setTargetTemplates] = useState<any[]>([])
   const [dictItems, setDictItems] = useState<any[]>([])
@@ -83,15 +79,6 @@ export function SystemConfigPage() {
   const [deletingRule, setDeletingRule] = useState<any | null>(null)
   const [deletingDict, setDeletingDict] = useState<any | null>(null)
 
-  // Section states
-  const [users, setUsers] = useState<UserAccount[]>([])
-  const [roles, setRoles] = useState<RoleInfo[]>([])
-  const [allModules, setAllModules] = useState<ModuleInfo[]>([])
-  const [anchors, setAnchors] = useState<any[]>([])
-  const [operators, setOperators] = useState<any[]>([])
-  const [managers, setManagers] = useState<any[]>([])
-  const [rooms, setRooms] = useState<LiveRoom[]>([])
-
   // ─── Effects ───
 
   useEffect(() => {
@@ -102,14 +89,6 @@ export function SystemConfigPage() {
     api.get<any>('/auth/me')
       .then((res) => { if (res?.user?.role) setUserRole(res.user.role) })
       .catch(() => { })
-
-    api.get<UserAccount[]>('/system/users').then(setUsers).catch(() => { })
-    api.get<any[]>('/personnel/anchors').then(setAnchors).catch(() => { })
-    api.get<any[]>('/personnel/operators').then(setOperators).catch(() => { })
-    api.get<any[]>('/personnel/managers').then(setManagers).catch(() => { })
-    api.get<RoleInfo[]>('/system/roles').then(setRoles).catch(() => { })
-    api.get<ModuleInfo[]>('/system/modules').then(setAllModules).catch(() => { })
-    api.get<LiveRoom[]>('/system/rooms').then(setRooms).catch(() => { })
   }, [])
 
   const metricDefaultUnit = (m: string) => {
@@ -208,10 +187,67 @@ export function SystemConfigPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-100">系统配置</h1>
-            <p className="text-slate-500 text-sm mt-1">系统设置与 AI 配置</p>
+            <p className="text-slate-400 text-sm mt-1">系统全局规则、业务模块参数、目标与字典配置</p>
           </div>
         </div>
       </motion.div>
+
+      {/* 快捷导航：主数据独立管理入口 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <a
+          href="/system/users"
+          className="flex items-center justify-between p-3.5 bg-orbit-surface/70 hover:bg-orbit-surface2 border border-orbit-border/80 rounded-xl transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+              <User className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors">
+                账号与权限中心
+              </div>
+              <div className="text-[11px] text-slate-400">统一维护系统操作员、登录口令与数据权限</div>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+        </a>
+
+        <a
+          href="/system/personnel"
+          className="flex items-center justify-between p-3.5 bg-orbit-surface/70 hover:bg-orbit-surface2 border border-orbit-border/80 rounded-xl transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-200 group-hover:text-purple-300 transition-colors">
+                组织人员名录
+              </div>
+              <div className="text-[11px] text-slate-400">全量主播档案、运营编制与主管层级架构</div>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+        </a>
+
+        <a
+          href="/system/rooms"
+          className="flex items-center justify-between p-3.5 bg-orbit-surface/70 hover:bg-orbit-surface2 border border-orbit-border/80 rounded-xl transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+              <Radio className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-200 group-hover:text-emerald-300 transition-colors">
+                直播间与机位
+              </div>
+              <div className="text-[11px] text-slate-400">自建与多平台直播间物理档案与绑定状态</div>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+        </a>
+      </div>
 
       {/* Tab bar */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
@@ -464,6 +500,11 @@ export function SystemConfigPage() {
         </div>
       )}
 
+      {/* ─── module_params（模块参数）─── */}
+      {activeTab === 'module_params' && (
+        <ModuleParametersSection userRole={userRole} anchors={anchors} rooms={rooms} />
+      )}
+
       {/* ─── dict ─── */}
       {activeTab === 'dict' && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
@@ -543,26 +584,6 @@ export function SystemConfigPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* ─── accounts ─── */}
-      {activeTab === 'accounts' && (
-        <AccountsSection users={users} roles={roles} allModules={allModules} onUsersChange={setUsers} onRolesChange={setRoles} />
-      )}
-
-      {/* ─── personnel ─── */}
-      {activeTab === 'personnel' && (
-        <PersonnelSection userRole={userRole} anchors={anchors} operators={operators} managers={managers}
-          onDataChange={(tab, data) => {
-            if (tab === 'anchor') setAnchors(data)
-            else if (tab === 'operator') setOperators(data)
-            else setManagers(data)
-          }} />
-      )}
-
-      {/* ─── rooms ─── */}
-      {activeTab === 'rooms' && (
-        <RoomsSection rooms={rooms} onRoomsChange={setRooms} />
       )}
 
       {/* ─── target template apply confirm modal ─── */}

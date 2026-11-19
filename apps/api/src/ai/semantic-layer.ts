@@ -258,7 +258,7 @@ export interface ScopeContext {
 
 /** 解析用户可访问平台；admin/super_admin 返回 null 表示不限 */
 export async function resolveScope(pool: DbExecutor, role?: string): Promise<string[] | null> {
-  if (!role || role === 'admin' || role === 'super_admin') return null
+  if (!role || role === 'super_admin') return null
   const { rows } = await pool.query(
     `SELECT rpp.platform_code
        FROM role_platform_permissions rpp

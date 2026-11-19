@@ -1362,7 +1362,7 @@ CREATE TABLE public.ai_action_approvals (
     approved_at timestamp with time zone,
     executed_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT ai_action_approvals_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('approved'::character varying)::text, ('rejected'::character varying)::text, ('expired'::character varying)::text])))
+    CONSTRAINT ai_action_approvals_status_check CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('approved'::character varying)::text, ('rejected'::character varying)::text, ('expired'::character varying)::text, ('executed'::character varying)::text, ('failed'::character varying)::text])))
 );
 
 CREATE TABLE public.ai_analysis_runs (
@@ -2946,6 +2946,8 @@ CREATE TABLE public.data_uploads (
     error_message text,
     platform_code character varying(32),
     clean_rule_set_id integer,
+    shop_id bigint,
+    tenant_id bigint,
     CONSTRAINT data_uploads_status_check CHECK (((status)::text = ANY (ARRAY[('processing'::character varying)::text, ('completed'::character varying)::text, ('failed'::character varying)::text])))
 );
 

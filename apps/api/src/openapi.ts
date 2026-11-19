@@ -1,8 +1,15 @@
 /**
- * Auto-generated OpenAPI 3.0 specification for leyova API v2.
- * 
- * Run: npx tsx src/openapi.ts > openapi.json
- * This script generates the spec from the route structure.
+ * openapi.ts — 手写 OpenAPI「文案来源」（P2-4 后降级为文案库）
+ *
+ * ⚠️ 本文件**不再直接作为对外规格**。运行态文档由 `src/openapi.generated.ts` 提供，
+ *    后者由 `npm run openapi:gen -- --write` 从运行时真实路由清单生成，路径/方法与代码 100% 一致。
+ *
+ *    历史问题：实测本文件与代码双向漂移 —— 文档缺 199 条真实接口、文档多 55 条不存在的接口。
+ *
+ *    本文件保留的用途：为生成器提供**人工撰写的 summary / description / tag 文案**。
+ *    路由新增后，只需在此补充文案（或留空由生成器按路径推断），重新生成即可。
+ *
+ *    校验：npm run openapi:check（发现漂移会以非 0 退出）
  */
 
 export const openapiSpec = {
@@ -602,7 +609,7 @@ export const openapiSpec = {
           real_name: { type: 'string' },
           role: {
             type: 'string',
-            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'hrbp', 'controller', 'employee', 'brand_viewer'],
+            enum: ['super_admin', 'ops_director', 'ops_staff', 'ad_buyer', 'controller', 'video_editor', 'cs_agent', 'hrbp'],
           },
           status: { type: 'integer', enum: [0, 1] },
           last_login: { type: 'string', format: 'date-time' },
@@ -616,7 +623,7 @@ export const openapiSpec = {
           realName: { type: 'string' },
           role: {
             type: 'string',
-            enum: ['super_admin', 'admin', 'ops_director', 'operator', 'ops_staff', 'ad_buyer', 'hrbp', 'controller', 'employee', 'brand_viewer'],
+            enum: ['super_admin', 'ops_director', 'ops_staff', 'ad_buyer', 'controller', 'video_editor', 'cs_agent', 'hrbp'],
           },
           status: { type: 'integer', enum: [0, 1] },
         },

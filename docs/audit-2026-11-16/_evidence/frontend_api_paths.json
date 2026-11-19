@@ -1,0 +1,2221 @@
+{
+ "total": 272,
+ "notInOpenapi": 6,
+ "rows": [
+  {
+   "method": "GET",
+   "path": "/api/v1/access/capability-matrix",
+   "files": [
+    "pages/system/RolesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/access/roles/:id/grants",
+   "files": [
+    "pages/system/RolesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/access/roles/:id/grants",
+   "files": [
+    "pages/system/RolesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/after-sales/overview",
+   "files": [
+    "pages/ops/after-sales/AfterSalesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/after-sales/tickets",
+   "files": [
+    "pages/ops/after-sales/AfterSalesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/after-sales/tickets",
+   "files": [
+    "pages/ops/after-sales/AfterSalesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/after-sales/tickets/:id/handle",
+   "files": [
+    "pages/ops/after-sales/AfterSalesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/agency/projects",
+   "files": [
+    "components/overview/PerformanceLeaderboard.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/messages/:id",
+   "files": [
+    "pages/ai/ChatPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ai/sessions",
+   "files": [
+    "pages/ai/ChatPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/ai/sessions/:id",
+   "files": [
+    "pages/ai/ChatPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/alerts/rules",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/alerts/rules",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/alerts/rules",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/alerts/rules/:id",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/alerts/rules/:id",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/alerts/rules/:id",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/alerts/rules/test-webhook",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/alerts/rules/test-webhook",
+   "files": [
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/analysis/report",
+   "files": [
+    "pages/ai/AnalysisWorkbenchPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/analysis/run",
+   "files": [
+    "pages/ai/AnalysisWorkbenchPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/analysis/runs",
+   "files": [
+    "pages/ai/AnalysisWorkbenchPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/analysis/tasks/convert",
+   "files": [
+    "pages/ai/AnalysisWorkbenchPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/anchors/:id",
+   "files": [
+    "pages/anchors/AnchorProfilePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/anchors/:id/performance",
+   "files": [
+    "pages/anchors/AnchorProfilePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/anchors/list",
+   "files": [
+    "pages/anchors/AnchorListPage.tsx",
+    "pages/anchors/AnchorProfilePage.tsx",
+    "pages/system/PromotionCampaignsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/anchors/my/performance",
+   "files": [
+    "pages/anchors/MyPerformancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/anchors/rankings",
+   "files": [
+    "components/overview/PerformanceLeaderboard.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/attendance",
+   "files": [
+    "pages/live/AttendancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/auth/login",
+   "files": [
+    "pages/auth/SignInPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/auth/logout",
+   "files": [
+    "components/layout/Sidebar.tsx",
+    "components/layout/Topbar.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/auth/me",
+   "files": [
+    "components/layout/Layout.tsx",
+    "pages/system/PersonnelPage.tsx",
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/anomalies",
+   "files": [
+    "pages/bi/AnomalyDetectionPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/dashboard",
+   "files": [
+    "pages/bi/BiDashboardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/bi/refund",
+   "files": [
+    "pages/bi/RefundAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/changes",
+   "files": [
+    "pages/compliance/RuleRadarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/changes/:id/ack",
+   "files": [
+    "pages/compliance/ChangeDetailPage.tsx",
+    "pages/compliance/RuleRadarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/changes/:id/assessment",
+   "files": [
+    "pages/compliance/ChangeDetailPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/events",
+   "files": [
+    "pages/system/CompliancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/events",
+   "files": [
+    "pages/system/CompliancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/compliance/events/:id",
+   "files": [
+    "pages/system/CompliancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/reminders",
+   "files": [
+    "pages/compliance/RuleRadarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/compliance/rules",
+   "files": [
+    "pages/compliance/RuleRadarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/rules/manual",
+   "files": [
+    "pages/compliance/RuleRadarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/compliance/scan",
+   "files": [
+    "pages/compliance/RuleRadarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/assets/:id/derive",
+   "files": [
+    "pages/content/ContentSchedulePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/attribution",
+   "files": [
+    "pages/content/ContentSchedulePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/providers",
+   "files": [
+    "pages/content/ContentCenterConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/providers",
+   "files": [
+    "pages/content/ContentCenterConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/content/providers/:id",
+   "files": [
+    "pages/content/ContentCenterConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/providers/:id/test",
+   "files": [
+    "pages/content/ContentCenterConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/content/schedules",
+   "files": [
+    "pages/content/ContentSchedulePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/content/schedules",
+   "files": [
+    "pages/content/ContentSchedulePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/content/schedules/:id/stage",
+   "files": [
+    "pages/content/ContentSchedulePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cs/agents",
+   "files": [
+    "pages/ops/customer-service/CustomerServicePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cs/overview",
+   "files": [
+    "pages/ops/customer-service/CustomerServicePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cs/sessions",
+   "files": [
+    "pages/ops/customer-service/CustomerServicePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/cs/sessions",
+   "files": [
+    "pages/ops/customer-service/CustomerServicePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/live",
+   "files": [
+    "pages/live/DataLivePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/live/:id",
+   "files": [
+    "pages/live/DataLivePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/data/live/:id",
+   "files": [
+    "pages/live/LiveRegistrationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/tables",
+   "files": [
+    "pages/data/DataManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/uploaded-data/anchor",
+   "files": [
+    "pages/data/UploadedDataPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/uploaded-data/anchor/:id",
+   "files": [
+    "pages/data/UploadedDataPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/uploaded-data/anchor/batch-delete",
+   "files": [
+    "pages/data/UploadedDataPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/uploaded-data/channel",
+   "files": [
+    "pages/data/UploadedDataPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/uploaded-data/channel/:id",
+   "files": [
+    "pages/data/UploadedDataPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/data/uploaded-data/channel/batch-delete",
+   "files": [
+    "pages/data/UploadedDataPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/data/uploads",
+   "files": [
+    "pages/data/DataUploadPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/data/uploads/:id",
+   "files": [
+    "pages/data/DataUploadPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/fulfillment/overview",
+   "files": [
+    "pages/ops/fulfillment/FulfillmentSlaPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/fulfillment/sla-rules",
+   "files": [
+    "pages/ops/fulfillment/FulfillmentSlaPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/fulfillment/waybills",
+   "files": [
+    "pages/ops/fulfillment/FulfillmentSlaPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/fulfillment/waybills",
+   "files": [
+    "pages/ops/fulfillment/FulfillmentSlaPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/fulfillment/waybills/:id/dispatch",
+   "files": [
+    "pages/ops/fulfillment/FulfillmentSlaPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/batches",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/batches/:id/issues",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/publish",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/reconcile",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/run-quality-gates",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/batches/:id/validate",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/entity-aliases",
+   "files": [
+    "components/data/EntityAliasPanel.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/entity-aliases",
+   "files": [
+    "components/data/EntityAliasPanel.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/governance/entity-aliases/:id",
+   "files": [
+    "components/data/EntityAliasPanel.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/field-mappings",
+   "files": [
+    "components/data/EntityAliasPanel.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/ingest/api",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/governance/ingest/file",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/governance/issues/:id/resolve",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/governance/platforms/specs",
+   "files": [
+    "pages/data/DataQualityPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/attendance",
+   "files": [
+    "pages/anchors/HrbpWorkspacePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/overview",
+   "files": [
+    "pages/anchors/HrbpWorkspacePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/performance",
+   "files": [
+    "pages/anchors/HrbpWorkspacePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hrbp/training",
+   "files": [
+    "pages/anchors/HrbpWorkspacePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ingest/detect-template",
+   "files": [
+    "pages/data/IngestWizardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ingest/manual-upload",
+   "files": [
+    "pages/data/IngestWizardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ingest/preview",
+   "files": [
+    "pages/data/IngestWizardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ingest/templates",
+   "files": [
+    "pages/data/IngestWizardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/douyin/short-video-funnel",
+   "files": [
+    "pages/shop/douyin/DouyinShortVideoFunnelPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/taobao/shop-session-link",
+   "files": [
+    "pages/shop/taobao/TaobaoShopSessionPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/insights/xiaohongshu/note-to-live",
+   "files": [
+    "pages/shop/xiaohongshu/XhsNoteToLivePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/channel-listings",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/inventory/channel-listings/:id",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/ledger",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/overview",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/products",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx",
+    "pages/shop/ShopProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/products",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/inventory/reservations",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/reservations/:id/commit",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/reservations/:id/release",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/inventory/stock/adjust",
+   "files": [
+    "pages/ops/product-center/InventoryCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kb/config",
+   "files": [
+    "pages/content/ContentCenterConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/kb/config",
+   "files": [
+    "pages/content/ContentCenterConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/kb/test",
+   "files": [
+    "pages/content/ContentCenterConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kol/cooperations",
+   "files": [
+    "pages/ops/kol/KolCooperationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/kol/cooperations",
+   "files": [
+    "pages/ops/kol/KolCooperationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/kol/cooperations/:id/settle",
+   "files": [
+    "pages/ops/kol/KolCooperationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kol/overview",
+   "files": [
+    "pages/ops/kol/KolCooperationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kol/profiles",
+   "files": [
+    "pages/ops/kol/KolCooperationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/kol/profiles",
+   "files": [
+    "pages/ops/kol/KolCooperationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/ad-roi",
+   "files": [
+    "pages/shop/kuaishou/KsIndirectGmvPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/fans",
+   "files": [
+    "pages/shop/kuaishou/KsFansTeamPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/indirect-gmv",
+   "files": [
+    "pages/shop/kuaishou/KsIndirectGmvPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/kuaishou/shop/:id/traffic-split",
+   "files": [
+    "pages/shop/kuaishou/KsTrafficSplitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/livereg/form-data",
+   "files": [
+    "pages/live/LiveRegistrationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/livereg/submit",
+   "files": [
+    "pages/live/LiveRegistrationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/members/overview",
+   "files": [
+    "pages/ops/members/MembersPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/net-roi/ad-spend",
+   "files": [
+    "pages/ops/net-roi/NetRoiPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/net-roi/attribution-windows",
+   "files": [
+    "pages/ops/net-roi/NetRoiPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/net-roi/overview",
+   "files": [
+    "pages/ops/net-roi/NetRoiPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/overview",
+   "files": [
+    "pages/brand-portal/BrandPortalPage.tsx",
+    "pages/omnichannel/OmniDashboardPage.tsx",
+    "pages/overview/PlatformAwareHomePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/platforms",
+   "files": [
+    "pages/omnichannel/OmniDashboardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/shop/:id",
+   "files": [
+    "pages/shop/ShopOverviewPage.tsx",
+    "pages/shop/ShopProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/shop/:id/products",
+   "files": [
+    "pages/shop/ShopProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/shops",
+   "files": [
+    "pages/brand-portal/BrandPortalPage.tsx",
+    "pages/omnichannel/OmniDashboardPage.tsx",
+    "pages/ops/net-roi/NetRoiPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/omnichannel/trend",
+   "files": [
+    "pages/omnichannel/OmniDashboardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/capabilities",
+   "files": [
+    "pages/ops/CapabilitiesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/capabilities",
+   "files": [
+    "pages/ops/CapabilitiesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/goal-tracking",
+   "files": [
+    "pages/ops/GoalTrackingPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/goal-tracking",
+   "files": [
+    "pages/ops/GoalTrackingPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/issue-library",
+   "files": [
+    "pages/ops/IssueLibraryPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/room-health",
+   "files": [
+    "pages/ops/RoomHealthPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/room-health",
+   "files": [
+    "pages/ops/RoomHealthPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/ops/session-plans",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/ops/session-plans",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/session-plans",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/ops/session-plans/:id",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/ops/session-plans/:id",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/activities",
+   "files": [
+    "pages/overview/HomePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/analytics",
+   "files": [
+    "pages/overview/AnalyticsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/cockpit",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/daily-report",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/daily-report",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/daily-reports",
+   "files": [
+    "pages/ai/ChatPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/live-monitor",
+   "files": [
+    "pages/overview/LiveMonitorPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/patrol-records",
+   "files": [
+    "pages/ai/ChatPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/overview/patrol-summary",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/patrol-summary",
+   "files": [
+    "pages/overview/CockpitPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/overview/stats",
+   "files": [
+    "pages/overview/HomePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/personnel/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/personnel/:id/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/personnel/:id/:id",
+   "files": [
+    "pages/system/PersonnelSection.tsx"
+   ],
+   "inOpenapi": false
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/anchors",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx",
+    "pages/system/PersonnelPage.tsx",
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/personnel/anchors",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/managers",
+   "files": [
+    "pages/system/PersonnelPage.tsx",
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/personnel/operators",
+   "files": [
+    "pages/system/PersonnelPage.tsx",
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/platforms",
+   "files": [
+    "hooks/usePlatform.tsx",
+    "pages/system/PlatformManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/platforms",
+   "files": [
+    "hooks/useShops.ts"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/platforms/:id",
+   "files": [
+    "hooks/usePlatform.tsx",
+    "pages/system/PlatformManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/platforms/:id/oauth/callback",
+   "files": [
+    "pages/system/PlatformManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/platforms/:id/oauth/url",
+   "files": [
+    "pages/system/PlatformManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/platforms/:id/shops/:id/credentials",
+   "files": [
+    "pages/system/PlatformManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/platforms/permissions",
+   "files": [
+    "pages/system/PlatformManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/promotions/rules",
+   "files": [
+    "components/promotions/PromotionLayerSimulator.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/promotions/rules",
+   "files": [
+    "components/promotions/PromotionLayerSimulator.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/promotions/rules/:id",
+   "files": [
+    "components/promotions/PromotionLayerSimulator.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/promotions/simulate",
+   "files": [
+    "components/promotions/PromotionLayerSimulator.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/anchors",
+   "files": [
+    "pages/review/AnchorPerformancePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/channels",
+   "files": [
+    "pages/review/ChannelAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/channels",
+   "files": [
+    "pages/review/ChannelAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/compare",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/compare",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/funnel",
+   "files": [
+    "pages/review/FunnelAnalysisPage.tsx",
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/funnel",
+   "files": [
+    "pages/review/FunnelAnalysisPage.tsx",
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/funnel-data",
+   "files": [
+    "pages/review/FunnelAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/funnel-data",
+   "files": [
+    "pages/review/FunnelAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/overview",
+   "files": [
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/overview",
+   "files": [
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/products",
+   "files": [
+    "pages/review/ProductAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/products",
+   "files": [
+    "pages/review/ProductAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/related-issues",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/related-issues",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/session-info",
+   "files": [
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/session-info",
+   "files": [
+    "pages/review/ReviewOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/sessions",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx",
+    "pages/review/FunnelAnalysisPage.tsx",
+    "pages/review/ProductAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/sessions",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx",
+    "pages/review/FunnelAnalysisPage.tsx",
+    "pages/review/ProductAnalysisPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/review/short-videos",
+   "files": [
+    "pages/review/ShortVideoTrafficPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/review/short-videos",
+   "files": [
+    "pages/review/ShortVideoTrafficPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/schedule/apply-recommendation",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/apply-recommendation",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/calendar",
+   "files": [
+    "pages/anchors/LiveScheduleCalendarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/day-status",
+   "files": [
+    "pages/anchors/LiveScheduleCalendarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/schedule/day-status",
+   "files": [
+    "pages/anchors/LiveScheduleCalendarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/meta",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/meta",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/my",
+   "files": [
+    "pages/anchors/MySchedulePage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/recommendations",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/recommendations",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx",
+    "pages/anchors/ScheduleRecommendPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/sessions",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/schedule/sessions",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/sessions",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/schedule/sessions/:id",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/schedule/sessions/:id",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/schedule/sessions/:id",
+   "files": [
+    "pages/anchors/ScheduleManagementPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/schedule/sessions/:id/staff",
+   "files": [
+    "pages/anchors/LiveScheduleCalendarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/schedule/staff-roles",
+   "files": [
+    "pages/anchors/LiveScheduleCalendarPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/scripts/templates",
+   "files": [
+    "pages/anchors/ScriptTemplatesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/scripts/templates",
+   "files": [
+    "pages/anchors/ScriptTemplatesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/search-keywords",
+   "files": [
+    "pages/ops/search-seo/SearchKeywordsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/search-keywords",
+   "files": [
+    "pages/ops/search-seo/SearchKeywordsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/selection/categories",
+   "files": [
+    "pages/ai/SelectionPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/selection/recommend",
+   "files": [
+    "pages/ai/SelectionPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/selection/recommendations",
+   "files": [
+    "pages/ai/SelectionHistoryPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/selection/recommendations/:id",
+   "files": [
+    "pages/ai/SelectionHistoryPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/selection/recommendations/:id/adopt",
+   "files": [
+    "pages/ai/SelectionPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/alerts",
+   "files": [
+    "components/layout/Topbar.tsx",
+    "pages/system/AlertCenterPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/audit-logs",
+   "files": [
+    "pages/system/AuditLogsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/competitors",
+   "files": [
+    "pages/system/CompetitorWatchPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/competitors",
+   "files": [
+    "pages/system/CompetitorWatchPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/dict",
+   "files": [
+    "pages/system/DictPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/dict",
+   "files": [
+    "pages/system/DictPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/dict/:id",
+   "files": [
+    "pages/system/DictPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/jobs",
+   "files": [
+    "pages/data/DataQualityPage.tsx",
+    "pages/system/SystemJobsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/jobs",
+   "files": [
+    "pages/system/SystemJobsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/jobs/:id/cancel",
+   "files": [
+    "pages/system/SystemJobsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/modules",
+   "files": [
+    "pages/system/RolesPage.tsx",
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/multi-room",
+   "files": [
+    "pages/system/MultiRoomOverviewPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/promotions",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx",
+    "pages/system/PromotionCampaignsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/system/promotions",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/promotions",
+   "files": [
+    "pages/system/PromotionCampaignsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/roles",
+   "files": [
+    "components/layout/Layout.tsx",
+    "pages/system/AccountsSection.tsx",
+    "pages/system/RolesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/roles/modules",
+   "files": [
+    "pages/system/AccountsSection.tsx",
+    "pages/system/RolesPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/rooms",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx",
+    "pages/system/PromotionCampaignsPage.tsx",
+    "pages/system/RoomsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/system/rooms",
+   "files": [
+    "pages/ops/session-products/SessionProductsPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/rooms",
+   "files": [
+    "pages/system/RoomsSection.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/rooms/:id",
+   "files": [
+    "pages/system/RoomsSection.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/rooms/:id",
+   "files": [
+    "pages/system/RoomsSection.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/target-templates",
+   "files": [
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/target-templates",
+   "files": [
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/target-templates/:id",
+   "files": [
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/target-templates/:id",
+   "files": [
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/target-templates/:id/apply",
+   "files": [
+    "pages/system/SystemConfigPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/tasks",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx",
+    "pages/system/ImprovementTasksPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "?",
+   "path": "/api/v1/system/tasks",
+   "files": [
+    "pages/review/ClosedLoopPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/tasks",
+   "files": [
+    "pages/system/ImprovementTasksPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/tasks/:id/status",
+   "files": [
+    "pages/system/ImprovementTasksPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/system/users",
+   "files": [
+    "pages/system/AccountsSection.tsx",
+    "pages/system/SystemConfigPage.tsx",
+    "pages/system/UsersPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/system/users",
+   "files": [
+    "pages/system/AccountsSection.tsx",
+    "pages/system/UsersPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/system/users/:id",
+   "files": [
+    "pages/system/AccountsSection.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/system/users/:id",
+   "files": [
+    "pages/system/AccountsSection.tsx",
+    "pages/system/UsersPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/ad-reconciliation",
+   "files": [
+    "pages/shop/taobao/TaobaoAdReconciliationPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/channels",
+   "files": [
+    "pages/shop/taobao/TaobaoProductChannelPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/dsr",
+   "files": [
+    "pages/shop/taobao/TaobaoProductChannelPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/metrics",
+   "files": [
+    "pages/shop/taobao/TaobaoShopBoardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/taobao/shop/:id/products",
+   "files": [
+    "pages/shop/taobao/TaobaoProductChannelPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/training/plans",
+   "files": [
+    "pages/anchors/TrainingPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/training/records",
+   "files": [
+    "pages/anchors/TrainingPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/wechat/private-public",
+   "files": [
+    "pages/shop/wechat/WechatPrivatePublicPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/aips",
+   "files": [
+    "pages/shop/xiaohongshu/XhsConversionPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/funnel",
+   "files": [
+    "pages/shop/xiaohongshu/XhsConversionPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/notes",
+   "files": [
+    "pages/shop/xiaohongshu/XhsNoteBoardPage.tsx"
+   ],
+   "inOpenapi": true
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/xiaohongshu/search",
+   "files": [
+    "pages/shop/xiaohongshu/XhsConversionPage.tsx"
+   ],
+   "inOpenapi": true
+  }
+ ]
+}

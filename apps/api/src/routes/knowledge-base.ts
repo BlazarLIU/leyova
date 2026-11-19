@@ -32,7 +32,7 @@ const CONFIG_KEYS = [
 
 export async function knowledgeBaseRoutes(app: FastifyInstance) {
   // ── GET /api/v1/kb/config ── 读取配置（apiKey 脱敏）
-  app.get('/api/v1/kb/config', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/api/v1/kb/config', { preHandler: [requireRole(['super_admin'])] }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { rows } = await withRlsContext(request, (client) => client.query(
         `SELECT config_key, config_value FROM ai_config WHERE config_key = ANY($1::text[])`,
@@ -69,7 +69,7 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
       topK?: number
       similarityThreshold?: number
     }
-  }>('/api/v1/kb/config', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (request, reply) => {
+  }>('/api/v1/kb/config', { preHandler: [requireRole(['super_admin'])] }, async (request, reply) => {
     try {
       const b = request.body || {}
       const upserts: Array<[string, string]> = []
@@ -131,7 +131,7 @@ export async function knowledgeBaseRoutes(app: FastifyInstance) {
   })
 
   // ── POST /api/v1/kb/test ── 连通性测试
-  app.post('/api/v1/kb/test', { preHandler: [requireRole(['super_admin', 'admin'])] }, async (_request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/v1/kb/test', { preHandler: [requireRole(['super_admin'])] }, async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const result = await testKnowledgeBaseConnection()
       return sendOk(reply, result, result.message)

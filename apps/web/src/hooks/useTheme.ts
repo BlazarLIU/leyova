@@ -15,6 +15,18 @@ export function useTheme() {
       root.classList.remove('dark')
     }
     localStorage.setItem('orbit-theme', theme)
+    window.dispatchEvent(new CustomEvent('orbit-theme-change', { detail: theme }))
+  }, [theme])
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const newTheme = (e as CustomEvent).detail as Theme
+      if (newTheme && newTheme !== theme) {
+        setTheme(newTheme)
+      }
+    }
+    window.addEventListener('orbit-theme-change', handler)
+    return () => window.removeEventListener('orbit-theme-change', handler)
   }, [theme])
 
   const toggle = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'))

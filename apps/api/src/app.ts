@@ -13,18 +13,30 @@ import { anchorRoutes } from './routes/anchors.js'
 import { biRoutes } from './routes/bi.js'
 import { opsRoutes } from './routes/ops.js'
 import { systemRoutes } from './routes/system.js'
+import { systemCompetitorsRoutes } from './routes/system-competitors.js'
+import { systemUsersRoutes } from './routes/system-users.js'
+import { systemRoomsRoutes } from './routes/system-rooms.js'
+import { systemAlertsRoutes } from './routes/system-alerts.js'
+import { systemTasksRoutes } from './routes/system-tasks.js'
+import { systemAuditRoutes } from './routes/system-audit.js'
 import { personnelRoutes } from './routes/personnel.js'
 import { sessionRoutes } from './routes/sessions.js'
 import { aiRoutes } from './routes/ai.js'
 import './ai/tools.js' // register default MCP tools
 import { registerMcpRoutes } from './ai/mcp-server.js'
 import { dataRoutes } from './routes/data.js'
+import { dataLiveRoutes } from './routes/data-live.js'
+import { dataUploadedRoutes } from './routes/data-uploaded.js'
 import { reviewRoutes } from './routes/review.js'
+import { reviewOverviewRoutes } from './routes/review-overview.js'
+import { reviewAnalysisRoutes } from './routes/review-analysis.js'
 import { liveregRoutes } from './routes/livereg.js'
 import { platformRoutes } from './routes/platforms.js'
 import { ingestRoutes } from './routes/ingest.js'
+import { ingestManualUploadRoutes } from './routes/ingest-upload.js'
 import { omnichannelRoutes } from './routes/omnichannel.js'
 import { contentRoutes } from './routes/content.js'
+import { contentMetricsRoutes } from './routes/content-metrics.js'
 import { knowledgeBaseRoutes } from './routes/knowledge-base.js'
 import { analysisRoutes } from './routes/analysis.js'
 import { closureRoutes } from './routes/closure.js'
@@ -40,17 +52,28 @@ import { xiaohongshuRoutes } from './routes/xiaohongshu.js'
 import { weatherRoutes } from './routes/weather.js'
 import { accessControlRoutes } from './routes/access-control.js'
 import { hrbpRoutes } from './routes/hrbp.js'
+import { hrbpEfficiencyRoutes } from './routes/hrbp-efficiency.js'
+import { assortmentRoutes } from './routes/assortment.js'
 import { platformInsightsRoutes } from './routes/platform-insights.js'
-import { platformDedicatedRoutes } from './routes/platform-dedicated.js'
+import { insightsDouyinRoutes } from './routes/insights-douyin.js'
+import { insightsTaobaoRoutes } from './routes/insights-taobao.js'
+import { insightsXhsRoutes } from './routes/insights-xiaohongshu.js'
+import { insightsWechatRoutes } from './routes/insights-wechat.js'
 import { scheduleRoutes } from './routes/schedule.js'
+import { scheduleSessionsRoutes } from './routes/schedule-sessions.js'
 import { alertRulesRoutes } from './routes/alerts.js'
 import { governanceRoutes } from './routes/governance.js'
+import { governanceMappingRoutes } from './routes/governance-mapping.js'
 import { inventoryRoutes } from './routes/inventory.js'
+import { inventoryListingsRoutes } from './routes/inventory-listings.js'
+import { inventoryReservationsRoutes } from './routes/inventory-reservations.js'
 import { fulfillmentRoutes } from './routes/fulfillment.js'
 import { afterSalesRoutes } from './routes/after-sales.js'
+import { afterSalesRmaRoutes } from './routes/after-sales-rma.js'
 import { kolRoutes } from './routes/kol.js'
 import { customerServiceRoutes } from './routes/customer-service.js'
 import { netRoiRoutes } from './routes/net-roi.js'
+import { netRoiPlansRoutes } from './routes/net-roi-plans.js'
 import { searchKeywordRoutes } from './routes/search-keywords.js'
 import { growthComplianceRoutes } from './routes/growth-compliance.js'
 import { selectionRoutes } from './routes/selection.js'
@@ -64,7 +87,8 @@ import { registerMetricsHooks } from './lib/metrics.js'
 import { registerAuthHook } from './lib/auth-hook.js'
 import { dbPlugin } from './lib/db.js'
 import { errorHandler } from './lib/error-handler.js'
-import { openapiSpec } from './openapi.js'
+import { openapiSpec } from './openapi.generated.js'
+import { RouteCollector } from './lib/route-collector.js'
 
 export interface BuildAppOptions {
   logger?: boolean
@@ -85,6 +109,12 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   // ── global error handler ──
   app.setErrorHandler(errorHandler)
+
+  // ── 路由清单收集（P2-4 OpenAPI 自动生成） ──
+  // onRoute 必须在所有 app.register(...) 之前注册，才能捕获到全部真实路由。
+  // 收集结果用于生成 OpenAPI 文档，避免手写文档与代码漂移。
+  const routeRegistry = new RouteCollector()
+  routeRegistry.attach(app)
 
   // ── plugins ──
   await app.register(helmet)
@@ -126,18 +156,30 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await app.register(anchorRoutes)    // anchor/training/scripts routes
   await app.register(biRoutes)        // BI dashboard, ROI, refund, anomalies
   await app.register(opsRoutes)       // ops: product-templates, ad-plans, capabilities, goals, scripts, issues, room-health
-  await app.register(systemRoutes)    // system: config, alerts, competitors, multi-room, inventory
+  await app.register(systemRoutes)    // system: roles/modules, target-templates, config
+  await app.register(systemCompetitorsRoutes) // system 拆分(P2-1): competitors, multi-room
+  await app.register(systemUsersRoutes)   // system 拆分(P2-1): users, roles/modules
+  await app.register(systemRoomsRoutes)   // system 拆分(P2-1): rooms
+  await app.register(systemAlertsRoutes)  // system 拆分(P2-1): alerts
+  await app.register(systemTasksRoutes)   // system 拆分(P2-1): tasks, promotions
+  await app.register(systemAuditRoutes)   // system 拆分(P2-1): audit-logs, jobs
   await app.register(personnelRoutes) // personnel: anchors, operators, managers, attendance
   await app.register(dataRoutes)      // data: tables, uploads, quality, exports
-  await app.register(reviewRoutes)    // review: overview, channels, anchors, funnel, compare
+  await app.register(dataLiveRoutes)  // data 拆分(P2-1): live 登记数据 CRUD
+  await app.register(dataUploadedRoutes) // data 拆分(P2-1): uploaded-data 主播/渠道
+  await app.register(reviewRoutes)    // review: sessions, live-rooms, session-info, products, short-videos, funnel-data, related-issues
+  await app.register(reviewOverviewRoutes) // review 拆分(P2-1): overview
+  await app.register(reviewAnalysisRoutes) // review 拆分(P2-1): channels, anchors, funnel, compare
   await app.register(sessionRoutes)
   await app.register(aiRoutes)
   await app.register(registerMcpRoutes) // MCP Server（Streamable HTTP, 供 DeerFlow 调用）
   await app.register(liveregRoutes)   // livereg: form-data, submit
   await app.register(platformRoutes)  // platforms: multi-platform management, permissions & shops
-  await app.register(ingestRoutes)    // ingest: dual-track data access, cleaning pipeline & sync jobs
+  await app.register(ingestRoutes)    // ingest: sync / jobs / stats / templates / preview
+  await app.register(ingestManualUploadRoutes) // ingest 拆分(P2-1): 手动上传正式导入
   await app.register(omnichannelRoutes) // omnichannel: cross-platform dashboard & shelf shop analytics
-  await app.register(contentRoutes)      // content: providers, projects, tasks, assets, video metrics
+  await app.register(contentRoutes)      // content: providers, projects, tasks, assets
+  await app.register(contentMetricsRoutes) // content 拆分(P2-1): 视频数据 video-metrics
   await app.register(knowledgeBaseRoutes) // kb: external RAGFlow/MaxKB client config & search
   await app.register(analysisRoutes)     // analysis: semantic-layer driven AI analyst (P4)
   await app.register(closureRoutes)      // closure: analysis → tasks → knowledge base (P5)
@@ -152,18 +194,30 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await app.register(xiaohongshuRoutes) // xiaohongshu: 小红书专属分析（笔记/搜索/种草）
   await app.register(accessControlRoutes) // access-control: 模式 × 平台 × 模块 三维权限 (S2)
   await app.register(hrbpRoutes)          // hrbp: HRBP 工作台（人才/考勤/绩效/培训）(S5)
+  await app.register(hrbpEfficiencyRoutes) // hrbp 拆分(P3): 人效分析（总览/明细/利用率/成长/风险）
+  await app.register(assortmentRoutes)   // assortment(P3): 基于 GMV/库存/短视频/点击转化的排品推荐
   await app.register(platformInsightsRoutes) // platform-insights: 4 个平台专属洞察 (S7-B)
-  await app.register(platformDedicatedRoutes) // platform-dedicated: 10 个平台专属洞察 (S7-B 第二批)
+  // platform-dedicated 拆分(P2-1)：按平台拆为 4 个子路由
+  await app.register(insightsDouyinRoutes)      // 抖音：三池统一调度
+  await app.register(insightsTaobaoRoutes)      // 淘系：直播三源/品牌×场次/五层抵扣/官方立减
+  await app.register(insightsXhsRoutes)         // 小红书：买手画像/蒲公英达人/直播流量来源
+  await app.register(insightsWechatRoutes)      // 视频号：全域带货者/短视频与图文
   await app.register(weatherRoutes)      // weather: 竞品差异化特色 · 天气 AI 穿搭与智能选品 (Track 1)
-  await app.register(scheduleRoutes)     // schedule: AI 智能主播排班建议 (Track 1)
+  await app.register(scheduleRoutes)     // schedule: meta / 日历 / 人员状态 / 请假
+  await app.register(scheduleSessionsRoutes) // schedule 拆分(P2-1): 排班场次 CRUD
   await app.register(alertRulesRoutes)   // alerts: 自定义指标阈值告警与 Webhook 调度 (Track 1)
-  await app.register(governanceRoutes)   // governance: 7大平台API、双轨接入、数据清洗、质量校验与发布闸门
-  await app.register(inventoryRoutes)    // inventory: 商品主数据与全渠道库存中心
+  await app.register(governanceRoutes)   // governance: 平台规范、双轨接入、清洗校验与发布闸门
+  await app.register(governanceMappingRoutes) // governance 拆分(P2-1): 主体/字段映射规则
+  await app.register(inventoryRoutes)    // inventory: 商品主数据、SKU 映射、库存台账
+  await app.register(inventoryListingsRoutes) // inventory 拆分(P2-1): 渠道定价与配额
+  await app.register(inventoryReservationsRoutes) // inventory 拆分(P2-1): 防超卖预留
   await app.register(fulfillmentRoutes)  // fulfillment: 多平台48h履约SLA与赔付风控
-  await app.register(afterSalesRoutes)   // after-sales: 售后退货原因归因与工单闭环
+  await app.register(afterSalesRoutes)   // after-sales: 售后归因与工单闭环
+  await app.register(afterSalesRmaRoutes) // after-sales 拆分(P2-1): 行级 RMA 与订单事件流
   await app.register(kolRoutes)          // kol: 外部达人档案与佣金台账
   await app.register(customerServiceRoutes) // cs: 客服咨询会话与响应绩效
-  await app.register(netRoiRoutes)       // net-roi: 官方归因窗口与 T+7 净成交 ROI 双时间线
+  await app.register(netRoiRoutes)       // net-roi: 归因窗口 / 总览 / 消耗 / 结算账期
+  await app.register(netRoiPlansRoutes)  // net-roi 拆分(P2-1): 投流计划与回执
   await app.register(searchKeywordRoutes) // search-keywords: 搜索词卡位排名与小红书词包同步
   await app.register(growthComplianceRoutes) // promotions/rules, members/overview, compliance/events
   await app.register(selectionRoutes)    // selection: 全品类多因子 AI 选品与推荐 (FINAL-PLAN Phase 2)
@@ -177,6 +231,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
   app.setNotFoundHandler((_request, reply) => {
     reply.code(404).send({ success: false, message: 'Not Found' })
   })
+
+  // 暴露路由清单供 OpenAPI 生成脚本使用（P2-4）
+  ;(app as any).__routeCollector = routeRegistry
 
   return app
 }

@@ -5,17 +5,15 @@ import { getPool } from './db.js'
 
 export type RoleCode =
   | 'super_admin'
-  | 'admin'
-  | 'operator'
-  | 'hrbp'
-  | 'employee'
-  | 'ad_buyer'
   | 'ops_director'
   | 'ops_staff'
+  | 'ad_buyer'
   | 'controller'
-  | 'brand_viewer'
+  | 'video_editor'
+  | 'cs_agent'
+  | 'hrbp'
 
-export const AD_SPEND_ROLES: RoleCode[] = ['super_admin', 'admin', 'ops_director', 'ad_buyer']
+export const AD_SPEND_ROLES: RoleCode[] = ['super_admin', 'ops_director', 'ad_buyer']
 
 export interface AuthUser {
   id: number
@@ -113,7 +111,7 @@ export function requireRole(allowedRoles: string[]) {
  *   ops_staff / ops_director / hrbp
  */
 const COST_VISIBILITY_ROLES = new Set([
-  'super_admin', 'admin', 'ad_buyer', 'operator', 'ops_staff', 'ops_director', 'hrbp',
+  'super_admin', 'ops_director', 'ops_staff', 'ad_buyer', 'hrbp',
 ])
 
 export function canAccessCost(
@@ -176,13 +174,11 @@ export function canAccessAdSpend(
  */
 export function canManageTargetUser(
   actorRole: string,
-  targetCurrentRole?: string | null,
-  targetNewRole?: string | null
+  _targetCurrentRole?: string | null,
+  _targetNewRole?: string | null
 ): boolean {
-  if (actorRole === 'super_admin') return true
-  if (actorRole !== 'admin') return false
-  if (targetCurrentRole === 'super_admin') return false
-  if (targetNewRole === 'super_admin') return false
+  // 组织收敛后仅 super_admin 具备账号管理权限
+  if (actorRole !== 'super_admin') return false
   return true
 }
 

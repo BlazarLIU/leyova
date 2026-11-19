@@ -6,7 +6,7 @@ import { withRlsContext, type DbExecutor } from '../lib/db.js'
 import { canAccessCost, canAccessCostAsync, requireAuth, requireRole } from '../lib/guard.js'
 import { getAnchorCapabilitiesAndRankings } from '../services/anchor-ranking.js'
 
-const OPS_PLAN_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator', 'controller']
+const OPS_PLAN_WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator']
 
 export async function opsRoutes(app: FastifyInstance) {
   // ── GET /api/v1/ops/capabilities ── (frontend: /ops/capabilities)
@@ -64,6 +64,91 @@ export async function opsRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'ops/goal-tracking query failed')
       return sendOk(reply, { goals: [] })
+    }
+  })
+
+  // ── POST /api/v1/ops/goal-tracking ── 新建经营目标（P0-1：目标管理闭环）
+  app.post('/api/v1/ops/goal-tracking', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const { name, target, unit, category, period } = request.body ?? {}
+    if (!name || !String(name).trim()) return sendError(reply, 400, '目标名称不能为空')
+    const targetNum = Number(target)
+    if (!Number.isFinite(targetNum) || targetNum <= 0) return sendError(reply, 400, '目标值必须是正数')
+    const periodVal = ['monthly', 'quarterly', 'yearly'].includes(period) ? period : 'monthly'
+    const unitVal = unit && String(unit).trim() ? String(unit).trim() : '元'
+    const categoryVal = category && String(category).trim() ? String(category).trim() : '营收'
+    try {
+      const result = await withRlsContext(request, async (client) => {
+        const { rows: [goal] } = await client.query(
+          `INSERT INTO goal_tracking (name, target, current_val, unit, progress, category, period)
+           VALUES ($1, $2, 0, $3, 0, $4, $5) RETURNING id`,
+          [String(name).trim(), targetNum, unitVal, categoryVal, periodVal])
+        await writeAuditLog(client, {
+          actorUserId: (request as any).user?.id,
+          action: 'goal.create',
+          resourceType: 'goal_tracking',
+          resourceId: String(goal.id),
+          afterData: { name: String(name).trim(), target: targetNum, period: periodVal },
+          request,
+        })
+        return goal
+      })
+      return sendOk(reply, { id: result.id })
+    } catch (err) {
+      request.log.warn({ err }, 'ops/goal-tracking insert failed')
+      return sendError(reply, 500, '创建目标失败')
+    }
+  })
+
+  // ── PUT /api/v1/ops/goal-tracking/:id ── 更新目标（progress 由 current/target 推导）
+  app.put('/api/v1/ops/goal-tracking/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const id = Number((request.params as { id: string }).id)
+    if (!Number.isInteger(id) || id <= 0) return sendError(reply, 400, '无效的目标 ID')
+    const { name, target, current, unit, category, period } = request.body ?? {}
+    const sets: string[] = []
+    const params: any[] = []
+    const push = (col: string, val: any) => { params.push(val); sets.push(col + ' = $' + params.length) }
+    if (name != null) push('name', String(name).trim())
+    if (target != null && Number.isFinite(Number(target))) push('target', Number(target))
+    if (current != null && Number.isFinite(Number(current))) push('current_val', Number(current))
+    if (unit != null) push('unit', String(unit).trim())
+    if (category != null) push('category', String(category).trim())
+    if (period != null && ['monthly', 'quarterly', 'yearly'].includes(period)) push('period', period)
+    if (sets.length === 0) return sendError(reply, 400, '没有需要更新的字段')
+    try {
+      await withRlsContext(request, async (client) => {
+        // PG 的 SET 左边赋值对右边不可见：若同一条语句里先 SET current_val 再算
+        // progress，表达式读到的是旧值（0）。故拆成两条 UPDATE。
+        await client.query(
+          'UPDATE goal_tracking SET ' + sets.join(', ') + ', updated_at = now() WHERE id = $' + (params.length + 1),
+          [...params, id])
+        await client.query(
+          `UPDATE goal_tracking
+              SET progress = LEAST(200, GREATEST(0, ROUND(
+                    CASE WHEN target > 0 THEN current_val::numeric / target * 100 ELSE 0 END
+                  )::smallint)),
+                  updated_at = now()
+            WHERE id = $1`,
+          [id])
+      })
+      return sendOk(reply, { id })
+    } catch (err) {
+      request.log.warn({ err }, 'ops/goal-tracking update failed')
+      return sendError(reply, 500, '更新目标失败')
+    }
+  })
+
+  // ── DELETE /api/v1/ops/goal-tracking/:id ── 删除目标
+  app.delete('/api/v1/ops/goal-tracking/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const id = Number((request.params as { id: string }).id)
+    if (!Number.isInteger(id) || id <= 0) return sendError(reply, 400, '无效的目标 ID')
+    try {
+      await withRlsContext(request, async (client) => {
+        await client.query('DELETE FROM goal_tracking WHERE id = $1', [id])
+      })
+      return sendOk(reply, { id })
+    } catch (err) {
+      request.log.warn({ err }, 'ops/goal-tracking delete failed')
+      return sendError(reply, 500, '删除目标失败')
     }
   })
 
@@ -193,6 +278,90 @@ export async function opsRoutes(app: FastifyInstance) {
     } catch (err) {
       request.log.warn({ err }, 'ops/issue-library query failed')
       return sendOk(reply, { issues: [], autoTags: [] })
+    }
+  })
+
+  // ── POST /api/v1/ops/issue-library ── 录入问题（含「自动检测一键转问题」）
+  // 此前只有 GET：前端能展示自动检测到的异常，却无法转成可追踪的问题条目，
+  // 导致「问题库 → 改进任务 → 复盘」闭环断在第一环。
+  app.post('/api/v1/ops/issue-library', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const { title, category, solution, detailedSolution } = request.body ?? {}
+    if (!title || !String(title).trim()) return sendError(reply, 400, '问题标题不能为空')
+    if (!solution || !String(solution).trim()) return sendError(reply, 400, '必须填写处理方式')
+    const categoryVal = category && String(category).trim() ? String(category).trim() : '其他'
+    try {
+      const result = await withRlsContext(request, async (client) => {
+        // 同标题重复录入时累加 occurrence_count，而非新建重复条目
+        const { rows: existing } = await client.query(
+          'SELECT id, occurrence_count FROM issue_library WHERE title = $1 LIMIT 1',
+          [String(title).trim()])
+        if (existing.length > 0) {
+          const { rows: [updated] } = await client.query(
+            `UPDATE issue_library
+                SET occurrence_count = occurrence_count + 1,
+                    solution = $2,
+                    detailed_solution = COALESCE($3, detailed_solution),
+                    updated_at = now()
+              WHERE id = $1
+              RETURNING id, occurrence_count`,
+            [existing[0].id, String(solution).trim(), detailedSolution ? String(detailedSolution) : null])
+          return { id: updated.id, occurrenceCount: Number(updated.occurrence_count), merged: true }
+        }
+        const { rows: [created] } = await client.query(
+          `INSERT INTO issue_library (title, category, solution, detailed_solution, occurrence_count)
+           VALUES ($1, $2, $3, $4, 1) RETURNING id`,
+          [String(title).trim(), categoryVal, String(solution).trim(),
+           detailedSolution ? String(detailedSolution) : null])
+        return { id: created.id, occurrenceCount: 1, merged: false }
+      })
+      return sendOk(reply, result)
+    } catch (err) {
+      request.log.warn({ err }, 'ops/issue-library insert failed')
+      return sendError(reply, 500, '录入问题失败')
+    }
+  })
+
+  // ── PUT /api/v1/ops/issue-library/:id ── 更新问题条目
+  app.put('/api/v1/ops/issue-library/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const id = Number((request.params as { id: string }).id)
+    if (!Number.isInteger(id) || id <= 0) return sendError(reply, 400, '无效的问题 ID')
+    const { title, category, solution, detailedSolution, occurrenceCount } = request.body ?? {}
+    const sets: string[] = []
+    const params: any[] = []
+    const push = (col: string, val: any) => { params.push(val); sets.push(col + ' = $' + params.length) }
+    if (title != null) push('title', String(title).trim())
+    if (category != null) push('category', String(category).trim())
+    if (solution != null) push('solution', String(solution).trim())
+    if (detailedSolution != null) push('detailed_solution', String(detailedSolution))
+    if (occurrenceCount != null && Number.isFinite(Number(occurrenceCount))) {
+      push('occurrence_count', Math.max(0, Math.round(Number(occurrenceCount))))
+    }
+    if (sets.length === 0) return sendError(reply, 400, '没有需要更新的字段')
+    try {
+      await withRlsContext(request, async (client) => {
+        await client.query(
+          'UPDATE issue_library SET ' + sets.join(', ') + ', updated_at = now() WHERE id = $' + (params.length + 1),
+          [...params, id])
+      })
+      return sendOk(reply, { id })
+    } catch (err) {
+      request.log.warn({ err }, 'ops/issue-library update failed')
+      return sendError(reply, 500, '更新问题失败')
+    }
+  })
+
+  // ── DELETE /api/v1/ops/issue-library/:id ── 删除问题条目
+  app.delete('/api/v1/ops/issue-library/:id', { preHandler: [requireRole(OPS_PLAN_WRITE_ROLES)] }, async (request: any, reply) => {
+    const id = Number((request.params as { id: string }).id)
+    if (!Number.isInteger(id) || id <= 0) return sendError(reply, 400, '无效的问题 ID')
+    try {
+      await withRlsContext(request, async (client) => {
+        await client.query('DELETE FROM issue_library WHERE id = $1', [id])
+      })
+      return sendOk(reply, { id })
+    } catch (err) {
+      request.log.warn({ err }, 'ops/issue-library delete failed')
+      return sendError(reply, 500, '删除问题失败')
     }
   })
 

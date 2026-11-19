@@ -83,14 +83,19 @@
 
 | 角色代码 | 角色名称 | 登录用户名 | 推荐体验功能 |
 | :--- | :--- | :--- | :--- |
-| **`admin`** | **🏢 机构负责人** | `manager_liu` | 全盘经营大盘、跨平台统筹、经营方案立项审批 |
-| **`ops_director`**| **📊 运营总监** | `director_zhang` | 全渠道驾驶舱、SLA 履约风控、排品与排班审核 |
-| **`operator`** | **🚀 核心运营 (操盘手)** | `operator_wang` | 场次调度、货盘排品、投流监控、运营复盘与 Net-ROI 评估 |
-| **`ad_buyer`** | **📈 专业投手** | `buyer_sun` | 投流消耗对账、广告投放 ROI 分析、关键词优化 |
-| **`finance`** | **💰 财务主管** | `finance_chen` | 渠道成本核算、总账流水、凭证核销与真实利润测算 |
-| **`hrbp`** | **👥 人才经营 HRBP** | `hr_li` | 主播梯队画像、排班调度、考勤与绩效提成统计 |
-| **`brand_viewer`**| **🏷️ 签约品牌代表** | `gap_viewer` | 签约品牌独立门户，仅查验所授权品牌经营数据 |
 | **`super_admin`** | **👑 系统管理员** | `admin` | 账号权限配置、系统运维监控、字典与参数设置 |
+| **`ops_director`** | **📊 运营总监** | `manager_liu` / `director_zhou` | 全盘经营大盘、跨平台统筹、排品与排班审核 |
+| **`ops_staff`** | **🧰 运营专员** | `operator_wang` / `staff_lin` | 场次调度、货盘排品、投流监控、运营复盘 |
+| **`ad_buyer`** | **📈 投放专员** | `finance_chen` / `buyer_xu` | 投流消耗对账、广告投放 ROI 分析、关键词优化 |
+| **`hrbp`** | **👥 HRBP** | `hr_li` | 主播梯队画像、排班调度、人效与绩效提成统计 |
+| **`controller`** | **🎛️ 直播中控** | `control_zhao` / `ctrl_wu` | 现场中控、直播节奏与商品上下架协同 |
+| **`video_editor`** | **🎬 短视频运营/编导** | `video_lin` | 脚本库、素材与切片排产 |
+| **`cs_agent`** | **🎧 客服后端** | `cs_qian` | 客服会话、售后工单与话术库 |
+
+> **账号说明（2026-11-19 对齐真实 `users` 表）**：
+> - 系统不设独立 `finance` 角色；财务口径（P&L、人效核算）对 `super_admin` / `ops_director` / `hrbp` 开放。
+> - 品牌方门户（`brand_viewer`）当前**无启用状态的演示账号**，需先在「系统-账号管理」创建账号并授权品牌后方可体验。
+> - 全部分支平台中控账号：`ctrl_douyin` / `ctrl_taobao` / `ctrl_xhs` / `ctrl_wechat`。
 
 ---
 
@@ -124,12 +129,37 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 # 根据本地实际情况修改 apps/api/.env 中的 DATABASE_URL
 
-# 3. 初始化数据库
-pnpm db:migrate
+# 3. 初始化数据库（自动建库 + 执行全部迁移）
+node database/demo/init.mjs
 
 # 4. 启动服务 (前后端双进程热重载)
 pnpm dev
 ```
+
+---
+
+## 📦 数据库初始化与演示数据
+
+数据库初始化统一由 `database/demo/init.mjs` 完成，支持三种模式：
+
+| 模式 | 命令 | 说明 |
+| :--- | :--- | :--- |
+| **正式部署（默认）** | `node database/demo/init.mjs` | 建库 + 迁移，**不灌演示数据**。系统处于干净状态，数据由用户自行接入 |
+| **演示环境** | `node database/demo/init.mjs --with-demo` | 额外灌入演示数据集（人员 / 场次 / 排品 / 短视频 / 订单 / HRBP 考勤等），并自动回填聚合表 |
+| **清空演示数据** | `node database/demo/reset.mjs` | 用户接入真实数据后，一键清空演示数据，**完整保留**账号、角色、权限、平台配置、店铺、字典等基础数据 |
+
+npm 快捷方式：`pnpm db:init`（正式）/ `pnpm db:init:demo`（演示）/ `pnpm demo:reset`（清空）
+
+> 演示数据包的设计原则、数据清单与来源标注详见 [`database/demo/README.md`](database/demo/README.md)。
+
+### 数据接入（正式部署后）
+
+系统提供两条真实数据接入路径，**平台 API 凭证由用户自行配置**：
+
+1. **用户手动上传**：前端「数据管理 → 上传」，或 `POST /api/v1/ingest/manual-upload`
+   - 支持 CSV / Excel，含列映射建议、清洗预演 Diff、导入前校验
+2. **官方平台 API 接入**：前端「系统配置 → 平台授权」配置店铺凭证，或 `POST /api/v1/ingest/sync`
+   - 覆盖抖音、淘宝/天猫、视频号、小红书等平台官方 OpenAPI
 
 ---
 

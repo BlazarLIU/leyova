@@ -45,6 +45,10 @@ const envSchema = z.object({
 
   // ---- 会话与加密密钥 ----
   API_ENCRYPTION_KEY: z.string().default(''),
+  // ── Prometheus 抓取鉴权 ──
+  // 未设置时仅允许已登录会话访问 /metrics；设置后 Prometheus 可用
+  // `Authorization: Bearer <METRICS_TOKEN>` 免登录抓取。
+  METRICS_TOKEN: z.string().default(''),
   // ── 日志 / 定时 ──
   LOG_LEVEL: z.string().default('info'),
   LOG_ROOT: z.string().default(''),

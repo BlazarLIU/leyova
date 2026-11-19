@@ -11,7 +11,9 @@
     "worker": "node --import tsx src/worker.ts",
     "test": "node --import tsx --test test/*.test.ts test/governance/*.test.ts",
     "backup": "tsx src/cli/backup.ts",
-    "cleanup-logs": "tsx src/cli/cleanup-logs.ts"
+    "cleanup-logs": "tsx src/cli/cleanup-logs.ts",
+    "openapi:gen": "tsx scripts/generate-openapi.ts",
+    "openapi:check": "tsx scripts/openapi-drift.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^10.0.0",

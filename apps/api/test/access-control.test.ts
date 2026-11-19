@@ -62,7 +62,7 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
   })
 
   test('GET /api/v1/access/me 返回模块与平台能力矩阵（S3 起无工作模式）', async () => {
-    const admin = await createTempAccount('admin')
+    const admin = await createTempAccount('super_admin')
     createdUserIds.push(admin.userId)
 
     const res = await app.inject({
@@ -79,12 +79,20 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
 
     assert.ok(Array.isArray(data.modules) && data.modules.length > 0, '应返回模块列表')
     assert.ok(data.modulesByPlatform && typeof data.modulesByPlatform === 'object', '应返回分平台模块')
-    assert.ok(Array.isArray(data.platforms) && data.platforms.length >= 5, '应返回可见平台')
+    // platforms=null 表示「全部启用平台」（super_admin 语义）；
+    // 实际平台以 modulesByPlatform 的键为准（当前 6 个启用平台）
+    assert.ok(
+      data.platforms === null ||
+        (Array.isArray(data.platforms) && data.platforms.length >= 5),
+      '应返回可见平台（null=全部平台 或 明细数组）',
+    )
+    const platformKeys = Object.keys(data.modulesByPlatform || {})
+    assert.ok(platformKeys.length >= 5, `modulesByPlatform 应覆盖全部启用平台，实际 ${platformKeys.length}`)
     assert.ok(!data.modules.includes('agency'), 'S3 起 agency 模块应已下线')
   })
 
   test('S7：5 个平台均为直播电商平台，全部返回直播域模块', async () => {
-    const admin = await createTempAccount('admin')
+    const admin = await createTempAccount('super_admin')
     createdUserIds.push(admin.userId)
 
     const res = await app.inject({
@@ -104,7 +112,7 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
   })
 
   test('S7：平台能力矩阵把非直播模块正确排除（以已删的 agency 为例）', async () => {
-    const admin = await createTempAccount('admin')
+    const admin = await createTempAccount('super_admin')
     createdUserIds.push(admin.userId)
 
     const res = await app.inject({
@@ -120,7 +128,7 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
   })
 
   test('S7：岗位字典含 6 类岗位（主播/中控/运营/投手/拍剪/编导）', async () => {
-    const admin = await createTempAccount('admin')
+    const admin = await createTempAccount('super_admin')
     createdUserIds.push(admin.userId)
 
     const res = await app.inject({
@@ -135,7 +143,7 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
   })
 
   test('用户级 revoke 覆盖角色授权（优先级生效）', async () => {
-    const admin = await createTempAccount('admin')
+    const admin = await createTempAccount('super_admin')
     createdUserIds.push(admin.userId)
 
     // 基线：应有 bi 模块
@@ -163,7 +171,7 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
   })
 
   test('用户级 grant 能追加角色没有的模块', async () => {
-    const staff = await createTempAccount('employee')
+    const staff = await createTempAccount('ops_staff')
     createdUserIds.push(staff.userId)
 
     const before = await app.inject({
@@ -172,12 +180,14 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
       headers: { cookie: staff.cookie },
     })
     const beforeModules = before.json().data.modules as string[]
-    assert.ok(!beforeModules.includes('compliance'), 'employee 基线不应含 compliance')
+    // 2026-11-18 组织收敛：ops_staff 已合并 operator 的 compliance 权限，
+    // 改用其确实没有的 system_users 作为「角色基线不含」的验证对象
+    assert.ok(!beforeModules.includes('system_users'), 'ops_staff 基线不应含 system_users')
 
     const pg = getPool()
     await pg.query(
       `INSERT INTO public.user_module_overrides (user_id, module_code, effect)
-       VALUES ($1, 'compliance', 'grant') ON CONFLICT (user_id, module_code) DO UPDATE SET effect='grant'`,
+       VALUES ($1, 'system_users', 'grant') ON CONFLICT (user_id, module_code) DO UPDATE SET effect='grant'`,
       [staff.userId],
     )
 
@@ -187,13 +197,13 @@ describe('S2 账号体系：模式 × 平台 × 模块', () => {
       headers: { cookie: staff.cookie },
     })
     assert.ok(
-      (afterRes.json().data.modules as string[]).includes('compliance'),
-      'grant 后应含 compliance',
+      (afterRes.json().data.modules as string[]).includes('system_users'),
+      'grant 后应含 system_users',
     )
   })
 
   test('GET /api/v1/access/capability-matrix 返回矩阵', async () => {
-    const admin = await createTempAccount('admin')
+    const admin = await createTempAccount('super_admin')
     createdUserIds.push(admin.userId)
 
     const res = await app.inject({

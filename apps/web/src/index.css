@@ -25,25 +25,29 @@
   --glass-border: rgba(255, 255, 255, 0.07);
 }
 
+/* ─── Light mode overrides - high contrast, zero blur, solid boundaries ─────── */
 html:not(.dark) {
-  /* Light mode overrides */
   --bg:       #F8FAFC;
   --surface:  #FFFFFF;
   --surface2: #F1F5F9;
-  --surface3: #E8EDF3;
-  --border:   #E2E8F0;
-  --border2:  #CBD5E1;
+  --surface3: #E2E8F0;
+  --border:   #CBD5E1;
+  --border2:  #94A3B8;
 
   --text-primary:   #0F172A;
   --text-secondary: #1E293B;
-  --text-muted:     #475569;
-  --text-subtle:    #94A3B8;
+  --text-muted:     #334155;
+  --text-subtle:    #475569;
 
-  --hover-bg:   rgba(0, 0, 0, 0.04);
-  --hover-bg2:  rgba(0, 0, 0, 0.07);
-  --hover-bg3:  rgba(0, 0, 0, 0.02);
-  --glass-bg:   rgba(0, 0, 0, 0.02);
-  --glass-border: rgba(0, 0, 0, 0.08);
+  --hover-bg:   rgba(0, 0, 0, 0.05);
+  --hover-bg2:  rgba(0, 0, 0, 0.08);
+  --hover-bg3:  rgba(0, 0, 0, 0.03);
+  --glass-bg:   #FFFFFF;
+  --glass-border: #CBD5E1;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* ─── Map runtime vars to Tailwind tokens via @theme inline ────────────────── */
@@ -93,16 +97,149 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ─── Light mode text color overrides ──────────────────────────────────────── */
-/* Tailwind's @layer utilities is lower priority than unlayered CSS,            */
-/* so these naturally win without !important                                    */
-html:not(.dark) .text-slate-100,
-html:not(.dark) .text-slate-200 { color: var(--text-primary); }
-html:not(.dark) .text-slate-300  { color: var(--text-secondary); }
-html:not(.dark) .text-slate-400,
-html:not(.dark) .text-slate-500  { color: var(--text-muted); }
-html:not(.dark) .text-slate-600,
-html:not(.dark) .text-slate-700  { color: var(--text-subtle); }
+/* ─── Light mode broad-spectrum container backgrounds ────────────────────── */
+html:not(.dark) .bg-\[\#0b0f19\],
+html:not(.dark) [class*="bg-slate-9"],
+html:not(.dark) [class*="bg-gray-9"],
+html:not(.dark) [class*="bg-zinc-9"],
+html:not(.dark) [class*="bg-neutral-9"] {
+  background-color: var(--surface) !important;
+}
+
+html:not(.dark) [class*="bg-slate-8"],
+html:not(.dark) [class*="bg-gray-8"],
+html:not(.dark) [class*="bg-zinc-8"],
+html:not(.dark) [class*="bg-neutral-8"] {
+  background-color: var(--surface2) !important;
+}
+
+/* Light mode transparent hover & active backgrounds */
+html:not(.dark) .bg-white\/5,
+html:not(.dark) .bg-white\/10,
+html:not(.dark) [class*="hover:bg-slate-800"]:hover,
+html:not(.dark) [class*="hover:bg-gray-800"]:hover,
+html:not(.dark) [class*="hover:bg-white\/"]:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Light mode borders — solid, crisp, never fuzzy */
+html:not(.dark) [class*="border-slate-8"],
+html:not(.dark) [class*="border-gray-8"],
+html:not(.dark) [class*="border-zinc-8"],
+html:not(.dark) [class*="border-slate-7"],
+html:not(.dark) [class*="border-gray-7"],
+html:not(.dark) [class*="border-zinc-7"] {
+  border-color: var(--border) !important;
+}
+
+/* Eliminate backdrop-filter blur fuzziness in light mode */
+html:not(.dark) [class*="backdrop-blur"],
+html:not(.dark) .glass {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ─── Light mode high-contrast text color overrides (eliminates fuzzy/dim text) ─── */
+html:not(.dark) [class*="text-slate-1"],
+html:not(.dark) [class*="text-slate-2"],
+html:not(.dark) [class*="text-gray-1"],
+html:not(.dark) [class*="text-gray-2"],
+html:not(.dark) [class*="text-zinc-1"],
+html:not(.dark) [class*="text-zinc-2"] {
+  color: #0F172A !important;
+}
+
+html:not(.dark) [class*="text-slate-3"],
+html:not(.dark) [class*="text-gray-3"],
+html:not(.dark) [class*="text-zinc-3"] {
+  color: #1E293B !important;
+}
+
+/* Secondary & muted text: Deep Slate for ultra-crisp readability (WCAG AAA) */
+html:not(.dark) [class*="text-slate-4"],
+html:not(.dark) [class*="text-gray-4"],
+html:not(.dark) [class*="text-zinc-4"] {
+  color: #334155 !important;
+}
+
+html:not(.dark) [class*="text-slate-5"],
+html:not(.dark) [class*="text-gray-5"],
+html:not(.dark) [class*="text-zinc-5"] {
+  color: #475569 !important;
+}
+
+html:not(.dark) [class*="text-slate-6"],
+html:not(.dark) [class*="text-gray-6"],
+html:not(.dark) [class*="text-zinc-6"] {
+  color: #64748B !important;
+}
+
+/* Text white overrides: prevent white-on-white unless element is an accent button/badge */
+html:not(.dark) :is(div, span, p, h1, h2, h3, h4, h5, h6, label, th, td, input, select, textarea, li).text-white:not([class*="bg-indigo-"]):not([class*="bg-blue-"]):not([class*="bg-violet-"]):not([class*="bg-purple-"]):not([class*="bg-emerald-"]):not([class*="bg-red-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-orbit-primary"]) {
+  color: #0F172A !important;
+}
+
+/* High-contrast status colors in light mode */
+html:not(.dark) .text-emerald-300,
+html:not(.dark) .text-emerald-400 { color: #047857 !important; }
+html:not(.dark) .text-amber-300,
+html:not(.dark) .text-amber-400 { color: #b45309 !important; }
+html:not(.dark) .text-red-300,
+html:not(.dark) .text-red-400,
+html:not(.dark) .text-rose-300,
+html:not(.dark) .text-rose-400 { color: #be123c !important; }
+html:not(.dark) .text-blue-300,
+html:not(.dark) .text-blue-400,
+html:not(.dark) .text-sky-300,
+html:not(.dark) .text-sky-400 { color: #0369a1 !important; }
+html:not(.dark) .text-violet-300,
+html:not(.dark) .text-violet-400 { color: #6d28d9 !important; }
+html:not(.dark) .text-cyan-300,
+html:not(.dark) .text-cyan-400 { color: #0e7490 !important; }
+html:not(.dark) .text-orange-300,
+html:not(.dark) .text-orange-400 { color: #c2410c !important; }
+html:not(.dark) .text-purple-300,
+html:not(.dark) .text-purple-400 { color: #7e22ce !important; }
+html:not(.dark) .text-yellow-300,
+html:not(.dark) .text-yellow-400 { color: #a16207 !important; }
+html:not(.dark) .text-indigo-200,
+html:not(.dark) .text-indigo-300 { color: #4338CA !important; }
+html:not(.dark) .text-indigo-400 { color: #4F46E5 !important; }
+
+/* Light mode input & form controls — solid white surface, deep text, crisp border */
+html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
+html:not(.dark) select,
+html:not(.dark) textarea {
+  color: #0F172A !important;
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+}
+
+html:not(.dark) input.bg-transparent {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #0F172A !important;
+}
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #64748B !important;
+  opacity: 1 !important;
+}
+
+/* Table headers & Recharts Tooltip in light mode */
+html:not(.dark) thead.bg-orbit-surface,
+html:not(.dark) thead.bg-slate-900 {
+  background-color: var(--surface2) !important;
+}
+html:not(.dark) .recharts-default-tooltip {
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+html:not(.dark) .recharts-tooltip-item {
+  color: var(--text-secondary) !important;
+}
 
 /* Placeholder colors in light mode */
 html:not(.dark) ::placeholder { color: var(--text-subtle); opacity: 1; }

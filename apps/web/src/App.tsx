@@ -2,9 +2,11 @@ import { Suspense, lazy, type ComponentType } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { RequireAccess } from '@/components/auth/RequireAccess'
+import { RequireAiOpsAccess } from '@/components/auth/RequireAiOpsAccess'
 import { useAuth, getDefaultHomePath } from '@/hooks/useAuth'
 import { SignInPage } from '@/pages/auth/SignInPage'
-import { PlatformInsightPage } from '@/pages/insights/PlatformInsightPage'
+import { NotFoundPage } from '@/pages/system/NotFoundPage'
+import { CLASSIC_ROUTES } from '@/routes/classic-routes'
 
 function lazyPage<M extends Record<string, any>, K extends keyof M>(
   loader: () => Promise<M>,
@@ -16,85 +18,44 @@ function lazyPage<M extends Record<string, any>, K extends keyof M>(
 }
 
 // 总览
-const PlatformAwareHomePage = lazyPage(() => import('@/pages/overview/PlatformAwareHomePage'), 'PlatformAwareHomePage')
-const CockpitPage = lazyPage(() => import('@/pages/overview/CockpitPage'), 'CockpitPage')
-const LiveMonitorPage = lazyPage(() => import('@/pages/overview/LiveMonitorPage'), 'LiveMonitorPage')
-const SessionsPage = lazyPage(() => import('@/pages/overview/SessionsPage'), 'SessionsPage')
-const AnalyticsPage = lazyPage(() => import('@/pages/overview/AnalyticsPage'), 'AnalyticsPage')
 
 // 直播管理
-const AttendancePage = lazyPage(() => import('@/pages/live/AttendancePage'), 'AttendancePage')
-const LiveRegistrationPage = lazyPage(() => import('@/pages/live/LiveRegistrationPage'), 'LiveRegistrationPage')
-const DataLivePage = lazyPage(() => import('@/pages/live/DataLivePage'), 'DataLivePage')
 
-// AI
-const ChatPage = lazyPage(() => import('@/pages/ai/ChatPage'), 'ChatPage')
-const SelectionPage = lazyPage(() => import('@/pages/ai/SelectionPage'), 'SelectionPage')
-const SelectionHistoryPage = lazyPage(() => import('@/pages/ai/SelectionHistoryPage'), 'SelectionHistoryPage')
-const AnalysisWorkbenchPage = lazyPage(() => import('@/pages/ai/AnalysisWorkbenchPage'), 'AnalysisWorkbenchPage')
+// AI 运营系统 (AI-Native 独立分支)
+const AiOpsCockpitPage = lazyPage(() => import('@/pages/ai-ops/AiOpsCockpitPage'), 'AiOpsCockpitPage')
+const AiOpsWorkbenchPage = lazyPage(() => import('@/pages/ai-ops/AiOpsWorkbenchPage'), 'AiOpsWorkbenchPage')
+const AiOpsChatPage = lazyPage(() => import('@/pages/ai-ops/AiOpsChatPage'), 'AiOpsChatPage')
+const AiOpsInboxPage = lazyPage(() => import('@/pages/ai-ops/AiOpsInboxPage'), 'AiOpsInboxPage')
+const AiOpsAlertsPage = lazyPage(() => import('@/pages/ai-ops/AiOpsAlertsPage'), 'AiOpsAlertsPage')
+const AiOpsPlanningPage = lazyPage(() => import('@/pages/ai-ops/AiOpsPlanningPage'), 'AiOpsPlanningPage')
+const AiOpsPrompterPage = lazyPage(() => import('@/pages/ai-ops/AiOpsPrompterPage'), 'AiOpsPrompterPage')
+const AiOpsLiveWatchPage = lazyPage(() => import('@/pages/ai-ops/AiOpsLiveWatchPage'), 'AiOpsLiveWatchPage')
+const AiOpsReviewPage = lazyPage(() => import('@/pages/ai-ops/AiOpsReviewPage'), 'AiOpsReviewPage')
+const AiOpsActionItemsPage = lazyPage(() => import('@/pages/ai-ops/AiOpsActionItemsPage'), 'AiOpsActionItemsPage')
+const AiOpsSelectionPage = lazyPage(() => import('@/pages/ai-ops/AiOpsSelectionPage'), 'AiOpsSelectionPage')
+const AiOpsAssortmentStructurePage = lazyPage(() => import('@/pages/ai-ops/AiOpsAssortmentStructurePage'), 'AiOpsAssortmentStructurePage')
+const AiOpsPricesPage = lazyPage(() => import('@/pages/ai-ops/AiOpsPricesPage'), 'AiOpsPricesPage')
+const AiOpsClipsPage = lazyPage(() => import('@/pages/ai-ops/AiOpsClipsPage'), 'AiOpsClipsPage')
+const AiOpsCampaignsPage = lazyPage(() => import('@/pages/ai-ops/AiOpsCampaignsPage'), 'AiOpsCampaignsPage')
+const AiOpsFinancePnlPage = lazyPage(() => import('@/pages/ai-ops/AiOpsFinancePnlPage'), 'AiOpsFinancePnlPage')
+const AiOpsFinanceSettlePage = lazyPage(() => import('@/pages/ai-ops/AiOpsFinanceSettlePage'), 'AiOpsFinanceSettlePage')
+const AiOpsPeoplePage = lazyPage(() => import('@/pages/ai-ops/AiOpsPeoplePage'), 'AiOpsPeoplePage')
+const AiOpsScheduleRecommendPage = lazyPage(() => import('@/pages/ai-ops/AiOpsScheduleRecommendPage'), 'AiOpsScheduleRecommendPage')
+const AiOpsMetricsPage = lazyPage(() => import('@/pages/ai-ops/AiOpsMetricsPage'), 'AiOpsMetricsPage')
+const AiOpsCasesPage = lazyPage(() => import('@/pages/ai-ops/AiOpsCasesPage'), 'AiOpsCasesPage')
+const AiOpsKnowledgePage = lazyPage(() => import('@/pages/ai-ops/AiOpsKnowledgePage'), 'AiOpsKnowledgePage')
 
 // 数据管理 & 全渠道店铺
-const DataManagementPage = lazyPage(() => import('@/pages/data/DataManagementPage'), 'DataManagementPage')
-const DataUploadPage = lazyPage(() => import('@/pages/data/DataUploadPage'), 'DataUploadPage')
-const UploadedDataPage = lazyPage(() => import('@/pages/data/UploadedDataPage'), 'UploadedDataPage')
-const DataQualityPage = lazyPage(() => import('@/pages/data/DataQualityPage'), 'DataQualityPage')
-const IngestWizardPage = lazyPage(() => import('@/pages/data/IngestWizardPage'), 'IngestWizardPage')
-const OmniDashboardPage = lazyPage(() => import('@/pages/omnichannel/OmniDashboardPage'), 'OmniDashboardPage')
-const ShopOverviewPage = lazyPage(() => import('@/pages/shop/ShopOverviewPage'), 'ShopOverviewPage')
-const ShopProductsPage = lazyPage(() => import('@/pages/shop/ShopProductsPage'), 'ShopProductsPage')
-const TaobaoShopBoardPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoShopBoardPage'), 'TaobaoShopBoardPage')
-const TaobaoAdReconciliationPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoAdReconciliationPage'), 'TaobaoAdReconciliationPage')
-const TaobaoProductChannelPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoProductChannelPage'), 'TaobaoProductChannelPage')
-const KsTrafficSplitPage = lazyPage(() => import('@/pages/shop/kuaishou/KsTrafficSplitPage'), 'KsTrafficSplitPage')
-const KsIndirectGmvPage = lazyPage(() => import('@/pages/shop/kuaishou/KsIndirectGmvPage'), 'KsIndirectGmvPage')
-const KsFansTeamPage = lazyPage(() => import('@/pages/shop/kuaishou/KsFansTeamPage'), 'KsFansTeamPage')
-const XhsNoteBoardPage = lazyPage(() => import('@/pages/shop/xiaohongshu/XhsNoteBoardPage'), 'XhsNoteBoardPage')
-const XhsConversionPage = lazyPage(() => import('@/pages/shop/xiaohongshu/XhsConversionPage'), 'XhsConversionPage')
 
 // 内容中心
-const VideoCreatePage = lazyPage(() => import('@/pages/content/VideoCreatePage'), 'VideoCreatePage')
-const VideoDataPage = lazyPage(() => import('@/pages/content/VideoDataPage'), 'VideoDataPage')
-const ContentSchedulePage = lazyPage(() => import('@/pages/content/ContentSchedulePage'), 'ContentSchedulePage')
-const ContentCenterConfigPage = lazyPage(() => import('@/pages/content/ContentCenterConfigPage'), 'ContentCenterConfigPage')
 
 // 商业智能
-const RefundAnalysisPage = lazyPage(() => import('@/pages/bi/RefundAnalysisPage'), 'RefundAnalysisPage')
-const BiDashboardPage = lazyPage(() => import('@/pages/bi/BiDashboardPage'), 'BiDashboardPage')
-const AnomalyDetectionPage = lazyPage(() => import('@/pages/bi/AnomalyDetectionPage'), 'AnomalyDetectionPage')
-const UnifiedDashboardHub = lazyPage(() => import('@/pages/bi/UnifiedDashboardHub'), 'UnifiedDashboardHub')
-const UnifiedScheduleHub = lazyPage(() => import('@/pages/ops/schedule/UnifiedScheduleHub'), 'UnifiedScheduleHub')
 
 // 主播赋能
-const AnchorListPage = lazyPage(() => import('@/pages/anchors/AnchorListPage'), 'AnchorListPage')
-const AnchorProfilePage = lazyPage(() => import('@/pages/anchors/AnchorProfilePage'), 'AnchorProfilePage')
-const TrainingPage = lazyPage(() => import('@/pages/anchors/TrainingPage'), 'TrainingPage')
 const HrbpWorkspacePage = lazyPage(() => import('@/pages/anchors/HrbpWorkspacePage'), 'HrbpWorkspacePage')
-const LiveScheduleCalendarPage = lazyPage(() => import('@/pages/anchors/LiveScheduleCalendarPage'), 'LiveScheduleCalendarPage')
-const DouyinShortVideoFunnelPage = lazyPage(() => import('@/pages/shop/douyin/DouyinShortVideoFunnelPage'), 'DouyinShortVideoFunnelPage')
-const TaobaoShopSessionPage = lazyPage(() => import('@/pages/shop/taobao/TaobaoShopSessionPage'), 'TaobaoShopSessionPage')
-const XhsNoteToLivePage = lazyPage(() => import('@/pages/shop/xiaohongshu/XhsNoteToLivePage'), 'XhsNoteToLivePage')
-const WechatPrivatePublicPage = lazyPage(() => import('@/pages/shop/wechat/WechatPrivatePublicPage'), 'WechatPrivatePublicPage')
 const BrandPortalPage = lazyPage(() => import('@/pages/brand-portal/BrandPortalPage'), 'BrandPortalPage')
-const ScriptTemplatesPage = lazyPage(() => import('@/pages/anchors/ScriptTemplatesPage'), 'ScriptTemplatesPage')
-const ScheduleRecommendPage = lazyPage(() => import('@/pages/anchors/ScheduleRecommendPage'), 'ScheduleRecommendPage')
-const ScheduleManagementPage = lazyPage(() => import('@/pages/anchors/ScheduleManagementPage'), 'ScheduleManagementPage')
-const MySchedulePage = lazyPage(() => import('@/pages/anchors/MySchedulePage'), 'MySchedulePage')
-const MyPerformancePage = lazyPage(() => import('@/pages/anchors/MyPerformancePage'), 'MyPerformancePage')
 
 // 运营提效 & 业务中台
-const CapabilitiesPage = lazyPage(() => import('@/pages/ops/CapabilitiesPage'), 'CapabilitiesPage')
-const IssueLibraryPage = lazyPage(() => import('@/pages/ops/IssueLibraryPage'), 'IssueLibraryPage')
-const GoalTrackingPage = lazyPage(() => import('@/pages/ops/GoalTrackingPage'), 'GoalTrackingPage')
-const RoomHealthPage = lazyPage(() => import('@/pages/ops/RoomHealthPage'), 'RoomHealthPage')
-const SessionProductsPage = lazyPage(() => import('@/pages/ops/session-products/SessionProductsPage'), 'SessionProductsPage')
-const InventoryCenterPage = lazyPage(() => import('@/pages/ops/product-center/InventoryCenterPage'), 'InventoryCenterPage')
-const FulfillmentSlaPage = lazyPage(() => import('@/pages/ops/fulfillment/FulfillmentSlaPage'), 'FulfillmentSlaPage')
-const AfterSalesPage = lazyPage(() => import('@/pages/ops/after-sales/AfterSalesPage'), 'AfterSalesPage')
-const KolCooperationPage = lazyPage(() => import('@/pages/ops/kol/KolCooperationPage'), 'KolCooperationPage')
-const CustomerServicePage = lazyPage(() => import('@/pages/ops/customer-service/CustomerServicePage'), 'CustomerServicePage')
-const NetRoiPage = lazyPage(() => import('@/pages/ops/net-roi/NetRoiPage'), 'NetRoiPage')
-const SearchKeywordsPage = lazyPage(() => import('@/pages/ops/search-seo/SearchKeywordsPage'), 'SearchKeywordsPage')
-const MembersPage = lazyPage(() => import('@/pages/ops/members/MembersPage'), 'MembersPage')
 
 // MCN 代运营与品牌方
 
@@ -108,22 +69,6 @@ const FunnelAnalysisPage = lazyPage(() => import('@/pages/review/FunnelAnalysisP
 const ClosedLoopPage = lazyPage(() => import('@/pages/review/ClosedLoopPage'), 'ClosedLoopPage')
 
 // 系统与风控合规
-const PlatformManagementPage = lazyPage(() => import('@/pages/system/PlatformManagementPage'), 'PlatformManagementPage')
-const UsersPage = lazyPage(() => import('@/pages/system/UsersPage'), 'UsersPage')
-const AuditLogsPage = lazyPage(() => import('@/pages/system/AuditLogsPage'), 'AuditLogsPage')
-const DictPage = lazyPage(() => import('@/pages/system/DictPage'), 'DictPage')
-const SystemConfigPage = lazyPage(() => import('@/pages/system/SystemConfigPage'), 'SystemConfigPage')
-const PersonnelPage = lazyPage(() => import('@/pages/system/PersonnelPage'), 'PersonnelPage')
-const RoomsPage = lazyPage(() => import('@/pages/system/RoomsPage'), 'RoomsPage')
-const AlertCenterPage = lazyPage(() => import('@/pages/system/AlertCenterPage'), 'AlertCenterPage')
-const ImprovementTasksPage = lazyPage(() => import('@/pages/system/ImprovementTasksPage'), 'ImprovementTasksPage')
-const PromotionCampaignsPage = lazyPage(() => import('@/pages/system/PromotionCampaignsPage'), 'PromotionCampaignsPage')
-const CompetitorWatchPage = lazyPage(() => import('@/pages/system/CompetitorWatchPage'), 'CompetitorWatchPage')
-const MultiRoomOverviewPage = lazyPage(() => import('@/pages/system/MultiRoomOverviewPage'), 'MultiRoomOverviewPage')
-const CompliancePage = lazyPage(() => import('@/pages/system/CompliancePage'), 'CompliancePage')
-const RolesPage = lazyPage(() => import('@/pages/system/RolesPage'), 'RolesPage')
-const SystemJobsPage = lazyPage(() => import('@/pages/system/SystemJobsPage'), 'SystemJobsPage')
-const RuleRadarPage = lazyPage(() => import('@/pages/compliance/RuleRadarPage'), 'RuleRadarPage')
 const ChangeDetailPage = lazyPage(() => import('@/pages/compliance/ChangeDetailPage'), 'ChangeDetailPage')
 
 function HomeLandingRedirect() {
@@ -151,133 +96,91 @@ export default function App() {
           <Route path="/" element={<HomeLandingRedirect />} />
 
           {/* ===== 总览与 8合1 看板 ===== */}
-          <Route path="/overview/home" element={<RequireAccess module="overview"><PlatformAwareHomePage /></RequireAccess>} />
-          <Route path="/overview/cockpit" element={<RequireAccess module="overview"><UnifiedDashboardHub defaultView="cockpit" /></RequireAccess>} />
-          <Route path="/overview/cockpit/standalone" element={<RequireAccess module="overview"><CockpitPage /></RequireAccess>} />
-          <Route path="/overview/live-monitor" element={<RequireAccess module="overview"><LiveMonitorPage /></RequireAccess>} />
-          <Route path="/overview/sessions" element={<RequireAccess module="session"><SessionsPage /></RequireAccess>} />
-          <Route path="/overview/analytics" element={<RequireAccess module="overview"><AnalyticsPage /></RequireAccess>} />
+          <Route path="/overview/cockpit/standalone" element={<Navigate to="/overview/cockpit" replace />} />
 
           {/* ===== 直播管理 ===== */}
-          <Route path="/live/attendance" element={<RequireAccess module="personal_achievement"><AttendancePage /></RequireAccess>} />
-          <Route path="/live/registration" element={<RequireAccess module="live_registration"><LiveRegistrationPage /></RequireAccess>} />
-          <Route path="/live/data" element={<RequireAccess module="live_data"><DataLivePage /></RequireAccess>} />
 
-          {/* ===== AI 助手 ===== */}
-          <Route path="/ai/chat" element={<RequireAccess module="ai"><ChatPage /></RequireAccess>} />
-          <Route path="/ai/selection" element={<RequireAccess module="ai"><SelectionPage /></RequireAccess>} />
-          <Route path="/ai/selection/history" element={<RequireAccess module="ai"><SelectionHistoryPage /></RequireAccess>} />
+          {/* ===== 旧 AI 助手功能已迁移至 AI 运营系统（平滑重定向） ===== */}
+          <Route path="/ai/chat" element={<Navigate to="/ai-ops/chat" replace />} />
+          <Route path="/ai/selection" element={<Navigate to="/ai-ops/assortment/selection" replace />} />
+          <Route path="/ai/selection/history" element={<Navigate to="/ai-ops/assortment/selection" replace />} />
+          <Route path="/ai/workbench" element={<Navigate to="/ai-ops/workbench" replace />} />
 
           {/* ===== 数据管理 ===== */}
-          <Route path="/data/management" element={<RequireAccess module="data"><DataManagementPage /></RequireAccess>} />
-          <Route path="/data/upload" element={<RequireAccess module="data"><DataUploadPage /></RequireAccess>} />
-          <Route path="/data/uploaded-data" element={<RequireAccess module="data"><UploadedDataPage /></RequireAccess>} />
-          <Route path="/data/quality" element={<RequireAccess module="data"><DataQualityPage /></RequireAccess>} />
-          <Route path="/data/ingest" element={<RequireAccess module="data"><IngestWizardPage /></RequireAccess>} />
-          <Route path="/omnichannel/dashboard" element={<RequireAccess module="overview"><UnifiedDashboardHub defaultView="omnichannel" /></RequireAccess>} />
-          <Route path="/omnichannel/dashboard/standalone" element={<RequireAccess module="overview"><OmniDashboardPage /></RequireAccess>} />
+          <Route path="/omnichannel/dashboard/standalone" element={<Navigate to="/omnichannel/dashboard" replace />} />
           <Route path="/brand-portal" element={<RequireAccess allowBrandViewer><BrandPortalPage /></RequireAccess>} />
-          <Route path="/content/center-config" element={<RequireAccess anyModules={['content', 'system_ai']}><ContentCenterConfigPage /></RequireAccess>} />
-          <Route path="/ai/workbench" element={<RequireAccess module="overview"><AnalysisWorkbenchPage /></RequireAccess>} />
-          <Route path="/shop/overview" element={<RequireAccess module="overview"><ShopOverviewPage /></RequireAccess>} />
-          <Route path="/shop/products" element={<RequireAccess module="product_center"><ShopProductsPage /></RequireAccess>} />
-          <Route path="/shop/taobao/board" element={<RequireAccess module="overview"><TaobaoShopBoardPage /></RequireAccess>} />
-          <Route path="/shop/taobao/ad-reconciliation" element={<RequireAccess anyModules={['overview', 'ops']}><TaobaoAdReconciliationPage /></RequireAccess>} />
-          <Route path="/shop/kuaishou/traffic-split" element={<RequireAccess module="bi"><KsTrafficSplitPage /></RequireAccess>} />
-          <Route path="/shop/kuaishou/indirect-gmv" element={<RequireAccess module="bi"><KsIndirectGmvPage /></RequireAccess>} />
-          <Route path="/shop/kuaishou/fans-team" element={<RequireAccess module="ops"><KsFansTeamPage /></RequireAccess>} />
-          <Route path="/shop/taobao/product-channel" element={<RequireAccess anyModules={['overview', 'ops']}><TaobaoProductChannelPage /></RequireAccess>} />
-          <Route path="/shop/xiaohongshu/notes" element={<RequireAccess module="content"><XhsNoteBoardPage /></RequireAccess>} />
-          <Route path="/shop/xiaohongshu/conversion" element={<RequireAccess module="content"><XhsConversionPage /></RequireAccess>} />
-          <Route path="/system/platforms" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><PlatformManagementPage /></RequireAccess>} />
-          <Route path="/system/users" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><UsersPage /></RequireAccess>} />
-          <Route path="/system/roles" element={<RequireAccess roles={['super_admin', 'admin']} module="system_users"><RolesPage /></RequireAccess>} />
-          <Route path="/system/audit-logs" element={<RequireAccess roles={['super_admin', 'admin']} module="audit_logs"><AuditLogsPage /></RequireAccess>} />
-          <Route path="/system/dict" element={<RequireAccess roles={['super_admin']} module="system_dict"><DictPage /></RequireAccess>} />
 
           {/* ===== 内容中心 ===== */}
-          <Route path="/content/video-create" element={<RequireAccess module="content"><VideoCreatePage /></RequireAccess>} />
-          <Route path="/content/video-data" element={<RequireAccess module="content"><VideoDataPage /></RequireAccess>} />
-          <Route path="/content/schedule" element={<RequireAccess module="content_schedule"><ContentSchedulePage /></RequireAccess>} />
 
           {/* ===== 商业智能 ===== */}
-          <Route path="/bi/dashboard" element={<RequireAccess module="bi"><UnifiedDashboardHub defaultView="bi" /></RequireAccess>} />
-          <Route path="/bi/dashboard/standalone" element={<RequireAccess module="bi"><BiDashboardPage /></RequireAccess>} />
+          <Route path="/bi/dashboard/standalone" element={<Navigate to="/bi/dashboard" replace />} />
           <Route path="/bi/roi" element={<Navigate to="/ops/net-roi" replace />} />
-          <Route path="/bi/refund-analysis" element={<RequireAccess module="bi"><RefundAnalysisPage /></RequireAccess>} />
-          <Route path="/bi/anomaly-detection" element={<RequireAccess module="bi"><AnomalyDetectionPage /></RequireAccess>} />
 
           {/* ===== 主播赋能 ===== */}
-          <Route path="/anchors/list" element={<RequireAccess module="anchor"><AnchorListPage /></RequireAccess>} />
-          <Route path="/anchors/profile" element={<RequireAccess module="anchor"><AnchorProfilePage /></RequireAccess>} />
-          <Route path="/anchors/training" element={<RequireAccess module="anchor"><TrainingPage /></RequireAccess>} />
-          <Route path="/hrbp/workspace" element={<RequireAccess anyModules={['anchor', 'system_personnel_ops']}><HrbpWorkspacePage /></RequireAccess>} />
-          <Route path="/anchors/live-schedule" element={<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="calendar" /></RequireAccess>} />
-          <Route path="/anchors/live-schedule/standalone" element={<RequireAccess module="anchor"><LiveScheduleCalendarPage /></RequireAccess>} />
-          <Route path="/insights/douyin/short-video" element={<RequireAccess module="review_channels"><DouyinShortVideoFunnelPage /></RequireAccess>} />
-          <Route path="/insights/taobao/shop-session" element={<RequireAccess module="overview"><TaobaoShopSessionPage /></RequireAccess>} />
-          <Route path="/insights/xiaohongshu/note-live" element={<RequireAccess module="content"><XhsNoteToLivePage /></RequireAccess>} />
-          <Route path="/insights/wechat/private-public" element={<RequireAccess module="review_channels"><WechatPrivatePublicPage /></RequireAccess>} />
+          <Route path="/anchors/live-schedule/standalone" element={<Navigate to="/anchors/live-schedule" replace />} />
           {/* ── P9 合并项：10 个平台专属套壳页 → 1 个通用配置驱动页 ── */}
           {/* P9 合并项：10 个平台专属套壳页 → PlatformInsightPage（含显式路径供测试解析） */}
-          <Route path="/insights/douyin/three-pools" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/taobao/three-sources" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/tmall/brand-sessions" element={<RequireAccess module="session"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/tmall/promotion-layers" element={<RequireAccess module="system_promotions"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/tmall/live-promo-link" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/xiaohongshu/buyer-profile" element={<RequireAccess module="anchor"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/xiaohongshu/dandelion" element={<RequireAccess module="kol"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/xiaohongshu/traffic-sources" element={<RequireAccess module="review_channels"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/wechat/affiliate" element={<RequireAccess module="anchor"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/insights/wechat/content" element={<RequireAccess module="content"><PlatformInsightPage /></RequireAccess>} />
-          <Route path="/anchors/schedule" element={<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="management" /></RequireAccess>} />
-          <Route path="/anchors/schedule/standalone" element={<RequireAccess module="anchor"><ScheduleManagementPage /></RequireAccess>} />
-          <Route path="/anchors/my-schedule" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><UnifiedScheduleHub defaultView="my-schedule" /></RequireAccess>} />
-          <Route path="/anchors/my-schedule/standalone" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><MySchedulePage /></RequireAccess>} />
-          <Route path="/anchors/schedule-recommend" element={<RequireAccess module="anchor"><UnifiedScheduleHub defaultView="recommend" /></RequireAccess>} />
-          <Route path="/anchors/schedule-recommend/standalone" element={<RequireAccess module="anchor"><ScheduleRecommendPage /></RequireAccess>} />
-          <Route path="/anchors/my-performance" element={<RequireAccess anyModules={['personal_achievement', 'anchor']}><MyPerformancePage /></RequireAccess>} />
+          <Route path="/anchors/schedule/standalone" element={<Navigate to="/anchors/schedule" replace />} />
+          <Route path="/anchors/schedule-recommend" element={<Navigate to="/ai-ops/people/schedule-recommend" replace />} />
+          <Route path="/anchors/schedule-recommend/standalone" element={<Navigate to="/ai-ops/people/schedule-recommend" replace />} />
 
           {/* ===== 运营提效 ===== */}
-          <Route path="/ops/capabilities" element={<RequireAccess anyModules={['ops', 'anchor']}><CapabilitiesPage /></RequireAccess>} />
-          <Route path="/ops/script-library" element={<RequireAccess anyModules={['ops', 'anchor']}><ScriptTemplatesPage /></RequireAccess>} />
-          <Route path="/ops/issue-library" element={<RequireAccess module="ops"><IssueLibraryPage /></RequireAccess>} />
-          <Route path="/ops/goal-tracking" element={<RequireAccess module="ops"><GoalTrackingPage /></RequireAccess>} />
-          <Route path="/ops/room-health" element={<RequireAccess module="ops"><RoomHealthPage /></RequireAccess>} />
-          <Route path="/ops/session-products" element={<RequireAccess module="session_products"><SessionProductsPage /></RequireAccess>} />
-          <Route path="/ops/inventory" element={<RequireAccess module="product_center"><InventoryCenterPage /></RequireAccess>} />
-          <Route path="/ops/fulfillment" element={<RequireAccess module="fulfillment"><FulfillmentSlaPage /></RequireAccess>} />
-          <Route path="/ops/after-sales" element={<RequireAccess module="after_sales"><AfterSalesPage /></RequireAccess>} />
-          <Route path="/ops/kol" element={<RequireAccess module="kol"><KolCooperationPage /></RequireAccess>} />
-          <Route path="/ops/cs" element={<RequireAccess module="customer_service"><CustomerServicePage /></RequireAccess>} />
-          <Route path="/ops/net-roi" element={<RequireAccess roles={['super_admin', 'admin', 'ops_director', 'ad_buyer']} module="net_roi"><NetRoiPage /></RequireAccess>} />
-          <Route path="/ops/search-keywords" element={<RequireAccess module="search_seo"><SearchKeywordsPage /></RequireAccess>} />
-          <Route path="/ops/members" element={<RequireAccess module="members"><MembersPage /></RequireAccess>} />
 
           {/* ===== MCN 代运营与对账中心 ===== */}
 
-          {/* ===== 直播复盘 ===== */}
-          <Route path="/review/overview" element={<RequireAccess anyModules={['review_overview', 'review']}><ReviewOverviewPage /></RequireAccess>} />
-          <Route path="/review/products" element={<RequireAccess module="review"><ProductAnalysisPage /></RequireAccess>} />
-          <Route path="/review/short-videos" element={<RequireAccess module="review"><ShortVideoTrafficPage /></RequireAccess>} />
-          <Route path="/review/channels" element={<RequireAccess anyModules={['review_channels', 'review']}><ChannelAnalysisPage /></RequireAccess>} />
-          <Route path="/review/anchors" element={<RequireAccess anyModules={['review_anchors', 'review']}><AnchorPerformancePage /></RequireAccess>} />
-          <Route path="/review/funnel" element={<RequireAccess anyModules={['review_funnel', 'review']}><FunnelAnalysisPage /></RequireAccess>} />
-          <Route path="/review/closed-loop" element={<RequireAccess anyModules={['review_closed_loop', 'review']}><ClosedLoopPage /></RequireAccess>} />
+          {/* ===== 旧复盘分析已迁入 AI 运营系统（平滑重定向） ===== */}
 
           {/* ===== 系统 ===== */}
-          <Route path="/system/config" element={<RequireAccess roles={['super_admin']} module="system_config"><SystemConfigPage /></RequireAccess>} />
-          <Route path="/system/jobs" element={<RequireAccess roles={['super_admin', 'admin', 'ops_director', 'operator']} module="system_config"><SystemJobsPage /></RequireAccess>} />
-          <Route path="/system/personnel" element={<RequireAccess module="system_personnel_ops"><PersonnelPage /></RequireAccess>} />
-          <Route path="/system/rooms" element={<RequireAccess module="system_rooms"><RoomsPage /></RequireAccess>} />
-          <Route path="/system/alerts" element={<RequireAccess module="system_alerts"><AlertCenterPage /></RequireAccess>} />
-          <Route path="/system/tasks" element={<RequireAccess anyModules={['system_tasks', 'ops']}><ImprovementTasksPage /></RequireAccess>} />
-          <Route path="/system/promotions" element={<RequireAccess anyModules={['system_promotions', 'ops']}><PromotionCampaignsPage /></RequireAccess>} />
-          <Route path="/system/competitors" element={<RequireAccess anyModules={['system_competitors', 'ops']}><CompetitorWatchPage /></RequireAccess>} />
-          <Route path="/system/multi-room" element={<RequireAccess module="system_multiroom"><MultiRoomOverviewPage /></RequireAccess>} />
-          <Route path="/compliance/events" element={<RequireAccess module="compliance"><CompliancePage /></RequireAccess>} />
-          <Route path="/compliance/rules" element={<RequireAccess module="compliance"><RuleRadarPage /></RequireAccess>} />
           <Route path="/compliance/changes/:id" element={<RequireAccess module="compliance"><ChangeDetailPage /></RequireAccess>} />
+
+          {/* ===== AI 运营系统 (AI-Native 独立分支) ===== */}
+          <Route path="/ai-ops" element={<Navigate to="/ai-ops/cockpit" replace />} />
+          <Route path="/ai-ops/cockpit" element={<RequireAiOpsAccess><AiOpsCockpitPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/workbench" element={<RequireAiOpsAccess><AiOpsWorkbenchPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/chat" element={<RequireAiOpsAccess><AiOpsChatPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/inbox" element={<RequireAiOpsAccess><AiOpsInboxPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/alerts" element={<RequireAiOpsAccess><AiOpsAlertsPage /></RequireAiOpsAccess>} />
+
+          {/* 场 Session & 全域复盘 */}
+          <Route path="/ai-ops/session/planning" element={<RequireAiOpsAccess><AiOpsPlanningPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/session/prompter" element={<RequireAiOpsAccess><AiOpsPrompterPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/session/live-watch" element={<RequireAiOpsAccess><AiOpsLiveWatchPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/session/review" element={<RequireAiOpsAccess><AiOpsReviewPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/review/overview" element={<RequireAiOpsAccess><ReviewOverviewPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/review/products" element={<RequireAiOpsAccess><ProductAnalysisPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/review/short-videos" element={<RequireAiOpsAccess><ShortVideoTrafficPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/review/channels" element={<RequireAiOpsAccess><ChannelAnalysisPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/review/funnel" element={<RequireAiOpsAccess><FunnelAnalysisPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/review/anchors" element={<RequireAiOpsAccess><AnchorPerformancePage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/review/closed-loop" element={<RequireAiOpsAccess><ClosedLoopPage /></RequireAiOpsAccess>} />
+
+          {/* 货 Assortment */}
+          <Route path="/ai-ops/assortment/selection" element={<RequireAiOpsAccess><AiOpsSelectionPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/assortment/structure" element={<RequireAiOpsAccess><AiOpsAssortmentStructurePage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/assortment/prices" element={<RequireAiOpsAccess><AiOpsPricesPage /></RequireAiOpsAccess>} />
+
+          {/* 媒 Content & Media */}
+          <Route path="/ai-ops/content/clips" element={<RequireAiOpsAccess><AiOpsClipsPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/media/campaigns" element={<RequireAiOpsAccess><AiOpsCampaignsPage /></RequireAiOpsAccess>} />
+
+          {/* 财 Finance (严格隔离：仅财务与超管可访问) */}
+          <Route path="/ai-ops/finance/pnl" element={<RequireAiOpsAccess requireFinance><AiOpsFinancePnlPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/finance/settle" element={<RequireAiOpsAccess requireFinance><AiOpsFinanceSettlePage /></RequireAiOpsAccess>} />
+
+          {/* HRBP 与人效工作台 (HRBP、运营团队、超管均可访问) */}
+          <Route path="/ai-ops/hrbp/workspace" element={<RequireAiOpsAccess><HrbpWorkspacePage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/people/performance" element={<RequireAiOpsAccess><AiOpsPeoplePage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/session/actions" element={<RequireAiOpsAccess><AiOpsActionItemsPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/people/schedule-recommend" element={<RequireAiOpsAccess><AiOpsScheduleRecommendPage /></RequireAiOpsAccess>} />
+
+          {/* 系统治理 */}
+          <Route path="/ai-ops/governance/metrics" element={<RequireAiOpsAccess><AiOpsMetricsPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/governance/cases" element={<RequireAiOpsAccess><AiOpsCasesPage /></RequireAiOpsAccess>} />
+          <Route path="/ai-ops/governance/knowledge" element={<RequireAiOpsAccess><AiOpsKnowledgePage /></RequireAiOpsAccess>} />
+
+          {/* 兜底 404：未匹配路由不再白屏（旧书签 /shop/jd/*、/shop/pdd/* 等） */}
+          <Route path="*" element={<NotFoundPage />} />
+          {CLASSIC_ROUTES}
         </Route>
       </Routes>
     </Suspense>

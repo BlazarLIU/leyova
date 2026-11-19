@@ -31,9 +31,9 @@ describe('P1 地基：指标注册表 (Metric Catalog)', () => {
     const adCodes = viewerMetrics.filter((m) => m.category === 'ad')
     assert.equal(adCodes.length, 0, 'brand_viewer 默认不可列出 ad 分类指标')
 
-    const adminMetrics = listAllowedMetrics({ role: 'admin' })
+    const adminMetrics = listAllowedMetrics({ role: 'super_admin' })
     const adminAdCodes = adminMetrics.filter((m) => m.category === 'ad')
-    assert.ok(adminAdCodes.length > 0, 'admin 可以查看投流与 ROI 指标')
+    assert.ok(adminAdCodes.length > 0, 'super_admin 可以查看投流与 ROI 指标')
   })
 })
 

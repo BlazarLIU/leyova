@@ -67,7 +67,7 @@ const STAGES: Array<{ code: string; label: string; next?: string }> = [
 ]
 
 const STAGE_LABEL = Object.fromEntries(STAGES.map((s) => [s.code, s.label]))
-const WRITE_ROLES = ['super_admin', 'admin', 'ops_director', 'ops_staff', 'operator']
+const WRITE_ROLES = ['super_admin', 'ops_director', 'ops_staff']
 
 export function ContentSchedulePage() {
   const { hasRole } = useAuth()

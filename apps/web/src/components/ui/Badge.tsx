@@ -6,13 +6,13 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        success: 'bg-orbit-success/15 text-emerald-400',
-        warning: 'bg-orbit-warning/15 text-amber-400',
-        danger:  'bg-orbit-danger/15 text-red-400',
-        info:    'bg-orbit-info/15 text-blue-400',
-        primary: 'bg-orbit-primary/15 text-violet-400',
-        accent:  'bg-orbit-accent/15 text-cyan-400',
-        neutral: 'bg-orbit-surface3 text-slate-400 border border-orbit-border',
+        success: 'bg-orbit-success/15 text-emerald-700 dark:text-emerald-400',
+        warning: 'bg-orbit-warning/15 text-amber-800 dark:text-amber-400',
+        danger:  'bg-orbit-danger/15 text-red-700 dark:text-red-400',
+        info:    'bg-orbit-info/15 text-blue-700 dark:text-blue-400',
+        primary: 'bg-orbit-primary/15 text-violet-700 dark:text-violet-400',
+        accent:  'bg-orbit-accent/15 text-cyan-800 dark:text-cyan-400',
+        neutral: 'bg-orbit-surface3 text-slate-700 dark:text-slate-400 border border-orbit-border',
       },
     },
     defaultVariants: {

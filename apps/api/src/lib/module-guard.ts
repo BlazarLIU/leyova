@@ -44,12 +44,17 @@ const MODULE_MAP: Array<{ prefix: string; module: string }> = [
   { prefix: '/api/v1/fulfillment',       module: 'fulfillment' },
   { prefix: '/api/v1/after-sales',       module: 'after_sales' },
   { prefix: '/api/v1/customer-service',  module: 'customer_service' },
+  { prefix: '/api/v1/cs',                module: 'customer_service' },
   { prefix: '/api/v1/kol',               module: 'kol' },
   { prefix: '/api/v1/inventory',         module: 'product_center' },
   { prefix: '/api/v1/campaign-plan',     module: 'ai' },
   { prefix: '/api/v1/selection',         module: 'ai' },
   { prefix: '/api/v1/compliance',        module: 'compliance' },
   { prefix: '/api/v1/content',           module: 'content' },
+  // 人工登记的直播数据（中控账号专用）：归 live_data 而非 data。
+  // 中控只被授予 live_data / live_registration / personal_achievement 三个模块，
+  // 若走 /api/v1/data → data，中控连自己登记的数据都读不到（403）。
+  { prefix: '/api/v1/data/live',         module: 'live_data' },
   { prefix: '/api/v1/data',              module: 'data' },
   { prefix: '/api/v1/ingest',            module: 'data' },
   { prefix: '/api/v1/governance',        module: 'data' },
@@ -62,6 +67,10 @@ const MODULE_MAP: Array<{ prefix: string; module: string }> = [
   { prefix: '/api/v1/anchors',           module: 'anchor' },
   { prefix: '/api/v1/training',          module: 'anchor' },
   { prefix: '/api/v1/attendance',        module: 'personal_achievement' },
+  // 场次列表：前端「场次管理」页（/overview/sessions）走此接口。
+  // 中控需要看「今天播什么、谁播」，故归 session 而非 overview，
+  // 否则中控有 session 模块却读不到场次列表（403）。
+  { prefix: '/api/v1/overview/sessions',  module: 'session' },
   { prefix: '/api/v1/overview',          module: 'overview' },
   { prefix: '/api/v1/omnichannel',       module: 'overview' },
   { prefix: '/api/v1/bi',                module: 'bi' },
@@ -86,7 +95,8 @@ const MODULE_MAP: Array<{ prefix: string; module: string }> = [
   { prefix: '/api/v1/system/personnel',   module: 'system_personnel_ops' },
   { prefix: '/api/v1/system/dict',        module: 'system_dict' },
   { prefix: '/api/v1/system/audit-logs',  module: 'audit_logs' },
-  { prefix: '/api/v1/system/config',      module: 'system_config' },
+  { prefix: '/api/v1/system/config',            module: 'system_config' },
+  { prefix: '/api/v1/system/module-parameters', module: 'system_config' },
   // 兜底：其余 /system/*（users / roles / modules 等）归系统管理
   { prefix: '/api/v1/system',            module: 'system_users' },
   // /access/me 是「查自己的权限」，登录即可；下面更具体的规则先匹配
@@ -184,11 +194,11 @@ export function checkModuleAccess(
     return { ok: true, module: required ?? undefined }
   }
 
-  // 管理角色放宽：admin / ops_director 在真实组织中本就该看全部业务数据，
+  // 管理角色放宽：ops_director 在真实组织中本就该看全部业务数据，
   // 模块授权对它们的作用是「约束到某个平台/子域」，不是「限制能否看经营数据」。
   // 注：真正的写操作权限仍由各路由的 requireRole 二次校验。
   const role = (user as any).role
-  if (role === 'admin' || role === 'ops_director' || role === 'super_admin') {
+  if (role === 'ops_director' || role === 'super_admin') {
     return { ok: true, module: required ?? undefined }
   }
 

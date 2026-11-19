@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { api } from '@/services/api'
 import { motion } from 'framer-motion'
 import { Search, HelpCircle, AlertTriangle, ChevronDown, ChevronRight, ShoppingBag, Truck, RefreshCw, MessageCircle, Activity, Users, Radio } from 'lucide-react'
@@ -70,8 +70,10 @@ export function IssueLibraryPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [issues, setIssues] = useState<IssueItem[]>([])
   const [autoTags, setAutoTags] = useState<AutoTag[]>([])
+  const [converting, setConverting] = useState<string | null>(null)
+  const [toast, setToast] = useState('')
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     api.get<{ issues: IssueItem[]; autoTags: AutoTag[] }>('/api/ops/issue-library', {
       category: categoryFilter !== '全部' ? categoryFilter : undefined,
       search: search || undefined,
@@ -82,6 +84,30 @@ export function IssueLibraryPage() {
       setIssues([])
     })
   }, [categoryFilter, search])
+
+  useEffect(() => { reload() }, [reload])
+
+  // 「自动检测一键转问题」：把检测到的异常固化为可追踪的问题条目
+  const convertTagToIssue = async (tag: AutoTag) => {
+    setConverting(tag.id)
+    try {
+      const res = await api.post<{ id: number; occurrenceCount: number; merged: boolean }>('/api/ops/issue-library', {
+        title: tag.title,
+        category: '其他',
+        solution: `针对「${tag.metric} ${tag.value}（阈值 ${tag.threshold}）」制定改进措施并跟进`,
+        detailedSolution: `自动检测来源：${tag.type === 'anchor' ? '主播' : '渠道'}维度 · ${tag.targetName}\n指标：${tag.metric}\n实测：${tag.value}\n阈值：${tag.threshold}\n严重度：${tag.severity === 'high' ? '严重' : tag.severity === 'medium' ? '中等' : '轻微'}`,
+      })
+      setToast(res.merged
+        ? `已合并到既有问题（累计 ${res.occurrenceCount} 次）`
+        : '已转为问题条目，可指派改进任务')
+      reload()
+    } catch (e: any) {
+      setToast(e?.message || '转换失败')
+    } finally {
+      setConverting(null)
+      setTimeout(() => setToast(''), 3000)
+    }
+  }
 
   const filtered = issues.filter((issue) => {
     const matchSearch = issue.title.toLowerCase().includes(search.toLowerCase()) || issue.solution.includes(search)
@@ -134,6 +160,17 @@ export function IssueLibraryPage() {
           ))}
         </div>
       </motion.div>
+
+      {/* 转换结果提示 */}
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300"
+        >
+          {toast}
+        </motion.div>
+      )}
 
       {/* Auto-detected issue tags */}
       {autoTags.length > 0 && (
@@ -193,6 +230,13 @@ export function IssueLibraryPage() {
                           最近检测: {tag.date}
                         </p>
                       )}
+                      <button
+                        onClick={() => convertTagToIssue(tag)}
+                        disabled={converting === tag.id}
+                        className="mt-2.5 w-full px-2 py-1.5 rounded text-[11px] font-medium bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30 hover:bg-orbit-primary/25 disabled:opacity-50 transition-colors"
+                      >
+                        {converting === tag.id ? '转换中…' : '转为问题条目'}
+                      </button>
                     </motion.div>
                   )
                 })}

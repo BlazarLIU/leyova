@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { api } from '@/services/api'
 import { DataPage, type ColumnDef } from '@/components/common/DataPage'
 import { useTable } from '@/components/common/useTable'
+import { ROLE_BADGE_VARIANTS, ROLE_CODES, ROLE_LABELS } from '@/constants/roles'
 
 export interface Account {
   id: number
@@ -28,35 +29,20 @@ export interface Account {
   createdAt: string
 }
 
-export const ROLE_LABEL: Record<string, string> = {
-  super_admin: '👑 系统管理员',
-  admin: '🏢 管理员 (总监)',
-  ops_director: '🧭 运营总监',
-  operator: '🚀 运营 (操盘手)',
-  ops_staff: '📋 运营专员',
-  controller: '🎛️ 直播中控',
-  ad_buyer: '🎯 投放专员',
-  finance: '💰 财务主管',
-  hrbp: '👥 HRBP',
-  employee: '🎙️ 员工 (主播/中控)',
-}
+// 兼容旧引用：角色字典唯一来源见 @/constants/roles
+export const ROLE_LABEL: Record<string, string> = ROLE_LABELS
+export const ROLE_BADGE_VARIANT: Record<string, 'danger' | 'warning' | 'success' | 'info' | 'neutral'> = ROLE_BADGE_VARIANTS
 
-export const ROLE_BADGE_VARIANT: Record<string, 'danger' | 'warning' | 'success' | 'info' | 'neutral'> = {
-  super_admin: 'danger',
-  admin: 'warning',
-  ops_director: 'warning',
-  operator: 'info',
-  ops_staff: 'info',
-  controller: 'neutral',
-  ad_buyer: 'info',
-  finance: 'success',
-  hrbp: 'warning',
-  employee: 'neutral',
+interface AccountForm {
+  username: string
+  realName: string
+  password: string
+  role: string
 }
 
 export function UsersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [form, setForm] = useState({ username: '', realName: '', password: '', role: 'operator' })
+  const [form, setForm] = useState<AccountForm>({ username: '', realName: '', password: '', role: ROLE_CODES[2] })
   const [creating, setCreating] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
 
@@ -91,7 +77,7 @@ export function UsersPage() {
     const total = table.total
     const active = list.filter((a) => a.status === 1).length
     const inactive = list.filter((a) => a.status !== 1).length
-    const operators = list.filter((a) => ['operator', 'ops_staff', 'ops_director'].includes(a.role)).length
+    const operators = list.filter((a) => ['ops_staff', 'ops_director'].includes(a.role)).length
 
     return { total, active, inactive, operators }
   }, [table.data, table.total])
@@ -106,7 +92,7 @@ export function UsersPage() {
     try {
       await api.post('/system/users', form)
       setShowCreateModal(false)
-      setForm({ username: '', realName: '', password: '', role: 'operator' })
+      setForm({ username: '', realName: '', password: '', role: ROLE_CODES[2] })
       setMsg('账号已成功创建')
       await table.reload()
     } catch (e: any) {

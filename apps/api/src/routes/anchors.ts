@@ -80,6 +80,8 @@ export async function anchorRoutes(app: FastifyInstance) {
   }
 
   app.get('/api/v1/anchors/list', { preHandler: [requireAuth] }, listHandler)
+  // 兼容旧前端调用（/api/anchors，无 /list）；守卫要求前端调用必须命中已注册路由
+  app.get('/api/v1/anchors', { preHandler: [requireAuth] }, listHandler)
 
   // ── GET /api/v1/anchors/:id ──
   app.get('/api/v1/anchors/:id', { preHandler: [requireAuth] }, async (request, reply) => {

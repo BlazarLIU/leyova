@@ -9,129 +9,65 @@ import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/services/api'
 import { PlatformShopSelector } from '@/components/common/PlatformShopSelector'
 import { GlobalSearch } from '@/components/common/GlobalSearch'
+import { AiOpsSessionSelector } from '@/components/layout/AiOpsSessionSelector'
+import { NAV_MANIFEST } from '@/data/route-manifest'
 
-const routeLabels: Record<string, string> = {
-  '/overview/home': '首页',
-  '/overview/cockpit': '经营驾驶舱',
-  '/overview/live-monitor': '实时监控',
-  '/overview/sessions': '场次管理',
-  '/overview/analytics': '数据分析',
+const NAV_LABELS: Record<string, string> = Object.fromEntries(
+  NAV_MANIFEST.map((e) => [e.href, e.label]),
+)
+
+/** 非导航路由（品牌门户 / 合规变更详情 / AI 运营分支）的补充标题 */
+const EXTRA_ROUTE_LABELS: Record<string, string> = {
   '/ai/chat': 'AI 助手',
-  '/data/management': '数据管理',
-  '/data/upload': '数据上传',
-  '/data/quality': '数据质量',
-  '/bi/dashboard': 'BI仪表盘',
-  '/bi/refund-analysis': '退款分析',
-  '/bi/anomaly-detection': '异常检测',
-  '/anchors/list': '主播列表',
-  '/anchors/profile': '主播档案',
-  '/anchors/training': '训练管理',
-  '/anchors/scripts': '话术模板',
-  '/ops/capabilities': '能力看板',
-  '/ops/script-library': '话术库',
-  '/ops/issue-library': '问题库',
-  '/ops/goal-tracking': '目标达成',
-  '/ops/room-health': '直播间健康度',
-  '/ops/session-products': '场次排品',
-  '/system/config': '系统配置',
-  '/system/personnel': '运营人员管理',
-  '/system/rooms': '直播间管理',
-  '/system/platforms': '平台与渠道管理',
-  '/system/users': '账号管理',
-  '/system/audit-logs': '操作审计日志',
-  '/system/dict': '字典管理',
-  '/system/alerts': '异常中心',
-  '/system/tasks': '改进任务',
-  '/system/promotions': '活动管理',
-  '/system/competitors': '竞品观察',
-  '/system/multi-room': '多直播间总览',
-  '/agency/clients': '品牌客户档案',
-  '/agency/projects': '代播签约项目',
-  '/agency/settlement': '月结对账单',
   '/brand-portal': '品牌方只读看板',
-  '/ops/inventory': '商品主数据与库存',
-  '/ops/fulfillment': '履约SLA与赔付风控',
-  '/ops/after-sales': '售后工单与原因归因',
-  '/ops/kol': '达人合作与佣金',
-  '/ops/cs': '客服响应与绩效',
-  '/ops/costs': '成本结构与净利',
-  '/ops/net-roi': '全域投放与T+7净ROI',
-  '/ops/search-keywords': '搜索词卡位',
-  '/ops/members': '会员与私域',
-  '/content/video-create': '视频创作',
-  '/content/video-data': '视频数据',
-  '/content/schedule': '内容排产与归因',
-  '/content/center-config': '生成服务配置',
-  '/shop/products': '全店商品明细',
-  '/shop/pdd/caliber-compare': '三口径对账',
-  '/shop/jd/store-rating': '店铺星级（四维考核）',
-  '/shop/xiaohongshu/notes': '笔记经营看板',
-  '/shop/xiaohongshu/conversion': '种草转化链路',
-  '/shop/kuaishou/fans-team': '粉丝团运营',
-  '/compliance/events': '违规事件看板',
-  '/compliance/rules': '平台规则雷达',
   '/compliance/changes': '合规变更评估',
+  '/ai-ops/cockpit': '今日作战单 · AI 作战台',
+  '/ai-ops/workbench': '经营诊断工作台',
+  '/ai-ops/chat': 'AI助手',
+  '/ai-ops/inbox': '待办审批中心',
+  '/ai-ops/alerts': '实时告警流',
+  '/ai-ops/session/planning': '货盘排品编辑',
+  '/ai-ops/session/prompter': '提词卡与指令',
+  '/ai-ops/session/live-watch': '盯盘驾驶舱',
+  '/ai-ops/session/review': '单场五段复盘',
+  '/ai-ops/review/overview': '复盘总览矩阵',
+  '/ai-ops/review/products': '商品表现分析',
+  '/ai-ops/review/short-videos': '短视频引流复盘',
+  '/ai-ops/review/channels': '渠道流量复盘',
+  '/ai-ops/review/funnel': '全链路转化漏斗',
+  '/ai-ops/session/actions': '改进闭环追踪',
+  '/ai-ops/assortment/selection': 'AI 全品类选品',
+  '/ai-ops/assortment/structure': '货盘结构分析',
+  '/ai-ops/assortment/prices': '价格与渠道价目',
+  '/ai-ops/content/clips': '内容排产与切片',
+  '/ai-ops/media/campaigns': '投放协同与熔断',
+  '/ai-ops/finance/pnl': '利润与单位经济 P&L (财务专区)',
+  '/ai-ops/finance/settle': '结算对账分录 (财务专区)',
+  '/ai-ops/hrbp/workspace': 'HRBP 效能总览',
+  '/ai-ops/people/performance': '主播效能排行',
+  '/ai-ops/people/schedule-recommend': 'AI 智能排班推荐',
+  '/ai-ops/governance/metrics': '22+5 指标注册字典',
+  '/ai-ops/governance/cases': 'Decision Case 决策流',
+  '/ai-ops/governance/knowledge': '知识库与模型中心',
 }
+
+const routeLabels: Record<string, string> = { ...NAV_LABELS, ...EXTRA_ROUTE_LABELS }
 
 type Notification = { id: string; text: string; time: string; unread: boolean }
 
-const ROUTE_MODULE_REQUIREMENTS: Record<string, string> = {
-  '/overview/home': 'overview',
-  '/overview/cockpit': 'overview',
-  '/overview/live-monitor': 'overview',
-  '/overview/analytics': 'overview',
+const NAV_MODULES: Record<string, string> = Object.fromEntries(
+  NAV_MANIFEST.filter((e) => e.module).map((e) => [e.href, e.module as string]),
+)
+
+/** 非导航路由的补充模块要求 */
+const EXTRA_ROUTE_MODULES: Record<string, string> = {
   '/ai/chat': 'ai',
-  '/data/management': 'data',
-  '/data/upload': 'data',
-  '/data/quality': 'data',
-  '/bi/dashboard': 'bi',
-  '/bi/refund-analysis': 'bi',
-  '/bi/anomaly-detection': 'bi',
-  '/anchors/list': 'anchor',
-  '/anchors/profile': 'anchor',
-  '/anchors/training': 'anchor',
-  '/anchors/scripts': 'anchor',
-  '/ops/capabilities': 'ops',
-  '/ops/script-library': 'ops',
-  '/ops/issue-library': 'ops',
-  '/ops/goal-tracking': 'ops',
-  '/ops/room-health': 'ops',
-  '/ops/session-products': 'session_products',
-  '/ops/inventory': 'product_center',
-  '/ops/fulfillment': 'fulfillment',
-  '/ops/after-sales': 'after_sales',
-  '/ops/kol': 'kol',
-  '/ops/cs': 'customer_service',
-  '/ops/costs': 'ops',
-  '/ops/net-roi': 'net_roi',
-  '/ops/search-keywords': 'search_seo',
-  '/ops/members': 'members',
-  '/overview/sessions': 'session',
-  '/content/schedule': 'content_schedule',
-  '/compliance/events': 'compliance',
-  '/compliance/rules': 'compliance',
   '/compliance/changes': 'compliance',
-  '/agency/clients': 'agency',
-  '/agency/projects': 'agency',
-  '/agency/settlement': 'agency',
-  '/system/config': 'system_config',
-  '/system/personnel': 'system_personnel_ops',
-  '/system/rooms': 'system_rooms',
-  '/system/platforms': 'system_users',
-  '/system/users': 'system_users',
-  '/system/audit-logs': 'audit_logs',
-  '/system/dict': 'system_dict',
-  '/system/alerts': 'system_alerts',
-  '/system/tasks': 'system_tasks',
-  '/system/promotions': 'system_promotions',
-  '/system/competitors': 'system_competitors',
-  '/system/multi-room': 'system_multiroom',
-  '/shop/products': 'product_center',
-  '/shop/pdd/caliber-compare': 'bi',
-  '/shop/jd/store-rating': 'fulfillment',
-  '/shop/xiaohongshu/notes': 'content',
-  '/shop/xiaohongshu/conversion': 'content',
-  '/shop/kuaishou/fans-team': 'ops',
+}
+
+const ROUTE_MODULE_REQUIREMENTS: Record<string, string> = {
+  ...NAV_MODULES,
+  ...EXTRA_ROUTE_MODULES,
 }
 
 export function Topbar({ user }: { user?: { username: string; realName: string; role: string } }) {
@@ -178,7 +114,7 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
       .catch(() => { /* 静默失败 */ })
   }, [])
 
-  const pageTitle = routeLabels[location.pathname] ?? '首页'
+  const pageTitle = routeLabels[location.pathname] ?? '主页'
 
   // 点击外部关闭退出菜单
   useEffect(() => {
@@ -211,8 +147,24 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
       <div className="flex items-center gap-2 text-sm">
         <img src="/orbit-icon.svg" alt="logo" className="h-4 w-auto object-contain dark:invert dark:brightness-[0.85]" />
         <span className="text-slate-600">/</span>
+        {location.pathname.startsWith('/ai-ops') && (
+          <>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              AI 运营
+            </span>
+            <span className="text-slate-600">/</span>
+          </>
+        )}
         <span className="text-slate-200 font-medium">{pageTitle}</span>
       </div>
+
+      {/* AI Ops Session Selector (when on /ai-ops) */}
+      {location.pathname.startsWith('/ai-ops') && (
+        <div className="ml-2 hidden sm:block">
+          <AiOpsSessionSelector />
+        </div>
+      )}
 
       {/* Platform & Shop Quick Selector */}
       <div className="ml-2 hidden sm:block">

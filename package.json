@@ -15,6 +15,10 @@
     "dev:mcp": "pnpm -F @leyova/mcp-server dev",
     "db:migrate": "node database/migrate.js",
     "db:setup": "node database/migrate.js",
+    "db:init": "node database/demo/init.mjs",
+    "db:init:demo": "node database/demo/init.mjs --with-demo",
+    "demo:seed": "node database/demo/generate.mjs",
+    "demo:reset": "node database/demo/reset.mjs",
     "build": "pnpm -F @leyova/api build && pnpm -F @leyova/web build && pnpm -F @leyova/mcp-server build",
     "start:api": "pnpm -F @leyova/api start",
     "start:mcp": "pnpm -F @leyova/mcp-server start",
@@ -24,6 +28,8 @@
     "ops:bench": "node scripts/benchmark-aggregations.mjs",
     "ops:smoke": "node scripts/e2e-smoke-flow.mjs",
     "worker": "pnpm -F @leyova/api worker",
+    "openapi:gen": "pnpm -F @leyova/api openapi:gen -- --write",
+    "openapi:check": "pnpm -F @leyova/api openapi:check",
     "test": "pnpm -F @leyova/api test && pnpm -F @leyova/web test"
   }
 }

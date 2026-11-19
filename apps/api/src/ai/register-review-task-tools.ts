@@ -142,25 +142,9 @@ registerTool({
 
     const task = rows[0]
 
-    await ctx.pool.query(
-      `INSERT INTO ai_tool_logs
-         (actor_user_id, scope_type, scope_id, tool_name, risk_level,
-          input_payload, result_summary, approval_status, status, model_name)
-       VALUES ($1, $2, $3, $4, 'write_with_approval',
-               $5, $6, 'pending', 'success', 'openclaw')`,
-      [
-        ctx.userId,
-        ctx.scope.scopeType,
-        ctx.scope.scopeId,
-        'create_improvement_task',
-        JSON.stringify(params),
-        `Created task #${task.id}: ${task.title}`,
-      ]
-    ).catch(() => {})
-
     return {
       task,
-      message: `任务已创建（ID: ${task.id}），状态为 pending，等待用户确认后生效。`,
+      message: `任务已创建（ID: ${task.id}），已进入待执行队列。`,
     }
   },
 })
@@ -185,30 +169,14 @@ registerTool({
     )
 
     if (rows.length === 0) {
-      return { error: 'Task not found' }
+      throw new Error(`Task #${params.taskId} not found`)
     }
 
     const task = rows[0]
 
-    await ctx.pool.query(
-      `INSERT INTO ai_tool_logs
-         (actor_user_id, scope_type, scope_id, tool_name, risk_level,
-          input_payload, result_summary, approval_status, status, model_name)
-       VALUES ($1, $2, $3, $4, 'write_with_approval',
-               $5, $6, 'pending', 'success', 'openclaw')`,
-      [
-        ctx.userId,
-        ctx.scope.scopeType,
-        ctx.scope.scopeId,
-        'update_task_status',
-        JSON.stringify(params),
-        `Updated task #${task.id} to ${task.status}`,
-      ]
-    ).catch(() => {})
-
     return {
       task,
-      message: `任务 #${params.taskId} 状态已更新为 ${params.status}，等待用户确认后生效。`,
+      message: `任务 #${params.taskId} 状态已更新为 ${params.status}。`,
     }
   },
 })

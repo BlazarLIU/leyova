@@ -24,6 +24,7 @@ interface SessionItem {
   gmv: string
   roi: number
   status: SessionStatus
+  staff: Array<{ roleCode: string; roleName: string; staffName: string }>
 }
 
 
@@ -55,6 +56,7 @@ export function SessionsPage() {
           gmv: s.status === 'live' || s.status === 'completed' ? `¥${s.gmv ?? 0}` : '-',
           roi: s.roi ?? 0,
           status: s.status === 'live' ? 'live' : 'ended' as SessionStatus,
+          staff: Array.isArray(s.staff) ? s.staff : [],
         }))
         setSessions(transformed)
       })
@@ -190,6 +192,20 @@ export function SessionsPage() {
                               <User className="w-3.5 h-3.5 text-slate-600" />
                               <span className="text-slate-400">{session.anchor}</span>
                             </div>
+                            {/* P0-2：排班与场次联动 —— 展示当班岗位分工 */}
+                            {session.staff.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {session.staff.map((st, i) => (
+                                  <span
+                                    key={i}
+                                    title={`${st.roleName}：${st.staffName}`}
+                                    className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-slate-400"
+                                  >
+                                    {st.roleName} {st.staffName}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </td>
                           <td className="px-5 py-3.5 text-slate-400 text-xs">{session.startTime}</td>
                           <td className="px-5 py-3.5 text-slate-400 text-xs">{session.endTime}</td>

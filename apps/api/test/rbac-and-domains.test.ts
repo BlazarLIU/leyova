@@ -101,14 +101,14 @@ describe('HTTP API & RBAC 回归测试', () => {
     await app.ready()
 
     adBuyer = await createTempAccount('ad_buyer', 'agency_staff', 1)
-    operatorUser = await createTempAccount('operator', 'agency_staff', 1)
-    brandViewer = await createTempAccount('brand_viewer', 'brand_viewer', 1)
-    // S4：finance 角色已下线，改用 admin 承担原「有成本权限」的对照角色
-    financeUser = await createTempAccount('admin', 'agency_staff', 1)
-    adminUser = await createTempAccount('admin', 'agency_staff', 1)
+    operatorUser = await createTempAccount('ops_staff', 'agency_staff', 1)
+    brandViewer = await createTempAccount('cs_agent', 'brand_viewer', 1)
+    // S4：系统不设独立 finance 角色，成本权限对照改用运营总监
+    financeUser = await createTempAccount('super_admin', 'agency_staff', 1)
+    adminUser = await createTempAccount('super_admin', 'agency_staff', 1)
     hrbpUser = await createTempAccount('hrbp', 'agency_staff', 1)
     opsDirectorUser = await createTempAccount('ops_director', 'agency_staff', 1)
-    employeeUser = await createTempAccount('employee', 'agency_staff', 1)
+    employeeUser = await createTempAccount('video_editor', 'agency_staff', 1)
     createdUserIds.push(
       adBuyer.userId,
       operatorUser.userId,
@@ -398,7 +398,7 @@ describe('HTTP API & RBAC 回归测试', () => {
         buildMetricQuery(
           { metrics: ['ad_spend'], timeRange: { from: '2026-11-01', to: '2026-11-11' } },
           null,
-          { role: 'operator' },
+          { role: 'ops_staff' },
         ),
       /无权查询投流消耗与 ROI 敏感指标/,
     )
@@ -481,7 +481,7 @@ describe('HTTP API & RBAC 回归测试', () => {
       method: 'PUT',
       url: '/api/v1/system/roles/modules',
       headers: { cookie: operatorUser.cookie },
-      payload: { roleCode: 'employee', moduleCodes: ['overview'] },
+      payload: { roleCode: 'video_editor', moduleCodes: ['overview'] },
     })
     assert.equal(forbiddenRolePut.statusCode, 403)
 
@@ -492,7 +492,7 @@ describe('HTTP API & RBAC 回归测试', () => {
     })
     assert.equal(rolesBeforeRes.statusCode, 200)
     const rolesList = rolesBeforeRes.json().data as Array<{ code: string; modules: string[] }>
-    const targetRole = rolesList.find((r) => r.code === 'employee')
+    const targetRole = rolesList.find((r) => r.code === 'video_editor')
     assert.ok(targetRole, 'employee role must exist')
     const originalModules = [...(targetRole?.modules || [])]
 
@@ -502,7 +502,7 @@ describe('HTTP API & RBAC 回归测试', () => {
         method: 'PUT',
         url: '/api/v1/system/roles/modules',
         headers: { cookie: adminUser.cookie },
-        payload: { roleCode: 'employee', moduleCodes: nextModules },
+        payload: { roleCode: 'video_editor', moduleCodes: nextModules },
       })
       assert.equal(putRes.statusCode, 200)
       assert.equal(putRes.json().data.updated, true)
@@ -511,7 +511,7 @@ describe('HTTP API & RBAC 回归测试', () => {
         method: 'PUT',
         url: '/api/v1/system/roles/modules',
         headers: { cookie: adminUser.cookie },
-        payload: { roleCode: 'employee', moduleCodes: originalModules },
+        payload: { roleCode: 'video_editor', moduleCodes: originalModules },
       })
     }
   })

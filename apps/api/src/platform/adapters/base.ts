@@ -93,11 +93,32 @@ export abstract class GovernanceBackedPlatformAdapter implements PlatformAdapter
     if (!govAdapter) {
       throw new Error(`未找到平台治理适配器: ${this.platformCode}`)
     }
-    const res = await govAdapter.fetchOrders(credentials, { sinceTime: sinceWatermark })
-    if (!res.success) {
-      throw new Error(res.error || `${this.platformName} OpenAPI 拉取失败`)
+
+    // 翻页拉全：单页最多 50 单，日均订单更高的店铺必须循环到 hasMore=false，
+    // 否则长期少算 GMV。上限保护防止平台游标异常导致死循环。
+    const MAX_PAGES = 200
+    const allRecords: CanonicalOrderRecord[] = []
+    let cursor: string | undefined
+    const seenCursors = new Set<string>()
+
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const res = await govAdapter.fetchOrders(credentials, {
+        sinceTime: sinceWatermark,
+        cursor,
+        pageSize: 50,
+      })
+      if (!res.success) {
+        throw new Error(res.error || `${this.platformName} OpenAPI 拉取失败`)
+      }
+      allRecords.push(...res.records)
+
+      if (!res.hasMore || !res.nextCursor || res.records.length === 0) break
+      if (seenCursors.has(res.nextCursor)) break
+      seenCursors.add(res.nextCursor)
+      cursor = res.nextCursor
     }
-    return aggregateCanonicalOrdersToTrade(this.platformCode, shopId, res.records)
+
+    return aggregateCanonicalOrdersToTrade(this.platformCode, shopId, allRecords)
   }
 
   async fetchTrafficData(
