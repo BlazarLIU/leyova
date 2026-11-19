@@ -38,5 +38,10 @@ sessions/
 .DS_Store
 
 # 本地审计与调研过程文档（不入库，仅本地留档）
-docs/
+docs/*
+# 例外：README 使用的官方 Logo 素材
+!docs/logo/
+docs/logo/*
+!docs/logo/Leyova_primary_logo_transparent.png
+!docs/logo/Leyova_primary_logo_transparent_dark.png
 database/*.bak*

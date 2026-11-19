@@ -1,7 +1,8 @@
 <h1 align="center">Leyova · 全渠道电商数字化运营中枢</h1>
 
 <p align="center">
-  <img src="docs/logo/Leyova_primary_logo_transparent.png" alt="Leyova" width="340">
+  <img src="docs/logo/Leyova_primary_logo_transparent.png#gh-light-mode-only" alt="Leyova" width="340">
+  <img src="docs/logo/Leyova_primary_logo_transparent_dark.png#gh-dark-mode-only" alt="Leyova" width="340">
 </p>
 
 <p align="center">
