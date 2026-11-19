@@ -1,10 +1,10 @@
+<h1 align="center">Leyova · 全渠道电商数字化运营中枢</h1>
+
 <p align="center">
-  <img src="apps/web/public/brand/logo-full.png#gh-light-mode-only" alt="Leyova" width="312">
-  <img src="apps/web/public/brand/mark-dark.png#gh-dark-mode-only" alt="Leyova" width="104" height="104">
+  <img src="docs/logo/Leyova_primary_logo_transparent.png" alt="Leyova" width="340">
 </p>
 
 <p align="center">
-  <strong>全渠道电商数字化运营中枢</strong><br/>
   面向品牌自播团队、MCN 机构与跨平台电商卖家的全链路经营系统
 </p>
 
