@@ -68,7 +68,7 @@ export function AiOpsPlanningPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-12 bg-[#0b0f19] min-h-screen text-cyan-400">
+      <div className="flex-1 flex items-center justify-center p-12 bg-orbit-bg min-h-screen text-cyan-400">
         <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -85,7 +85,7 @@ export function AiOpsPlanningPage() {
   const totalMinutes = slots.reduce((acc, cur) => acc + cur.minutes, 0)
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+    <div className="flex-1 bg-orbit-bg text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
       {/* 头部导航与操作 */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>

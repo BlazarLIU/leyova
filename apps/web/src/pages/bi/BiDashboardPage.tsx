@@ -230,8 +230,8 @@ export function BiDashboardPage() {
                 <svg className="absolute inset-0 w-full h-full pb-8" viewBox="0 0 600 220" preserveAspectRatio="xMidYMid meet">
                   <defs>
                     <linearGradient id={trendAreaId} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#7C3AED" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="#7C3AED" stopOpacity={0} />
+                      <stop offset="0%" stopColor={CHART_SERIES[0]} stopOpacity={0.25} />
+                      <stop offset="100%" stopColor={CHART_SERIES[0]} stopOpacity={0} />
                     </linearGradient>
                   </defs>
 
@@ -270,7 +270,7 @@ export function BiDashboardPage() {
                         cy={y}
                         r="4"
                         fill={CHART_SERIES[0]}
-                        stroke="#FFFFFF"
+                        stroke="var(--surface)"
                         strokeWidth="2"
                         className="cursor-pointer hover:r-[6]"
                       />

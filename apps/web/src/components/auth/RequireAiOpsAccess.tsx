@@ -27,7 +27,7 @@ export function RequireAiOpsAccess({
 
   if (loading || !user) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 bg-[#0b0f19] min-h-[50vh]">
+      <div className="flex-1 flex items-center justify-center p-8 bg-orbit-bg min-h-[50vh]">
         <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -40,7 +40,7 @@ export function RequireAiOpsAccess({
   if (!canAccessAiOps) {
     const homePath = getDefaultHomePath(user, allowedModules)
     return (
-      <div className="flex-1 overflow-y-auto flex items-center justify-center p-6 bg-[#0b0f19] min-h-screen">
+      <div className="flex-1 overflow-y-auto flex items-center justify-center p-6 bg-orbit-bg min-h-screen">
         <div className="max-w-md w-full rounded-2xl border border-rose-500/30 bg-orbit-ink/90 backdrop-blur-xl p-8 text-center shadow-2xl space-y-4">
           <div className="mx-auto w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-inner">
             <ShieldAlert className="w-7 h-7" />
@@ -73,7 +73,7 @@ export function RequireAiOpsAccess({
     const canAccessFinance = isRoleCode(role) && FINANCE_ROLES.includes(role)
     if (!canAccessFinance) {
       return (
-        <div className="flex-1 overflow-y-auto flex items-center justify-center p-6 bg-[#0b0f19] min-h-screen">
+        <div className="flex-1 overflow-y-auto flex items-center justify-center p-6 bg-orbit-bg min-h-screen">
           <div className="max-w-md w-full rounded-2xl border border-amber-500/30 bg-orbit-ink/90 backdrop-blur-xl p-8 text-center shadow-2xl space-y-4">
             <div className="mx-auto w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
               <Lock className="w-7 h-7" />

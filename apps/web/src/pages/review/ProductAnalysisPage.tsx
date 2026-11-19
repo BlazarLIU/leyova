@@ -495,7 +495,7 @@ function ProductTable({
                         </td>
                         <td className="py-3 px-3 text-right">
                           <span className="text-sm tabular-nums"
-                            style={{ color: toNum(product.click_deal_rate) > 0.05 ? '#34d399' : '#f87171' }}
+                            style={{ color: toNum(product.click_deal_rate) > 0.05 ? 'var(--color-orbit-success)' : 'var(--color-orbit-danger)' }}
                           >
                             {formatPercent(product.click_deal_rate)}
                           </span>

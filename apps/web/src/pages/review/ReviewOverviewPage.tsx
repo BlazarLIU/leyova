@@ -12,6 +12,7 @@ import {
   Calendar, Monitor, User, List, TrendingUp, TrendingDown,
   AlertTriangle, Award, Zap,
 } from 'lucide-react'
+import { CHART_SERIES, CHART_AXIS } from '@/constants/chartPalette'
 
 // ─── Types ───
 interface OverviewData {
@@ -41,7 +42,7 @@ const fadeUp = (delay: number) => ({
   transition: { duration: 0.35, delay },
 })
 
-const FUNNEL_COLORS = ['#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95']
+const FUNNEL_COLORS = CHART_SERIES.slice(0, 5)
 
 const METRIC_GROUPS = [
   {
@@ -416,22 +417,22 @@ function FunnelSection({ funnelData }: { funnelData: FunnelStep[] }) {
                   type="number"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#64748b', fontSize: 12 }}
+                  tick={{ fill: CHART_AXIS, fontSize: 12 }}
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#cbd5e1', fontSize: 13 }}
+                  tick={{ fill: CHART_AXIS, fontSize: 13 }}
                   width={120}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1e293b',
-                    border: '1px solid #334155',
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     borderRadius: 8,
-                    color: '#e2e8f0',
+                    color: 'var(--text-primary)',
                     fontSize: 13,
                   }}
                   formatter={(value: number) => [value.toLocaleString(), '数量']}
@@ -533,7 +534,7 @@ function Top3Section({ data }: { data: OverviewData }) {
                         className="h-full rounded-full transition-all"
                         style={{
                           width: `${(ch.gmv / maxChannelGmv) * 100}%`,
-                          background: 'linear-gradient(90deg, #8b5cf6, #a78bfa)',
+                          background: 'linear-gradient(90deg, var(--color-orbit-primary), var(--color-orbit-primary-light))',
                         }}
                       />
                     </div>
@@ -581,7 +582,7 @@ function Top3Section({ data }: { data: OverviewData }) {
                         className="h-full rounded-full transition-all"
                         style={{
                           width: `${(a.gmv_per_hour / maxAnchorGpm) * 100}%`,
-                          background: 'linear-gradient(90deg, #06b6d4, #22d3ee)',
+                          background: 'linear-gradient(90deg, var(--color-orbit-accent-deep), var(--color-orbit-accent))',
                         }}
                       />
                     </div>

@@ -31,7 +31,7 @@ export function AiOpsFinancePnlPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-12 bg-[#0b0f19] min-h-screen text-amber-400">
+      <div className="flex-1 flex items-center justify-center p-12 bg-orbit-bg min-h-screen text-amber-400">
         <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -39,7 +39,7 @@ export function AiOpsFinancePnlPage() {
 
   if (!data) {
     return (
-      <div className="flex-1 flex items-center justify-center p-12 bg-[#0b0f19] min-h-screen">
+      <div className="flex-1 flex items-center justify-center p-12 bg-orbit-bg min-h-screen">
         <div className="max-w-md w-full rounded-2xl border border-[var(--border)] bg-orbit-ink/60 p-8 text-center space-y-3">
           <Receipt className="w-10 h-10 mx-auto text-[var(--text-muted)]" />
           <h2 className="text-lg font-semibold text-[var(--text-secondary)]">暂无该场次财务数据</h2>
@@ -56,7 +56,7 @@ export function AiOpsFinancePnlPage() {
   }
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+    <div className="flex-1 bg-orbit-bg text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
       {/* 头部安全与权限提示 */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-amber-500/20">
         <div>

@@ -11,6 +11,7 @@ import {
   Eye, MousePointerClick, ShoppingCart, AlertTriangle,
   List,
 } from 'lucide-react'
+import { CHART_SERIES, CHART_AXIS } from '@/constants/chartPalette'
 
 // ─── Types ───
 interface FunnelLevel {
@@ -44,7 +45,7 @@ const fadeUp = (delay: number) => ({
 })
 
 /** Violet gradient colors from dark to light purple */
-const FUNNEL_COLORS = ['#4c1d95', '#5b21b6', '#6d28d9', '#7c3aed', '#8b5cf6']
+const FUNNEL_COLORS = CHART_SERIES.slice(0, 5)
 
 const STAGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   '直播间曝光': Eye,
@@ -314,23 +315,23 @@ function FunnelVisualization({ levels }: { levels: FunnelLevel[] }) {
                   ))}
                 </defs>
 
-                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} hide />
+                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS, fontSize: 12 }} hide />
 
                 <YAxis
                   type="category"
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#cbd5e1', fontSize: 13 }}
+                  tick={{ fill: CHART_AXIS, fontSize: 13 }}
                   width={90}
                 />
 
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1e293b',
-                    border: '1px solid #334155',
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     borderRadius: 8,
-                    color: '#e2e8f0',
+                    color: 'var(--text-primary)',
                     fontSize: 13,
                   }}
                   formatter={(value: number, _name: string) => [value.toLocaleString(), '数量']}

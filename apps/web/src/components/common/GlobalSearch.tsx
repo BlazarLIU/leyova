@@ -83,7 +83,7 @@ export const GlobalSearch: React.FC = () => {
 
       {/* 搜索模态框 */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-[#171717]/45 p-4 pt-20 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-orbit-ink/45 p-4 pt-20 backdrop-blur-[2px]">
           <div className="w-full max-w-xl overflow-hidden rounded-[18px] border border-[var(--border)] bg-[var(--surface)] shadow-[0_24px_70px_-24px_rgba(23,23,23,0.4)]">
             {/* 搜索输入框 */}
             <div className="flex items-center gap-3 border-b border-[var(--border)] p-4">

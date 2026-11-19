@@ -2,6 +2,7 @@ import { TrendingUp, TrendingDown } from 'lucide-react'
 import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
+import { CHART_SERIES } from '@/constants/chartPalette'
 import type { StatCardData } from '@/types'
 
 /**
@@ -9,10 +10,10 @@ import type { StatCardData } from '@/types'
  * 白底细边框 + 大字号数字 + 极简 sparkline，不使用彩色渐变块。
  */
 const colorMap = {
-  primary: { chart: '#F42902', tint: 'text-orbit-primary' },
-  accent:  { chart: '#4FD64B', tint: 'text-[#2F9E2C]' },
-  success: { chart: '#16A34A', tint: 'text-orbit-success' },
-  warning: { chart: '#E0A008', tint: 'text-orbit-warning' },
+  primary: { chart: CHART_SERIES[0], tint: 'text-orbit-primary' },
+  accent:  { chart: CHART_SERIES[1], tint: 'text-orbit-accent-deep' },
+  success: { chart: 'var(--color-orbit-success)', tint: 'text-orbit-success' },
+  warning: { chart: 'var(--color-orbit-warning)', tint: 'text-orbit-warning' },
 }
 
 interface StatCardProps {

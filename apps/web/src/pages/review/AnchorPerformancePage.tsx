@@ -13,7 +13,7 @@ import { TrendingUp, Users, Clock, DollarSign, ArrowUp, ArrowDown, ArrowUpDown }
 import { api } from '@/services/api'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { cn } from '@/utils/cn'
-import { CHART_GRID, CHART_AXIS } from '@/constants/chartPalette'
+import { CHART_GRID, CHART_AXIS, CHART_SERIES } from '@/constants/chartPalette'
 
 // ---- Types ----
 
@@ -68,16 +68,7 @@ function formatNumber(val: number): string {
 }
 
 // Color palette for radar series
-const ANCHOR_COLORS = [
-  '#6366f1', // indigo
-  '#f59e0b', // amber
-  '#10b981', // emerald
-  '#ec4899', // pink
-  '#3b82f6', // blue
-  '#8b5cf6', // violet
-  '#14b8a6', // teal
-  '#f97316', // orange
-]
+const ANCHOR_COLORS = CHART_SERIES.slice(0, 8)
 
 // ---- Constants ----
 
@@ -298,7 +289,7 @@ export function AnchorPerformancePage() {
                   <PolarRadiusAxis
                     angle={90}
                     domain={[0, 100]}
-                    tick={{ fill: '#64748b', fontSize: 10 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 10 }}
                   />
                   {radarData.map((d, i) => (
                     <Radar

@@ -11,6 +11,7 @@ import {
   AlertTriangle, MousePointerClick, BarChart3, VideoOff,
   ChevronDown, ChevronUp,
 } from 'lucide-react'
+import { CHART_SERIES, CHART_AXIS } from '@/constants/chartPalette'
 
 // ─── Types ───
 
@@ -51,10 +52,7 @@ const fadeUp = (delay: number) => ({
 })
 
 /** Purple gradient palette for ranking bars */
-const RANK_COLORS = [
-  '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95',
-  '#3b0764', '#2e1065', '#1e0033',
-]
+const RANK_COLORS = CHART_SERIES
 
 type RankMetric = 'impressions' | 'traffic'
 
@@ -429,14 +427,14 @@ function RankingChart({
                   type="number"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#64748b', fontSize: 11 }}
+                  tick={{ fill: CHART_AXIS, fontSize: 11 }}
                 />
                 <YAxis
                   type="category"
                   dataKey="video_name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#cbd5e1', fontSize: 11 }}
+                  tick={{ fill: CHART_AXIS, fontSize: 11 }}
                   width={110}
                   tickFormatter={(val: string) =>
                     val.length > 8 ? `${val.slice(0, 8)}…` : val
@@ -444,10 +442,10 @@ function RankingChart({
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1e293b',
-                    border: '1px solid #334155',
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     borderRadius: 8,
-                    color: '#e2e8f0',
+                    color: 'var(--text-primary)',
                     fontSize: 13,
                   }}
                   formatter={(value: number) => [value.toLocaleString(), metricLabel]}

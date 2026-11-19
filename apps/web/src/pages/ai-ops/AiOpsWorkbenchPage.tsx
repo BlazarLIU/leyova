@@ -3,7 +3,7 @@ import { Sparkles } from 'lucide-react'
 
 export function AiOpsWorkbenchPage() {
   return (
-    <div className="flex-1 flex flex-col bg-[#0b0f19] min-h-screen">
+    <div className="flex-1 flex flex-col bg-orbit-bg min-h-screen">
       <div className="px-6 py-3 border-b border-[var(--border)] bg-orbit-ink/60 backdrop-blur-md flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">

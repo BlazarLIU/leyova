@@ -85,9 +85,9 @@ const fadeUp = (delay: number) => ({
 })
 
 const severityConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'danger'; borderColor: string }> = {
-  normal: { label: '正常', variant: 'success', borderColor: '#10b981' },
-  warning: { label: '预警', variant: 'warning', borderColor: '#f59e0b' },
-  severe: { label: '严重', variant: 'danger', borderColor: '#ef4444' },
+  normal: { label: '正常', variant: 'success', borderColor: 'var(--color-orbit-success)' },
+  warning: { label: '预警', variant: 'warning', borderColor: 'var(--color-orbit-warning)' },
+  severe: { label: '严重', variant: 'danger', borderColor: 'var(--color-orbit-danger)' },
 }
 
 const taskStatusConfig: Record<string, { label: string; variant: 'warning' | 'primary' | 'success' | 'info' }> = {

@@ -52,7 +52,7 @@ export function AiOpsCockpitPage() {
       <div className="flex flex-col justify-between gap-5 border-b border-orbit-border pb-5 md:flex-row md:items-end">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-[4px] border border-orbit-accent-deep/40 bg-orbit-accent/35 px-2 py-0.5 text-[10.5px] font-bold tracking-[0.04em] text-[#14532D] dark:bg-orbit-accent/15 dark:text-orbit-accent">
+            <span className="inline-flex items-center gap-1.5 rounded-[4px] border border-orbit-accent-deep/40 bg-orbit-accent/35 px-2 py-0.5 text-[10.5px] font-bold tracking-[0.04em] text-orbit-ink dark:bg-orbit-accent/15 dark:text-orbit-accent">
               <span className="h-1.5 w-1.5 rounded-full bg-orbit-accent-deep" />
               工作面 1 · 作战台
             </span>
@@ -82,7 +82,7 @@ export function AiOpsCockpitPage() {
             <p className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
               AI 预测达成 (MAPE 8%)
             </p>
-            <p className="metric-num mt-0.5 text-[20px] font-extrabold leading-tight text-[#15803D] dark:text-orbit-accent">
+            <p className="metric-num mt-0.5 text-[20px] font-extrabold leading-tight text-orbit-success dark:text-orbit-accent">
               ¥{(data.predictedGmv / 10000).toFixed(1)}万
             </p>
           </div>
@@ -125,7 +125,7 @@ export function AiOpsCockpitPage() {
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               )}
             >
-              <CheckCircle2 className={cn('h-3.5 w-3.5', activeTab === 'executed' ? 'text-orbit-accent' : 'text-[#15803D] dark:text-orbit-accent')} />
+              <CheckCircle2 className={cn('h-3.5 w-3.5', activeTab === 'executed' ? 'text-orbit-accent' : 'text-orbit-success dark:text-orbit-accent')} />
               <span>AI 今日替你做了什么 (L1/L2)</span>
               <span
                 className={cn(
@@ -218,7 +218,7 @@ export function AiOpsCockpitPage() {
 
                     {/* AI 诊断（荧光绿语言） */}
                     <div className="mb-3 space-y-1.5 rounded-lg border-l-2 border-orbit-accent-deep bg-orbit-accent/[0.08] p-3.5">
-                      <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-[#15803D] dark:text-orbit-accent">
+                      <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-orbit-success dark:text-orbit-accent">
                         <span className="h-1.5 w-1.5 rounded-full bg-orbit-accent-deep" />
                         核心问题：{caseItem.question}
                       </p>
@@ -240,7 +240,7 @@ export function AiOpsCockpitPage() {
                         <span className="block text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-subtle)]">
                           预期增量
                         </span>
-                        <span className="metric-num mt-0.5 block font-bold text-[#15803D] dark:text-orbit-accent">
+                        <span className="metric-num mt-0.5 block font-bold text-orbit-success dark:text-orbit-accent">
                           {caseItem.proposal.expectedGain}
                         </span>
                       </div>
@@ -248,7 +248,7 @@ export function AiOpsCockpitPage() {
                         <span className="block text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-subtle)]">
                           成本 / 影响
                         </span>
-                        <span className="metric-num mt-0.5 block font-medium text-[#A16207] dark:text-orbit-warning">
+                        <span className="metric-num mt-0.5 block font-medium text-orbit-warning">
                           {caseItem.proposal.cost}
                         </span>
                       </div>
@@ -288,7 +288,7 @@ export function AiOpsCockpitPage() {
               {data.aiActionsExecutedToday.map((act) => (
                 <div key={act.id} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 rounded-[3px] border border-orbit-accent-deep/35 bg-orbit-accent/30 px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#14532D] dark:bg-orbit-accent/15 dark:text-orbit-accent">
+                    <span className="mt-0.5 rounded-[3px] border border-orbit-accent-deep/35 bg-orbit-accent/30 px-1.5 py-0.5 font-mono text-[10px] font-bold text-orbit-ink dark:bg-orbit-accent/15 dark:text-orbit-accent">
                       {act.level}
                     </span>
                     <div>
@@ -298,7 +298,7 @@ export function AiOpsCockpitPage() {
                       </div>
                       <p className="mt-0.5 text-[11.5px] text-[var(--text-muted)]">
                         类型：<span className="text-[var(--text-secondary)]">{act.type}</span> · 效果：
-                        <span className="font-semibold text-[#15803D] dark:text-orbit-accent">{act.impact}</span>
+                        <span className="font-semibold text-orbit-success dark:text-orbit-accent">{act.impact}</span>
                       </p>
                     </div>
                   </div>
@@ -370,7 +370,7 @@ export function AiOpsCockpitPage() {
                         <ArrowRight className="h-3 w-3" />
                       </a>
                     ) : session.status === 'live' ? (
-                      <a href="/ai-ops/session/live-watch" className="inline-flex items-center gap-0.5 font-semibold text-[#15803D] hover:underline dark:text-orbit-accent">
+                      <a href="/ai-ops/session/live-watch" className="inline-flex items-center gap-0.5 font-semibold text-orbit-success hover:underline dark:text-orbit-accent">
                         进入盯盘驾驶舱
                         <ArrowRight className="h-3 w-3" />
                       </a>

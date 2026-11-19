@@ -61,11 +61,7 @@ interface ColumnDef {
 const CHANNEL_CATEGORIES = ['全部', '推荐流量', '搜索流量', '社交流量', '付费流量'] as const
 const COMPARE_PERIODS = ['无对比', '环比', '同比'] as const
 
-const CHANNEL_COLORS = [
-  '#F42902', '#2563EB', '#4FD64B', '#E0A008',
-  '#0EA5A5', '#C2410C', '#5B7A00', '#9B9B96',
-  '#B45309', '#1D4ED8',
-]
+const CHANNEL_COLORS = CHART_SERIES
 
 const funnelStages = [
   { key: 'impressions', label: '曝光', color: 'from-orbit-primary/40 to-orbit-primary-dark/20' },
@@ -446,7 +442,7 @@ export function ChannelAnalysisPage() {
                     type="number"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 11 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
                   />
                   <YAxis
                     type="category"
@@ -526,8 +522,8 @@ export function ChannelAnalysisPage() {
                     name="GPM"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 11 }}
-                    label={{ value: 'GPM (千次曝光成交额)', position: 'bottom', fill: '#64748b', fontSize: 11, offset: 4 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
+                    label={{ value: 'GPM (千次曝光成交额)', position: 'bottom', fill: CHART_AXIS, fontSize: 11, offset: 4 }}
                   />
                   <YAxis
                     type="number"
@@ -535,8 +531,8 @@ export function ChannelAnalysisPage() {
                     name="曝光-观看率"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 11 }}
-                    label={{ value: '曝光-观看率 (%)', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 11, offset: 0 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 11 }}
+                    label={{ value: '曝光-观看率 (%)', angle: -90, position: 'insideLeft', fill: CHART_AXIS, fontSize: 11, offset: 0 }}
                   />
                   <ZAxis type="number" dataKey="gmv" range={[60, 500]} />
                   <Tooltip content={<ScatterTooltip />} cursor={{ strokeDasharray: '4 4' }} />

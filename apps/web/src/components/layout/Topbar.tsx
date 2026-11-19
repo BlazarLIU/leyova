@@ -150,7 +150,7 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
         <span className="hidden text-[var(--text-subtle)] sm:inline">/</span>
         {location.pathname.startsWith('/ai-ops') && (
           <>
-            <span className="inline-flex items-center gap-1.5 rounded-[6px] border border-orbit-accent-deep/40 bg-orbit-accent/30 px-1.5 py-0.5 text-[10.5px] font-bold text-[#14532D] dark:bg-orbit-accent/15 dark:text-orbit-accent">
+            <span className="inline-flex items-center gap-1.5 rounded-[6px] border border-orbit-accent-deep/40 bg-orbit-accent/30 px-1.5 py-0.5 text-[10.5px] font-bold text-orbit-ink dark:bg-orbit-accent/15 dark:text-orbit-accent">
               <span className="h-1.5 w-1.5 rounded-full bg-orbit-accent-deep" />
               AI 运营
             </span>
@@ -294,7 +294,7 @@ export function Topbar({ user }: { user?: { username: string; realName: string; 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-start justify-center bg-[#171717]/45 px-4 pt-24 backdrop-blur-[2px]"
+            className="fixed inset-0 z-50 flex items-start justify-center bg-orbit-ink/45 px-4 pt-24 backdrop-blur-[2px]"
             onClick={() => setShowSearch(false)}
           >
             <motion.div

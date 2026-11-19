@@ -107,11 +107,11 @@ type ComparisonDimension = keyof typeof COMPARISON_LABELS
 
 // ── 能力维度配置 ──
 const CAP_DIMENSIONS = [
-  { key: 'expression' as const, label: '引流能力', icon: Users, color: '#7C3AED', desc: '封面/标题/内容吸引力' },
-  { key: 'interaction' as const, label: '互动能力', icon: MessageSquare, color: '#06B6D4', desc: '话术引导/互动水平' },
-  { key: 'conversion' as const, label: '转化能力', icon: ShoppingCart, color: '#10B981', desc: '流量→GMV效率' },
-  { key: 'professionalism' as const, label: '专业度', icon: UserCheck, color: '#F59E0B', desc: '产品知识/专业表现' },
-  { key: 'overall' as const, label: '综合评分', icon: Star, color: '#F472B6', desc: '整体能力评估' },
+  { key: 'expression' as const, label: '引流能力', icon: Users, desc: '封面/标题/内容吸引力' },
+  { key: 'interaction' as const, label: '互动能力', icon: MessageSquare, desc: '话术引导/互动水平' },
+  { key: 'conversion' as const, label: '转化能力', icon: ShoppingCart, desc: '流量→GMV效率' },
+  { key: 'professionalism' as const, label: '专业度', icon: UserCheck, desc: '产品知识/专业表现' },
+  { key: 'overall' as const, label: '综合评分', icon: Star, desc: '整体能力评估' },
 ] as const
 
 function getScoreColor(score: number): string {
