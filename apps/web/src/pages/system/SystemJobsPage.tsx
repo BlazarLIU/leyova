@@ -139,7 +139,7 @@ export function SystemJobsPage() {
         header: '任务 ID',
         width: 100,
         render: (_, job) => (
-          <span className="font-mono text-xs text-slate-400 font-semibold">#{job.id}</span>
+          <span className="font-mono text-xs text-[var(--text-muted)] font-semibold">#{job.id}</span>
         ),
       },
       {
@@ -149,12 +149,12 @@ export function SystemJobsPage() {
         render: (_, job) => (
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-medium text-slate-100">{job.jobName}</span>
+              <span className="font-medium text-[var(--text-primary)]">{job.jobName}</span>
               <Badge variant="info" className="text-[10px] font-mono">
                 {job.jobType}
               </Badge>
             </div>
-            <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+            <p className="text-[11px] text-[var(--text-muted)] font-mono mt-0.5">
               提交于 {new Date(job.createdAt).toLocaleString('zh-CN')}
             </p>
           </div>
@@ -187,7 +187,7 @@ export function SystemJobsPage() {
         sortable: true,
         render: (_, job) => {
           if (job.durationMs === null) {
-            return <span className="text-slate-500 text-xs">-</span>
+            return <span className="text-[var(--text-muted)] text-xs">-</span>
           }
           if (job.durationMs < 1000) {
             return <span className="font-mono text-xs text-emerald-400">{job.durationMs}ms</span>
@@ -199,7 +199,7 @@ export function SystemJobsPage() {
         key: 'finishedAt',
         header: '开始 / 结束时间',
         render: (_, job) => (
-          <div className="text-xs text-slate-400 space-y-0.5">
+          <div className="text-xs text-[var(--text-muted)] space-y-0.5">
             <div>始: {job.startedAt ? new Date(job.startedAt).toLocaleTimeString('zh-CN') : '-'}</div>
             <div>终: {job.finishedAt ? new Date(job.finishedAt).toLocaleTimeString('zh-CN') : '-'}</div>
           </div>
@@ -218,12 +218,12 @@ export function SystemJobsPage() {
           }
           if (job.resultPayload && Object.keys(job.resultPayload).length > 0) {
             return (
-              <span className="text-xs font-mono text-slate-400 line-clamp-1 max-w-xs">
+              <span className="text-xs font-mono text-[var(--text-muted)] line-clamp-1 max-w-xs">
                 {JSON.stringify(job.resultPayload)}
               </span>
             )
           }
-          return <span className="text-xs text-slate-500">-</span>
+          return <span className="text-xs text-[var(--text-muted)]">-</span>
         },
       },
       {
@@ -270,16 +270,16 @@ export function SystemJobsPage() {
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">总任务登记数</span>
+              <span className="text-xs text-[var(--text-muted)]">总任务登记数</span>
               <Activity className="w-4 h-4 text-orbit-primary-light" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-slate-100">{stats.total}</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{stats.total}</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">队列待办 / 运行中</span>
+              <span className="text-xs text-[var(--text-muted)]">队列待办 / 运行中</span>
               <Clock className="w-4 h-4 text-amber-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-amber-400">
@@ -290,7 +290,7 @@ export function SystemJobsPage() {
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">成功完成</span>
+              <span className="text-xs text-[var(--text-muted)]">成功完成</span>
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.completed}</p>
@@ -299,12 +299,12 @@ export function SystemJobsPage() {
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">执行失败</span>
+              <span className="text-xs text-[var(--text-muted)]">执行失败</span>
               <XCircle className="w-4 h-4 text-red-400" />
             </div>
             <p
               className={`mt-1 text-2xl font-bold ${
-                stats.failed > 0 ? 'text-red-400' : 'text-slate-100'
+                stats.failed > 0 ? 'text-red-400' : 'text-[var(--text-primary)]'
               }`}
             >
               {stats.failed}
@@ -314,7 +314,7 @@ export function SystemJobsPage() {
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">当前页平均耗时</span>
+              <span className="text-xs text-[var(--text-muted)]">当前页平均耗时</span>
               <Terminal className="w-4 h-4 text-cyan-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-cyan-400">{stats.avgDuration}ms</p>
@@ -359,7 +359,7 @@ export function SystemJobsPage() {
             <select
               value={table.filters.status}
               onChange={(e) => table.setFilter('status', e.target.value)}
-              className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+              className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-[var(--text-secondary)]"
             >
               <option value="">全部状态</option>
               <option value="pending">排队中 (Pending)</option>
@@ -371,7 +371,7 @@ export function SystemJobsPage() {
             <select
               value={table.filters.jobType}
               onChange={(e) => table.setFilter('jobType', e.target.value)}
-              className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+              className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-[var(--text-secondary)]"
             >
               <option value="">全部任务类型</option>
               {JOB_TYPE_PRESETS.map((p) => (
@@ -390,11 +390,11 @@ export function SystemJobsPage() {
           <div className="w-full max-w-2xl rounded-xl border border-orbit-border bg-orbit-surface p-6 space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-orbit-border pb-3">
               <div>
-                <h3 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
                   <span>任务详情 · #{selectedJob.id}</span>
                   <Badge variant="info">{selectedJob.jobType}</Badge>
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">{selectedJob.jobName}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">{selectedJob.jobName}</p>
               </div>
               <Button size="xs" variant="ghost" onClick={() => setSelectedJob(null)}>
                 关闭
@@ -404,24 +404,24 @@ export function SystemJobsPage() {
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3 bg-orbit-surface2/40 p-3 rounded-lg border border-orbit-border">
                 <div>
-                  <span className="text-slate-400 block">状态</span>
-                  <span className="font-semibold text-slate-200">{selectedJob.status}</span>
+                  <span className="text-[var(--text-muted)] block">状态</span>
+                  <span className="font-semibold text-[var(--text-secondary)]">{selectedJob.status}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">耗时</span>
+                  <span className="text-[var(--text-muted)] block">耗时</span>
                   <span className="font-mono text-cyan-400">
                     {selectedJob.durationMs !== null ? `${selectedJob.durationMs}ms` : '-'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">开始时间</span>
-                  <span className="text-slate-200 font-mono">
+                  <span className="text-[var(--text-muted)] block">开始时间</span>
+                  <span className="text-[var(--text-secondary)] font-mono">
                     {selectedJob.startedAt ? new Date(selectedJob.startedAt).toLocaleString() : '-'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">结束时间</span>
-                  <span className="text-slate-200 font-mono">
+                  <span className="text-[var(--text-muted)] block">结束时间</span>
+                  <span className="text-[var(--text-secondary)] font-mono">
                     {selectedJob.finishedAt ? new Date(selectedJob.finishedAt).toLocaleString() : '-'}
                   </span>
                 </div>
@@ -437,15 +437,15 @@ export function SystemJobsPage() {
               )}
 
               <div>
-                <span className="font-semibold text-slate-300 block mb-1">输入参数 (input_payload):</span>
-                <pre className="p-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-200 font-mono text-[11px] whitespace-pre-wrap overflow-x-auto">
+                <span className="font-semibold text-[var(--text-secondary)] block mb-1">输入参数 (input_payload):</span>
+                <pre className="p-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-secondary)] font-mono text-[11px] whitespace-pre-wrap overflow-x-auto">
                   {JSON.stringify(selectedJob.inputPayload, null, 2)}
                 </pre>
               </div>
 
               <div>
-                <span className="font-semibold text-slate-300 block mb-1">执行回写 (result_payload):</span>
-                <pre className="p-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-200 font-mono text-[11px] whitespace-pre-wrap overflow-x-auto">
+                <span className="font-semibold text-[var(--text-secondary)] block mb-1">执行回写 (result_payload):</span>
+                <pre className="p-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-secondary)] font-mono text-[11px] whitespace-pre-wrap overflow-x-auto">
                   {JSON.stringify(selectedJob.resultPayload, null, 2)}
                 </pre>
               </div>
@@ -458,13 +458,13 @@ export function SystemJobsPage() {
       {showDispatchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-xl border border-orbit-border bg-orbit-surface p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">派发异步运维任务进队</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">派发异步运维任务进队</h3>
+            <p className="text-xs text-[var(--text-muted)]">
               任务将以原子锁方式由独立 Worker 守护进程抢占调度，不阻塞 HTTP 业务响应。
             </p>
             <form onSubmit={handleDispatchJob} className="space-y-4 text-sm">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">选择任务类型 (job_type):</label>
+                <label className="text-xs text-[var(--text-muted)] block mb-1">选择任务类型 (job_type):</label>
                 <select
                   value={dispatchType}
                   onChange={(e) => {
@@ -476,7 +476,7 @@ export function SystemJobsPage() {
                       setDispatchPayload(JSON.stringify(preset.defaultPayload, null, 2))
                     }
                   }}
-                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 >
                   {JOB_TYPE_PRESETS.map((p) => (
                     <option key={p.type} value={p.type}>
@@ -487,22 +487,22 @@ export function SystemJobsPage() {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">自定义任务名称 (选填):</label>
+                <label className="text-xs text-[var(--text-muted)] block mb-1">自定义任务名称 (选填):</label>
                 <input
                   placeholder="例如: 补录多平台日汇总聚合"
                   value={dispatchName}
                   onChange={(e) => setDispatchName(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">输入参数 Payload (JSON):</label>
+                <label className="text-xs text-[var(--text-muted)] block mb-1">输入参数 Payload (JSON):</label>
                 <textarea
                   rows={4}
                   value={dispatchPayload}
                   onChange={(e) => setDispatchPayload(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100 font-mono text-xs focus:outline-none focus:border-orbit-primary"
+                  className="w-full p-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-orbit-primary"
                 />
               </div>
 

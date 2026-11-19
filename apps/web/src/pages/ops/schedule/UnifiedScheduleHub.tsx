@@ -127,19 +127,19 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orbit-primary/15 text-orbit-primary-light">
                 <CalendarDays className="w-4 h-4" />
               </div>
-              <h1 className="text-lg font-bold text-orbit-text-primary flex items-center gap-2">
+              <h1 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                 直播排班调度中心
-                <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-orbit-text-secondary font-normal border border-orbit-border">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-[var(--text-secondary)] font-normal border border-orbit-border">
                   全流程排班工作台
                 </span>
               </h1>
             </div>
-            <p className="mt-1 text-xs text-orbit-text-secondary pl-10.5">
+            <p className="mt-1 text-xs text-[var(--text-secondary)] pl-10.5">
               {currentTabConfig.description}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-orbit-text-secondary self-end md:self-auto">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] self-end md:self-auto">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-orbit-surface2 border border-orbit-border">
               <Users className="w-3.5 h-3.5 text-orbit-primary-light" />
               主播 · 助播 · 运营 · 场控全角色调度
@@ -162,10 +162,10 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
                     'relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all duration-150 select-none',
                     isActive
                       ? 'bg-orbit-primary text-white shadow-md shadow-orbit-primary/20'
-                      : 'text-orbit-text-secondary hover:text-orbit-text-primary hover:bg-black/5 dark:hover:bg-white/5'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5'
                   )}
                 >
-                  <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-orbit-text-secondary')} />
+                  <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-[var(--text-secondary)]')} />
                   <span>{tab.label}</span>
                   {tab.badge && (
                     <span
@@ -190,7 +190,7 @@ export function UnifiedScheduleHub({ defaultView = 'calendar' }: UnifiedSchedule
       <div className="min-h-[500px]">
         <Suspense
           fallback={
-            <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <div className="py-24 flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
               <Loader2 className="w-8 h-8 animate-spin text-orbit-primary-light" />
               <span className="text-xs">正在加载 {currentTabConfig.label}...</span>
             </div>

@@ -92,20 +92,20 @@ export function EntityAliasPanel() {
         />
         <CardBody className="space-y-3">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
-            <select value={aliasForm.entityType} onChange={(e) => setAliasForm({ ...aliasForm, entityType: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200">
+            <select value={aliasForm.entityType} onChange={(e) => setAliasForm({ ...aliasForm, entityType: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]">
               <option value="product">product</option>
               <option value="shop">shop</option>
               <option value="anchor">anchor</option>
               <option value="kol">kol</option>
             </select>
-            <select value={aliasForm.sourcePlatform} onChange={(e) => setAliasForm({ ...aliasForm, sourcePlatform: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200">
+            <select value={aliasForm.sourcePlatform} onChange={(e) => setAliasForm({ ...aliasForm, sourcePlatform: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]">
               {['douyin', 'taobao', 'tmall', 'jd', 'pdd', 'kuaishou', 'xiaohongshu'].map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
-            <input placeholder="外部平台 ID" value={aliasForm.externalId} onChange={(e) => setAliasForm({ ...aliasForm, externalId: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
-            <input placeholder="外部名称(选填)" value={aliasForm.externalName} onChange={(e) => setAliasForm({ ...aliasForm, externalName: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
-            <input type="number" placeholder="内部主数据 ID" value={aliasForm.internalId} onChange={(e) => setAliasForm({ ...aliasForm, internalId: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
+            <input placeholder="外部平台 ID" value={aliasForm.externalId} onChange={(e) => setAliasForm({ ...aliasForm, externalId: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]" />
+            <input placeholder="外部名称(选填)" value={aliasForm.externalName} onChange={(e) => setAliasForm({ ...aliasForm, externalName: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]" />
+            <input type="number" placeholder="内部主数据 ID" value={aliasForm.internalId} onChange={(e) => setAliasForm({ ...aliasForm, internalId: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]" />
             <Button size="sm" variant="primary" onClick={saveAlias}>
               <Plus className="w-3.5 h-3.5" /> 绑定映射
             </Button>
@@ -114,7 +114,7 @@ export function EntityAliasPanel() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-orbit-border text-slate-500">
+                <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                   <th className="text-left px-3 py-2">实体类型</th>
                   <th className="text-left px-3 py-2">来源平台</th>
                   <th className="text-left px-3 py-2">外部 ID / 名称</th>
@@ -126,18 +126,18 @@ export function EntityAliasPanel() {
                 {aliases.map((a) => (
                   <tr key={a.id} className="border-b border-orbit-border/60">
                     <td className="px-3 py-2"><Badge variant="info">{a.entity_type}</Badge></td>
-                    <td className="px-3 py-2 text-slate-300">{a.platform_name || a.source_platform}</td>
-                    <td className="px-3 py-2 font-mono text-slate-200">{a.external_id} {a.external_name ? `(${a.external_name})` : ''}</td>
+                    <td className="px-3 py-2 text-[var(--text-secondary)]">{a.platform_name || a.source_platform}</td>
+                    <td className="px-3 py-2 font-mono text-[var(--text-secondary)]">{a.external_id} {a.external_name ? `(${a.external_name})` : ''}</td>
                     <td className="px-3 py-2 font-mono text-cyan-300">#{a.internal_id} {a.internal_code}</td>
                     <td className="px-3 py-2 text-right">
-                      <button onClick={() => removeAlias(a.id)} className="text-slate-500 hover:text-rose-400">
+                      <button onClick={() => removeAlias(a.id)} className="text-[var(--text-muted)] hover:text-rose-400">
                         <Trash2 className="w-3.5 h-3.5 inline" />
                       </button>
                     </td>
                   </tr>
                 ))}
                 {aliases.length === 0 && (
-                  <tr><td colSpan={5} className="px-3 py-6 text-center text-slate-500">暂无跨平台主体别名记录</td></tr>
+                  <tr><td colSpan={5} className="px-3 py-6 text-center text-[var(--text-muted)]">暂无跨平台主体别名记录</td></tr>
                 )}
               </tbody>
             </table>
@@ -151,7 +151,7 @@ export function EntityAliasPanel() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-orbit-border text-slate-500">
+                <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                   <th className="text-left px-4 py-2">规则集 / 版本</th>
                   <th className="text-left px-4 py-2">平台 / 数据集</th>
                   <th className="text-left px-4 py-2">源字段</th>
@@ -162,15 +162,15 @@ export function EntityAliasPanel() {
               <tbody>
                 {mappings.map((m) => (
                   <tr key={m.id} className="border-b border-orbit-border/60">
-                    <td className="px-4 py-2 font-mono text-slate-200"><Link2 className="w-3 h-3 inline mr-1 text-cyan-400" />{m.mapping_code} v{m.version}</td>
-                    <td className="px-4 py-2 text-slate-300">{m.source_platform} · {m.dataset_type}</td>
-                    <td className="px-4 py-2 font-mono text-slate-300">{m.source_field}</td>
+                    <td className="px-4 py-2 font-mono text-[var(--text-secondary)]"><Link2 className="w-3 h-3 inline mr-1 text-cyan-400" />{m.mapping_code} v{m.version}</td>
+                    <td className="px-4 py-2 text-[var(--text-secondary)]">{m.source_platform} · {m.dataset_type}</td>
+                    <td className="px-4 py-2 font-mono text-[var(--text-secondary)]">{m.source_field}</td>
                     <td className="px-4 py-2 font-mono text-emerald-400">{m.canonical_field}</td>
                     <td className="px-4 py-2"><Badge variant={m.approval_status === 'approved' ? 'success' : 'warning'}>{m.approval_status}</Badge></td>
                   </tr>
                 ))}
                 {mappings.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-500">暂无配置规则（使用系统内置平台源映射字典）</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-6 text-center text-[var(--text-muted)]">暂无配置规则（使用系统内置平台源映射字典）</td></tr>
                 )}
               </tbody>
             </table>

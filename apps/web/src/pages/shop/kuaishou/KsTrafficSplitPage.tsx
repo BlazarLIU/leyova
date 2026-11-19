@@ -61,16 +61,16 @@ export function KsTrafficSplitPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">公私域流量分析</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">公私域流量分析</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               {currentShop ? currentShop.name : '未选择店铺'} · 快手「先关注后成交」的私域电商
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -91,13 +91,13 @@ export function KsTrafficSplitPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : !hasData ? (
         <Card><CardBody>
           <div className="py-14 text-center">
-            <Users className="mx-auto h-10 w-10 text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400">该店铺在选定周期内暂无数据</p>
-            <p className="mt-1 text-xs text-slate-600">需从快手小店生意通导出数据后导入</p>
+            <Users className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+            <p className="mt-3 text-sm text-[var(--text-muted)]">该店铺在选定周期内暂无数据</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]">需从快手小店生意通导出数据后导入</p>
           </div>
         </CardBody></Card>
       ) : (
@@ -131,7 +131,7 @@ export function KsTrafficSplitPage() {
                   )}
                   {(data!.otherTraffic.share ?? 0) > 0 && (
                     <div
-                      className="flex items-center justify-center bg-slate-600/70 text-xs text-white"
+                      className="flex items-center justify-center bg-orbit-ink/70 text-xs text-orbit-snow"
                       style={{ width: `${data!.otherTraffic.share}%` }}
                     >
                       {(data!.otherTraffic.share ?? 0) >= 12 && `其他 ${data!.otherTraffic.share}%`}
@@ -165,9 +165,9 @@ export function KsTrafficSplitPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 rounded-lg bg-slate-800/40 px-3 py-2 text-xs">
-                  <span className="text-slate-400">总成交：</span>
-                  <span className="font-mono text-slate-200">{fmt(data!.totalGmv)} 元</span>
+                <div className="mt-3 rounded-lg bg-orbit-ink/40 px-3 py-2 text-xs">
+                  <span className="text-[var(--text-muted)]">总成交：</span>
+                  <span className="font-mono text-[var(--text-secondary)]">{fmt(data!.totalGmv)} 元</span>
                 </div>
               </CardBody>
             </Card>
@@ -193,8 +193,8 @@ export function KsTrafficSplitPage() {
                         {privatePct >= 50 ? '健康' : privatePct >= 30 ? '一般' : '薄弱'}
                       </Badge>
                     </div>
-                    <p className="mt-1.5 text-sm text-slate-300">{data!.healthAssessment}</p>
-                    <p className="mt-2 text-[11px] text-slate-500">
+                    <p className="mt-1.5 text-sm text-[var(--text-secondary)]">{data!.healthAssessment}</p>
+                    <p className="mt-2 text-[11px] text-[var(--text-muted)]">
                       评估标准：私域占比 ≥50% 为健康，30-50% 为一般，&lt;30% 为薄弱。
                       该标准基于行业普遍认知，非快手官方口径，供参考。
                     </p>

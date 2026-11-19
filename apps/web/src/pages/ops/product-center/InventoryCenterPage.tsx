@@ -378,14 +378,14 @@ export function InventoryCenterPage() {
         render: (_, item) => (
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-medium text-slate-100">{item.productName}</span>
+              <span className="font-medium text-[var(--text-primary)]">{item.productName}</span>
               {item.isLowStock && (
                 <Badge variant="danger" dot>
                   低库存
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               {item.spuCode} / {item.skuCode} · {item.category}
             </p>
           </div>
@@ -395,7 +395,7 @@ export function InventoryCenterPage() {
         key: 'warehouseName',
         header: '仓库',
         render: (_, item) => (
-          <span className="text-xs text-slate-300">{item.warehouseName}</span>
+          <span className="text-xs text-[var(--text-secondary)]">{item.warehouseName}</span>
         ),
       },
       {
@@ -405,10 +405,10 @@ export function InventoryCenterPage() {
         sortable: true,
         render: (_, item) => (
           <span className="tabular-nums">
-            <span className="text-slate-200">{item.onHandQty}</span>
-            <span className="text-slate-500 mx-1">/</span>
+            <span className="text-[var(--text-secondary)]">{item.onHandQty}</span>
+            <span className="text-[var(--text-muted)] mx-1">/</span>
             <span className="text-amber-400">{item.lockedQty}</span>
-            <span className="text-slate-500 mx-1">/</span>
+            <span className="text-[var(--text-muted)] mx-1">/</span>
             <span
               className={`font-semibold ${
                 item.isLowStock ? 'text-red-400' : 'text-emerald-400'
@@ -424,7 +424,7 @@ export function InventoryCenterPage() {
         header: '安全线 / 在途',
         align: 'right',
         render: (_, item) => (
-          <span className="text-xs text-slate-400 tabular-nums">
+          <span className="text-xs text-[var(--text-muted)] tabular-nums">
             安全 {item.safetyStock} / 在途 {item.inTransitQty}
           </span>
         ),
@@ -435,9 +435,9 @@ export function InventoryCenterPage() {
         align: 'right',
         render: (_, item) => (
           <span className="text-xs tabular-nums">
-            <span className="text-slate-400">¥{item.unitCost.toFixed(0)}</span>
-            <span className="text-slate-600 mx-1">/</span>
-            <span className="text-slate-200">¥{item.retailPrice.toFixed(0)}</span>
+            <span className="text-[var(--text-muted)]">¥{item.unitCost.toFixed(0)}</span>
+            <span className="text-[var(--text-primary)] mx-1">/</span>
+            <span className="text-[var(--text-secondary)]">¥{item.retailPrice.toFixed(0)}</span>
           </span>
         ),
       },
@@ -447,7 +447,7 @@ export function InventoryCenterPage() {
         render: (_, item) => (
           <div className="flex flex-wrap gap-1">
             {item.skuMappings.length === 0 ? (
-              <span className="text-xs text-slate-500">未映射</span>
+              <span className="text-xs text-[var(--text-muted)]">未映射</span>
             ) : (
               item.skuMappings.map((m) => (
                 <Badge key={m.id} variant="info">
@@ -486,8 +486,8 @@ export function InventoryCenterPage() {
         sortable: true,
         render: (_, item) => (
           <div>
-            <span className="font-medium text-slate-100">{item.productName}</span>
-            <p className="text-xs text-slate-400 mt-0.5">{item.skuCode}</p>
+            <span className="font-medium text-[var(--text-primary)]">{item.productName}</span>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{item.skuCode}</p>
           </div>
         ),
       },
@@ -496,8 +496,8 @@ export function InventoryCenterPage() {
         header: '销售渠道 / 店铺',
         render: (_, item) => (
           <div className="text-xs">
-            <span className="font-medium text-slate-200">{item.platformName}</span>
-            <span className="text-slate-400 block">{item.shopName}</span>
+            <span className="font-medium text-[var(--text-secondary)]">{item.platformName}</span>
+            <span className="text-[var(--text-muted)] block">{item.shopName}</span>
           </div>
         ),
       },
@@ -505,7 +505,7 @@ export function InventoryCenterPage() {
         key: 'channelSkuId',
         header: '渠道平台 SKU',
         render: (_, item) => (
-          <span className="font-mono text-xs text-slate-300">{item.channelSkuId}</span>
+          <span className="font-mono text-xs text-[var(--text-secondary)]">{item.channelSkuId}</span>
         ),
       },
       {
@@ -518,8 +518,8 @@ export function InventoryCenterPage() {
             <span className="text-emerald-400 font-semibold">
               ¥{item.channelPrice.toFixed(2)}
             </span>
-            <span className="text-slate-600 mx-1">/</span>
-            <span className="text-slate-400">¥{item.baseRetailPrice.toFixed(2)}</span>
+            <span className="text-[var(--text-primary)] mx-1">/</span>
+            <span className="text-[var(--text-muted)]">¥{item.baseRetailPrice.toFixed(2)}</span>
           </div>
         ),
       },
@@ -530,10 +530,10 @@ export function InventoryCenterPage() {
         sortable: true,
         render: (_, item) => (
           <span className="tabular-nums">
-            <span className="text-slate-200">{item.allocatedStock}</span>
-            <span className="text-slate-500 mx-1">/</span>
+            <span className="text-[var(--text-secondary)]">{item.allocatedStock}</span>
+            <span className="text-[var(--text-muted)] mx-1">/</span>
             <span className="text-amber-400">{item.reservedStock}</span>
-            <span className="text-slate-500 mx-1">/</span>
+            <span className="text-[var(--text-muted)] mx-1">/</span>
             <span
               className={`font-semibold ${
                 item.availableChannelStock <= item.safetyStock
@@ -551,7 +551,7 @@ export function InventoryCenterPage() {
         header: '安全线',
         align: 'right',
         render: (_, item) => (
-          <span className="text-xs text-slate-400 tabular-nums">{item.safetyStock}</span>
+          <span className="text-xs text-[var(--text-muted)] tabular-nums">{item.safetyStock}</span>
         ),
       },
       {
@@ -592,10 +592,10 @@ export function InventoryCenterPage() {
         sortable: true,
         render: (_, item) => (
           <div>
-            <span className="font-mono font-semibold text-xs text-slate-200">
+            <span className="font-mono font-semibold text-xs text-[var(--text-secondary)]">
               {item.reservationNo}
             </span>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">{item.orderNo}</p>
+            <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">{item.orderNo}</p>
           </div>
         ),
       },
@@ -604,8 +604,8 @@ export function InventoryCenterPage() {
         header: '商品 / SKU',
         render: (_, item) => (
           <div>
-            <span className="font-medium text-slate-100">{item.productName}</span>
-            <p className="text-xs text-slate-400 mt-0.5">{item.skuCode}</p>
+            <span className="font-medium text-[var(--text-primary)]">{item.productName}</span>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{item.skuCode}</p>
           </div>
         ),
       },
@@ -614,8 +614,8 @@ export function InventoryCenterPage() {
         header: '渠道平台 / 店铺',
         render: (_, item) => (
           <div className="text-xs">
-            <span className="text-slate-200 font-medium">{item.platformName}</span>
-            <span className="text-slate-400 block">{item.shopName}</span>
+            <span className="text-[var(--text-secondary)] font-medium">{item.platformName}</span>
+            <span className="text-[var(--text-muted)] block">{item.shopName}</span>
           </div>
         ),
       },
@@ -641,7 +641,7 @@ export function InventoryCenterPage() {
         key: 'expiresAt',
         header: '到期时间 / 释放原因',
         render: (_, item) => (
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-[var(--text-muted)]">
             <div>到期: {new Date(item.expiresAt).toLocaleTimeString('zh-CN')}</div>
             {item.releaseReason && (
               <span className="text-red-400 block mt-0.5">原因: {item.releaseReason}</span>
@@ -654,7 +654,7 @@ export function InventoryCenterPage() {
         header: '操作',
         align: 'right',
         render: (_, item) => {
-          if (item.status !== 'reserved') return <span className="text-xs text-slate-500">-</span>
+          if (item.status !== 'reserved') return <span className="text-xs text-[var(--text-muted)]">-</span>
           return (
             <div className="flex items-center justify-end gap-1.5">
               <Button
@@ -689,7 +689,7 @@ export function InventoryCenterPage() {
         header: '变动时间',
         sortable: true,
         render: (_, row) => (
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-[var(--text-muted)]">
             {new Date(row.created_at).toLocaleString('zh-CN')}
           </span>
         ),
@@ -698,7 +698,7 @@ export function InventoryCenterPage() {
         key: 'sku_code',
         header: 'SKU / 商品名称',
         render: (_, row) => (
-          <span className="text-xs text-slate-200">
+          <span className="text-xs text-[var(--text-secondary)]">
             {row.sku_code} · {row.product_name}
           </span>
         ),
@@ -734,7 +734,7 @@ export function InventoryCenterPage() {
         header: '在库前后',
         align: 'right',
         render: (_, row) => (
-          <span className="text-xs text-slate-400 tabular-nums">
+          <span className="text-xs text-[var(--text-muted)] tabular-nums">
             {row.before_on_hand} → {row.after_on_hand}
           </span>
         ),
@@ -743,7 +743,7 @@ export function InventoryCenterPage() {
         key: 'operator_name',
         header: '操作人 / 备注',
         render: (_, row) => (
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-[var(--text-muted)]">
             {row.operator_name || '系统'} {row.remark ? `· ${row.remark}` : ''}
           </span>
         ),
@@ -756,8 +756,8 @@ export function InventoryCenterPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">商品主数据与全渠道库存中心</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">商品主数据与全渠道库存中心</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
             统一维护 SPU/SKU 主档、跨 7 大平台铺货映射、可用/锁定库存快照与不可篡改出入库流水
           </p>
         </div>
@@ -791,16 +791,16 @@ export function InventoryCenterPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">SPU / SKU 总数</p>
-              <p className="mt-1 text-2xl font-bold text-slate-100">
+              <p className="text-xs text-[var(--text-muted)]">SPU / SKU 总数</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
                 {overview.totalSpus} / {overview.totalSkus}
               </p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">物理在库 / 锁定</p>
-              <p className="mt-1 text-2xl font-bold text-slate-100">
+              <p className="text-xs text-[var(--text-muted)]">物理在库 / 锁定</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
                 {overview.totalOnHand} /{' '}
                 <span className="text-amber-400">{overview.totalLocked}</span>
               </p>
@@ -808,7 +808,7 @@ export function InventoryCenterPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">可用可售库存</p>
+              <p className="text-xs text-[var(--text-muted)]">可用可售库存</p>
               <p className="mt-1 text-2xl font-bold text-emerald-400">
                 {overview.totalAvailable}
               </p>
@@ -816,10 +816,10 @@ export function InventoryCenterPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">缺货预警 SKU</p>
+              <p className="text-xs text-[var(--text-muted)]">缺货预警 SKU</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
-                  overview.lowStockCount > 0 ? 'text-red-400' : 'text-slate-100'
+                  overview.lowStockCount > 0 ? 'text-red-400' : 'text-[var(--text-primary)]'
                 }`}
               >
                 {overview.lowStockCount}
@@ -828,7 +828,7 @@ export function InventoryCenterPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">库存总货值</p>
+              <p className="text-xs text-[var(--text-muted)]">库存总货值</p>
               <p className="mt-1 text-2xl font-bold text-cyan-400">
                 ¥{overview.totalStockValue.toLocaleString()}
               </p>
@@ -844,7 +844,7 @@ export function InventoryCenterPage() {
           className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'products'
               ? 'border-orbit-primary text-orbit-primary-light font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           }`}
         >
           <Package className="w-4 h-4" />
@@ -855,7 +855,7 @@ export function InventoryCenterPage() {
           className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'channels'
               ? 'border-orbit-primary text-orbit-primary-light font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           }`}
         >
           <Tag className="w-4 h-4" />
@@ -866,7 +866,7 @@ export function InventoryCenterPage() {
           className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'reservations'
               ? 'border-orbit-primary text-orbit-primary-light font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -877,7 +877,7 @@ export function InventoryCenterPage() {
           className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'ledger'
               ? 'border-orbit-primary text-orbit-primary-light font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -983,7 +983,7 @@ export function InventoryCenterPage() {
           title="出入库、锁库与配额异动全链路审计流水"
           subtitle="记录采购入库、销售出库、下单冻结与盘点调账的不可逆事实流水"
           badge={
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-purple-400 border border-orbit-border">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-orbit-primary border border-orbit-border">
               审计流水
             </span>
           }
@@ -1009,7 +1009,7 @@ export function InventoryCenterPage() {
       {showNewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-xl border border-orbit-border bg-orbit-surface p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">新增商品 SKU 主档</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">新增商品 SKU 主档</h3>
             <form onSubmit={handleCreateProduct} className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <input
@@ -1017,14 +1017,14 @@ export function InventoryCenterPage() {
                   placeholder="SPU 编码 (如 CLOTH-001)"
                   value={newForm.spuCode}
                   onChange={(e) => setNewForm({ ...newForm, spuCode: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   required
                   placeholder="SKU 编码 (如 CLOTH-001-BLK-M)"
                   value={newForm.skuCode}
                   onChange={(e) => setNewForm({ ...newForm, skuCode: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
               <input
@@ -1032,14 +1032,14 @@ export function InventoryCenterPage() {
                 placeholder="商品全称"
                 value={newForm.productName}
                 onChange={(e) => setNewForm({ ...newForm, productName: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               />
               <div className="grid grid-cols-2 gap-3">
                 <input
                   placeholder="类目"
                   value={newForm.category}
                   onChange={(e) => setNewForm({ ...newForm, category: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   required
@@ -1047,7 +1047,7 @@ export function InventoryCenterPage() {
                   placeholder="采购成本价"
                   value={newForm.unitCost}
                   onChange={(e) => setNewForm({ ...newForm, unitCost: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -1057,7 +1057,7 @@ export function InventoryCenterPage() {
                   placeholder="建议零售价"
                   value={newForm.retailPrice}
                   onChange={(e) => setNewForm({ ...newForm, retailPrice: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   required
@@ -1065,7 +1065,7 @@ export function InventoryCenterPage() {
                   placeholder="安全库存线"
                   value={newForm.safetyStock}
                   onChange={(e) => setNewForm({ ...newForm, safetyStock: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   required
@@ -1073,7 +1073,7 @@ export function InventoryCenterPage() {
                   placeholder="期初库存"
                   value={newForm.initialQty}
                   onChange={(e) => setNewForm({ ...newForm, initialQty: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
@@ -1091,10 +1091,10 @@ export function InventoryCenterPage() {
       {adjustTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-orbit-border bg-orbit-surface p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
               库存调账 / 出入库 · {adjustTarget.skuCode}
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[var(--text-muted)]">
               {adjustTarget.productName} (当前可用: {adjustTarget.availableQty} / 在库:{' '}
               {adjustTarget.onHandQty})
             </p>
@@ -1104,7 +1104,7 @@ export function InventoryCenterPage() {
                 onChange={(e) =>
                   setAdjustForm({ ...adjustForm, changeType: e.target.value as any })
                 }
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               >
                 <option value="inbound">采购入库 (+)</option>
                 <option value="return_in">退货入库 (+)</option>
@@ -1119,14 +1119,14 @@ export function InventoryCenterPage() {
                 placeholder="变动数量 (支持正负数)"
                 value={adjustForm.qty}
                 onChange={(e) => setAdjustForm({ ...adjustForm, qty: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               />
               <input
                 placeholder="调账原因 / 关联单号 (必填)"
                 required
                 value={adjustForm.remark}
                 onChange={(e) => setAdjustForm({ ...adjustForm, remark: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               />
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setAdjustTarget(null)}>
@@ -1143,15 +1143,15 @@ export function InventoryCenterPage() {
       {selectedListing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-orbit-border bg-orbit-surface p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
               调整渠道专享定价与配额 · {selectedListing.platformName}
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[var(--text-muted)]">
               {selectedListing.productName} ({selectedListing.skuCode})
             </p>
             <form onSubmit={handleUpdateListing} className="space-y-3 text-sm">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs text-[var(--text-muted)] block mb-1">
                   渠道专享售价 (主档价: ¥{selectedListing.baseRetailPrice.toFixed(2)})
                 </label>
                 <input
@@ -1160,11 +1160,11 @@ export function InventoryCenterPage() {
                   step="0.01"
                   value={listingEditPrice}
                   onChange={(e) => setListingEditPrice(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100 font-mono"
+                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)] font-mono"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs text-[var(--text-muted)] block mb-1">
                   独占库存配额 (当前已预留: {selectedListing.reservedStock})
                 </label>
                 <input
@@ -1172,7 +1172,7 @@ export function InventoryCenterPage() {
                   type="number"
                   value={listingEditAlloc}
                   onChange={(e) => setListingEditAlloc(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100 font-mono"
+                  className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)] font-mono"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">

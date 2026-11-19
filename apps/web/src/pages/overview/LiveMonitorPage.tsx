@@ -67,8 +67,8 @@ export function LiveMonitorPage() {
               value: (data.summary.cumulative_views ?? 0).toLocaleString(),
               change: '—',
               icon: Users,
-              color: 'text-violet-400',
-              bg: 'bg-violet-500/10',
+              color: 'text-orbit-primary',
+              bg: 'bg-orbit-primary/10',
             },
             {
               id: 'realtime-gmv',
@@ -119,10 +119,10 @@ export function LiveMonitorPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">实时监控</h1>
-            <p className="text-slate-500 text-sm mt-1">直播间实时数据监控</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">实时监控</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">直播间实时数据监控</p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 bg-orbit-surface2 px-3 py-1.5 rounded-lg border border-orbit-border">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-3 py-1.5 rounded-lg border border-orbit-border">
             <RefreshCw className="w-3.5 h-3.5 text-orbit-accent animate-spin" />
             数据每30秒自动刷新
           </div>
@@ -150,8 +150,8 @@ export function LiveMonitorPage() {
                     {metric.change}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium mb-1">{metric.label}</p>
-                <p className="text-2xl font-bold text-slate-100 tracking-tight">{metric.value}</p>
+                <p className="text-xs text-[var(--text-muted)] font-medium mb-1">{metric.label}</p>
+                <p className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">{metric.value}</p>
               </div>
               {/* Live indicator bar */}
               <div className="h-1 bg-gradient-to-r from-orbit-accent to-orbit-accent/20" />
@@ -171,7 +171,7 @@ export function LiveMonitorPage() {
             title="直播间状态"
             subtitle={`共 ${rooms.length} 个直播间，${rooms.filter(r => r.status === 'live').length} 个直播中`}
             actions={
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                 <Monitor className="w-3.5 h-3.5" />
               </div>
             }
@@ -181,21 +181,21 @@ export function LiveMonitorPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">房间名</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">主播</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">在线人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">实时 GMV</th>
-                    <th className="text-center text-xs text-slate-500 font-medium px-5 py-3">状态</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">时长</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">房间名</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">主播</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">在线人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">实时 GMV</th>
+                    <th className="text-center text-xs text-[var(--text-muted)] font-medium px-5 py-3">状态</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">时长</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rooms.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-5 py-12 text-center text-slate-500">
-                        <Radio className="w-8 h-8 mx-auto mb-2 text-slate-600" />
+                      <td colSpan={6} className="px-5 py-12 text-center text-[var(--text-muted)]">
+                        <Radio className="w-8 h-8 mx-auto mb-2 text-[var(--text-primary)]" />
                         <p className="text-sm">暂无直播间数据</p>
-                        <p className="text-xs text-slate-600 mt-1">数据将在直播间开播后自动显示</p>
+                        <p className="text-xs text-[var(--text-primary)] mt-1">数据将在直播间开播后自动显示</p>
                       </td>
                     </tr>
                   ) : (
@@ -206,12 +206,12 @@ export function LiveMonitorPage() {
                       >
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <Radio className={`w-4 h-4 ${room.status === 'live' ? 'text-emerald-400 animate-pulse' : 'text-slate-600'}`} />
-                            <span className="text-slate-200 font-medium">{room.name}</span>
+                            <Radio className={`w-4 h-4 ${room.status === 'live' ? 'text-emerald-400 animate-pulse' : 'text-[var(--text-primary)]'}`} />
+                            <span className="text-[var(--text-secondary)] font-medium">{room.name}</span>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-slate-400">{room.anchor}</td>
-                        <td className="px-5 py-3.5 text-right text-slate-300 font-medium tabular-nums">
+                        <td className="px-5 py-3.5 text-[var(--text-muted)]">{room.anchor}</td>
+                        <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-medium tabular-nums">
                           {room.online.toLocaleString()}
                         </td>
                         <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{room.gmv}</td>
@@ -222,7 +222,7 @@ export function LiveMonitorPage() {
                             <Badge variant="neutral">已结束</Badge>
                           )}
                         </td>
-                        <td className="px-5 py-3.5 text-right text-slate-400 tabular-nums">{room.duration}</td>
+                        <td className="px-5 py-3.5 text-right text-[var(--text-muted)] tabular-nums">{room.duration}</td>
                       </tr>
                     ))
                   )}

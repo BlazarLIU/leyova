@@ -121,8 +121,8 @@ export function TrainingPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">训练管理</h1>
-            <p className="text-slate-500 text-sm mt-1">主播训练计划与记录</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">训练管理</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">主播训练计划与记录</p>
           </div>
         </div>
       </motion.div>
@@ -143,7 +143,7 @@ export function TrainingPage() {
                 'px-3 py-1.5 text-xs font-medium rounded-lg transition-colors',
                 filter === tab.value
                   ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
               )}
             >
               {tab.label}
@@ -180,10 +180,10 @@ export function TrainingPage() {
                       <BookOpen className="w-4 h-4 text-orbit-primary-light" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-100">{plan.name}</h3>
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">{plan.name}</h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <Users className="w-3 h-3 text-slate-500" />
-                        <span className="text-xs text-slate-500">{plan.anchorCount}人参与</span>
+                        <Users className="w-3 h-3 text-[var(--text-muted)]" />
+                        <span className="text-xs text-[var(--text-muted)]">{plan.anchorCount}人参与</span>
                       </div>
                     </div>
                   </div>
@@ -193,12 +193,12 @@ export function TrainingPage() {
                 </div>
 
                 {/* Date range */}
-                <div className="flex items-center gap-3 mb-3 text-xs text-slate-500">
+                <div className="flex items-center gap-3 mb-3 text-xs text-[var(--text-muted)]">
                   <div className="flex items-center gap-1">
                     <CalendarDays className="w-3.5 h-3.5" />
                     <span>{plan.startDate}</span>
                   </div>
-                  <span className="text-slate-600">至</span>
+                  <span className="text-[var(--text-primary)]">至</span>
                   <div className="flex items-center gap-1">
                     <CalendarDays className="w-3.5 h-3.5" />
                     <span>{plan.endDate}</span>
@@ -208,10 +208,10 @@ export function TrainingPage() {
                 {/* Progress bar */}
                 <div className="mt-auto space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">训练进度</span>
+                    <span className="text-[var(--text-muted)]">训练进度</span>
                     <span className={cn(
                       'font-medium tabular-nums',
-                      plan.progress === 100 ? 'text-emerald-400' : 'text-slate-300'
+                      plan.progress === 100 ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
                     )}>
                       {plan.progress}%
                     </span>
@@ -222,7 +222,7 @@ export function TrainingPage() {
                         'h-full rounded-full transition-all duration-700',
                         plan.progress === 100
                           ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                          : 'bg-gradient-to-r from-orbit-primary to-violet-400'
+                          : 'bg-gradient-to-r from-orbit-primary to-orbit-primary-dark'
                       )}
                       style={{ width: `${plan.progress}%` }}
                     />
@@ -243,10 +243,10 @@ export function TrainingPage() {
         <Card>
           <div className="flex items-center justify-between px-5 pt-5">
             <div>
-              <h3 className="text-sm font-semibold text-slate-200">训练记录</h3>
-              <p className="text-xs text-slate-500 mt-0.5">近期训练执行记录</p>
+              <h3 className="text-sm font-semibold text-[var(--text-secondary)]">训练记录</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">近期训练执行记录</p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
               <Clock className="w-3.5 h-3.5" />
               <span>最近记录</span>
             </div>
@@ -256,12 +256,12 @@ export function TrainingPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">日期</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">主播</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">训练项目</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">时长</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">完成情况</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">评分</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">日期</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">主播</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">训练项目</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">时长</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">完成情况</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">评分</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -270,13 +270,13 @@ export function TrainingPage() {
                       key={record.id}
                       className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-5 py-3.5 text-slate-400">{record.date}</td>
+                      <td className="px-5 py-3.5 text-[var(--text-muted)]">{record.date}</td>
                       <td className="px-5 py-3.5">
-                        <span className="text-slate-200 font-medium">{record.anchor}</span>
+                        <span className="text-[var(--text-secondary)] font-medium">{record.anchor}</span>
                       </td>
-                      <td className="px-5 py-3.5 text-slate-300">{record.project}</td>
+                      <td className="px-5 py-3.5 text-[var(--text-secondary)]">{record.project}</td>
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-1.5 text-slate-400">
+                        <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
                           <Clock className="w-3.5 h-3.5" />
                           <span>{record.duration}</span>
                         </div>
@@ -288,18 +288,18 @@ export function TrainingPage() {
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         {record.completion === 'missed' ? (
-                          <span className="text-slate-600 text-xs">--</span>
+                          <span className="text-[var(--text-primary)] text-xs">--</span>
                         ) : (
                           <div className="inline-flex items-center gap-1">
                             <span className={cn(
                               'font-semibold tabular-nums',
-                              record.score >= 90 ? 'text-emerald-400' : record.score >= 80 ? 'text-slate-200' : 'text-amber-400'
+                              record.score >= 90 ? 'text-emerald-400' : record.score >= 80 ? 'text-[var(--text-secondary)]' : 'text-amber-400'
                             )}>
                               {record.score}
                             </span>
                             <Star className={cn(
                               'w-3 h-3',
-                              record.score >= 90 ? 'fill-emerald-400/30 text-emerald-400' : 'text-slate-600'
+                              record.score >= 90 ? 'fill-emerald-400/30 text-emerald-400' : 'text-[var(--text-primary)]'
                             )} />
                           </div>
                         )}

@@ -198,8 +198,8 @@ export function KolCooperationPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">外部达人合作与佣金台账</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">外部达人合作与佣金台账</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
             独立于内部自播员工（anchors），精准管理小红书蒲公英、抖音星图/快手聚星达人坑位费、净GMV CPS佣金与打款状态
           </p>
         </div>
@@ -226,25 +226,25 @@ export function KolCooperationPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">合作达人 / 场次</p>
-              <p className="mt-1 text-2xl font-bold text-slate-100">{overview.activeKols} / {overview.totalCoops}</p>
+              <p className="text-xs text-[var(--text-muted)]">合作达人 / 场次</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{overview.activeKols} / {overview.totalCoops}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">带货净 GMV（剔退）</p>
+              <p className="text-xs text-[var(--text-muted)]">带货净 GMV（剔退）</p>
               <p className="mt-1 text-2xl font-bold text-emerald-400">¥{overview.totalNetGmv.toLocaleString()}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">固定坑位费合计</p>
-              <p className="mt-1 text-2xl font-bold text-slate-200">¥{overview.totalPitFee.toLocaleString()}</p>
+              <p className="text-xs text-[var(--text-muted)]">固定坑位费合计</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--text-secondary)]">¥{overview.totalPitFee.toLocaleString()}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">应付佣金 / 待结</p>
+              <p className="text-xs text-[var(--text-muted)]">应付佣金 / 待结</p>
               <p className="mt-1 text-xl font-bold text-amber-400">
                 ¥{overview.totalCommission.toLocaleString()} / <span className="text-red-400">¥{overview.unpaidCommission.toLocaleString()}</span>
               </p>
@@ -252,7 +252,7 @@ export function KolCooperationPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">综合投产比 (Net ROI)</p>
+              <p className="text-xs text-[var(--text-muted)]">综合投产比 (Net ROI)</p>
               <p className="mt-1 text-2xl font-bold text-cyan-400">{overview.overallRoi ?? '—'}</p>
             </CardBody>
           </Card>
@@ -272,7 +272,7 @@ export function KolCooperationPage() {
         <Card>
           <CardBody className="p-0 overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="border-b border-orbit-border text-xs text-slate-400 bg-orbit-surface2/50">
+              <thead className="border-b border-orbit-border text-xs text-[var(--text-muted)] bg-orbit-surface2/50">
                 <tr>
                   <th className="px-4 py-3">达人 / 活动排期</th>
                   <th className="px-4 py-3 text-right">发布日</th>
@@ -292,18 +292,18 @@ export function KolCooperationPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
                           <Badge variant="info">{c.platform_name}</Badge>
-                          <span className="font-medium text-slate-100">{c.kol_name}</span>
+                          <span className="font-medium text-[var(--text-primary)]">{c.kol_name}</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5">{c.campaign_name} · {c.shop_name}</p>
+                        <p className="text-xs text-[var(--text-muted)] mt-0.5">{c.campaign_name} · {c.shop_name}</p>
                       </td>
-                      <td className="px-4 py-3 text-right text-xs text-slate-300">{c.publish_date?.slice(0, 10)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-200">¥{Number(c.pit_fee).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-xs text-[var(--text-secondary)]">{c.publish_date?.slice(0, 10)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-[var(--text-secondary)]">¥{Number(c.pit_fee).toLocaleString()}</td>
                       <td className="px-4 py-3 text-right tabular-nums">
-                        <span className="text-slate-400 text-xs">¥{Number(c.gmv).toLocaleString()} / </span>
+                        <span className="text-[var(--text-muted)] text-xs">¥{Number(c.gmv).toLocaleString()} / </span>
                         <span className="text-emerald-400 font-semibold">¥{Number(c.net_gmv).toLocaleString()}</span>
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
-                        <span className="text-xs text-slate-400">{(Number(c.commission_rate) * 100).toFixed(0)}% · </span>
+                        <span className="text-xs text-[var(--text-muted)]">{(Number(c.commission_rate) * 100).toFixed(0)}% · </span>
                         <span className="text-amber-400 font-semibold">¥{Number(c.commission_amount).toLocaleString()}</span>
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-cyan-400 tabular-nums">{c.roi ?? '—'}</td>
@@ -321,7 +321,7 @@ export function KolCooperationPage() {
                 })}
                 {coops.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-slate-500">暂无达人带货合作记录</td>
+                    <td colSpan={8} className="px-4 py-8 text-center text-[var(--text-muted)]">暂无达人带货合作记录</td>
                   </tr>
                 )}
               </tbody>
@@ -332,7 +332,7 @@ export function KolCooperationPage() {
         <Card>
           <CardBody className="p-0 overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="border-b border-orbit-border text-xs text-slate-400 bg-orbit-surface2/50">
+              <thead className="border-b border-orbit-border text-xs text-[var(--text-muted)] bg-orbit-surface2/50">
                 <tr>
                   <th className="px-4 py-3">达人名称 / 平台</th>
                   <th className="px-4 py-3">量级 / 类目</th>
@@ -348,17 +348,17 @@ export function KolCooperationPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <Badge variant="info">{p.platform_name}</Badge>
-                        <span className="font-medium text-slate-100">{p.kol_name}</span>
+                        <span className="font-medium text-[var(--text-primary)]">{p.kol_name}</span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{p.platform_uid}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{p.platform_uid}</p>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-300">{TIER_MAP[p.tier] || p.tier} · {p.category}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-slate-200">{(p.fans_count / 10000).toFixed(1)} 万</td>
+                    <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">{TIER_MAP[p.tier] || p.tier} · {p.category}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-[var(--text-secondary)]">{(p.fans_count / 10000).toFixed(1)} 万</td>
                     <td className="px-4 py-3 text-right tabular-nums text-amber-400">{(Number(p.default_commission_rate) * 100).toFixed(0)}%</td>
                     <td className="px-4 py-3 text-right tabular-nums text-emerald-400">
                       {p.coop_count} 次 · ¥{Number(p.cumulative_net_gmv).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{p.contact_info || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{p.contact_info || '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -370,11 +370,11 @@ export function KolCooperationPage() {
       {showModal === 'kol' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-orbit-border bg-orbit-surface p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">新增外部达人档案</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">新增外部达人档案</h3>
             <form onSubmit={handleCreateKol} className="space-y-3 text-sm">
-              <input required placeholder="达人昵称" value={kolForm.kolName} onChange={(e) => setKolForm({ ...kolForm, kolName: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+              <input required placeholder="达人昵称" value={kolForm.kolName} onChange={(e) => setKolForm({ ...kolForm, kolName: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               <div className="grid grid-cols-2 gap-3">
-                <select value={kolForm.platformCode} onChange={(e) => setKolForm({ ...kolForm, platformCode: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
+                <select value={kolForm.platformCode} onChange={(e) => setKolForm({ ...kolForm, platformCode: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]">
                   <option value="douyin">抖音</option>
                   <option value="kuaishou">快手</option>
                   <option value="wechat">视频号</option>
@@ -382,7 +382,7 @@ export function KolCooperationPage() {
                   <option value="tmall">天猫</option>
                   <option value="xiaohongshu">小红书</option>
                 </select>
-                <select value={kolForm.tier} onChange={(e) => setKolForm({ ...kolForm, tier: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
+                <select value={kolForm.tier} onChange={(e) => setKolForm({ ...kolForm, tier: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]">
                   <option value="head">头部达人</option>
                   <option value="waist">腰部达人</option>
                   <option value="tail">尾部达人</option>
@@ -390,8 +390,8 @@ export function KolCooperationPage() {
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" placeholder="粉丝数" value={kolForm.fansCount} onChange={(e) => setKolForm({ ...kolForm, fansCount: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input type="number" step="0.01" placeholder="默认佣金率 (如 0.18)" value={kolForm.defaultCommissionRate} onChange={(e) => setKolForm({ ...kolForm, defaultCommissionRate: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <input type="number" placeholder="粉丝数" value={kolForm.fansCount} onChange={(e) => setKolForm({ ...kolForm, fansCount: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
+                <input type="number" step="0.01" placeholder="默认佣金率 (如 0.18)" value={kolForm.defaultCommissionRate} onChange={(e) => setKolForm({ ...kolForm, defaultCommissionRate: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setShowModal(null)}>取消</Button>
@@ -405,7 +405,7 @@ export function KolCooperationPage() {
       {showModal === 'coop' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-orbit-border bg-orbit-surface p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">登记达人带货与佣金排期</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">登记达人带货与佣金排期</h3>
             <form onSubmit={handleCreateCoop} className="space-y-3 text-sm">
               <select
                 required
@@ -421,7 +421,7 @@ export function KolCooperationPage() {
                     commissionRate: found?.default_commission_rate || coopForm.commissionRate,
                   })
                 }}
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               >
                 {profiles.map((p) => <option key={p.id} value={p.id}>{p.kol_name} ({p.platform_name})</option>)}
               </select>
@@ -429,7 +429,7 @@ export function KolCooperationPage() {
                 required
                 value={coopForm.shopId}
                 onChange={(e) => setCoopForm({ ...coopForm, shopId: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               >
                 {getShopsByPlatform(coopForm.platformCode).map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -438,14 +438,14 @@ export function KolCooperationPage() {
                   <option value="">暂无可用店铺</option>
                 )}
               </select>
-              <input required placeholder="合作专场/笔记名称" value={coopForm.campaignName} onChange={(e) => setCoopForm({ ...coopForm, campaignName: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+              <input required placeholder="合作专场/笔记名称" value={coopForm.campaignName} onChange={(e) => setCoopForm({ ...coopForm, campaignName: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" placeholder="固定坑位费" value={coopForm.pitFee} onChange={(e) => setCoopForm({ ...coopForm, pitFee: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input type="number" step="0.01" placeholder="CPS佣金率 (如 0.15)" value={coopForm.commissionRate} onChange={(e) => setCoopForm({ ...coopForm, commissionRate: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <input type="number" step="0.01" placeholder="固定坑位费" value={coopForm.pitFee} onChange={(e) => setCoopForm({ ...coopForm, pitFee: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
+                <input type="number" step="0.01" placeholder="CPS佣金率 (如 0.15)" value={coopForm.commissionRate} onChange={(e) => setCoopForm({ ...coopForm, commissionRate: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" placeholder="成交 GMV" value={coopForm.gmv} onChange={(e) => setCoopForm({ ...coopForm, gmv: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input type="number" step="0.01" placeholder="退款扣除" value={coopForm.refundAmount} onChange={(e) => setCoopForm({ ...coopForm, refundAmount: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <input type="number" step="0.01" placeholder="成交 GMV" value={coopForm.gmv} onChange={(e) => setCoopForm({ ...coopForm, gmv: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
+                <input type="number" step="0.01" placeholder="退款扣除" value={coopForm.refundAmount} onChange={(e) => setCoopForm({ ...coopForm, refundAmount: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setShowModal(null)}>取消</Button>

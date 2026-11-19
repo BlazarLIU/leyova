@@ -61,7 +61,7 @@ const severityBadgeMap: Record<string, { variant: 'danger' | 'warning' | 'info';
 // const dimLabelMap was unused — using inline labels instead
 
 const dimColorMap: Record<string, string> = {
-  GMV: 'text-violet-400 bg-violet-400/10',
+  GMV: 'text-orbit-primary bg-orbit-primary/10',
   退款率: 'text-amber-400 bg-amber-400/10',
   ROI: 'text-cyan-400 bg-cyan-400/10',
   观看人数: 'text-emerald-400 bg-emerald-400/10',
@@ -116,8 +116,8 @@ export function AnomalyDetectionPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">异常检测</h1>
-            <p className="text-slate-500 text-sm mt-1">数据异常智能检测</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">异常检测</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">数据异常智能检测</p>
           </div>
           <Button
             variant="primary"
@@ -140,7 +140,7 @@ export function AnomalyDetectionPage() {
       >
         {/* Dimension filter */}
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-slate-500" />
+          <BarChart3 className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {dimensionOptions.map((opt) => (
               <button
@@ -149,7 +149,7 @@ export function AnomalyDetectionPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   dimension === opt.value
                     ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -160,7 +160,7 @@ export function AnomalyDetectionPage() {
 
         {/* Date range */}
         <div className="flex items-center gap-2">
-          <CalendarDays className="w-4 h-4 text-slate-500" />
+          <CalendarDays className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {dateRangeOptions.map((opt) => (
               <button
@@ -169,7 +169,7 @@ export function AnomalyDetectionPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   dateRange === opt.value
                     ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -180,7 +180,7 @@ export function AnomalyDetectionPage() {
 
         {/* Severity filter */}
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-500" />
+          <Filter className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {severityOptions.map((opt) => (
               <button
@@ -189,7 +189,7 @@ export function AnomalyDetectionPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   severity === opt.value
                     ? 'bg-orbit-accent/15 text-orbit-accent-light border border-orbit-accent/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -209,7 +209,7 @@ export function AnomalyDetectionPage() {
         {filteredEvents.map((event, i) => {
           const badgeInfo = severityBadgeMap[event.severity]
           const SeverityIcon = badgeInfo.icon
-          const dimColorClass = dimColorMap[event.dimension] ?? 'text-slate-400 bg-slate-400/10'
+          const dimColorClass = dimColorMap[event.dimension] ?? 'text-[var(--text-muted)] bg-[var(--hover-bg)]'
           return (
             <motion.div
               key={event.id}
@@ -234,15 +234,15 @@ export function AnomalyDetectionPage() {
                   {/* Event details */}
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">异常值</span>
+                      <span className="text-xs text-[var(--text-muted)]">异常值</span>
                       <span className="text-sm font-semibold text-red-400">{event.actualValue}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">正常范围</span>
-                      <span className="text-sm text-slate-300">{event.normalRange}</span>
+                      <span className="text-xs text-[var(--text-muted)]">正常范围</span>
+                      <span className="text-sm text-[var(--text-secondary)]">{event.normalRange}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">偏离幅度</span>
+                      <span className="text-xs text-[var(--text-muted)]">偏离幅度</span>
                       <span className={`text-sm font-semibold ${
                         event.deviation.startsWith('+') ? 'text-red-400' : 'text-amber-400'
                       }`}>
@@ -250,14 +250,14 @@ export function AnomalyDetectionPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">发现时间</span>
-                      <span className="text-xs text-slate-400">{event.detectedAt}</span>
+                      <span className="text-xs text-[var(--text-muted)]">发现时间</span>
+                      <span className="text-xs text-[var(--text-muted)]">{event.detectedAt}</span>
                     </div>
                   </div>
 
                   {/* Detail description */}
                   <div className="mt-4 pt-3 border-t border-orbit-border">
-                    <p className="text-xs text-slate-500 leading-relaxed">{event.detail}</p>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">{event.detail}</p>
                   </div>
                 </CardBody>
               </Card>
@@ -276,8 +276,8 @@ export function AnomalyDetectionPage() {
           <Card>
             <CardBody>
               <div className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="w-12 h-12 text-slate-600 mb-4" />
-                <p className="text-slate-400 text-sm">当前筛选条件下暂无异常事件</p>
+                <AlertCircle className="w-12 h-12 text-[var(--text-primary)] mb-4" />
+                <p className="text-[var(--text-muted)] text-sm">当前筛选条件下暂无异常事件</p>
               </div>
             </CardBody>
           </Card>
@@ -297,12 +297,12 @@ export function AnomalyDetectionPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">检测维度</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">异常值</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">正常范围</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">偏离幅度</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">发现时间</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">严重程度</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">检测维度</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">异常值</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">正常范围</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">偏离幅度</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">发现时间</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">严重程度</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -314,15 +314,15 @@ export function AnomalyDetectionPage() {
                         key={row.id}
                         className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                       >
-                        <td className="px-5 py-3.5 text-slate-300 font-medium">{row.dimension}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{row.dimension}</td>
                         <td className="px-5 py-3.5 text-right text-red-400 font-medium tabular-nums">{row.actualValue}</td>
-                        <td className="px-5 py-3.5 text-slate-400 text-xs">{row.normalRange}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{row.normalRange}</td>
                         <td className={`px-5 py-3.5 text-right text-sm font-medium tabular-nums ${
                           row.deviation.startsWith('+') ? 'text-red-400' : 'text-amber-400'
                         }`}>
                           {row.deviation}
                         </td>
-                        <td className="px-5 py-3.5 text-slate-400 text-xs">{row.detectedAt}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{row.detectedAt}</td>
                         <td className="px-5 py-3.5 text-right">
                           <Badge variant={badgeInfo.variant} dot>
                             <SeverityIcon className="w-3 h-3" />

@@ -149,39 +149,39 @@ function SessionInfoCard({ sessionInfo }: { sessionInfo: any }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {basic.fans_before_broadcast > 0 && (
               <div>
-                <span className="text-xs text-slate-500">开播前粉丝数</span>
-                <p className="text-lg font-semibold text-slate-100">
+                <span className="text-xs text-[var(--text-muted)]">开播前粉丝数</span>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
                   {basic.fans_before_broadcast.toLocaleString()}
                 </p>
               </div>
             )}
             {basic.live_date && (
               <div>
-                <span className="text-xs text-slate-500">直播日期</span>
-                <p className="text-lg font-semibold text-slate-100">
+                <span className="text-xs text-[var(--text-muted)]">直播日期</span>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
                   {basic.live_date?.slice(0, 10)}
                 </p>
               </div>
             )}
             {basic.live_duration_min > 0 && (
               <div>
-                <span className="text-xs text-slate-500">直播时长</span>
-                <p className="text-lg font-semibold text-slate-100">
+                <span className="text-xs text-[var(--text-muted)]">直播时长</span>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
                   {Math.floor(basic.live_duration_min / 60)}h{basic.live_duration_min % 60}m
                 </p>
               </div>
             )}
             {basic.payment_amount > 0 && (
               <div>
-                <span className="text-xs text-slate-500">支付金额</span>
-                <p className="text-lg font-semibold text-slate-100">
+                <span className="text-xs text-[var(--text-muted)]">支付金额</span>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
                   ¥{basic.payment_amount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </p>
               </div>
             )}
             {overview.refund_amount > 0 && (
               <div>
-                <span className="text-xs text-slate-500">退款金额</span>
+                <span className="text-xs text-[var(--text-muted)]">退款金额</span>
                 <p className="text-lg font-semibold text-red-400">
                   ¥{overview.refund_amount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </p>
@@ -189,7 +189,7 @@ function SessionInfoCard({ sessionInfo }: { sessionInfo: any }) {
             )}
             {overview.refund_orders > 0 && (
               <div>
-                <span className="text-xs text-slate-500">退款订单数</span>
+                <span className="text-xs text-[var(--text-muted)]">退款订单数</span>
                 <p className="text-lg font-semibold text-red-400">
                   {overview.refund_orders}
                 </p>
@@ -222,11 +222,11 @@ function FilterBar({ onSessionChange, platformCode }: { onSessionChange?: (sessi
     <div className="flex flex-wrap items-center gap-3">
       {/* 场次 */}
       <div className="relative">
-        <List className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+        <List className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
         <select
           value={selectedSession ?? ''}
           onChange={handleSessionChange}
-          className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50 min-w-[130px]"
+          className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50 min-w-[130px]"
         >
           <option value="">全部场次</option>
           {sessions.map(s => (
@@ -234,14 +234,14 @@ function FilterBar({ onSessionChange, platformCode }: { onSessionChange?: (sessi
           ))}
         </select>
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </div>
 
       {/* 日期范围 */}
       <div className="relative">
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-        <select className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50 min-w-[130px]">
+        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+        <select className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50 min-w-[130px]">
           <option value="">全部日期</option>
           <option value="today">今天</option>
           <option value="yesterday">昨天</option>
@@ -249,31 +249,31 @@ function FilterBar({ onSessionChange, platformCode }: { onSessionChange?: (sessi
           <option value="30d">近30天</option>
         </select>
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </div>
 
       {/* 主播 */}
       <div className="relative">
-        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-        <select className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50 min-w-[130px]">
+        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+        <select className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50 min-w-[130px]">
           <option value="">全部主播</option>
           <option value="佳佳">佳佳</option>
         </select>
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </div>
 
       {/* 直播间 */}
       <div className="relative">
-        <Monitor className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-        <select className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50 min-w-[130px]">
+        <Monitor className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+        <select className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50 min-w-[130px]">
           <option value="">全部直播间</option>
           <option value="1">直播间 1</option>
         </select>
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </div>
     </div>
@@ -299,10 +299,10 @@ function MetricCard({
       <Card className="h-full">
         <CardBody>
           <div className="flex items-start justify-between mb-2">
-            <span className="text-slate-500 text-xs font-medium">{label}</span>
-            <Icon className="w-4 h-4 text-slate-500" />
+            <span className="text-[var(--text-muted)] text-xs font-medium">{label}</span>
+            <Icon className="w-4 h-4 text-[var(--text-muted)]" />
           </div>
-          <div className="text-3xl font-bold text-slate-100 truncate">
+          <div className="text-3xl font-bold text-[var(--text-primary)] truncate">
             {displayValue}
           </div>
           {change !== null && (
@@ -313,7 +313,7 @@ function MetricCard({
                 'text-xs font-medium',
                 isUp && 'text-green-400',
                 isDown && 'text-red-400',
-                !isUp && !isDown && 'text-slate-500',
+                !isUp && !isDown && 'text-[var(--text-muted)]',
               )}>
                 {change > 0 ? '+' : ''}{change.toFixed(1)}%
               </span>
@@ -389,7 +389,7 @@ function FunnelSection({ funnelData }: { funnelData: FunnelStep[] }) {
           <CardHeader title="转化漏斗" subtitle="各环节转化率" />
           <CardBody>
             <div className="h-64 flex items-center justify-center border border-dashed border-orbit-border rounded-lg">
-              <p className="text-slate-500 text-sm">暂无漏斗数据</p>
+              <p className="text-[var(--text-muted)] text-sm">暂无漏斗数据</p>
             </div>
           </CardBody>
         </Card>
@@ -450,23 +450,23 @@ function FunnelSection({ funnelData }: { funnelData: FunnelStep[] }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-orbit-border">
-                  <th className="text-left text-slate-500 font-medium py-2 pr-4">环节</th>
-                  <th className="text-right text-slate-500 font-medium py-2 px-4">数量</th>
-                  <th className="text-right text-slate-500 font-medium py-2 px-4">转化率</th>
-                  <th className="text-right text-slate-500 font-medium py-2 pl-4">流失量</th>
+                  <th className="text-left text-[var(--text-muted)] font-medium py-2 pr-4">环节</th>
+                  <th className="text-right text-[var(--text-muted)] font-medium py-2 px-4">数量</th>
+                  <th className="text-right text-[var(--text-muted)] font-medium py-2 px-4">转化率</th>
+                  <th className="text-right text-[var(--text-muted)] font-medium py-2 pl-4">流失量</th>
                 </tr>
               </thead>
               <tbody>
                 {withDropOff.map((step, i) => (
                   <tr key={step.name} className="border-b border-orbit-border/50 last:border-0">
-                    <td className="py-2.5 pr-4 text-slate-300">{step.name}</td>
-                    <td className="py-2.5 px-4 text-right text-slate-300 font-medium tabular-nums">
+                    <td className="py-2.5 pr-4 text-[var(--text-secondary)]">{step.name}</td>
+                    <td className="py-2.5 px-4 text-right text-[var(--text-secondary)] font-medium tabular-nums">
                       {step.count.toLocaleString()}
                     </td>
                     <td className="py-2.5 px-4 text-right tabular-nums">
                       <span className={cn(
                         'font-medium',
-                        i === 0 ? 'text-slate-400' : 'text-emerald-400',
+                        i === 0 ? 'text-[var(--text-muted)]' : 'text-emerald-400',
                       )}>
                         {step.rate?.toFixed(1)}%
                       </span>
@@ -500,8 +500,8 @@ function Top3Section({ data }: { data: OverviewData }) {
             {/* 渠道 TOP3 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Zap className="w-4 h-4 text-slate-400" />
-                <h4 className="text-sm font-semibold text-slate-200">渠道 TOP3</h4>
+                <Zap className="w-4 h-4 text-[var(--text-muted)]" />
+                <h4 className="text-sm font-semibold text-[var(--text-secondary)]">渠道 TOP3</h4>
               </div>
               <div className="space-y-3">
                 {top_channels.slice(0, 3).map((ch, i) => (
@@ -515,16 +515,16 @@ function Top3Section({ data }: { data: OverviewData }) {
                         <span className={cn(
                           'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold',
                           i === 0 && 'bg-yellow-500/20 text-yellow-400',
-                          i === 1 && 'bg-slate-400/20 text-slate-400',
+                          i === 1 && 'bg-[var(--border2)] text-[var(--text-muted)]',
                           i === 2 && 'bg-amber-700/20 text-amber-600',
                         )}>
                           {i + 1}
                         </span>
-                        <span className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors">
+                        <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                           {ch.channel}
                         </span>
                       </div>
-                      <span className="text-sm font-medium text-slate-100 tabular-nums">
+                      <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
                         ¥{ch.gmv.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
@@ -540,7 +540,7 @@ function Top3Section({ data }: { data: OverviewData }) {
                   </button>
                 ))}
                 {top_channels.length === 0 && (
-                  <p className="text-slate-500 text-sm">暂无数据</p>
+                  <p className="text-[var(--text-muted)] text-sm">暂无数据</p>
                 )}
               </div>
             </div>
@@ -548,8 +548,8 @@ function Top3Section({ data }: { data: OverviewData }) {
             {/* 主播 TOP3 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Award className="w-4 h-4 text-slate-400" />
-                <h4 className="text-sm font-semibold text-slate-200">主播 TOP3</h4>
+                <Award className="w-4 h-4 text-[var(--text-muted)]" />
+                <h4 className="text-sm font-semibold text-[var(--text-secondary)]">主播 TOP3</h4>
               </div>
               <div className="space-y-3">
                 {top_anchors.slice(0, 3).map((a, i) => (
@@ -563,16 +563,16 @@ function Top3Section({ data }: { data: OverviewData }) {
                         <span className={cn(
                           'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold',
                           i === 0 && 'bg-yellow-500/20 text-yellow-400',
-                          i === 1 && 'bg-slate-400/20 text-slate-400',
+                          i === 1 && 'bg-[var(--border2)] text-[var(--text-muted)]',
                           i === 2 && 'bg-amber-700/20 text-amber-600',
                         )}>
                           {i + 1}
                         </span>
-                        <span className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors">
+                        <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                           {a.anchor_name}
                         </span>
                       </div>
-                      <span className="text-sm font-medium text-slate-100 tabular-nums">
+                      <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
                         ¥{a.gmv_per_hour.toFixed(2)}/h
                       </span>
                     </div>
@@ -588,7 +588,7 @@ function Top3Section({ data }: { data: OverviewData }) {
                   </button>
                 ))}
                 {top_anchors.length === 0 && (
-                  <p className="text-slate-500 text-sm">暂无数据</p>
+                  <p className="text-[var(--text-muted)] text-sm">暂无数据</p>
                 )}
               </div>
             </div>
@@ -596,8 +596,8 @@ function Top3Section({ data }: { data: OverviewData }) {
             {/* 异常 TOP3 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-slate-400" />
-                <h4 className="text-sm font-semibold text-slate-200">异常 TOP3</h4>
+                <AlertTriangle className="w-4 h-4 text-[var(--text-muted)]" />
+                <h4 className="text-sm font-semibold text-[var(--text-secondary)]">异常 TOP3</h4>
               </div>
               <div className="space-y-3">
                 {top_anomalies.slice(0, 3).map((anomaly, i) => (
@@ -611,7 +611,7 @@ function Top3Section({ data }: { data: OverviewData }) {
                         <span className="w-5 h-5 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-xs font-bold">
                           {i + 1}
                         </span>
-                        <span className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors">
+                        <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                           {(anomaly.indicator).toUpperCase()}
                         </span>
                       </div>
@@ -623,14 +623,14 @@ function Top3Section({ data }: { data: OverviewData }) {
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-[var(--text-muted)]">
                         当前值 {anomaly.value.toFixed(1)} / 均值 {anomaly.avg_value.toFixed(1)}
                       </span>
                     </div>
                   </button>
                 ))}
                 {top_anomalies.length === 0 && (
-                  <p className="text-slate-500 text-sm">暂无异常</p>
+                  <p className="text-[var(--text-muted)] text-sm">暂无异常</p>
                 )}
               </div>
             </div>
@@ -662,7 +662,7 @@ function AiSummaryCard() {
           <div className="space-y-5">
             {/* Key findings */}
             <div>
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
                 核心发现
               </h4>
               <ul className="space-y-2">
@@ -672,9 +672,9 @@ function AiSummaryCard() {
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.45 + i * 0.08 }}
-                    className="flex items-start gap-2.5 text-sm text-slate-400"
+                    className="flex items-start gap-2.5 text-sm text-[var(--text-muted)]"
                   >
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-500/60 flex-shrink-0" />
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-orbit-primary/60 flex-shrink-0" />
                     {point}
                   </motion.li>
                 ))}
@@ -686,7 +686,7 @@ function AiSummaryCard() {
 
             {/* Recommendations */}
             <div>
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
                 改进建议
               </h4>
               <ul className="space-y-2">
@@ -696,11 +696,11 @@ function AiSummaryCard() {
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.65 + i * 0.08 }}
-                    className="flex items-start gap-2.5 text-sm text-slate-400"
+                    className="flex items-start gap-2.5 text-sm text-[var(--text-muted)]"
                   >
                     <span className={cn(
                       'mt-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0',
-                      i === 0 && 'bg-purple-500/20 text-purple-400',
+                      i === 0 && 'bg-orbit-primary/20 text-orbit-primary',
                       i === 1 && 'bg-cyan-500/20 text-cyan-400',
                       i === 2 && 'bg-emerald-500/20 text-emerald-400',
                     )}>
@@ -767,8 +767,8 @@ export function ReviewOverviewPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">复盘总览</h1>
-            <p className="text-slate-500 text-sm mt-1">直播效果综合复盘</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">复盘总览</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">直播效果综合复盘</p>
           </div>
           <FilterBar onSessionChange={handleSessionChange} platformCode={currentPlatform?.platform_code} />
         </div>
@@ -780,16 +780,16 @@ export function ReviewOverviewPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-                <div className="h-3 w-16 bg-slate-700/50 rounded mb-3" />
-                <div className="h-8 w-28 bg-slate-700/50 rounded mb-2" />
-                <div className="h-3 w-20 bg-slate-700/50 rounded" />
+                <div className="h-3 w-16 bg-[var(--surface3)] rounded mb-3" />
+                <div className="h-8 w-28 bg-[var(--surface3)] rounded mb-2" />
+                <div className="h-3 w-20 bg-[var(--surface3)] rounded" />
               </div>
             ))}
           </div>
           <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-            <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-            <div className="h-3 w-40 bg-slate-700/50 rounded mb-6" />
-            <div className="h-64 bg-slate-700/30 rounded-lg" />
+            <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+            <div className="h-3 w-40 bg-[var(--surface3)] rounded mb-6" />
+            <div className="h-64 bg-[var(--surface3)] rounded-lg" />
           </div>
         </div>
       ) : overviewData ? (
@@ -815,8 +815,8 @@ export function ReviewOverviewPage() {
           <Card>
             <CardBody>
               <div className="flex flex-col items-center justify-center py-12">
-                <AlertTriangle className="w-10 h-10 text-slate-500 mb-3" />
-                <p className="text-slate-500 text-sm">加载失败，请稍后重试</p>
+                <AlertTriangle className="w-10 h-10 text-[var(--text-muted)] mb-3" />
+                <p className="text-[var(--text-muted)] text-sm">加载失败，请稍后重试</p>
               </div>
             </CardBody>
           </Card>

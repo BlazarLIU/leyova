@@ -333,11 +333,11 @@ export function DataQualityPage() {
       {/* 顶栏标题 */}
       <motion.div {...fadeIn} className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <ShieldCheck className="w-7 h-7 text-orbit-primary" />
             数据清洗与质量校验治理中心
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-[var(--text-muted)] text-sm mt-1">
             严格遵循规范 V1.0 · 原始数据不覆盖 · 清洗与校验分离 · 规则优于 AI · 结果可追溯 · 入库有闸门
           </p>
         </div>
@@ -357,7 +357,7 @@ export function DataQualityPage() {
             'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
             activeTab === 'batches'
               ? 'border-orbit-primary text-orbit-primary'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           )}
         >
           <Layers className="w-4 h-4" />
@@ -369,7 +369,7 @@ export function DataQualityPage() {
             'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
             activeTab === 'workbench'
               ? 'border-orbit-primary text-orbit-primary'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           )}
         >
           <Eye className="w-4 h-4" />
@@ -386,7 +386,7 @@ export function DataQualityPage() {
             'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
             activeTab === 'reconciliation'
               ? 'border-orbit-primary text-orbit-primary'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           )}
         >
           <FileCheck2 className="w-4 h-4" />
@@ -398,7 +398,7 @@ export function DataQualityPage() {
             'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
             activeTab === 'platforms'
               ? 'border-orbit-primary text-orbit-primary'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           )}
         >
           <Globe2 className="w-4 h-4" />
@@ -410,7 +410,7 @@ export function DataQualityPage() {
             'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
             activeTab === 'ingest'
               ? 'border-orbit-primary text-orbit-primary'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           )}
         >
           <UploadCloud className="w-4 h-4" />
@@ -422,7 +422,7 @@ export function DataQualityPage() {
             'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
             activeTab === 'aliases'
               ? 'border-orbit-primary text-orbit-primary'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
           )}
         >
           <Key className="w-4 h-4" />
@@ -435,29 +435,29 @@ export function DataQualityPage() {
         <motion.div {...fadeIn} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
-              <p className="text-xs text-slate-400">接入总批次数</p>
-              <p className="text-2xl font-bold text-slate-100 mt-1">{batches.length}</p>
+              <p className="text-xs text-[var(--text-muted)]">接入总批次数</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">{batches.length}</p>
             </Card>
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
-              <p className="text-xs text-slate-400">不可变原始行总数 (Raw)</p>
+              <p className="text-xs text-[var(--text-muted)]">不可变原始行总数 (Raw)</p>
               <p className="text-2xl font-bold text-sky-400 mt-1">
                 {batches.reduce((s, b) => s + (b.total_raw_rows || 0), 0).toLocaleString()}
               </p>
             </Card>
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
-              <p className="text-xs text-slate-400">清洗候选总数 (Candidate)</p>
-              <p className="text-2xl font-bold text-indigo-400 mt-1">
+              <p className="text-xs text-[var(--text-muted)]">清洗候选总数 (Candidate)</p>
+              <p className="text-2xl font-bold text-orbit-primary mt-1">
                 {batches.reduce((s, b) => s + (b.clean_candidate_rows || 0), 0).toLocaleString()}
               </p>
             </Card>
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
-              <p className="text-xs text-slate-400">正式入库发布总数 (Final)</p>
+              <p className="text-xs text-[var(--text-muted)]">正式入库发布总数 (Final)</p>
               <p className="text-2xl font-bold text-emerald-400 mt-1">
                 {batches.reduce((s, b) => s + (b.published_rows || 0), 0).toLocaleString()}
               </p>
             </Card>
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
-              <p className="text-xs text-slate-400">待处理 P0/P1 异常阻断</p>
+              <p className="text-xs text-[var(--text-muted)]">待处理 P0/P1 异常阻断</p>
               <p className="text-2xl font-bold text-rose-400 mt-1">
                 {batches.reduce((s, b) => s + (Number(b.open_p0_count) || 0), 0)} 个
               </p>
@@ -473,7 +473,7 @@ export function DataQualityPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-orbit-border bg-orbit-surface2/60 text-slate-400">
+                    <tr className="border-b border-orbit-border bg-orbit-surface2/60 text-[var(--text-muted)]">
                       <th className="py-3 px-4">批次号 / 时间</th>
                       <th className="py-3 px-4">平台 / 店铺</th>
                       <th className="py-3 px-4">接入通道</th>
@@ -495,13 +495,13 @@ export function DataQualityPage() {
                         )}
                         onClick={() => setSelectedBatchId(b.id)}
                       >
-                        <td className="py-3.5 px-4 font-mono font-medium text-slate-200">
+                        <td className="py-3.5 px-4 font-mono font-medium text-[var(--text-secondary)]">
                           <div>{b.batch_no}</div>
-                          <div className="text-[10px] text-slate-500">{new Date(b.created_at).toLocaleString()}</div>
+                          <div className="text-[10px] text-[var(--text-muted)]">{new Date(b.created_at).toLocaleString()}</div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="font-semibold text-slate-200 uppercase">{b.source_platform}</span>
-                          <span className="text-slate-400 ml-1.5">({b.shop_name || '默认店铺'})</span>
+                          <span className="font-semibold text-[var(--text-secondary)] uppercase">{b.source_platform}</span>
+                          <span className="text-[var(--text-muted)] ml-1.5">({b.shop_name || '默认店铺'})</span>
                         </td>
                         <td className="py-3.5 px-4">
                           {b.source_channel === 'api' ? (
@@ -510,8 +510,8 @@ export function DataQualityPage() {
                             <span className="text-amber-400 font-mono">报表手动上传</span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-slate-300">{b.total_raw_rows}</td>
-                        <td className="py-3.5 px-4 text-slate-300">{b.clean_candidate_rows}</td>
+                        <td className="py-3.5 px-4 text-[var(--text-secondary)]">{b.total_raw_rows}</td>
+                        <td className="py-3.5 px-4 text-[var(--text-secondary)]">{b.clean_candidate_rows}</td>
                         <td className="py-3.5 px-4 font-bold text-emerald-400">{b.published_rows}</td>
                         <td className="py-3.5 px-4">
                           {b.open_p0_count > 0 ? (
@@ -523,7 +523,7 @@ export function DataQualityPage() {
                               {b.open_p1_count} 待审 P1
                             </span>
                           ) : (
-                            <span className="text-slate-500">无异常</span>
+                            <span className="text-[var(--text-muted)]">无异常</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4">
@@ -580,11 +580,11 @@ export function DataQualityPage() {
         <motion.div {...fadeIn} className="space-y-4">
           <div className="flex flex-wrap items-center justify-between bg-orbit-surface p-4 rounded-xl border border-orbit-border gap-3">
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-400">当前审核批次:</span>
+              <span className="text-sm text-[var(--text-muted)]">当前审核批次:</span>
               <select
                 value={selectedBatchId || ''}
                 onChange={(e) => setSelectedBatchId(Number(e.target.value))}
-                className="bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                className="bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-xs text-[var(--text-secondary)]"
               >
                 {batches.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -592,7 +592,7 @@ export function DataQualityPage() {
                   </option>
                 ))}
               </select>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-[var(--text-muted)]">
                 检出 <span className="font-bold text-rose-400">{issues.length}</span> 个待审核异常
               </span>
             </div>
@@ -628,7 +628,7 @@ export function DataQualityPage() {
               </div>
               <button
                 onClick={() => setJobNotice(null)}
-                className="text-slate-400 hover:text-slate-200 text-xs px-1"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs px-1"
               >
                 ✕
               </button>
@@ -642,7 +642,7 @@ export function DataQualityPage() {
                   <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-100">
+                      <span className="font-semibold text-[var(--text-primary)]">
                         批次 {qualityReport.batchNo} · SQL 质量门禁全量断言报告
                       </span>
                       {qualityReport.isReadyForPublish ? (
@@ -651,7 +651,7 @@ export function DataQualityPage() {
                         <Badge variant="danger">❌ 阻断发布 (Gate Blocked)</Badge>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
                       全规则集合式秒级 SQL 校验：通过 {qualityReport.passedCount} 项 / 拦截 {qualityReport.failedCount} 项 / 总计 8 门禁
                     </p>
                   </div>
@@ -679,7 +679,7 @@ export function DataQualityPage() {
                       )}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-200">{r.ruleName}</span>
+                        <span className="font-semibold text-[var(--text-secondary)]">{r.ruleName}</span>
                         {r.passed ? (
                           <Badge variant="success">通过</Badge>
                         ) : (
@@ -688,12 +688,12 @@ export function DataQualityPage() {
                           </Badge>
                         )}
                       </div>
-                      <p className="font-mono text-[11px] text-slate-400">{r.ruleCode}</p>
-                      <p className={cn('text-xs font-medium', r.passed ? 'text-slate-300' : 'text-rose-300')}>
+                      <p className="font-mono text-[11px] text-[var(--text-muted)]">{r.ruleCode}</p>
+                      <p className={cn('text-xs font-medium', r.passed ? 'text-[var(--text-secondary)]' : 'text-rose-300')}>
                         {r.message}
                       </p>
                       {r.tolerance && (
-                        <p className="text-[10px] text-slate-500">容差基准: {r.tolerance}</p>
+                        <p className="text-[10px] text-[var(--text-muted)]">容差基准: {r.tolerance}</p>
                       )}
                     </div>
                   ))}
@@ -709,7 +709,7 @@ export function DataQualityPage() {
                 <CardHeader title="待处理质量问题队列" subtitle="点击查看四屏同显对比与规则证据" />
                 <CardBody className="p-3 max-h-[650px] overflow-y-auto space-y-2">
                   {issues.length === 0 ? (
-                    <div className="py-12 text-center text-slate-500 text-xs">
+                    <div className="py-12 text-center text-[var(--text-muted)] text-xs">
                       🎉 本批次暂无未处理质量异常，全部规则均已通过！
                     </div>
                   ) : (
@@ -723,16 +723,16 @@ export function DataQualityPage() {
                         className={cn(
                           'p-3 rounded-lg border text-xs cursor-pointer transition-colors space-y-1.5',
                           selectedIssue?.id === item.id
-                            ? 'bg-orbit-primary/10 border-orbit-primary text-slate-100'
-                            : 'bg-orbit-surface2/50 border-orbit-border hover:border-orbit-border2 text-slate-300'
+                            ? 'bg-orbit-primary/10 border-orbit-primary text-[var(--text-primary)]'
+                            : 'bg-orbit-surface2/50 border-orbit-border hover:border-orbit-border2 text-[var(--text-secondary)]'
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono font-bold text-slate-200">{item.ruleId}</span>
+                          <span className="font-mono font-bold text-[var(--text-secondary)]">{item.ruleId}</span>
                           <SeverityBadge severity={item.severity} />
                         </div>
-                        <p className="text-slate-300 font-medium line-clamp-2">{item.issueMessage}</p>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                        <p className="text-[var(--text-secondary)] font-medium line-clamp-2">{item.issueMessage}</p>
+                        <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] font-mono">
                           <span>键: {item.sourceBusinessKey || '单条记录'}</span>
                           <span>{item.status}</span>
                         </div>
@@ -752,12 +752,12 @@ export function DataQualityPage() {
                     <Card className="border border-orbit-border">
                       <CardHeader title="1. 原始文件/报文值 (Raw)" subtitle={`第 ${selectedIssue.comparison?.raw?.rowNo || 1} 行`} />
                       <CardBody className="p-4 bg-orbit-surface2/40 rounded-b-xl space-y-2 font-mono text-xs">
-                        <div className="text-slate-400">原始字段值:</div>
+                        <div className="text-[var(--text-muted)]">原始字段值:</div>
                         <div className="p-2.5 bg-orbit-surface rounded border border-orbit-border text-amber-300 break-all">
                           {selectedIssue.comparison?.raw?.fieldValue || '空值 (NULL)'}
                         </div>
-                        <div className="text-slate-400 mt-2">完整原始行 JSON:</div>
-                        <pre className="p-2 bg-orbit-surface rounded border border-orbit-border text-[11px] text-slate-400 max-h-36 overflow-auto">
+                        <div className="text-[var(--text-muted)] mt-2">完整原始行 JSON:</div>
+                        <pre className="p-2 bg-orbit-surface rounded border border-orbit-border text-[11px] text-[var(--text-muted)] max-h-36 overflow-auto">
                           {JSON.stringify(selectedIssue.comparison?.raw?.payload, null, 2)}
                         </pre>
                       </CardBody>
@@ -767,11 +767,11 @@ export function DataQualityPage() {
                     <Card className="border border-orbit-border">
                       <CardHeader title="2. 清洗标准化候选 (Clean)" subtitle={selectedIssue.comparison?.cleaned?.status} />
                       <CardBody className="p-4 bg-orbit-surface2/40 rounded-b-xl space-y-2 font-mono text-xs">
-                        <div className="text-slate-400">清洗输出值:</div>
+                        <div className="text-[var(--text-muted)]">清洗输出值:</div>
                         <div className="p-2.5 bg-orbit-surface rounded border border-orbit-border text-sky-300 break-all">
                           {selectedIssue.comparison?.cleaned?.fieldValue ?? '隔离'}
                         </div>
-                        <div className="text-slate-400 mt-2">隔离原因:</div>
+                        <div className="text-[var(--text-muted)] mt-2">隔离原因:</div>
                         <div className="p-2 bg-rose-500/10 rounded border border-rose-500/20 text-rose-300 text-[11px]">
                           {selectedIssue.comparison?.cleaned?.quarantineReason || '触发独立校验规则阻断'}
                         </div>
@@ -783,18 +783,18 @@ export function DataQualityPage() {
                       <CardHeader title="3. 主数据实体解析 (Entity Resolver)" subtitle="内部商品 / SKU 映射" />
                       <CardBody className="p-4 bg-orbit-surface2/40 rounded-b-xl space-y-2 text-xs">
                         <div className="flex justify-between py-1 border-b border-orbit-border/50">
-                          <span className="text-slate-400">平台外部 SKU:</span>
-                          <span className="font-mono text-slate-200">
+                          <span className="text-[var(--text-muted)]">平台外部 SKU:</span>
+                          <span className="font-mono text-[var(--text-secondary)]">
                             {selectedIssue.comparison?.cleaned?.payload?._platform_sku_id || '未知'}
                           </span>
                         </div>
                         <div className="flex justify-between py-1 border-b border-orbit-border/50">
-                          <span className="text-slate-400">内部系统关联主键:</span>
+                          <span className="text-[var(--text-muted)]">内部系统关联主键:</span>
                           <span className="font-mono text-emerald-400">
                             {selectedIssue.comparison?.cleaned?.payload?._internal_sku_id || '未关联 (需人工映射)'}
                           </span>
                         </div>
-                        <div className="p-2 bg-orbit-surface rounded text-[11px] text-slate-400">
+                        <div className="p-2 bg-orbit-surface rounded text-[11px] text-[var(--text-muted)]">
                           提示: 若该 SKU 为平台新品，请确认内部关联编码，审核确认后将自动登记至主数据别名库。
                         </div>
                       </CardBody>
@@ -806,13 +806,13 @@ export function DataQualityPage() {
                       <CardBody className="p-4 bg-orbit-surface2/40 rounded-b-xl space-y-2 text-xs">
                         <div className="flex items-center gap-2">
                           <SeverityBadge severity={selectedIssue.severity} />
-                          <span className="font-mono font-bold text-slate-200">{selectedIssue.ruleId}</span>
+                          <span className="font-mono font-bold text-[var(--text-secondary)]">{selectedIssue.ruleId}</span>
                         </div>
                         <div className="p-2.5 bg-rose-500/10 rounded border border-rose-500/20 text-rose-300 text-xs font-medium">
                           {selectedIssue.issueMessage}
                         </div>
-                        <div className="text-slate-400 text-[11px]">
-                          阻断级别: <span className="text-slate-200 font-bold">{selectedIssue.scope} 级</span> (严禁作为 FINAL 写入正式事实表)
+                        <div className="text-[var(--text-muted)] text-[11px]">
+                          阻断级别: <span className="text-[var(--text-secondary)] font-bold">{selectedIssue.scope} 级</span> (严禁作为 FINAL 写入正式事实表)
                         </div>
                       </CardBody>
                     </Card>
@@ -821,26 +821,26 @@ export function DataQualityPage() {
                   {/* 决策操作区 */}
                   <Card className="border-t-2 border-t-orbit-primary">
                     <CardBody className="p-5 space-y-4">
-                      <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-[var(--text-secondary)] flex items-center gap-2">
                         <Key className="w-4 h-4 text-orbit-primary" />
                         人工审核决策操作台
                       </h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs text-slate-400 mb-1 block">纠正实付金额 (元):</label>
+                          <label className="text-xs text-[var(--text-muted)] mb-1 block">纠正实付金额 (元):</label>
                           <input
                             value={fixedAmount}
                             onChange={(e) => setFixedAmount(e.target.value)}
-                            className="w-full px-3 py-2 bg-orbit-surface2 border border-orbit-border rounded-lg text-xs text-slate-100 font-mono outline-none focus:border-orbit-primary"
+                            className="w-full px-3 py-2 bg-orbit-surface2 border border-orbit-border rounded-lg text-xs text-[var(--text-primary)] font-mono outline-none focus:border-orbit-primary"
                             placeholder="如需修改请输入正确金额..."
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-slate-400 mb-1 block">审核处置原因 (审计必填):</label>
+                          <label className="text-xs text-[var(--text-muted)] mb-1 block">审核处置原因 (审计必填):</label>
                           <input
                             value={resolveReason}
                             onChange={(e) => setResolveReason(e.target.value)}
-                            className="w-full px-3 py-2 bg-orbit-surface2 border border-orbit-border rounded-lg text-xs text-slate-100 outline-none focus:border-orbit-primary"
+                            className="w-full px-3 py-2 bg-orbit-surface2 border border-orbit-border rounded-lg text-xs text-[var(--text-primary)] outline-none focus:border-orbit-primary"
                             placeholder="请输入核实依据，如: 平台后台核对确认为真实数据..."
                           />
                         </div>
@@ -870,7 +870,7 @@ export function DataQualityPage() {
                   </Card>
                 </>
               ) : (
-                <div className="py-24 text-center text-slate-500 border border-dashed border-orbit-border rounded-xl">
+                <div className="py-24 text-center text-[var(--text-muted)] border border-dashed border-orbit-border rounded-xl">
                   请在左侧选择需要审查的质量异常项
                 </div>
               )}
@@ -890,11 +890,11 @@ export function DataQualityPage() {
             <CardBody className="p-6 space-y-6">
               <div className="grid grid-cols-3 gap-6 bg-orbit-surface2/40 p-4 rounded-xl border border-orbit-border">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">选择核对批次:</label>
+                  <label className="text-xs text-[var(--text-muted)] mb-1 block">选择核对批次:</label>
                   <select
                     value={selectedBatchId || ''}
                     onChange={(e) => setSelectedBatchId(Number(e.target.value))}
-                    className="w-full bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 text-xs text-slate-200"
+                    className="w-full bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 text-xs text-[var(--text-secondary)]"
                   >
                     {batches.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -904,20 +904,20 @@ export function DataQualityPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">平台控制总行数 (Expected Rows):</label>
+                  <label className="text-xs text-[var(--text-muted)] mb-1 block">平台控制总行数 (Expected Rows):</label>
                   <input
                     value={controlRowCount}
                     onChange={(e) => setControlRowCount(e.target.value)}
-                    className="w-full bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 text-xs text-slate-200 font-mono"
+                    className="w-full bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 text-xs text-[var(--text-secondary)] font-mono"
                     placeholder="输入平台报表声明的总行数"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">平台控制总金额 (Expected Amount 元):</label>
+                  <label className="text-xs text-[var(--text-muted)] mb-1 block">平台控制总金额 (Expected Amount 元):</label>
                   <input
                     value={controlAmount}
                     onChange={(e) => setControlAmount(e.target.value)}
-                    className="w-full bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 text-xs text-slate-200 font-mono"
+                    className="w-full bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 text-xs text-[var(--text-secondary)] font-mono"
                     placeholder="输入平台对账单总金额"
                   />
                 </div>
@@ -935,7 +935,7 @@ export function DataQualityPage() {
                 <div className="border border-orbit-border rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-orbit-surface2/60 text-slate-400 border-b border-orbit-border">
+                      <tr className="bg-orbit-surface2/60 text-[var(--text-muted)] border-b border-orbit-border">
                         <th className="py-2.5 px-4">对账层级</th>
                         <th className="py-2.5 px-4">指标代码</th>
                         <th className="py-2.5 px-4">来源控制基准数</th>
@@ -948,9 +948,9 @@ export function DataQualityPage() {
                       {reconResults.map((r, i) => (
                         <tr key={i} className="hover:bg-orbit-surface2/30">
                           <td className="py-3 px-4 uppercase">{r.reconcileLevel}</td>
-                          <td className="py-3 px-4 font-bold text-slate-200">{r.metricCode}</td>
+                          <td className="py-3 px-4 font-bold text-[var(--text-secondary)]">{r.metricCode}</td>
                           <td className="py-3 px-4 text-sky-400">{r.sourceControlValue}</td>
-                          <td className="py-3 px-4 text-slate-200">{r.systemCalculatedValue}</td>
+                          <td className="py-3 px-4 text-[var(--text-secondary)]">{r.systemCalculatedValue}</td>
                           <td className="py-3 px-4 text-amber-400">{r.difference}</td>
                           <td className="py-3 px-4">
                             {r.status === 'MATCHED' ? (
@@ -977,10 +977,10 @@ export function DataQualityPage() {
             <CardBody className="p-6 space-y-4">
               <div className="flex items-center justify-between p-4 bg-orbit-surface2/40 rounded-xl border border-orbit-border">
                 <div>
-                  <h4 className="text-sm font-bold text-slate-200">
+                  <h4 className="text-sm font-bold text-[var(--text-secondary)]">
                     发布目标: 规范事实表 (canonical_orders / canonical_order_items)
                   </h4>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     当前批次成熟度: <MaturityBadge status={selectedBatch?.status || 'PROCESSING'} />
                     {selectedBatch?.open_p0_count > 0 && (
                       <span className="text-rose-400 ml-2 font-bold">
@@ -1033,12 +1033,12 @@ export function DataQualityPage() {
                     className="p-5 bg-orbit-surface2/40 rounded-xl border border-orbit-border hover:border-orbit-primary/50 transition-colors space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-base font-bold text-slate-100">{spec.platformName}</span>
+                      <span className="text-base font-bold text-[var(--text-primary)]">{spec.platformName}</span>
                       <Badge variant="info">{spec.platformCode}</Badge>
                     </div>
 
                     <div className="space-y-1.5 text-xs font-mono">
-                      <div className="text-slate-400">官方 API 网关:</div>
+                      <div className="text-[var(--text-muted)]">官方 API 网关:</div>
                       <div className="p-2 bg-orbit-surface rounded border border-orbit-border text-sky-400 break-all">
                         {spec.gatewayUrl}
                       </div>
@@ -1076,11 +1076,11 @@ export function DataQualityPage() {
               />
               <CardBody className="p-6 space-y-4">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">选择同步平台:</label>
+                  <label className="text-xs text-[var(--text-muted)] mb-1 block">选择同步平台:</label>
                   <select
                     value={uploadPlatform}
                     onChange={(e) => setUploadPlatform(e.target.value)}
-                    className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-xs text-slate-200"
+                    className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-xs text-[var(--text-secondary)]"
                   >
                     <option value="douyin">抖音电商 (抖店开放平台)</option>
                     <option value="kuaishou">快手电商 (快手开放平台)</option>
@@ -1091,7 +1091,7 @@ export function DataQualityPage() {
                     <option value="xiaohongshu">小红书电商 (千帆开放平台)</option>
                   </select>
                 </div>
-                <div className="p-3 bg-orbit-surface rounded border border-orbit-border text-xs text-slate-400">
+                <div className="p-3 bg-orbit-surface rounded border border-orbit-border text-xs text-[var(--text-muted)]">
                   工作机制：系统读取店铺配置的凭证，调用对应平台的 PlatformAdapter 拉取增量订单与退款事件，API 原始 JSON 完整写入不可变原始层 `raw_records`，并自动触发清洗与独立质量校验。
                 </div>
                 <Button
@@ -1114,11 +1114,11 @@ export function DataQualityPage() {
               />
               <CardBody className="p-6 space-y-4">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">选择导入所属平台:</label>
+                  <label className="text-xs text-[var(--text-muted)] mb-1 block">选择导入所属平台:</label>
                   <select
                     value={uploadPlatform}
                     onChange={(e) => setUploadPlatform(e.target.value)}
-                    className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-xs text-slate-200"
+                    className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-xs text-[var(--text-secondary)]"
                   >
                     <option value="douyin">抖音订单导出模板</option>
                     <option value="kuaishou">快手小店导出模板</option>
@@ -1142,9 +1142,9 @@ export function DataQualityPage() {
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-orbit-border hover:border-orbit-primary/60 rounded-xl p-8 text-center cursor-pointer transition-colors bg-orbit-surface2/30"
                 >
-                  <UploadCloud className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-                  <p className="text-xs font-medium text-slate-200">点击或拖拽上传 Excel / CSV 报表</p>
-                  <p className="text-[11px] text-slate-500 mt-1">自动 SHA-256 哈希去重 · 防公式注入转义 · 逐行不可变留痕</p>
+                  <UploadCloud className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-2" />
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">点击或拖拽上传 Excel / CSV 报表</p>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-1">自动 SHA-256 哈希去重 · 防公式注入转义 · 逐行不可变留痕</p>
                 </div>
               </CardBody>
             </Card>

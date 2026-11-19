@@ -78,8 +78,8 @@ export function RefundAnalysisPage() {
               reason: r.reason,
               percentage: r.percentage,
               amount: r.amount,
-              barColor: r.barColor ?? 'from-violet-500 to-violet-400',
-              dotColor: r.dotColor ?? 'bg-violet-400',
+              barColor: r.barColor ?? 'from-orbit-primary to-orbit-primary-dark',
+              dotColor: r.dotColor ?? 'bg-orbit-primary',
             })))
           }
           // Transform refund records
@@ -106,8 +106,8 @@ export function RefundAnalysisPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">退款分析</h1>
-            <p className="text-slate-500 text-sm mt-1">退款数据分析</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">退款分析</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">退款数据分析</p>
           </div>
         </div>
       </motion.div>
@@ -120,7 +120,7 @@ export function RefundAnalysisPage() {
         className="flex flex-col sm:flex-row items-start sm:items-center gap-4"
       >
         <div className="flex items-center gap-2">
-          <CalendarDays className="w-4 h-4 text-slate-500" />
+          <CalendarDays className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {timeRangeOptions.map((opt) => (
               <button
@@ -129,7 +129,7 @@ export function RefundAnalysisPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   timeRange === opt.value
                     ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -161,11 +161,11 @@ export function RefundAnalysisPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${item.dotColor}`} />
-                      <span className="text-sm text-slate-300">{item.reason}</span>
+                      <span className="text-sm text-[var(--text-secondary)]">{item.reason}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500">¥{item.amount}万</span>
-                      <span className="text-xs font-medium text-slate-200 w-8 text-right">{item.percentage}%</span>
+                      <span className="text-xs text-[var(--text-muted)]">¥{item.amount}万</span>
+                      <span className="text-xs font-medium text-[var(--text-secondary)] w-8 text-right">{item.percentage}%</span>
                     </div>
                   </div>
                   {/* Progress bar */}
@@ -195,13 +195,13 @@ export function RefundAnalysisPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">订单号</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">商品</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">金额</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">退款原因</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">申请时间</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">处理时长</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">状态</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">订单号</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">商品</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">金额</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">退款原因</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">申请时间</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">处理时长</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">状态</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -212,12 +212,12 @@ export function RefundAnalysisPage() {
                         key={row.orderId}
                         className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                       >
-                        <td className="px-5 py-3.5 text-slate-300 font-mono text-xs">{row.orderId}</td>
-                        <td className="px-5 py-3.5 text-slate-300">{row.product}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)] font-mono text-xs">{row.orderId}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{row.product}</td>
                         <td className="px-5 py-3.5 text-right text-red-400 font-medium tabular-nums">¥{row.amount}</td>
-                        <td className="px-5 py-3.5 text-slate-300">{row.reason}</td>
-                        <td className="px-5 py-3.5 text-slate-400 text-xs">{row.applyTime}</td>
-                        <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{row.duration}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{row.reason}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{row.applyTime}</td>
+                        <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.duration}</td>
                         <td className="px-5 py-3.5 text-right">
                           <Badge variant={badgeInfo.variant}>{badgeInfo.label}</Badge>
                         </td>

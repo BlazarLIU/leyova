@@ -135,21 +135,21 @@ export function DataLivePage() {
 
   function renderCell(r: LiveRecord, key: string) {
     switch (key) {
-      case 'date': return <span className="text-slate-300">{r.date}</span>
-      case 'anchorName': return <span className="text-slate-200 font-medium">{r.anchorName}</span>
-      case 'roomName': return <span className="text-slate-300">{r.roomName}</span>
-      case 'operatorName': return <span className="text-slate-300">{r.operatorName}</span>
-      case 'startTime': return <span className="text-slate-300">{r.startTime}-{r.endTime}</span>
-      case 'duration': return <span className="text-slate-300">{r.duration}</span>
+      case 'date': return <span className="text-[var(--text-secondary)]">{r.date}</span>
+      case 'anchorName': return <span className="text-[var(--text-secondary)] font-medium">{r.anchorName}</span>
+      case 'roomName': return <span className="text-[var(--text-secondary)]">{r.roomName}</span>
+      case 'operatorName': return <span className="text-[var(--text-secondary)]">{r.operatorName}</span>
+      case 'startTime': return <span className="text-[var(--text-secondary)]">{r.startTime}-{r.endTime}</span>
+      case 'duration': return <span className="text-[var(--text-secondary)]">{r.duration}</span>
       case 'gmv': return <span className="text-emerald-400 font-medium">{formatMoney(r.gmv)}</span>
-      case 'gsv': return <span className="text-slate-300">{formatMoney(r.gsv)}</span>
+      case 'gsv': return <span className="text-[var(--text-secondary)]">{formatMoney(r.gsv)}</span>
       case 'status': return <Badge variant={statusVariant[r.status] || 'info'}>{r.status}</Badge>
       case 'actions': return (
         <div className="flex items-center justify-center gap-4">
-          <button onClick={() => handleEdit(r.id)} className="text-slate-500 hover:text-orbit-primary-light transition-colors" title="编辑">
+          <button onClick={() => handleEdit(r.id)} className="text-[var(--text-muted)] hover:text-orbit-primary-light transition-colors" title="编辑">
             <Edit3 className="w-4 h-4" />
           </button>
-          <button onClick={() => setDeletingId(r.id)} className="text-slate-500 hover:text-red-400 transition-colors" title="删除">
+          <button onClick={() => setDeletingId(r.id)} className="text-[var(--text-muted)] hover:text-red-400 transition-colors" title="删除">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -164,8 +164,8 @@ export function DataLivePage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">登记数据管理</h1>
-            <p className="text-slate-500 text-sm mt-1">管理直播登记模块提交的数据记录</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">登记数据管理</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">管理直播登记模块提交的数据记录</p>
           </div>
           <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="w-4 h-4 mr-1" />
@@ -177,13 +177,13 @@ export function DataLivePage() {
       {/* 搜索栏 */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
         <div className="relative max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="搜索主播/直播间/运营..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orbit-accent transition-colors"
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:border-orbit-accent transition-colors"
           />
         </div>
       </motion.div>
@@ -193,20 +193,20 @@ export function DataLivePage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-200">直播记录</h2>
-              <span className="text-xs text-slate-500">共 {filtered.length} 条</span>
+              <h2 className="text-base font-semibold text-[var(--text-secondary)]">直播记录</h2>
+              <span className="text-xs text-[var(--text-muted)]">共 {filtered.length} 条</span>
             </div>
           </CardHeader>
           <CardBody>
             {loading ? (
-              <div className="text-center py-12 text-slate-500 text-sm">加载中...</div>
+              <div className="text-center py-12 text-[var(--text-muted)] text-sm">加载中...</div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 text-sm">暂无数据</div>
+              <div className="text-center py-12 text-[var(--text-muted)] text-sm">暂无数据</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-orbit-border text-slate-500 text-xs uppercase tracking-wider">
+                    <tr className="border-b border-orbit-border text-[var(--text-muted)] text-xs uppercase tracking-wider">
                       {columns.map(col => (
                         <th key={col.key} className={`py-3 px-3 font-medium text-${col.align}`}>
                           {col.label}
@@ -235,8 +235,8 @@ export function DataLivePage() {
       {deletingId !== null && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setDeletingId(null)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-200 mb-2">确认删除</h3>
-            <p className="text-sm text-slate-400 mb-6">确定要删除这条直播记录吗？此操作不可撤销。</p>
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mb-2">确认删除</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6">确定要删除这条直播记录吗？此操作不可撤销。</p>
             <div className="flex items-center justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeletingId(null)}>取消</Button>
               <Button variant="destructive" onClick={handleDeleteConfirm}>确认删除</Button>

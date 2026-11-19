@@ -8,6 +8,7 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { StatCard } from '@/components/ui/StatCard'
 import type { StatCardData } from '@/types'
 import { api } from '@/services/api'
+import { CHART_SERIES } from '@/constants/chartPalette'
 
 const fadeIn = {
   initial: { opacity: 0, y: 12 },
@@ -104,8 +105,8 @@ export function BiDashboardPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">BI仪表盘</h1>
-            <p className="text-slate-500 text-sm mt-1">商业智能数据总览</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">BI仪表盘</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">商业智能数据总览</p>
           </div>
         </div>
       </motion.div>
@@ -119,7 +120,7 @@ export function BiDashboardPage() {
       >
         {/* Time range */}
         <div className="flex items-center gap-2">
-          <CalendarDays className="w-4 h-4 text-slate-500" />
+          <CalendarDays className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {timeRangeOptions.map((opt) => (
               <button
@@ -128,7 +129,7 @@ export function BiDashboardPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   timeRange === opt.value
                     ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -139,7 +140,7 @@ export function BiDashboardPage() {
 
         {/* Data source */}
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-slate-500" />
+          <BarChart3 className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {dataSourceOptions.map((opt) => (
               <button
@@ -148,7 +149,7 @@ export function BiDashboardPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   dataSource === opt.value
                     ? 'bg-orbit-accent/15 text-orbit-accent-light border border-orbit-accent/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -178,17 +179,17 @@ export function BiDashboardPage() {
               {platformStats.map((item) => {
                 const colorClass =
                   item.platform === '抖音'
-                    ? 'from-violet-500 to-violet-400'
+                    ? 'from-orbit-primary to-orbit-primary-dark'
                     : 'from-amber-500 to-amber-400'
                 const heightPct = (item.gmv / platformMaxGmv) * 100
                 return (
                   <div key={item.platform} className="flex-1 flex flex-col items-center gap-3 h-full justify-end max-w-[120px]">
-                    <span className="text-sm font-semibold text-slate-300">¥{item.gmv}万</span>
+                    <span className="text-sm font-semibold text-[var(--text-secondary)]">¥{item.gmv}万</span>
                     <div
                       className={`w-full max-w-[80px] bg-gradient-to-t ${colorClass} rounded-t-md transition-all duration-300`}
                       style={{ height: `${heightPct}%` }}
                     />
-                    <span className="text-xs font-medium text-slate-400">{item.platform}</span>
+                    <span className="text-xs font-medium text-[var(--text-muted)]">{item.platform}</span>
                   </div>
                 )
               })}
@@ -210,7 +211,7 @@ export function BiDashboardPage() {
               {/* Y-axis labels */}
               <div className="absolute left-0 top-0 bottom-8 w-10 flex flex-col justify-between py-1 text-right pr-2">
                 {[maxTrendValue, Math.round(maxTrendValue * 0.75), Math.round(maxTrendValue * 0.5), Math.round(maxTrendValue * 0.25), 0].map((v) => (
-                  <span key={v} className="text-[10px] text-slate-500">{v}万</span>
+                  <span key={v} className="text-[10px] text-[var(--text-muted)]">{v}万</span>
                 ))}
               </div>
 
@@ -252,7 +253,7 @@ export function BiDashboardPage() {
                       return `${x},${y}`
                     }).join(' ')}
                     fill="none"
-                    stroke="#7C3AED"
+                    stroke={CHART_SERIES[0]}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -268,8 +269,8 @@ export function BiDashboardPage() {
                         cx={x}
                         cy={y}
                         r="4"
-                        fill="#7C3AED"
-                        stroke="#1E1B2E"
+                        fill={CHART_SERIES[0]}
+                        stroke="#FFFFFF"
                         strokeWidth="2"
                         className="cursor-pointer hover:r-[6]"
                       />
@@ -280,7 +281,7 @@ export function BiDashboardPage() {
                 {/* X-axis labels */}
                 <div className="absolute bottom-0 left-0 right-0 flex justify-between pr-[5px]">
                   {trendData.map((d) => (
-                    <span key={d.date} className="text-[10px] text-slate-600">{d.date}</span>
+                    <span key={d.date} className="text-[10px] text-[var(--text-primary)]">{d.date}</span>
                   ))}
                 </div>
               </div>
@@ -302,12 +303,12 @@ export function BiDashboardPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">平台</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">GMV</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">订单数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">退款率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">ROI</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">趋势</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">平台</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">GMV</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">订单数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">退款率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">ROI</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">趋势</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -316,11 +317,11 @@ export function BiDashboardPage() {
                       key={row.platform}
                       className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-5 py-3.5 text-slate-300 font-medium">{row.platform}</td>
+                      <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{row.platform}</td>
                       <td className="px-5 py-3.5 text-right text-emerald-400 font-medium tabular-nums">¥{row.gmv}万</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{row.orders.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300">{row.refundRate}%</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300">{row.roi}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.orders.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.refundRate}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.roi}</td>
                       <td className="px-5 py-3.5 text-right">
                         {row.trend === 'up' ? (
                           <TrendingUp className="w-4 h-4 text-emerald-400 inline-block" />

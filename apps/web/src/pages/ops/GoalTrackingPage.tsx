@@ -43,8 +43,8 @@ const categoryColors: Record<string, string> = {
   '效率': 'bg-orbit-warning/15 text-amber-400',
   '增长': 'bg-orbit-success/15 text-emerald-400',
   '流量': 'bg-orbit-accent/15 text-cyan-400',
-  '服务': 'bg-blue-500/15 text-blue-400',
-  '团队': 'bg-violet-500/15 text-violet-400',
+  '服务': 'bg-orbit-info/15 text-orbit-info',
+  '团队': 'bg-orbit-primary/15 text-orbit-primary',
   '运营': 'bg-orange-500/15 text-orange-400',
 }
 
@@ -80,8 +80,8 @@ export function GoalTrackingPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">目标达成</h1>
-            <p className="text-slate-500 text-sm mt-1">目标完成情况跟踪</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">目标达成</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">目标完成情况跟踪</p>
           </div>
           {/* Time range selector */}
           <div className="flex items-center gap-1.5 bg-orbit-surface rounded-lg border border-orbit-border p-1">
@@ -93,7 +93,7 @@ export function GoalTrackingPage() {
                   'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
                   timeRange === t.value
                     ? 'bg-orbit-primary/15 text-orbit-primary-light'
-                    : 'text-slate-400 hover:text-slate-300'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 )}
               >
                 <Calendar className="w-3 h-3" />
@@ -114,8 +114,8 @@ export function GoalTrackingPage() {
           <CardBody>
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-xs text-slate-500 font-medium">综合目标达成进度</p>
-                <p className="text-lg font-bold text-slate-100">{overallProgress}%</p>
+                <p className="text-xs text-[var(--text-muted)] font-medium">综合目标达成进度</p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">{overallProgress}%</p>
               </div>
               <div className={cn(
                 'px-3 py-1.5 rounded-lg text-xs font-medium',
@@ -139,7 +139,7 @@ export function GoalTrackingPage() {
                 )}
               />
             </div>
-            <p className="text-xs text-slate-600 mt-2">
+            <p className="text-xs text-[var(--text-primary)] mt-2">
               已完成 {goals.filter((g) => g.status === 'achieved').length} 个目标，
               {goals.filter((g) => g.status === 'behind').length} 个滞后
             </p>
@@ -165,12 +165,12 @@ export function GoalTrackingPage() {
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2.5">
-                      <div className={cn('p-2 rounded-lg', categoryColors[goal.category] || 'bg-orbit-surface2 text-slate-400')}>
+                      <div className={cn('p-2 rounded-lg', categoryColors[goal.category] || 'bg-orbit-surface2 text-[var(--text-muted)]')}>
                         <Target className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold text-slate-200">{goal.name}</h3>
-                        <p className="text-[10px] text-slate-600">{goal.category}</p>
+                        <h3 className="text-sm font-semibold text-[var(--text-secondary)]">{goal.name}</h3>
+                        <p className="text-[10px] text-[var(--text-primary)]">{goal.category}</p>
                       </div>
                     </div>
                     <Badge variant={status.variant} dot>
@@ -183,10 +183,10 @@ export function GoalTrackingPage() {
 
                   {/* Values */}
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-2xl font-bold text-slate-100">
+                    <span className="text-2xl font-bold text-[var(--text-primary)]">
                       {goal.current.toLocaleString()}
                     </span>
-                    <span className="text-xs text-slate-500">/ {goal.target.toLocaleString()} {goal.unit}</span>
+                    <span className="text-xs text-[var(--text-muted)]">/ {goal.target.toLocaleString()} {goal.unit}</span>
                   </div>
 
                   {/* Progress bar */}
@@ -209,7 +209,7 @@ export function GoalTrackingPage() {
                     <span className={cn(
                       'text-xs font-medium',
                       goal.status === 'achieved' ? 'text-emerald-400' :
-                      goal.status === 'ongoing' ? 'text-violet-400' :
+                      goal.status === 'ongoing' ? 'text-orbit-primary' :
                       'text-red-400'
                     )}>
                       {progress}%
@@ -240,7 +240,7 @@ export function GoalTrackingPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-orbit-border text-slate-500 text-xs">
+                  <tr className="border-b border-orbit-border text-[var(--text-muted)] text-xs">
                     <th className="text-left py-3 px-5 font-medium">目标名称</th>
                     <th className="text-right py-3 px-5 font-medium">目标值</th>
                     <th className="text-right py-3 px-5 font-medium">当前值</th>
@@ -266,15 +266,15 @@ export function GoalTrackingPage() {
                               <Target className="w-3 h-3" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-slate-200">{goal.name}</p>
-                              <p className="text-[10px] text-slate-600">{goal.category}</p>
+                              <p className="text-sm font-medium text-[var(--text-secondary)]">{goal.name}</p>
+                              <p className="text-[10px] text-[var(--text-primary)]">{goal.category}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-5 text-right text-slate-200 font-medium">
+                        <td className="py-3.5 px-5 text-right text-[var(--text-secondary)] font-medium">
                           {goal.target.toLocaleString()} {goal.unit}
                         </td>
-                        <td className="py-3.5 px-5 text-right text-slate-200 font-medium">
+                        <td className="py-3.5 px-5 text-right text-[var(--text-secondary)] font-medium">
                           {goal.current.toLocaleString()} {goal.unit}
                         </td>
                         <td className="py-3.5 px-5 text-center">
@@ -293,7 +293,7 @@ export function GoalTrackingPage() {
                             <span className={cn(
                               'text-xs font-medium w-8 text-right',
                               goal.status === 'achieved' ? 'text-emerald-400' :
-                              goal.status === 'ongoing' ? 'text-violet-400' :
+                              goal.status === 'ongoing' ? 'text-orbit-primary' :
                               'text-red-400'
                             )}>
                               {progress}%

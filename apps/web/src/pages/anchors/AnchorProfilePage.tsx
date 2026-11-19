@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { StatCard } from '@/components/ui/StatCard'
 import { cn } from '@/utils/cn'
+import { CHART_SERIES, CHART_GRID, CHART_AXIS } from '@/constants/chartPalette'
 import { api } from '@/services/api'
 import type { StatCardData } from '@/types'
 
@@ -287,8 +288,8 @@ export function AnchorProfilePage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">{anchorProfile?.name || '主播档案'}</h1>
-            <p className="text-slate-500 text-sm mt-1">主播详细档案与能力评估</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{anchorProfile?.name || '主播档案'}</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">主播详细档案与能力评估</p>
           </div>
           <div className="flex items-center gap-3">
             {/* 主播切换下拉 */}
@@ -296,7 +297,7 @@ export function AnchorProfilePage() {
               <select
                 value={currentAnchorId}
                 onChange={(e) => switchAnchor(e.target.value)}
-                className="appearance-none bg-orbit-surface2 border border-orbit-border text-slate-200 text-sm rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-orbit-primary/50 cursor-pointer hover:border-orbit-border-light transition-colors"
+                className="appearance-none bg-orbit-surface2 border border-orbit-border text-[var(--text-secondary)] text-sm rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-orbit-primary/50 cursor-pointer hover:border-orbit-border-light transition-colors"
               >
                 {anchorList.map((a) => (
                   <option key={a.id} value={String(a.id)}>
@@ -304,7 +305,7 @@ export function AnchorProfilePage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-[var(--text-muted)] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
             <Button icon={<Edit className="w-4 h-4" />} size="sm">
               编辑资料
@@ -325,13 +326,13 @@ export function AnchorProfilePage() {
               <Avatar initials={anchorProfile?.initials || '--'} size="2xl" className="ring-2 ring-orbit-primary/30" />
               <div className="flex-1 space-y-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-100">{anchorProfile?.name}</h2>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">{anchorProfile?.name}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs font-medium text-orbit-primary-light bg-orbit-primary/10 px-2 py-0.5 rounded-full">
                       {anchorProfile?.level}
                     </span>
                     {anchorProfile?.tags.map((tag) => (
-                      <span key={tag} className="text-xs text-slate-500 bg-orbit-surface2 px-2 py-0.5 rounded-full border border-orbit-border">
+                      <span key={tag} className="text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-0.5 rounded-full border border-orbit-border">
                         {tag}
                       </span>
                     ))}
@@ -351,8 +352,8 @@ export function AnchorProfilePage() {
                       <Users className="w-4 h-4 text-orbit-primary-light" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">粉丝数</p>
-                      <p className="text-sm font-semibold text-slate-200">{((anchorProfile?.followers || 0) / 10000).toFixed(0)}万</p>
+                      <p className="text-xs text-[var(--text-muted)]">粉丝数</p>
+                      <p className="text-sm font-semibold text-[var(--text-secondary)]">{((anchorProfile?.followers || 0) / 10000).toFixed(0)}万</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -360,8 +361,8 @@ export function AnchorProfilePage() {
                       <Calendar className="w-4 h-4 text-orbit-accent-light" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">加入时间</p>
-                      <p className="text-sm font-semibold text-slate-200">{anchorProfile?.joinDate}</p>
+                      <p className="text-xs text-[var(--text-muted)]">加入时间</p>
+                      <p className="text-sm font-semibold text-[var(--text-secondary)]">{anchorProfile?.joinDate}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -369,8 +370,8 @@ export function AnchorProfilePage() {
                       <Mail className="w-4 h-4 text-emerald-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">邮箱</p>
-                      <p className="text-sm font-semibold text-slate-200 truncate">{anchorProfile?.email}</p>
+                      <p className="text-xs text-[var(--text-muted)]">邮箱</p>
+                      <p className="text-sm font-semibold text-[var(--text-secondary)] truncate">{anchorProfile?.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -378,8 +379,8 @@ export function AnchorProfilePage() {
                       <Phone className="w-4 h-4 text-amber-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">联系方式</p>
-                      <p className="text-sm font-semibold text-slate-200">{anchorProfile?.phone}</p>
+                      <p className="text-xs text-[var(--text-muted)]">联系方式</p>
+                      <p className="text-sm font-semibold text-[var(--text-secondary)]">{anchorProfile?.phone}</p>
                     </div>
                   </div>
                 </div>
@@ -392,7 +393,7 @@ export function AnchorProfilePage() {
       {/* 对比周期切换 */}
       <motion.div {...fadeIn}>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500">对比周期:</span>
+          <span className="text-xs text-[var(--text-muted)]">对比周期:</span>
           <div className="flex rounded-lg border border-orbit-border overflow-hidden">
             {(Object.entries(COMPARISON_LABELS) as [ComparisonDimension, string][]).map(([key, label]) => (
               <button
@@ -402,7 +403,7 @@ export function AnchorProfilePage() {
                   'px-3 py-1.5 text-xs font-medium transition-colors',
                   comparisonDimension === key
                     ? 'bg-orbit-primary text-white'
-                    : 'bg-orbit-surface2 text-slate-400 hover:bg-orbit-surface2/80'
+                    : 'bg-orbit-surface2 text-[var(--text-muted)] hover:bg-orbit-surface2/80'
                 )}
               >
                 {label}
@@ -436,7 +437,7 @@ export function AnchorProfilePage() {
               title="五项能力评分"
               subtitle="最新评估周期能力表现"
               actions={
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
+                <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
                   <Brain className="w-3.5 h-3.5" />
                   <span>能力模型</span>
                 </div>
@@ -451,16 +452,16 @@ export function AnchorProfilePage() {
                       <div className={cn('p-3 rounded-full mb-3', getScoreBg(score))}>
                         <dim.icon className={cn('w-5 h-5', getScoreColor(score))} />
                       </div>
-                      <p className="text-sm font-medium text-slate-300 mb-1">{dim.label}</p>
+                      <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">{dim.label}</p>
                       <p className={cn('text-3xl font-bold mb-2', getScoreColor(score))}>{score}</p>
                       {/* 进度条 */}
-                      <div className="w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-[var(--surface3)] rounded-full overflow-hidden">
                         <div
                           className={cn('h-full rounded-full transition-all duration-500', getScoreBar(score))}
                           style={{ width: `${score}%` }}
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-2">{dim.desc}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-2">{dim.desc}</p>
                     </div>
                   )
                 })}
@@ -481,7 +482,7 @@ export function AnchorProfilePage() {
             title="能力趋势"
             subtitle="近3个月能力变化趋势"
             actions={
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>趋势</span>
               </div>
@@ -492,31 +493,31 @@ export function AnchorProfilePage() {
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={capabilityHistory} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 12 }} stroke="#334155" />
-                    <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 12 }} stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                    <XAxis dataKey="date" tick={{ fill: CHART_AXIS, fontSize: 12 }} stroke={CHART_AXIS} />
+                    <YAxis domain={[0, 100]} tick={{ fill: CHART_AXIS, fontSize: 12 }} stroke={CHART_AXIS} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#1e293b',
-                        border: '1px solid #334155',
-                        borderRadius: '8px',
-                        color: '#e2e8f0',
+                        backgroundColor: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '10px',
+                        color: 'var(--text-primary)',
                         fontSize: '12px',
                       }}
                     />
                     <Legend
-                      wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }}
+                      wrapperStyle={{ fontSize: '12px', color: 'var(--text-muted)' }}
                     />
-                    <Line type="monotone" dataKey="expression" name="引流能力" stroke="#7C3AED" strokeWidth={2} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="interaction" name="互动能力" stroke="#06B6D4" strokeWidth={2} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="conversion" name="转化能力" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="professionalism" name="专业度" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="overall" name="综合评分" stroke="#F472B6" strokeWidth={2} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="expression" name="引流能力" stroke={CHART_SERIES[0]} strokeWidth={2} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="interaction" name="互动能力" stroke={CHART_SERIES[1]} strokeWidth={2} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="conversion" name="转化能力" stroke={CHART_SERIES[3]} strokeWidth={2} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="professionalism" name="专业度" stroke={CHART_SERIES[2]} strokeWidth={2} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="overall" name="综合评分" stroke={CHART_SERIES[4]} strokeWidth={2} dot={{ r: 4 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center text-slate-500 text-sm">
+              <div className="h-48 flex items-center justify-center text-[var(--text-muted)] text-sm">
                 暂无能力评估数据，请上传主播分析数据后查看
               </div>
             )}
@@ -535,7 +536,7 @@ export function AnchorProfilePage() {
             title="月度业绩"
             subtitle="自然月实时汇总（以上传数据为依据）"
             actions={
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
                 <BarChart3 className="w-3.5 h-3.5" />
                 <span>业绩概览</span>
               </div>
@@ -546,20 +547,20 @@ export function AnchorProfilePage() {
               <table className="w-full text-sm min-w-[1400px]">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">月份</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">开播时长</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">直播间用户支付金额</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">单小时用户支付金额</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">最高在线人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">平均在线人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">平均件单价</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">引流能力<br/>曝光-观看率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">留人能力<br/>留存率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">互动能力<br/>观看-互动率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">新增粉丝数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">观看-关注率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">新加团人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">单UV价值(元)</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">月份</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">开播时长</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">直播间用户支付金额</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">单小时用户支付金额</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">最高在线人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">平均在线人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">平均件单价</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">引流能力<br/>曝光-观看率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">留人能力<br/>留存率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">互动能力<br/>观看-互动率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">新增粉丝数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">观看-关注率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">新加团人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">单UV价值(元)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -568,18 +569,18 @@ export function AnchorProfilePage() {
                       key={row.month}
                       className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-5 py-3.5 text-slate-300 font-medium whitespace-nowrap">{row.month}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(row.totalDurationMin / 60).toFixed(1)}h</td>
+                      <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium whitespace-nowrap">{row.month}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.totalDurationMin / 60).toFixed(1)}h</td>
                       <td className="px-5 py-3.5 text-right text-emerald-400 font-medium tabular-nums">¥{row.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">¥{row.avgGmvPerHour.toFixed(2)}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{row.maxOnlinePeak.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{row.avgAvgOnline.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">¥{row.avgAvgItemPrice.toFixed(2)}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(row.avgExposureViewRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(row.avgRetentionRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(row.avgInteractionRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">¥{row.avgGmvPerHour.toFixed(2)}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.maxOnlinePeak.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.avgAvgOnline.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">¥{row.avgAvgItemPrice.toFixed(2)}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgExposureViewRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgRetentionRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgInteractionRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{row.totalNewFans.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(row.avgViewFollowRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgViewFollowRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{row.totalNewGroupMembers.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-amber-400 font-medium tabular-nums">¥{row.avgUvValue.toFixed(2)}</td>
                     </tr>
@@ -602,7 +603,7 @@ export function AnchorProfilePage() {
             title="近期场次"
             subtitle="最近场次明细（以上传数据为依据）"
             actions={
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
                 <Target className="w-3.5 h-3.5" />
                 <span>场次回顾</span>
               </div>
@@ -613,20 +614,20 @@ export function AnchorProfilePage() {
               <table className="w-full text-sm min-w-[1400px]">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">日期</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">开播时长</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">直播间用户支付金额</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">单小时用户支付金额</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">最高在线人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">平均在线人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">平均件单价</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">引流能力<br/>曝光-观看率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">留人能力<br/>留存率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">互动能力<br/>观看-互动率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">新增粉丝数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">观看-关注率</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">新加团人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">单UV价值(元)</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">日期</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">开播时长</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">直播间用户支付金额</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">单小时用户支付金额</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">最高在线人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">平均在线人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">平均件单价</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">引流能力<br/>曝光-观看率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">留人能力<br/>留存率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">互动能力<br/>观看-互动率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">新增粉丝数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">观看-关注率</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">新加团人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">单UV价值(元)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -635,18 +636,18 @@ export function AnchorProfilePage() {
                       key={session.id}
                       className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-5 py-3.5 text-slate-400 whitespace-nowrap">{session.date}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(session.durationMin / 60).toFixed(1)}h</td>
+                      <td className="px-5 py-3.5 text-[var(--text-muted)] whitespace-nowrap">{session.date}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.durationMin / 60).toFixed(1)}h</td>
                       <td className="px-5 py-3.5 text-right text-emerald-400 font-medium tabular-nums">¥{session.gmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">¥{session.gmvPerHour.toFixed(2)}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{session.onlinePeak.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{session.avgOnline.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">¥{session.avgItemPrice.toFixed(2)}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(session.exposureViewRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(session.retentionRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(session.interactionRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">¥{session.gmvPerHour.toFixed(2)}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{session.onlinePeak.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{session.avgOnline.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">¥{session.avgItemPrice.toFixed(2)}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.exposureViewRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.retentionRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.interactionRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{session.newFans.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{(session.viewFollowRate * 100).toFixed(1)}%</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.viewFollowRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{session.newGroupMembers.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-amber-400 font-medium tabular-nums">¥{session.uvValue.toFixed(2)}</td>
                     </tr>

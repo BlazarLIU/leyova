@@ -114,8 +114,8 @@ export function ScriptTemplatesPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">话术模板</h1>
-            <p className="text-slate-500 text-sm mt-1">直播话术模板管理</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">话术模板</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">直播话术模板管理</p>
           </div>
         </div>
       </motion.div>
@@ -144,7 +144,7 @@ export function ScriptTemplatesPage() {
                 'px-3 py-1.5 text-xs font-medium rounded-lg transition-colors',
                 categoryFilter === opt.value
                   ? 'bg-orbit-accent/15 text-orbit-accent-light border border-orbit-accent/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
               )}
             >
               {opt.label}
@@ -167,8 +167,8 @@ export function ScriptTemplatesPage() {
       >
         {filteredTemplates.length === 0 ? (
           <div className="col-span-full text-center py-16">
-            <MessageSquare className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-500 text-sm">没有匹配的话术模板</p>
+            <MessageSquare className="w-12 h-12 text-[var(--text-primary)] mx-auto mb-4" />
+            <p className="text-[var(--text-muted)] text-sm">没有匹配的话术模板</p>
           </div>
         ) : (
           filteredTemplates.map((template, i) => (
@@ -185,19 +185,19 @@ export function ScriptTemplatesPage() {
                     <Badge variant={categoryBadgeMap[template.category]} className="mb-2">
                       {categoryLabelMap[template.category]}
                     </Badge>
-                    <h3 className="text-sm font-semibold text-slate-100">{template.title}</h3>
-                    <p className="text-xs text-slate-500 mt-1">{template.scenario}</p>
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">{template.title}</h3>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">{template.scenario}</p>
                   </div>
 
                   {/* Content preview */}
                   <div className="flex-1 mb-4">
-                    <p className="text-xs text-slate-400 leading-relaxed line-clamp-4">
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed line-clamp-4">
                       {template.content.slice(0, 100)}...
                     </p>
                   </div>
 
                   {/* Usage info */}
-                  <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
+                  <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] mb-4">
                     <div className="flex items-center gap-1">
                       <Eye className="w-3.5 h-3.5" />
                       <span>使用 {template.usageCount} 次</span>
@@ -228,13 +228,13 @@ export function ScriptTemplatesPage() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-orbit-border">
-              <h3 className="text-base font-semibold text-slate-200">新建话术模板</h3>
+              <h3 className="text-base font-semibold text-[var(--text-secondary)]">新建话术模板</h3>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">分类</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">分类</label>
                 <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                   <option value="opening">开场</option>
                   <option value="intro">介绍</option>
                   <option value="promo">促销</option>
@@ -242,19 +242,19 @@ export function ScriptTemplatesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">标题</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">标题</label>
                 <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入话术标题" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入话术标题" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">场景描述</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">场景描述</label>
                 <input value={form.scenario} onChange={e => setForm(p => ({ ...p, scenario: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="适用的直播场景" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="适用的直播场景" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">话术内容</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">话术内容</label>
                 <textarea value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
-                  className="w-full min-h-[120px] rounded-lg border border-orbit-border bg-orbit-surface2 px-3 py-2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 resize-y" placeholder="输入话术内容..." />
+                  className="w-full min-h-[120px] rounded-lg border border-orbit-border bg-orbit-surface2 px-3 py-2 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 resize-y" placeholder="输入话术内容..." />
               </div>
             </div>
             <div className="px-6 py-4 border-t border-orbit-border flex items-center justify-end gap-3">

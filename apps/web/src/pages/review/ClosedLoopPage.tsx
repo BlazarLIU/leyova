@@ -125,34 +125,34 @@ function LoadingSkeleton() {
     <div className="space-y-6">
       {/* Findings skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-40 bg-slate-700/50 rounded mb-6" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-40 bg-[var(--surface3)] rounded mb-6" />
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 bg-slate-700/30 rounded-lg" />
+            <div key={i} className="h-20 bg-[var(--surface3)] rounded-lg" />
           ))}
         </div>
       </div>
 
       {/* Related issues skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-40 bg-slate-700/50 rounded mb-6" />
-        <div className="h-40 bg-slate-700/30 rounded-lg" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-40 bg-[var(--surface3)] rounded mb-6" />
+        <div className="h-40 bg-[var(--surface3)] rounded-lg" />
       </div>
 
       {/* Improvement tasks skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-40 bg-slate-700/50 rounded mb-6" />
-        <div className="h-40 bg-slate-700/30 rounded-lg" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-40 bg-[var(--surface3)] rounded mb-6" />
+        <div className="h-40 bg-[var(--surface3)] rounded-lg" />
       </div>
 
       {/* Effect validation skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-40 bg-slate-700/50 rounded mb-6" />
-        <div className="h-48 bg-slate-700/30 rounded-lg" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-40 bg-[var(--surface3)] rounded mb-6" />
+        <div className="h-48 bg-[var(--surface3)] rounded-lg" />
       </div>
     </div>
   )
@@ -168,8 +168,8 @@ function FindingsSection({ findings }: { findings: Finding[] }) {
           <CardHeader title="待落地发现" subtitle="本场直播待改进问题" />
           <CardBody>
             <div className="flex flex-col items-center justify-center py-12">
-              <CheckCircle2 className="w-12 h-12 text-slate-600 mb-3" />
-              <p className="text-slate-500 text-sm">暂无发现项，表现良好</p>
+              <CheckCircle2 className="w-12 h-12 text-[var(--text-primary)] mb-3" />
+              <p className="text-[var(--text-muted)] text-sm">暂无发现项，表现良好</p>
             </div>
           </CardBody>
         </Card>
@@ -184,7 +184,7 @@ function FindingsSection({ findings }: { findings: Finding[] }) {
           title="待落地发现"
           subtitle="本场直播待改进问题"
           actions={
-            <span className="text-xs text-slate-500 bg-orbit-surface2 px-2 py-0.5 rounded-full border border-orbit-border">
+            <span className="text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-0.5 rounded-full border border-orbit-border">
               {findings.length} 项
             </span>
           }
@@ -204,26 +204,26 @@ function FindingsSection({ findings }: { findings: Finding[] }) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <h4 className="text-sm font-semibold text-slate-200">{finding.description}</h4>
+                      <h4 className="text-sm font-semibold text-[var(--text-secondary)]">{finding.description}</h4>
                       <Badge variant={sev.variant}>{sev.label}</Badge>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-muted)]">
                       {finding.related_metric && (
                         <span>
-                          关联指标：<span className="text-slate-400">{finding.related_metric}</span>
+                          关联指标：<span className="text-[var(--text-muted)]">{finding.related_metric}</span>
                         </span>
                       )}
                       {finding.current_value && (
                         <span>
-                          当前值：<span className="text-slate-400 font-medium">{finding.current_value}</span>
+                          当前值：<span className="text-[var(--text-muted)] font-medium">{finding.current_value}</span>
                         </span>
                       )}
                     </div>
 
                     {finding.suggested_action && (
-                      <p className="text-xs text-slate-500 mt-2">
-                        建议动作：<span className="text-slate-400">{finding.suggested_action}</span>
+                      <p className="text-xs text-[var(--text-muted)] mt-2">
+                        建议动作：<span className="text-[var(--text-muted)]">{finding.suggested_action}</span>
                       </p>
                     )}
                   </div>
@@ -270,20 +270,20 @@ function RelatedIssuesSection({ issues }: { issues: RelatedIssue[] }) {
         <CardBody>
           {issues.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <ClipboardList className="w-12 h-12 text-slate-600 mb-3" />
-              <p className="text-slate-500 text-sm">暂无关联问题</p>
+              <ClipboardList className="w-12 h-12 text-[var(--text-primary)] mb-3" />
+              <p className="text-[var(--text-muted)] text-sm">暂无关联问题</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-slate-500 font-medium py-2.5 pr-4">问题</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">关联场次</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">问题类型</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">负责人</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">状态</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 pl-4">创建时间</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 pr-4">问题</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">关联场次</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">问题类型</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">负责人</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">状态</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 pl-4">创建时间</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -295,22 +295,22 @@ function RelatedIssuesSection({ issues }: { issues: RelatedIssue[] }) {
                       transition={{ duration: 0.25, delay: i * 0.03 }}
                       className="border-b border-orbit-border/50 last:border-0 hover:bg-white/[0.02] transition-colors"
                     >
-                      <td className="py-2.5 pr-4 text-slate-300 font-medium whitespace-nowrap">
+                      <td className="py-2.5 pr-4 text-[var(--text-secondary)] font-medium whitespace-nowrap">
                         {issue.title}
                       </td>
-                      <td className="py-2.5 px-4 text-slate-400 whitespace-nowrap">
+                      <td className="py-2.5 px-4 text-[var(--text-muted)] whitespace-nowrap">
                         {issue.session}
                       </td>
-                      <td className="py-2.5 px-4 text-slate-400 whitespace-nowrap">
+                      <td className="py-2.5 px-4 text-[var(--text-muted)] whitespace-nowrap">
                         {issue.type}
                       </td>
-                      <td className="py-2.5 px-4 text-slate-400 whitespace-nowrap">
+                      <td className="py-2.5 px-4 text-[var(--text-muted)] whitespace-nowrap">
                         {issue.assignee}
                       </td>
                       <td className="py-2.5 px-4 whitespace-nowrap">
                         <Badge variant="neutral">{issue.status}</Badge>
                       </td>
-                      <td className="py-2.5 pl-4 text-slate-500 whitespace-nowrap tabular-nums">
+                      <td className="py-2.5 pl-4 text-[var(--text-muted)] whitespace-nowrap tabular-nums">
                         {formatDate(issue.created_at)}
                       </td>
                     </motion.tr>
@@ -347,20 +347,20 @@ function ImprovementTasksSection({ tasks }: { tasks: ImprovementTask[] }) {
         <CardBody>
           {tasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <Target className="w-12 h-12 text-slate-600 mb-3" />
-              <p className="text-slate-500 text-sm">暂无改进任务</p>
+              <Target className="w-12 h-12 text-[var(--text-primary)] mb-3" />
+              <p className="text-[var(--text-muted)] text-sm">暂无改进任务</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-slate-500 font-medium py-2.5 pr-4">任务</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">负责人</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">关联问题</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">关联场次</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 px-4">截止时间</th>
-                    <th className="text-left text-slate-500 font-medium py-2.5 pl-4">状态</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 pr-4">任务</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">负责人</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">关联问题</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">关联场次</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 px-4">截止时间</th>
+                    <th className="text-left text-[var(--text-muted)] font-medium py-2.5 pl-4">状态</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -374,19 +374,19 @@ function ImprovementTasksSection({ tasks }: { tasks: ImprovementTask[] }) {
                         transition={{ duration: 0.25, delay: i * 0.03 }}
                         className="border-b border-orbit-border/50 last:border-0 hover:bg-white/[0.02] transition-colors"
                       >
-                        <td className="py-2.5 pr-4 text-slate-300 font-medium whitespace-nowrap">
+                        <td className="py-2.5 pr-4 text-[var(--text-secondary)] font-medium whitespace-nowrap">
                           {task.title}
                         </td>
-                        <td className="py-2.5 px-4 text-slate-400 whitespace-nowrap">
+                        <td className="py-2.5 px-4 text-[var(--text-muted)] whitespace-nowrap">
                           {task.assignee}
                         </td>
-                        <td className="py-2.5 px-4 text-slate-400 whitespace-nowrap">
+                        <td className="py-2.5 px-4 text-[var(--text-muted)] whitespace-nowrap">
                           {task.related_issue}
                         </td>
-                        <td className="py-2.5 px-4 text-slate-400 whitespace-nowrap">
+                        <td className="py-2.5 px-4 text-[var(--text-muted)] whitespace-nowrap">
                           {task.related_session}
                         </td>
-                        <td className="py-2.5 px-4 text-slate-500 whitespace-nowrap tabular-nums">
+                        <td className="py-2.5 px-4 text-[var(--text-muted)] whitespace-nowrap tabular-nums">
                           {formatDate(task.deadline)}
                         </td>
                         <td className="py-2.5 pl-4 whitespace-nowrap">
@@ -454,13 +454,13 @@ function EffectValidationSection({
           {/* Session selectors */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 mb-6">
             <div className="flex-1 w-full">
-              <label className="block text-xs text-slate-500 font-medium mb-1.5">优化前场次</label>
+              <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">优化前场次</label>
               <div className="relative">
-                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
                 <select
                   value={sessionA}
                   onChange={(e) => setSessionA(e.target.value)}
-                  className="appearance-none w-full bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50"
+                  className="appearance-none w-full bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50"
                 >
                   <option value="">选择场次</option>
                   {sessions.map((s) => (
@@ -470,7 +470,7 @@ function EffectValidationSection({
                   ))}
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -478,17 +478,17 @@ function EffectValidationSection({
             </div>
 
             <div className="flex-shrink-0 flex items-center justify-center py-2 px-3">
-              <span className="text-sm text-slate-500 font-medium">VS</span>
+              <span className="text-sm text-[var(--text-muted)] font-medium">VS</span>
             </div>
 
             <div className="flex-1 w-full">
-              <label className="block text-xs text-slate-500 font-medium mb-1.5">优化后场次</label>
+              <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">优化后场次</label>
               <div className="relative">
-                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
                 <select
                   value={sessionB}
                   onChange={(e) => setSessionB(e.target.value)}
-                  className="appearance-none w-full bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50"
+                  className="appearance-none w-full bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50"
                 >
                   <option value="">选择场次</option>
                   {sessions.map((s) => (
@@ -498,7 +498,7 @@ function EffectValidationSection({
                   ))}
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -533,16 +533,16 @@ function EffectValidationSection({
                     transition={{ duration: 0.3, delay: i * 0.04 }}
                     className="rounded-lg border border-orbit-border bg-orbit-surface2/50 p-4"
                   >
-                    <p className="text-xs text-slate-500 font-medium mb-2">{metric.label}</p>
+                    <p className="text-xs text-[var(--text-muted)] font-medium mb-2">{metric.label}</p>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-slate-400">{metric.format(data.before)}</span>
+                      <span className="text-[var(--text-muted)]">{metric.format(data.before)}</span>
                       <ArrowRight className={cn(
                         'w-3.5 h-3.5 flex-shrink-0',
                         isUp && 'text-green-400',
                         isDown && 'text-red-400',
-                        isNeutral && 'text-slate-500',
+                        isNeutral && 'text-[var(--text-muted)]',
                       )} />
-                      <span className="text-slate-100 font-semibold">{metric.format(data.after)}</span>
+                      <span className="text-[var(--text-primary)] font-semibold">{metric.format(data.after)}</span>
                     </div>
                     <div className="flex items-center gap-1 mt-1.5">
                       {isUp && <TrendingUp className="w-3.5 h-3.5 text-green-400" />}
@@ -553,7 +553,7 @@ function EffectValidationSection({
                           'text-xs font-medium tabular-nums',
                           isUp && 'text-green-400',
                           isDown && 'text-red-400',
-                          isNeutral && 'text-slate-500',
+                          isNeutral && 'text-[var(--text-muted)]',
                         )}
                       >
                         {isUp ? '+' : ''}{data.change_pct.toFixed(1)}%
@@ -567,16 +567,16 @@ function EffectValidationSection({
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className="rounded-lg border border-orbit-border bg-orbit-surface2/50 p-4 animate-pulse">
-                  <div className="h-3 w-16 bg-slate-700/50 rounded mb-3" />
-                  <div className="h-5 w-32 bg-slate-700/50 rounded mb-2" />
-                  <div className="h-3 w-20 bg-slate-700/50 rounded" />
+                  <div className="h-3 w-16 bg-[var(--surface3)] rounded mb-3" />
+                  <div className="h-5 w-32 bg-[var(--surface3)] rounded mb-2" />
+                  <div className="h-3 w-20 bg-[var(--surface3)] rounded" />
                 </div>
               ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">
-              <HelpCircle className="w-12 h-12 text-slate-600 mb-3" />
-              <p className="text-slate-500 text-sm">选择优化前后场次进行对比</p>
+              <HelpCircle className="w-12 h-12 text-[var(--text-primary)] mb-3" />
+              <p className="text-[var(--text-muted)] text-sm">选择优化前后场次进行对比</p>
             </div>
           )}
         </CardBody>
@@ -628,8 +628,8 @@ export function ClosedLoopPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">改进闭环</h1>
-            <p className="text-slate-500 text-sm mt-1">问题发现 → 任务分配 → 效果验证</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">改进闭环</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">问题发现 → 任务分配 → 效果验证</p>
           </div>
         </div>
       </motion.div>

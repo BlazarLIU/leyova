@@ -95,7 +95,14 @@
   --color-orbit-danger:  #DC2626;
   --color-orbit-info:    #2563EB;
 
-  /* Radius scale — restrained, never pill-shaped by default */
+  /* Radius scale — 把 Tailwind 默认圆角收敛到品牌阶梯（8/10/14/18/22） */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-3xl: 22px;
+
   --radius-orbit-sm: 8px;
   --radius-orbit-md: 10px;
   --radius-orbit-lg: 14px;
@@ -115,7 +122,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'tnum' 0, 'ss01' 1;
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
   transition: background-color 0.18s ease, color 0.18s ease;
 }
 

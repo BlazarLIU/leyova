@@ -197,7 +197,7 @@ export function CustomerServicePage() {
         sortable: true,
         render: (_, s) => (
           <div>
-            <span className="font-mono text-slate-200">{s.session_date?.slice(0, 10)}</span>
+            <span className="font-mono text-[var(--text-secondary)]">{s.session_date?.slice(0, 10)}</span>
             <Badge variant="neutral" className="ml-2 text-xs">
               {s.shift_type === 'night' ? '晚班' : '白班 (9-23)'}
             </Badge>
@@ -209,9 +209,9 @@ export function CustomerServicePage() {
         header: '坐席 / 平台',
         render: (_, s) => (
           <div>
-            <span className="font-medium text-slate-100">{s.agent_name}</span>
-            <span className="text-xs text-slate-500 ml-1">({s.agent_code})</span>
-            <div className="text-xs text-slate-400 mt-0.5">
+            <span className="font-medium text-[var(--text-primary)]">{s.agent_name}</span>
+            <span className="text-xs text-[var(--text-muted)] ml-1">({s.agent_code})</span>
+            <div className="text-xs text-[var(--text-muted)] mt-0.5">
               <Badge variant="info" className="text-[10px] mr-1">
                 {s.platform_name}
               </Badge>
@@ -226,7 +226,7 @@ export function CustomerServicePage() {
         align: 'right',
         sortable: true,
         render: (_, s) => (
-          <span className="font-mono tabular-nums text-slate-200">
+          <span className="font-mono tabular-nums text-[var(--text-secondary)]">
             {s.total_sessions} / {s.responded_sessions} /{' '}
             <span className="text-red-400">{s.timeout_sessions}</span>
           </span>
@@ -249,7 +249,7 @@ export function CustomerServicePage() {
         align: 'right',
         sortable: true,
         render: (_, s) => (
-          <span className="font-mono tabular-nums text-slate-200">
+          <span className="font-mono tabular-nums text-[var(--text-secondary)]">
             {s.inquiry_buyers} → {s.converted_buyers}
           </span>
         ),
@@ -277,8 +277,8 @@ export function CustomerServicePage() {
         sortable: true,
         render: (_, a) => (
           <div>
-            <span className="font-medium text-slate-100">{a.agent_name}</span>
-            <span className="text-xs text-slate-500 ml-1 font-mono">({a.agent_code})</span>
+            <span className="font-medium text-[var(--text-primary)]">{a.agent_name}</span>
+            <span className="text-xs text-[var(--text-muted)] ml-1 font-mono">({a.agent_code})</span>
           </div>
         ),
       },
@@ -288,7 +288,7 @@ export function CustomerServicePage() {
         render: (_, a) => (
           <div className="text-xs">
             <Badge variant="info">{a.platform_name}</Badge>
-            <span className="ml-2 text-slate-300">
+            <span className="ml-2 text-[var(--text-secondary)]">
               {a.shop_name} · {a.shift_group === 'night' ? '晚班' : '白班 (9-23)'}
             </span>
           </div>
@@ -300,7 +300,7 @@ export function CustomerServicePage() {
         align: 'right',
         sortable: true,
         render: (_, a) => (
-          <span className="font-mono tabular-nums text-slate-200">
+          <span className="font-mono tabular-nums text-[var(--text-secondary)]">
             {a.total_sessions} / <span className="text-red-400">{a.timeout_sessions}</span>
           </span>
         ),
@@ -343,15 +343,15 @@ export function CustomerServicePage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">总接待会话 / 坐席</p>
-              <p className="mt-1 text-2xl font-bold text-slate-100">
+              <p className="text-xs text-[var(--text-muted)]">总接待会话 / 坐席</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
                 {overview.totalSessions} / {overview.totalAgents}
               </p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">平均首响时长</p>
+              <p className="text-xs text-[var(--text-muted)]">平均首响时长</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
                   overview.avgFirstResponseSec > 25 ? 'text-amber-400' : 'text-emerald-400'
@@ -363,10 +363,10 @@ export function CustomerServicePage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">超时率 (&gt;30s)</p>
+              <p className="text-xs text-[var(--text-muted)]">超时率 (&gt;30s)</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
-                  overview.timeoutRate > 5 ? 'text-red-400' : 'text-slate-100'
+                  overview.timeoutRate > 5 ? 'text-red-400' : 'text-[var(--text-primary)]'
                 }`}
               >
                 {overview.timeoutRate}%
@@ -375,7 +375,7 @@ export function CustomerServicePage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">询单下单转化率</p>
+              <p className="text-xs text-[var(--text-muted)]">询单下单转化率</p>
               <p className="mt-1 text-2xl font-bold text-cyan-400">
                 {overview.inquiryConversionRate}%
               </p>
@@ -383,7 +383,7 @@ export function CustomerServicePage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">询单转化 GMV / 满意度</p>
+              <p className="text-xs text-[var(--text-muted)]">询单转化 GMV / 满意度</p>
               <p className="mt-1 text-xl font-bold text-emerald-400">
                 ¥{overview.convertedGmv.toLocaleString()} · {overview.avgSatisfactionRate}%
               </p>
@@ -399,10 +399,10 @@ export function CustomerServicePage() {
               <CardBody className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <Badge variant="info">{p.platformName}</Badge>
-                  <span className="text-xs text-slate-400">首响 {p.avgFirstResponseSec}s</span>
+                  <span className="text-xs text-[var(--text-muted)]">首响 {p.avgFirstResponseSec}s</span>
                 </div>
-                <p className="text-lg font-bold text-slate-100">¥{p.convertedGmv.toLocaleString()}</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-lg font-bold text-[var(--text-primary)]">¥{p.convertedGmv.toLocaleString()}</p>
+                <p className="text-xs text-[var(--text-muted)]">
                   接待 {p.totalSessions} · 转化率 {p.inquiryConversionRate}% · 超时 {p.timeoutSessions}
                 </p>
               </CardBody>
@@ -419,7 +419,7 @@ export function CustomerServicePage() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'sessions'
                 ? 'bg-orbit-primary/20 text-orbit-primary-light border border-orbit-primary/30'
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -430,7 +430,7 @@ export function CustomerServicePage() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'agents'
                 ? 'bg-orbit-primary/20 text-orbit-primary-light border border-orbit-primary/30'
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Award className="w-4 h-4" />
@@ -477,7 +477,7 @@ export function CustomerServicePage() {
               <select
                 value={sessionsTable.filters.platformCode}
                 onChange={(e) => sessionsTable.setFilter('platformCode', e.target.value)}
-                className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+                className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-[var(--text-secondary)]"
               >
                 <option value="">全部平台</option>
                 <option value="douyin">抖音</option>
@@ -490,7 +490,7 @@ export function CustomerServicePage() {
               <select
                 value={sessionsTable.filters.shiftType}
                 onChange={(e) => sessionsTable.setFilter('shiftType', e.target.value)}
-                className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+                className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-[var(--text-secondary)]"
               >
                 <option value="">全部班次</option>
                 <option value="day">白班 (9:00–23:00)</option>
@@ -529,13 +529,13 @@ export function CustomerServicePage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-orbit-border bg-orbit-surface p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">录入每日客服班次绩效</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">录入每日客服班次绩效</h3>
             <form onSubmit={handleSaveSession} className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <select
                   value={form.agentId}
                   onChange={(e) => setForm({ ...form, agentId: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 >
                   {agents.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -547,7 +547,7 @@ export function CustomerServicePage() {
                   type="date"
                   value={form.sessionDate}
                   onChange={(e) => setForm({ ...form, sessionDate: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -556,14 +556,14 @@ export function CustomerServicePage() {
                   placeholder="总会话"
                   value={form.totalSessions}
                   onChange={(e) => setForm({ ...form, totalSessions: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   type="number"
                   placeholder="超时数"
                   value={form.timeoutSessions}
                   onChange={(e) => setForm({ ...form, timeoutSessions: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   type="number"
@@ -571,7 +571,7 @@ export function CustomerServicePage() {
                   placeholder="首响秒数"
                   value={form.avgFirstResponseSec}
                   onChange={(e) => setForm({ ...form, avgFirstResponseSec: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -580,14 +580,14 @@ export function CustomerServicePage() {
                   placeholder="询单人数"
                   value={form.inquiryBuyers}
                   onChange={(e) => setForm({ ...form, inquiryBuyers: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   type="number"
                   placeholder="成交人数"
                   value={form.convertedBuyers}
                   onChange={(e) => setForm({ ...form, convertedBuyers: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   type="number"
@@ -595,7 +595,7 @@ export function CustomerServicePage() {
                   placeholder="转化GMV"
                   value={form.convertedGmv}
                   onChange={(e) => setForm({ ...form, convertedGmv: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">

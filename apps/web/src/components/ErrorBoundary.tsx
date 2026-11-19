@@ -29,7 +29,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         <div className="flex-1 p-6 flex items-center justify-center">
           <div className="max-w-md text-center">
             <h2 className="text-lg font-semibold text-red-400 mb-2">页面渲染错误</h2>
-            <pre className="text-xs text-slate-400 bg-orbit-surface2 p-4 rounded-lg text-left overflow-auto max-h-48">
+            <pre className="text-xs text-[var(--text-muted)] bg-orbit-surface2 p-4 rounded-lg text-left overflow-auto max-h-48">
               {this.state.error?.message}
               {'\n\n'}
               {this.state.error?.stack}

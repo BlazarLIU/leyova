@@ -26,27 +26,27 @@ export function PlatformMismatchNotice({
         className="max-w-xl w-full"
       >
         <Card className="border-amber-500/30 bg-orbit-surface/90 shadow-2xl overflow-hidden relative">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-rose-500 to-orbit-primary-dark" />
           <CardBody className="p-8 text-center space-y-6">
             <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
               <AlertCircle className="w-8 h-8" />
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-slate-100">
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">
                 当前功能与所选经营渠道不匹配
               </h2>
-              <p className="text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed max-w-md mx-auto">
                 {compatibility.reason}
               </p>
             </div>
 
-            <div className="rounded-xl bg-white/[0.03] border border-orbit-border/60 p-4 text-xs text-slate-400 text-left space-y-1.5">
-              <div className="flex items-center gap-2 text-slate-300 font-medium">
+            <div className="rounded-xl bg-white/[0.03] border border-orbit-border/60 p-4 text-xs text-[var(--text-muted)] text-left space-y-1.5">
+              <div className="flex items-center gap-2 text-[var(--text-secondary)] font-medium">
                 <Store className="w-4 h-4 text-orbit-primary-light" />
-                <span>当前选中的渠道：<strong className="text-slate-100">{currentPlatformName}</strong></span>
+                <span>当前选中的渠道：<strong className="text-[var(--text-primary)]">{currentPlatformName}</strong></span>
               </div>
-              <p className="text-slate-500 pl-6">
+              <p className="text-[var(--text-muted)] pl-6">
                 每个电商平台（直播/货架/内容）具备不同的业务核心链路，系统已按平台特性为您分流专属看板与工具。
               </p>
             </div>
@@ -66,7 +66,7 @@ export function PlatformMismatchNotice({
                 <Button
                   variant="secondary"
                   onClick={() => onSwitchPlatform(compatibility.suggestedPlatform!.code)}
-                  className="w-full sm:w-auto text-slate-300 hover:text-slate-100"
+                  className="w-full sm:w-auto text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 >
                   <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                   切回 {compatibility.suggestedPlatform.name} 查看

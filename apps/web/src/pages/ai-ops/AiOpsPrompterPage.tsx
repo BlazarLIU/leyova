@@ -38,21 +38,21 @@ export function AiOpsPrompterPage() {
   }
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-slate-100 min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               工作面 2 · 场次台
             </span>
-            <span className="text-xs text-slate-500 font-mono">
+            <span className="text-xs text-[var(--text-muted)] font-mono">
               Session #{selectedSessionId} · {currentSession?.title || '现场大字提词'}
             </span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
             现场提词卡与时点指令
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             主播大字卡、口播话术机制提醒与后台中控指令严格同步，杜绝错漏执行。
           </p>
         </div>
@@ -77,7 +77,7 @@ export function AiOpsPrompterPage() {
         </div>
       ) : (
         /* 提词大字卡 */
-        <div className="rounded-3xl border border-cyan-500/40 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/30 p-8 shadow-2xl relative overflow-hidden">
+        <div className="rounded-3xl border border-orbit-accent/30 bg-gradient-to-br from-orbit-ink via-orbit-ink to-orbit-accent/15 p-8 shadow-2xl relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
@@ -101,8 +101,8 @@ export function AiOpsPrompterPage() {
             </p>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
-            <div className="flex items-center gap-2 text-slate-300">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-orbit-ink/80 border border-[var(--border)] text-xs">
+            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
               <Clock className="w-4 h-4 text-cyan-400" />
               <span>中控即时指令：<strong className="text-white">{current.cue || '中控上架链接并弹窗提醒'}</strong></span>
             </div>

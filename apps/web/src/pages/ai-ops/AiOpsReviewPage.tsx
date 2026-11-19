@@ -49,15 +49,15 @@ export function AiOpsReviewPage() {
   const isMathClosed = Math.abs(sumAttributions - report.deltaGmv) <= Math.abs(report.deltaGmv * 0.01)
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-slate-100 min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
       {/* 头部导航与操作 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               工作面 2 · 场次台
             </span>
-            <span className="text-xs text-slate-500 font-mono">场次复盘 · 下播30分钟自动出稿</span>
+            <span className="text-xs text-[var(--text-muted)] font-mono">场次复盘 · 下播30分钟自动出稿</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
             单场五段复盘归因报告
@@ -65,7 +65,7 @@ export function AiOpsReviewPage() {
               闭环数学检验 verified
             </span>
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             {report.sessionTitle}（主播：{report.anchor} · {report.date}）
           </p>
         </div>
@@ -89,15 +89,15 @@ export function AiOpsReviewPage() {
 
       {/* 三口径金额与目标差额卡片 */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
-          <p className="text-xs text-slate-400 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
+          <p className="text-xs text-[var(--text-muted)] flex items-center justify-between">
             <span>下单 GMV (amount_order)</span>
-            <span className="text-[10px] text-slate-500 font-mono">T+0</span>
+            <span className="text-[10px] text-[var(--text-muted)] font-mono">T+0</span>
           </p>
-          <p className="text-xl font-bold font-mono text-slate-200 mt-1">¥{(report.orderGmv / 10000).toFixed(2)}w</p>
+          <p className="text-xl font-bold font-mono text-[var(--text-secondary)] mt-1">¥{(report.orderGmv / 10000).toFixed(2)}w</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-cyan-500/30 backdrop-blur-xl shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-cyan-500/30 backdrop-blur-xl shadow-[0_0_15px_rgba(6,182,212,0.1)]">
           <p className="text-xs text-cyan-300 flex items-center justify-between">
             <span>支付 GMV (amount_paid)</span>
             <span className="text-[10px] text-cyan-500 font-mono">核心基准</span>
@@ -105,15 +105,15 @@ export function AiOpsReviewPage() {
           <p className="text-2xl font-extrabold font-mono text-cyan-400 mt-1">¥{(report.payGmv / 10000).toFixed(2)}w</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
-          <p className="text-xs text-slate-400 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
+          <p className="text-xs text-[var(--text-muted)] flex items-center justify-between">
             <span>预估结算 GMV (amount_settle)</span>
             <span className="text-[10px] text-amber-500 font-mono">T+15 成熟中</span>
           </p>
-          <p className="text-xl font-bold font-mono text-slate-200 mt-1">¥{(report.settleGmv / 10000).toFixed(2)}w</p>
+          <p className="text-xl font-bold font-mono text-[var(--text-secondary)] mt-1">¥{(report.settleGmv / 10000).toFixed(2)}w</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-rose-500/30 backdrop-blur-xl">
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-rose-500/30 backdrop-blur-xl">
           <p className="text-xs text-rose-300 flex items-center justify-between">
             <span>目标达成差距 (Delta GMV)</span>
             <span className="text-[10px] text-rose-400 font-mono">目标 20.0w</span>
@@ -125,14 +125,14 @@ export function AiOpsReviewPage() {
       </div>
 
       {/* 五段归因分解 (五段之和 = 差额 ±1%) */}
-      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-xl p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+      <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-cyan-400" />
               <span>五段归因全景分解瀑布（流量结构 → 转化漏斗 → 货盘 → 主播 → 售后退款）</span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               严禁“下次努力”类无动作空话。每段均有精准证据链支撑。
             </p>
           </div>
@@ -155,7 +155,7 @@ export function AiOpsReviewPage() {
                 key={attr.stage}
                 className={cn(
                   "p-4 rounded-xl border flex flex-col justify-between gap-3 backdrop-blur-md",
-                  isNegative ? "border-slate-800 bg-slate-950/60" : "border-emerald-500/20 bg-emerald-950/10"
+                  isNegative ? "border-[var(--border)] bg-orbit-ink/60" : "border-emerald-500/20 bg-emerald-950/10"
                 )}
               >
                 <div>
@@ -168,16 +168,16 @@ export function AiOpsReviewPage() {
                       {isNegative ? '-' : '+'}¥{Math.abs(attr.delta)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-[11px] text-slate-500 mb-2">
+                  <div className="flex items-center gap-1 text-[11px] text-[var(--text-muted)] mb-2">
                     <span>解释度贡献：</span>
-                    <span className="font-mono text-slate-300">{(attr.share * 100).toFixed(1)}%</span>
+                    <span className="font-mono text-[var(--text-secondary)]">{(attr.share * 100).toFixed(1)}%</span>
                   </div>
-                  <p className="text-xs text-slate-400 leading-relaxed border-t border-slate-800/60 pt-2">
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed border-t border-[var(--border)] pt-2">
                     {attr.diagnosis}
                   </p>
                 </div>
 
-                <div className="text-[10px] font-mono text-slate-500 bg-slate-900 p-2 rounded border border-slate-800">
+                <div className="text-[10px] font-mono bg-orbit-ink p-2 rounded border border-[var(--border)] text-orbit-snow/70">
                   <span className="text-cyan-400 font-semibold block mb-0.5">证据来源：</span>
                   {attr.evidence}
                 </div>
@@ -188,32 +188,32 @@ export function AiOpsReviewPage() {
       </div>
 
       {/* 明日 3 条行动项（产出可执行物，闭环驱动下一场） */}
-      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span>明日可执行行动项 (Action Items · 产出可执行物)</span>
           </h3>
-          <span className="text-xs text-slate-500">已自动分配责任岗位与验收指标</span>
+          <span className="text-xs text-[var(--text-muted)]">已自动分配责任岗位与验收指标</span>
         </div>
 
-        <div className="divide-y divide-slate-800/60">
+        <div className="divide-y divide-[var(--border)]">
           {report.actionItems.map((act) => (
             <div key={act.id} className="py-4 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orbit-ink text-orbit-snow/80">
                     {act.id}
                   </span>
                   <span className="text-xs font-bold text-cyan-300">{act.who}</span>
-                  <span className="text-xs text-slate-500 font-mono">截止：{act.when}</span>
+                  <span className="text-xs text-[var(--text-muted)] font-mono">截止：{act.when}</span>
                 </div>
-                <p className="text-sm font-medium text-slate-200">{act.what}</p>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">{act.what}</p>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="text-right text-xs">
-                  <span className="text-slate-500 block">验收目标</span>
+                  <span className="text-[var(--text-muted)] block">验收目标</span>
                   <span className="text-emerald-400 font-mono font-medium">{act.targetMetric}</span>
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">

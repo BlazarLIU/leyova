@@ -149,8 +149,8 @@ export function UploadedDataPage() {
       header: '主播名称',
       render: (_, r) => (
         <div>
-          <span className="text-slate-200 font-medium">{r.anchor_name}</span>
-          {r.account_name && <span className="text-slate-500 text-xs ml-1">({r.account_name})</span>}
+          <span className="text-[var(--text-secondary)] font-medium">{r.anchor_name}</span>
+          {r.account_name && <span className="text-[var(--text-muted)] text-xs ml-1">({r.account_name})</span>}
         </div>
       ),
     },
@@ -171,14 +171,14 @@ export function UploadedDataPage() {
         <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setDetailRow(r)}
-            className="p-1 text-slate-500 hover:text-cyan-400 transition-colors rounded"
+            className="p-1 text-[var(--text-muted)] hover:text-cyan-400 transition-colors rounded"
             title="查看详情"
           >
             <Eye className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setDeletingId(r.id)}
-            className="p-1 text-slate-500 hover:text-orbit-danger transition-colors rounded"
+            className="p-1 text-[var(--text-muted)] hover:text-orbit-danger transition-colors rounded"
             title="删除"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -191,7 +191,7 @@ export function UploadedDataPage() {
   // Column definitions for Channel
   const channelColumns = useMemo<ColumnDef<ChannelRow>[]>(() => [
     { key: 'business_date', header: '日期', sortable: true, render: (v) => formatDate(v) },
-    { key: 'channel_name', header: '渠道名称', render: (v) => <span className="text-slate-200 font-medium">{v}</span> },
+    { key: 'channel_name', header: '渠道名称', render: (v) => <span className="text-[var(--text-secondary)] font-medium">{v}</span> },
     { key: 'impressions', header: '曝光次数', align: 'right', render: (v) => formatNum(v) },
     { key: 'viewers', header: '观看人数', align: 'right', render: (v) => formatNum(v) },
     { key: 'interactions', header: '互动次数', align: 'right', render: (v) => formatNum(v) },
@@ -208,14 +208,14 @@ export function UploadedDataPage() {
         <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setDetailRow(r)}
-            className="p-1 text-slate-500 hover:text-cyan-400 transition-colors rounded"
+            className="p-1 text-[var(--text-muted)] hover:text-cyan-400 transition-colors rounded"
             title="查看详情"
           >
             <Eye className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setDeletingId(r.id)}
-            className="p-1 text-slate-500 hover:text-orbit-danger transition-colors rounded"
+            className="p-1 text-[var(--text-muted)] hover:text-orbit-danger transition-colors rounded"
             title="删除"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -231,7 +231,7 @@ export function UploadedDataPage() {
         title="已上传数据管理"
         subtitle="浏览、筛选、校验已入库的主播与渠道运营分析明细数据"
         badge={
-          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-400 border border-orbit-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-[var(--text-muted)] border border-orbit-border">
             已接入 DataPage + useTable
           </span>
         }
@@ -261,7 +261,7 @@ export function UploadedDataPage() {
               className="h-9 text-xs w-36"
               placeholder="开始日期"
             />
-            <span className="text-slate-500 text-xs">至</span>
+            <span className="text-[var(--text-muted)] text-xs">至</span>
             <Input
               type="date"
               value={table.filters.endDate}
@@ -282,7 +282,7 @@ export function UploadedDataPage() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'anchor'
                 ? 'bg-orbit-primary text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
             }`}
           >
             <Database className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export function UploadedDataPage() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'channel'
                 ? 'bg-orbit-primary text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
             }`}
           >
             <Database className="w-3.5 h-3.5" />
@@ -377,8 +377,8 @@ export function UploadedDataPage() {
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-b border-orbit-border/40 pb-2">
-      <span className="text-slate-500 text-[11px]">{label}</span>
-      <p className="text-slate-200 font-medium mt-0.5">{value || '-'}</p>
+      <span className="text-[var(--text-muted)] text-[11px]">{label}</span>
+      <p className="text-[var(--text-secondary)] font-medium mt-0.5">{value || '-'}</p>
     </div>
   )
 }

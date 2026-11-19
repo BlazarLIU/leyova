@@ -133,12 +133,12 @@ function SessionFilter({
     <div className="flex flex-wrap items-center gap-3">
       {/* 直播间 */}
       <div className="relative">
-        <Monitor className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+        <Monitor className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
         <select
           value={selectedRoomId}
           onChange={(e) => onRoomChange(e.target.value)}
           disabled={loading}
-          className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50 min-w-[130px] disabled:opacity-50"
+          className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50 min-w-[130px] disabled:opacity-50"
         >
           <option value="">全部直播间</option>
           {rooms.map((r) => (
@@ -146,18 +146,18 @@ function SessionFilter({
           ))}
         </select>
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </div>
 
       {/* 日期 */}
       <div className="relative">
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
         <select
           value={selectedDate}
           onChange={(e) => onDateChange(e.target.value)}
           disabled={loading}
-          className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50 min-w-[140px] disabled:opacity-50"
+          className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50 min-w-[140px] disabled:opacity-50"
         >
           <option value="">全部日期</option>
           {dates.map((d) => (
@@ -165,7 +165,7 @@ function SessionFilter({
           ))}
         </select>
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </div>
     </div>
@@ -195,8 +195,8 @@ function OverviewCards({ products }: { products: ProductItem[] }) {
       label: '售出件数',
       value: formatNumber(totals.soldCount),
       icon: ShoppingCart,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/15',
+      color: 'text-orbit-info',
+      bgColor: 'bg-orbit-info/15',
     },
     {
       label: '退款金额',
@@ -210,8 +210,8 @@ function OverviewCards({ products }: { products: ProductItem[] }) {
       label: '购买用户',
       value: formatNumber(totals.buyerCount),
       icon: Package,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-500/15',
+      color: 'text-orbit-primary',
+      bgColor: 'bg-orbit-primary/15',
     },
   ]
 
@@ -222,16 +222,16 @@ function OverviewCards({ products }: { products: ProductItem[] }) {
           <Card>
             <CardBody>
               <div className="flex items-start justify-between mb-2">
-                <span className="text-slate-500 text-xs font-medium">{card.label}</span>
+                <span className="text-[var(--text-muted)] text-xs font-medium">{card.label}</span>
                 <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', card.bgColor)}>
                   <card.icon className={cn('w-4 h-4', card.color)} />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-slate-100 truncate">
+              <div className="text-2xl font-bold text-[var(--text-primary)] truncate">
                 {card.value}
               </div>
               {card.sub && (
-                <p className="text-xs text-slate-500 mt-1">{card.sub}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">{card.sub}</p>
               )}
             </CardBody>
           </Card>
@@ -261,13 +261,13 @@ function SortHeader({
       onClick={() => onSort(sortKey)}
       className={cn(
         'inline-flex items-center gap-1 font-medium text-xs transition-colors',
-        'hover:text-slate-300 cursor-pointer',
-        active ? 'text-slate-200' : 'text-slate-500',
+        'hover:text-[var(--text-primary)] cursor-pointer',
+        active ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]',
         className,
       )}
     >
       {label}
-      <ArrowUpDown className={cn('w-3.5 h-3.5 transition-colors', active && 'text-purple-400')} />
+      <ArrowUpDown className={cn('w-3.5 h-3.5 transition-colors', active && 'text-orbit-primary')} />
     </button>
   )
 }
@@ -278,7 +278,7 @@ function SkuSubTable({ skus }: { skus: SkuItem[] }) {
     return (
       <tr>
         <td colSpan={9} className="py-6 text-center">
-          <p className="text-slate-500 text-sm">暂无 SKU 数据</p>
+          <p className="text-[var(--text-muted)] text-sm">暂无 SKU 数据</p>
         </td>
       </tr>
     )
@@ -300,26 +300,26 @@ function SkuSubTable({ skus }: { skus: SkuItem[] }) {
                 <img
                   src={sku.sku_image}
                   alt=""
-                  className="w-8 h-8 rounded object-cover bg-slate-700/50"
+                  className="w-8 h-8 rounded object-cover bg-[var(--surface3)]"
                 />
               ) : (
-                <div className="w-8 h-8 rounded bg-slate-700/50 flex items-center justify-center">
-                  <Package className="w-4 h-4 text-slate-500" />
+                <div className="w-8 h-8 rounded bg-[var(--surface3)] flex items-center justify-center">
+                  <Package className="w-4 h-4 text-[var(--text-muted)]" />
                 </div>
               )}
-              <span className="text-sm text-slate-300">{sku.sku_name}</span>
+              <span className="text-sm text-[var(--text-secondary)]">{sku.sku_name}</span>
             </div>
           </td>
-          <td className="py-2.5 px-3 text-right text-sm text-slate-100 font-medium tabular-nums">
+          <td className="py-2.5 px-3 text-right text-sm text-[var(--text-primary)] font-medium tabular-nums">
             {formatCurrency(sku.payment_amount)}
           </td>
-          <td className="py-2.5 px-3 text-right text-sm text-slate-300 tabular-nums">
+          <td className="py-2.5 px-3 text-right text-sm text-[var(--text-secondary)] tabular-nums">
             {formatNumber(sku.sold_count)}
           </td>
-          <td className="py-2.5 px-3 text-right text-sm text-slate-300 tabular-nums">
+          <td className="py-2.5 px-3 text-right text-sm text-[var(--text-secondary)] tabular-nums">
             {formatNumber(sku.buyer_count)}
           </td>
-          <td className="py-2.5 px-3 text-right text-sm text-slate-300 tabular-nums">
+          <td className="py-2.5 px-3 text-right text-sm text-[var(--text-secondary)] tabular-nums">
             {formatNumber(sku.order_count)}
           </td>
           <td colSpan={4} />
@@ -370,8 +370,8 @@ function ProductTable({
           <CardHeader title="商品明细" subtitle={`共 ${products.length} 个商品`} />
           <CardBody>
             <div className="flex flex-col items-center justify-center py-12">
-              <Package className="w-10 h-10 text-slate-500 mb-3" />
-              <p className="text-slate-500 text-sm">
+              <Package className="w-10 h-10 text-[var(--text-muted)] mb-3" />
+              <p className="text-[var(--text-muted)] text-sm">
                 {search.trim() ? '未搜索到匹配的商品' : '暂无商品数据'}
               </p>
             </div>
@@ -395,32 +395,32 @@ function ProductTable({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-orbit-border">
-                  <th className="text-left text-slate-500 font-medium py-3 px-4 w-10" />
-                  <th className="text-left text-slate-500 font-medium py-3 pr-4 min-w-[180px]">
+                  <th className="text-left text-[var(--text-muted)] font-medium py-3 px-4 w-10" />
+                  <th className="text-left text-[var(--text-muted)] font-medium py-3 pr-4 min-w-[180px]">
                     <SortHeader label="商品名称" sortKey="product_order" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-3">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-3">
                     <SortHeader label="支付金额" sortKey="payment_amount" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-3">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-3">
                     <SortHeader label="售出件数" sortKey="sold_count" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-3">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-3">
                     <SortHeader label="购买用户" sortKey="buyer_count" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-3">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-3">
                     <SortHeader label="曝光用户" sortKey="exposure_users" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-3">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-3">
                     <SortHeader label="点击用户" sortKey="click_users" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-3">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-3">
                     <SortHeader label="曝光点击率" sortKey="exposure_click_rate" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-3">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-3">
                     <SortHeader label="点击成交率" sortKey="click_deal_rate" currentSort={currentSort} onSort={onSort} />
                   </th>
-                  <th className="text-right text-slate-500 font-medium py-3 pl-3 pr-4 min-w-[100px]">
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 pl-3 pr-4 min-w-[100px]">
                     <span className="text-xs">退款</span>
                   </th>
                 </tr>
@@ -435,13 +435,13 @@ function ProductTable({
                         onClick={() => setExpandedId(isExpanded ? null : product.id)}
                         className={cn(
                           'border-b border-orbit-border/50 transition-colors cursor-pointer',
-                          isExpanded ? 'bg-purple-500/5' : 'hover:bg-orbit-surface2/50',
+                          isExpanded ? 'bg-orbit-primary/5' : 'hover:bg-orbit-surface2/50',
                         )}
                       >
                         <td className="py-3 px-4">
                           <button
                             type="button"
-                            className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                           >
                             {isExpanded ? (
                               <ChevronDown className="w-4 h-4" />
@@ -456,40 +456,40 @@ function ProductTable({
                               <img
                                 src={product.product_image}
                                 alt=""
-                                className="w-9 h-9 rounded-lg object-cover bg-slate-700/50 flex-shrink-0"
+                                className="w-9 h-9 rounded-lg object-cover bg-[var(--surface3)] flex-shrink-0"
                               />
                             ) : (
-                              <div className="w-9 h-9 rounded-lg bg-slate-700/50 flex items-center justify-center flex-shrink-0">
-                                <Package className="w-4 h-4 text-slate-500" />
+                              <div className="w-9 h-9 rounded-lg bg-[var(--surface3)] flex items-center justify-center flex-shrink-0">
+                                <Package className="w-4 h-4 text-[var(--text-muted)]" />
                               </div>
                             )}
                             <div className="min-w-0">
-                              <p className="text-sm text-slate-200 max-w-[360px]">
+                              <p className="text-sm text-[var(--text-secondary)] max-w-[360px]">
                                 {product.product_name}
                               </p>
-                              <p className="text-xs text-slate-500 mt-0.5">
+                              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                                 排序 {product.product_order}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-right text-sm text-slate-100 font-medium tabular-nums">
+                        <td className="py-3 px-3 text-right text-sm text-[var(--text-primary)] font-medium tabular-nums">
                           {formatCurrency(product.payment_amount)}
                         </td>
-                        <td className="py-3 px-3 text-right text-sm text-slate-300 tabular-nums">
+                        <td className="py-3 px-3 text-right text-sm text-[var(--text-secondary)] tabular-nums">
                           {formatNumber(product.sold_count)}
                         </td>
-                        <td className="py-3 px-3 text-right text-sm text-slate-300 tabular-nums">
+                        <td className="py-3 px-3 text-right text-sm text-[var(--text-secondary)] tabular-nums">
                           {formatNumber(product.buyer_count)}
                         </td>
-                        <td className="py-3 px-3 text-right text-sm text-slate-300 tabular-nums">
+                        <td className="py-3 px-3 text-right text-sm text-[var(--text-secondary)] tabular-nums">
                           {formatNumber(product.exposure_users)}
                         </td>
-                        <td className="py-3 px-3 text-right text-sm text-slate-300 tabular-nums">
+                        <td className="py-3 px-3 text-right text-sm text-[var(--text-secondary)] tabular-nums">
                           {formatNumber(product.click_users)}
                         </td>
                         <td className="py-3 px-3 text-right">
-                          <span className="text-sm text-slate-300 tabular-nums">
+                          <span className="text-sm text-[var(--text-secondary)] tabular-nums">
                             {formatPercent(product.exposure_click_rate)}
                           </span>
                         </td>
@@ -505,7 +505,7 @@ function ProductTable({
                             <span className="text-xs text-red-400 tabular-nums">
                               {formatCurrency(product.refund_amount)}
                             </span>
-                            <span className="text-xs text-slate-500 tabular-nums">
+                            <span className="text-xs text-[var(--text-muted)] tabular-nums">
                               {formatNumber(product.refund_orders)} 笔
                             </span>
                           </div>
@@ -536,9 +536,9 @@ function LoadingSkeleton() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-            <div className="h-3 w-16 bg-slate-700/50 rounded mb-3" />
-            <div className="h-7 w-28 bg-slate-700/50 rounded mb-2" />
-            <div className="h-3 w-20 bg-slate-700/50 rounded" />
+            <div className="h-3 w-16 bg-[var(--surface3)] rounded mb-3" />
+            <div className="h-7 w-28 bg-[var(--surface3)] rounded mb-2" />
+            <div className="h-3 w-20 bg-[var(--surface3)] rounded" />
           </div>
         ))}
       </div>
@@ -546,25 +546,25 @@ function LoadingSkeleton() {
       {/* Table skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface animate-pulse">
         <div className="px-5 pt-5 pb-2">
-          <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-          <div className="h-3 w-32 bg-slate-700/50 rounded" />
+          <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+          <div className="h-3 w-32 bg-[var(--surface3)] rounded" />
         </div>
         <div className="p-0">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className={cn('h-14 px-4 flex items-center gap-4', i % 2 === 0 ? 'bg-orbit-surface' : 'bg-orbit-surface2/30')}>
-              <div className="w-9 h-9 rounded-lg bg-slate-700/50 shrink-0" />
+              <div className="w-9 h-9 rounded-lg bg-[var(--surface3)] shrink-0" />
               <div className="flex-1 space-y-1.5">
-                <div className="h-3 w-40 bg-slate-700/50 rounded" />
-                <div className="h-2 w-20 bg-slate-700/30 rounded" />
+                <div className="h-3 w-40 bg-[var(--surface3)] rounded" />
+                <div className="h-2 w-20 bg-[var(--surface3)] rounded" />
               </div>
-              <div className="h-4 w-20 bg-slate-700/40 rounded" />
-              <div className="h-4 w-16 bg-slate-700/40 rounded" />
-              <div className="h-4 w-16 bg-slate-700/40 rounded" />
-              <div className="h-4 w-16 bg-slate-700/40 rounded" />
-              <div className="h-4 w-16 bg-slate-700/40 rounded" />
-              <div className="h-4 w-16 bg-slate-700/40 rounded" />
-              <div className="h-4 w-16 bg-slate-700/40 rounded" />
-              <div className="h-4 w-20 bg-slate-700/40 rounded" />
+              <div className="h-4 w-20 bg-[var(--surface3)] rounded" />
+              <div className="h-4 w-16 bg-[var(--surface3)] rounded" />
+              <div className="h-4 w-16 bg-[var(--surface3)] rounded" />
+              <div className="h-4 w-16 bg-[var(--surface3)] rounded" />
+              <div className="h-4 w-16 bg-[var(--surface3)] rounded" />
+              <div className="h-4 w-16 bg-[var(--surface3)] rounded" />
+              <div className="h-4 w-16 bg-[var(--surface3)] rounded" />
+              <div className="h-4 w-20 bg-[var(--surface3)] rounded" />
             </div>
           ))}
         </div>
@@ -652,8 +652,8 @@ export function ProductAnalysisPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">商品分析</h1>
-            <p className="text-slate-500 text-sm mt-1">直播间商品表现明细及 SKU 维度分析</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">商品分析</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">直播间商品表现明细及 SKU 维度分析</p>
           </div>
           <SessionFilter
             sessions={sessions}
@@ -669,13 +669,13 @@ export function ProductAnalysisPage() {
       {/* Search bar */}
       <motion.div {...fadeUp(0.05)}>
         <div className="relative max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="搜索商品名称..."
-            className="w-full bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-4 py-2 text-sm text-slate-300 placeholder-slate-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+            className="w-full bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-4 py-2 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:border-orbit-primary/50 transition-colors"
           />
         </div>
       </motion.div>
@@ -687,8 +687,8 @@ export function ProductAnalysisPage() {
           <Card>
             <CardBody>
               <div className="flex flex-col items-center justify-center py-12">
-                <AlertTriangle className="w-10 h-10 text-slate-500 mb-3" />
-                <p className="text-slate-500 text-sm">加载失败，请稍后重试</p>
+                <AlertTriangle className="w-10 h-10 text-[var(--text-muted)] mb-3" />
+                <p className="text-[var(--text-muted)] text-sm">加载失败，请稍后重试</p>
               </div>
             </CardBody>
           </Card>
@@ -701,8 +701,8 @@ export function ProductAnalysisPage() {
               <CardHeader title="商品明细" />
               <CardBody>
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Package className="w-10 h-10 text-slate-500 mb-3" />
-                  <p className="text-slate-500 text-sm">暂无商品数据</p>
+                  <Package className="w-10 h-10 text-[var(--text-muted)] mb-3" />
+                  <p className="text-[var(--text-muted)] text-sm">暂无商品数据</p>
                 </div>
               </CardBody>
             </Card>

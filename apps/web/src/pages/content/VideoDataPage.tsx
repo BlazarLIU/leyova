@@ -11,8 +11,8 @@ export function VideoDataPage() {
       >
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">视频数据</h1>
-            <p className="text-slate-500 text-sm mt-1">AI 生成的视频发布后在抖音平台上的数据</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">视频数据</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">AI 生成的视频发布后在抖音平台上的数据</p>
           </div>
         </div>
       </motion.div>
@@ -23,9 +23,9 @@ export function VideoDataPage() {
         transition={{ duration: 0.4, delay: 0.1 }}
       >
         <div className="flex flex-col items-center justify-center py-24 rounded-xl border border-dashed border-orbit-border2 bg-orbit-surface">
-          <BarChart3 className="w-10 h-10 text-slate-600 mb-4" />
-          <p className="text-lg font-medium text-slate-400">正在开发</p>
-          <p className="text-sm text-slate-600 mt-1">即将上线</p>
+          <BarChart3 className="w-10 h-10 text-[var(--text-primary)] mb-4" />
+          <p className="text-lg font-medium text-[var(--text-muted)]">正在开发</p>
+          <p className="text-sm text-[var(--text-primary)] mt-1">即将上线</p>
         </div>
       </motion.div>
     </div>

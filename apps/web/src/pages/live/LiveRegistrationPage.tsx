@@ -197,8 +197,8 @@ export function LiveRegistrationPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">{isEditing ? '编辑直播登记' : '直播登记'}</h1>
-            <p className="text-slate-500 text-sm mt-1">{isEditing ? '修改已提交的直播数据' : '录入直播数据和投流数据'}</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{isEditing ? '编辑直播登记' : '直播登记'}</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">{isEditing ? '修改已提交的直播数据' : '录入直播数据和投流数据'}</p>
           </div>
         </div>
       </motion.div>
@@ -233,7 +233,7 @@ export function LiveRegistrationPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {/* Date */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   直播日期 <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -242,14 +242,14 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('date', e.target.value)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.date ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 />
                 {errors.date && <p className="text-red-400 text-[11px] mt-0.5">{errors.date}</p>}
               </div>
 
               {/* Anchor */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   主播 <span className="text-red-400">*</span>
                 </label>
                 <select
@@ -257,7 +257,7 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('anchorId', Number(e.target.value))}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.anchorId ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 >
                   <option value={0}>请选择主播</option>
                   {formData.anchors.map((a) => (
@@ -269,7 +269,7 @@ export function LiveRegistrationPage() {
 
               {/* Room */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   直播间 <span className="text-red-400">*</span>
                 </label>
                 <select
@@ -277,7 +277,7 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('roomId', Number(e.target.value))}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.roomId ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 >
                   <option value={0}>请选择直播间</option>
                   {filteredRooms.map((r) => (
@@ -289,7 +289,7 @@ export function LiveRegistrationPage() {
 
               {/* Operator */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   中控 <span className="text-red-400">*</span>
                 </label>
                 <select
@@ -297,7 +297,7 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('operatorId', Number(e.target.value))}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.operatorId ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 >
                   <option value={0}>请选择中控</option>
                   {formData.operators.map((o) => (
@@ -309,7 +309,7 @@ export function LiveRegistrationPage() {
 
               {/* Start time */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   开始时间 <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -318,14 +318,14 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('startTime', e.target.value)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.startTime ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 />
                 {errors.startTime && <p className="text-red-400 text-[11px] mt-0.5">{errors.startTime}</p>}
               </div>
 
               {/* End time */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   结束时间 <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -334,25 +334,25 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('endTime', e.target.value)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.endTime ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 />
                 {errors.endTime && <p className="text-red-400 text-[11px] mt-0.5">{errors.endTime}</p>}
               </div>
 
               {/* Duration (auto) */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">时长（分钟）</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">时长（分钟）</label>
                 <input
                   type="number"
                   value={form.duration}
                   readOnly
-                  className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface3/50 text-slate-400 outline-none cursor-not-allowed"
+                  className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface3/50 text-[var(--text-muted)] outline-none cursor-not-allowed"
                 />
               </div>
 
               {/* GMV */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   现场GMV <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -362,7 +362,7 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('gmv', parseFloat(e.target.value) || 0)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.gmv ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                   placeholder="0.00"
                 />
                 {errors.gmv && <p className="text-red-400 text-[11px] mt-0.5">{errors.gmv}</p>}
@@ -370,7 +370,7 @@ export function LiveRegistrationPage() {
 
               {/* Return amount */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                   现场退货 <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -380,7 +380,7 @@ export function LiveRegistrationPage() {
                   onChange={(e) => updateField('returnAmount', parseFloat(e.target.value) || 0)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
                     errors.returnAmount ? 'border-red-500' : 'border-orbit-border'
-                  } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                  } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                   placeholder="0.00"
                 />
                 {errors.returnAmount && <p className="text-red-400 text-[11px] mt-0.5">{errors.returnAmount}</p>}
@@ -388,7 +388,7 @@ export function LiveRegistrationPage() {
 
               {/* GSV (auto) */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">现场GSV</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">现场GSV</label>
                 <input
                   type="number"
                   step="0.01"
@@ -400,12 +400,12 @@ export function LiveRegistrationPage() {
 
               {/* Remark */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">备注</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">备注</label>
                 <input
                   type="text"
                   value={form.remark}
                   onChange={(e) => updateField('remark', e.target.value)}
-                  className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary/50 transition-colors"
+                  className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary/50 transition-colors"
                   placeholder="可选"
                 />
               </div>
@@ -427,31 +427,31 @@ export function LiveRegistrationPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {/* Platform */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">平台</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">平台</label>
                   <input
                     type="text"
                     value={form.adPlatform}
                     onChange={(e) => updateField('adPlatform', e.target.value)}
-                    className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary/50 transition-colors"
+                    className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary/50 transition-colors"
                     placeholder="可选"
                   />
                 </div>
 
                 {/* Ad type */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">类型</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">类型</label>
                   <input
                     type="text"
                     value={form.adType}
                     onChange={(e) => updateField('adType', e.target.value)}
-                    className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary/50 transition-colors"
+                    className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary/50 transition-colors"
                     placeholder="可选"
                   />
                 </div>
 
                 {/* Ad cost */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">投流支出</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">投流支出</label>
                   <input
                     type="number"
                     step="0.01"
@@ -459,7 +459,7 @@ export function LiveRegistrationPage() {
                     onChange={(e) => updateField('adCost', parseFloat(e.target.value) || 0)}
                     className={`w-full h-9 px-3 text-sm rounded-lg border ${
                       errors.adCost ? 'border-red-500' : 'border-orbit-border'
-                    } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                    } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                     placeholder="0.00"
                   />
                   {errors.adCost && <p className="text-red-400 text-[11px] mt-0.5">{errors.adCost}</p>}
@@ -467,7 +467,7 @@ export function LiveRegistrationPage() {
 
                 {/* Ad GSV */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">净成交GSV</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">净成交GSV</label>
                   <input
                     type="number"
                     step="0.01"
@@ -475,7 +475,7 @@ export function LiveRegistrationPage() {
                     onChange={(e) => updateField('adGsv', parseFloat(e.target.value) || 0)}
                     className={`w-full h-9 px-3 text-sm rounded-lg border ${
                       errors.adGsv ? 'border-red-500' : 'border-orbit-border'
-                    } bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors`}
+                    } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                     placeholder="0.00"
                   />
                   {errors.adGsv && <p className="text-red-400 text-[11px] mt-0.5">{errors.adGsv}</p>}
@@ -483,11 +483,11 @@ export function LiveRegistrationPage() {
 
                 {/* Ad status */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">投流状态</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">投流状态</label>
                   <select
                     value={form.adStatus}
                     onChange={(e) => updateField('adStatus', Number(e.target.value))}
-                    className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-slate-200 outline-none focus:border-orbit-primary/50 transition-colors"
+                    className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors"
                   >
                     <option value={1}>启用</option>
                     <option value={0}>关闭</option>

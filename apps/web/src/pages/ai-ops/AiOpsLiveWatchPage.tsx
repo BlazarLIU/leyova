@@ -79,30 +79,30 @@ export function AiOpsLiveWatchPage() {
   const roomName = currentSession?.roomName || '主号官方直播间'
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-slate-100 min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               <span>LIVE 实时盯盘</span>
             </span>
-            <span className="text-xs text-slate-500 font-mono">
+            <span className="text-xs text-[var(--text-muted)] font-mono">
               Session #{selectedSessionId || 102} · {roomName} · 实时数据巡检
             </span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
             场中盯盘驾驶舱
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             以近 7 场同时段中位数为基线，监控流量与转化偏离，异常直推，大额动作进人审。
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
-          <p className="text-xs text-slate-400">实时在线观看</p>
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
+          <p className="text-xs text-[var(--text-muted)]">实时在线观看</p>
           <p className="text-2xl font-extrabold font-mono text-cyan-400 mt-1">
             {currentSession?.status === 'live' ? '2,840 人' : '0 人'}
           </p>
@@ -110,20 +110,20 @@ export function AiOpsLiveWatchPage() {
             {currentSession?.status === 'live' ? '高于基线 +28%' : '未开播'}
           </span>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
-          <p className="text-xs text-slate-400">本场累计支付 GMV</p>
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
+          <p className="text-xs text-[var(--text-muted)]">本场累计支付 GMV</p>
           <p className="text-2xl font-extrabold font-mono text-white mt-1">¥{sessionGmv.toLocaleString()}</p>
           <span className="text-[10px] text-cyan-400">达成率 100%</span>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
-          <p className="text-xs text-slate-400">实时千次转化 GPM</p>
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
+          <p className="text-xs text-[var(--text-muted)]">实时千次转化 GPM</p>
           <p className="text-2xl font-extrabold font-mono text-emerald-400 mt-1">
             ¥{currentSession?.status === 'live' ? '2,150' : '0'}
           </p>
-          <span className="text-[10px] text-slate-500">基线: ¥1,820</span>
+          <span className="text-[10px] text-[var(--text-muted)]">基线: ¥1,820</span>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
-          <p className="text-xs text-slate-400">平均停留时长</p>
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
+          <p className="text-xs text-[var(--text-muted)]">平均停留时长</p>
           <p className="text-2xl font-extrabold font-mono text-amber-400 mt-1">
             {currentSession?.status === 'live' ? '74 秒' : '0 秒'}
           </p>
@@ -133,7 +133,7 @@ export function AiOpsLiveWatchPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-xl p-6 space-y-4 shadow-2xl">
+      <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl p-6 space-y-4 shadow-2xl">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-cyan-400" />
           <span>实时 AI 盯盘建议流（人只处理大额与异常）</span>
@@ -142,20 +142,20 @@ export function AiOpsLiveWatchPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center p-12 text-cyan-400">
             <Loader2 className="w-8 h-8 animate-spin mb-3" />
-            <p className="text-xs font-mono text-slate-400">正在聚合场中基线与异常预警流...</p>
+            <p className="text-xs font-mono text-[var(--text-muted)]">正在聚合场中基线与异常预警流...</p>
           </div>
         ) : suggestions.length === 0 ? (
-          <div className="p-8 text-center text-slate-400">
-            <Radio className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-300">当前场中指标平稳，暂无偏离告警与干预建议</p>
-            <p className="text-xs text-slate-500 mt-1">系统以每 5 分钟频率对齐同时段中位数基线进行巡检</p>
+          <div className="p-8 text-center text-[var(--text-muted)]">
+            <Radio className="w-10 h-10 text-[var(--text-primary)] mx-auto mb-3" />
+            <p className="text-sm font-semibold text-[var(--text-secondary)]">当前场中指标平稳，暂无偏离告警与干预建议</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">系统以每 5 分钟频率对齐同时段中位数基线进行巡检</p>
           </div>
         ) : (
           <div className="space-y-3">
             {suggestions.map((s) => (
               <div
                 key={s.id}
-                className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3"
+                className="p-4 rounded-xl bg-orbit-ink/80 border border-[var(--border)] flex flex-col md:flex-row md:items-center justify-between gap-3"
               >
                 <div className="flex items-start gap-3">
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 mt-0.5">
@@ -163,7 +163,7 @@ export function AiOpsLiveWatchPage() {
                   </span>
                   <div>
                     <span className="text-xs font-bold text-amber-400 mr-2">[{s.type}]</span>
-                    <span className="text-sm text-slate-200">{s.content}</span>
+                    <span className="text-sm text-[var(--text-secondary)]">{s.content}</span>
                   </div>
                 </div>
 

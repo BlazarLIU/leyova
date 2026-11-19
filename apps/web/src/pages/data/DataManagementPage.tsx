@@ -42,17 +42,17 @@ const statusConfig: Record<string, { variant: 'success' | 'danger' | 'neutral'; 
 const typeColorMap: Record<string, string> = {
   VARCHAR: 'text-emerald-400',
   DECIMAL: 'text-cyan-400',
-  INT: 'text-violet-400',
-  BIGINT: 'text-violet-500',
+  INT: 'text-orbit-primary',
+  BIGINT: 'text-orbit-primary',
   DATETIME: 'text-amber-400',
-  CHAR: 'text-slate-400',
-  TEXT: 'text-slate-300',
-  BOOLEAN: 'text-blue-400',
+  CHAR: 'text-[var(--text-muted)]',
+  TEXT: 'text-[var(--text-secondary)]',
+  BOOLEAN: 'text-orbit-info',
 }
 
 function getTypeColor(type: string): string {
   const base = type.split('(')[0].toUpperCase()
-  return typeColorMap[base] ?? 'text-slate-400'
+  return typeColorMap[base] ?? 'text-[var(--text-muted)]'
 }
 
 export function DataManagementPage() {
@@ -110,8 +110,8 @@ export function DataManagementPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">数据管理</h1>
-            <p className="text-slate-500 text-sm mt-1">数据表管理与维护</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">数据管理</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">数据表管理与维护</p>
           </div>
         </div>
       </motion.div>
@@ -125,12 +125,12 @@ export function DataManagementPage() {
       >
         {/* Search */}
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="搜索表名..."
-            className="w-full h-9 pl-9 pr-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary/50 transition-colors"
+            className="w-full h-9 pl-9 pr-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary/50 transition-colors"
           />
         </div>
 
@@ -144,7 +144,7 @@ export function DataManagementPage() {
                 'px-3 py-1.5 text-xs font-medium rounded-lg transition-colors',
                 filterStatus === f.value
                   ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
               )}
             >
               {f.label}
@@ -192,18 +192,18 @@ export function DataManagementPage() {
                         <Database className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-200 truncate">{table.name}</p>
+                        <p className="text-sm font-semibold text-[var(--text-secondary)] truncate">{table.name}</p>
                         <Badge variant={statusInfo.variant} dot>{statusInfo.label}</Badge>
                       </div>
                     </div>
                     <ChevronRight className={cn(
-                      'w-4 h-4 text-slate-600 transition-transform flex-shrink-0 mt-1',
+                      'w-4 h-4 text-[var(--text-primary)] transition-transform flex-shrink-0 mt-1',
                       selectedTable === table.id && 'rotate-90'
                     )} />
                   </div>
 
                   {/* Meta info */}
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
+                  <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                     <div className="flex items-center gap-1.5">
                       <RowsIcon className="w-3.5 h-3.5" />
                       <span>{table.rows.toLocaleString()} 行</span>
@@ -213,7 +213,7 @@ export function DataManagementPage() {
                       <span>{table.columns} 列</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-600">
+                  <div className="flex items-center gap-1.5 mt-2 text-xs text-[var(--text-primary)]">
                     <CalendarDays className="w-3.5 h-3.5" />
                     <span>{table.updatedAt}</span>
                   </div>
@@ -224,8 +224,8 @@ export function DataManagementPage() {
 
           {filteredTables.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Database className="w-12 h-12 text-slate-700 mb-3" />
-              <p className="text-sm text-slate-500">没有匹配的数据表</p>
+              <Database className="w-12 h-12 text-[var(--text-primary)] mb-3" />
+              <p className="text-sm text-[var(--text-muted)]">没有匹配的数据表</p>
             </div>
           )}
         </div>
@@ -255,8 +255,8 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
                 <Table2 className="w-4 h-4 text-orbit-primary-light" />
               </div>
               <div>
-                <span className="text-sm font-semibold text-slate-200">{table.name}</span>
-                <span className="text-xs text-slate-500 ml-2">
+                <span className="text-sm font-semibold text-[var(--text-secondary)]">{table.name}</span>
+                <span className="text-xs text-[var(--text-muted)] ml-2">
                   {table.rows.toLocaleString()} 行 · {table.columns} 列
                 </span>
               </div>
@@ -266,7 +266,7 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
           actions={
             <button
               onClick={onClose}
-              className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
             >
               收起
             </button>
@@ -275,14 +275,14 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
         <CardBody>
           {/* Column details */}
           <div className="mb-6">
-            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">列信息</h4>
+            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">列信息</h4>
             <div className="overflow-x-auto rounded-lg border border-orbit-border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">列名</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">类型</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">可空</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">列名</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">类型</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">可空</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -291,7 +291,7 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
                       key={col.name}
                       className="border-b border-orbit-border last:border-0 hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-5 py-3.5 text-slate-200 font-medium">{col.name}</td>
+                      <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{col.name}</td>
                       <td className="px-5 py-3.5">
                         <span className={cn('text-xs font-mono', getTypeColor(col.type))}>{col.type}</span>
                       </td>
@@ -309,13 +309,13 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
 
           {/* Sample data */}
           <div>
-            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">示例数据</h4>
+            <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">示例数据</h4>
             <div className="overflow-x-auto rounded-lg border border-orbit-border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
                     {table.columnDetails.slice(0, 6).map(col => (
-                      <th key={col.name} className="text-left text-xs text-slate-500 font-medium px-5 py-3 whitespace-nowrap">
+                      <th key={col.name} className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3 whitespace-nowrap">
                         {col.name}
                       </th>
                     ))}
@@ -328,7 +328,7 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
                       className="border-b border-orbit-border last:border-0 hover:bg-white/5 transition-colors"
                     >
                       {Object.entries(row).slice(0, 6).map(([key, value]) => (
-                        <td key={key} className="px-5 py-3.5 text-slate-300 text-xs whitespace-nowrap">
+                        <td key={key} className="px-5 py-3.5 text-[var(--text-secondary)] text-xs whitespace-nowrap">
                           {String(value)}
                         </td>
                       ))}

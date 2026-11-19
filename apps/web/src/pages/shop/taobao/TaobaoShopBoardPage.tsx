@@ -83,21 +83,21 @@ export function TaobaoShopBoardPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
               {isTmall ? '天猫' : '淘宝'}店铺经营
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               {currentShop ? `${currentShop.name}` : '未选择店铺'}
-              {data?.shopType && <span className="ml-2 text-slate-500">({SHOP_TYPE_LABEL[data.shopType] || data.shopType})</span>}
+              {data?.shopType && <span className="ml-2 text-[var(--text-muted)]">({SHOP_TYPE_LABEL[data.shopType] || data.shopType})</span>}
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button
                 key={d}
                 onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >近 {d} 天</button>
             ))}
@@ -123,13 +123,13 @@ export function TaobaoShopBoardPage() {
       {!currentShop?.id ? (
         <Card><CardBody>
           <div className="py-14 text-center">
-            <Store className="mx-auto h-10 w-10 text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400">当前平台下暂无店铺</p>
-            <p className="mt-1 text-xs text-slate-600">请先在「多平台接入」导入数据</p>
+            <Store className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+            <p className="mt-3 text-sm text-[var(--text-muted)]">当前平台下暂无店铺</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]">请先在「多平台接入」导入数据</p>
           </div>
         </CardBody></Card>
       ) : loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : data ? (
         <>
           {/* 核心指标 */}
@@ -159,20 +159,20 @@ export function TaobaoShopBoardPage() {
               </CardHeader>
               <CardBody>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
-                    <div className="text-xs text-slate-400">支付订单数（父订单）</div>
-                    <div className="mt-1 text-lg font-semibold text-slate-100">{data.payOrderCount}</div>
-                    <div className="mt-1 text-[11px] text-slate-500">一次付款计一单</div>
+                  <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
+                    <div className="text-xs text-[var(--text-muted)]">支付订单数（父订单）</div>
+                    <div className="mt-1 text-lg font-semibold text-[var(--text-primary)]">{data.payOrderCount}</div>
+                    <div className="mt-1 text-[11px] text-[var(--text-muted)]">一次付款计一单</div>
                   </div>
-                  <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
-                    <div className="text-xs text-slate-400">动销 SKU 数</div>
-                    <div className="mt-1 text-lg font-semibold text-slate-100">{data.activeItemCount}</div>
-                    <div className="mt-1 text-[11px] text-slate-500">商品×SKU 明细粒度</div>
+                  <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
+                    <div className="text-xs text-[var(--text-muted)]">动销 SKU 数</div>
+                    <div className="mt-1 text-lg font-semibold text-[var(--text-primary)]">{data.activeItemCount}</div>
+                    <div className="mt-1 text-[11px] text-[var(--text-muted)]">商品×SKU 明细粒度</div>
                   </div>
-                  <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
-                    <div className="text-xs text-slate-400">退款金额</div>
-                    <div className="mt-1 text-lg font-semibold text-slate-100">{fmt(data.refundAmount)}</div>
-                    <div className="mt-1 text-[11px] text-slate-500">未从支付金额中扣除</div>
+                  <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
+                    <div className="text-xs text-[var(--text-muted)]">退款金额</div>
+                    <div className="mt-1 text-lg font-semibold text-[var(--text-primary)]">{fmt(data.refundAmount)}</div>
+                    <div className="mt-1 text-[11px] text-[var(--text-muted)]">未从支付金额中扣除</div>
                   </div>
                 </div>
               </CardBody>
@@ -195,13 +195,13 @@ function Metric({ icon: Icon, label, value, unit, warn }: {
   icon: any; label: string; value: string; unit?: string; warn?: boolean
 }) {
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+    <div className="rounded-xl border border-[var(--border)] bg-orbit-ink/40 p-3">
+      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
         <Icon className="h-3.5 w-3.5" />{label}
       </div>
       <div className="mt-1.5 flex items-baseline gap-1">
-        <span className={`text-lg font-semibold ${warn ? 'text-rose-400' : 'text-slate-100'}`}>{value}</span>
-        {unit && <span className="text-[11px] text-slate-500">{unit}</span>}
+        <span className={`text-lg font-semibold ${warn ? 'text-rose-400' : 'text-[var(--text-primary)]'}`}>{value}</span>
+        {unit && <span className="text-[11px] text-[var(--text-muted)]">{unit}</span>}
         {warn && <Badge variant="danger">偏高</Badge>}
       </div>
     </div>

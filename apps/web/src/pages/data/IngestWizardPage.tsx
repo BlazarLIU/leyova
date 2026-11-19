@@ -323,8 +323,8 @@ export function IngestWizardPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">多平台数据接入</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">多平台数据接入</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               上传各平台后台导出文件，经字段映射与自定义清洗后写入标准事实表
             </p>
           </div>
@@ -350,13 +350,13 @@ export function IngestWizardPage() {
                     'flex items-center gap-2 rounded-lg px-3 py-2 text-xs whitespace-nowrap transition',
                     active && 'bg-cyan-500/15 text-cyan-300 ring-1 ring-cyan-500/40',
                     done && 'bg-emerald-500/10 text-emerald-400',
-                    !active && !done && 'text-slate-500',
+                    !active && !done && 'text-[var(--text-muted)]',
                   )}
                 >
                   {done ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                   <span className="font-medium">{i + 1}. {s.label}</span>
                 </div>
-                {i < STEPS.length - 1 && <ChevronRight className="h-3 w-3 shrink-0 text-slate-700" />}
+                {i < STEPS.length - 1 && <ChevronRight className="h-3 w-3 shrink-0 text-[var(--text-primary)]" />}
               </div>
             )
           })}
@@ -384,13 +384,13 @@ export function IngestWizardPage() {
                   'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 transition',
                   isDragOver
                     ? 'border-cyan-500/60 bg-cyan-500/5'
-                    : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/30',
+                    : 'border-[var(--border)] hover:border-[var(--border)] hover:bg-orbit-ink/30',
                 )}
               >
-                <Upload className="h-10 w-10 text-slate-500" />
+                <Upload className="h-10 w-10 text-[var(--text-muted)]" />
                 <div className="text-center">
-                  <p className="text-sm font-medium text-slate-200">点击选择或拖拽文件到此处</p>
-                  <p className="mt-1 text-xs text-slate-500">支持 CSV / XLSX / XLS，单文件最大 100MB</p>
+                  <p className="text-sm font-medium text-[var(--text-secondary)]">点击选择或拖拽文件到此处</p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">支持 CSV / XLSX / XLS，单文件最大 100MB</p>
                 </div>
               </div>
               <input
@@ -414,19 +414,19 @@ export function IngestWizardPage() {
           <Card>
             <CardHeader>选择数据归属</CardHeader>
             <CardBody className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
                 <FileText className="h-4 w-4" />
-                <span className="text-slate-200">{file?.name}</span>
+                <span className="text-[var(--text-secondary)]">{file?.name}</span>
                 <span>({(file!.size / 1024).toFixed(1)} KB)</span>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">所属平台</label>
+                  <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">所属平台</label>
                   <select
                     value={platformCode}
                     onChange={(e) => { setPlatformCode(e.target.value); setShopId(null) }}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+                    className="w-full rounded-lg border border-[var(--border)] bg-orbit-ink px-3 py-2 text-sm text-orbit-snow/80"
                   >
                     <option value="">请选择平台</option>
                     {platforms.filter((p) => p.is_enabled && p.isPermitted !== false).map((p) => (
@@ -436,11 +436,11 @@ export function IngestWizardPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">所属店铺</label>
+                  <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">所属店铺</label>
                   <select
                     value={shopId ?? ''}
                     onChange={(e) => setShopId(Number(e.target.value) || null)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+                    className="w-full rounded-lg border border-[var(--border)] bg-orbit-ink px-3 py-2 text-sm text-orbit-snow/80"
                     disabled={!platformCode}
                   >
                     <option value="">请选择店铺</option>
@@ -451,11 +451,11 @@ export function IngestWizardPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">数据类型</label>
+                  <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">数据类型</label>
                   <select
                     value={dataType}
                     onChange={(e) => setDataType(e.target.value as 'trade' | 'traffic')}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+                    className="w-full rounded-lg border border-[var(--border)] bg-orbit-ink px-3 py-2 text-sm text-orbit-snow/80"
                   >
                     <option value="trade">交易事实（GMV / 订单 / 退款）</option>
                     <option value="traffic">流量事实（展现 / 点击 / 访客）</option>
@@ -463,14 +463,14 @@ export function IngestWizardPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-400">
+                  <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
                     兜底业务日期（文件无日期列时使用）
                   </label>
                   <input
                     type="date"
                     value={businessDate}
                     onChange={(e) => setBusinessDate(e.target.value)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+                    className="w-full rounded-lg border border-[var(--border)] bg-orbit-ink px-3 py-2 text-sm text-orbit-snow/80"
                   />
                 </div>
               </div>
@@ -486,19 +486,19 @@ export function IngestWizardPage() {
             <CardHeader>字段映射（标准字段 ← 文件列）</CardHeader>
             <CardBody>
               {!template ? (
-                <p className="text-sm text-slate-500">加载中…</p>
+                <p className="text-sm text-[var(--text-muted)]">加载中…</p>
               ) : (
                 <div className="space-y-2">
                   {template.fields.map((f) => (
-                    <div key={f.field} className="grid grid-cols-2 items-center gap-3 rounded-lg bg-slate-800/40 px-3 py-2">
-                      <div className="text-sm text-slate-300">
+                    <div key={f.field} className="grid grid-cols-2 items-center gap-3 rounded-lg bg-orbit-ink/40 px-3 py-2">
+                      <div className="text-sm text-[var(--text-secondary)]">
                         {FIELD_LABELS[f.field] || f.field}
                         {f.required && <span className="ml-1 text-rose-400">*</span>}
                       </div>
                       <select
                         value={mapping[f.field] || ''}
                         onChange={(e) => setMapping((m) => ({ ...m, [f.field]: e.target.value || null }))}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200"
+                        className="w-full rounded-lg border border-[var(--border)] bg-orbit-ink px-2 py-1.5 text-sm text-orbit-snow/80"
                       >
                         <option value="">（不映射）</option>
                         {(preview?.headers || []).map((h) => (
@@ -513,10 +513,10 @@ export function IngestWizardPage() {
                 </div>
               )}
               {!preview && loading && (
-                <p className="mt-3 text-xs text-slate-500">正在解析文件列名…</p>
+                <p className="mt-3 text-xs text-[var(--text-muted)]">正在解析文件列名…</p>
               )}
               {preview && (
-                <p className="mt-3 text-xs text-slate-500">
+                <p className="mt-3 text-xs text-[var(--text-muted)]">
                   已识别 {preview.headers.length} 个列，系统已给出映射建议。留空表示不映射该字段。
                 </p>
               )}
@@ -531,18 +531,18 @@ export function IngestWizardPage() {
           <Card>
             <CardHeader>选择清洗规则集</CardHeader>
             <CardBody className="space-y-2">
-              <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800/40">
+              <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--border)] px-3 py-2 hover:bg-orbit-ink/40">
                 <input
                   type="radio"
                   checked={ruleSetId === null}
                   onChange={() => setRuleSetId(null)}
                 />
-                <span className="text-sm text-slate-300">不使用清洗规则（原始数据直接映射）</span>
+                <span className="text-sm text-[var(--text-secondary)]">不使用清洗规则（原始数据直接映射）</span>
               </label>
               {(template?.ruleSets || []).map((rs) => (
                 <label
                   key={rs.id}
-                  className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800/40"
+                  className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--border)] px-3 py-2 hover:bg-orbit-ink/40"
                 >
                   <input
                     type="radio"
@@ -552,16 +552,16 @@ export function IngestWizardPage() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-200">{rs.name}</span>
+                      <span className="text-sm text-[var(--text-secondary)]">{rs.name}</span>
                       {rs.is_system && <Badge variant="info">官方</Badge>}
-                      <span className="text-xs text-slate-500">{rs.rules?.length || 0} 条规则</span>
+                      <span className="text-xs text-[var(--text-muted)]">{rs.rules?.length || 0} 条规则</span>
                     </div>
-                    {rs.description && <p className="mt-0.5 text-xs text-slate-500">{rs.description}</p>}
+                    {rs.description && <p className="mt-0.5 text-xs text-[var(--text-muted)]">{rs.description}</p>}
                   </div>
                 </label>
               ))}
               {(!template?.ruleSets || template.ruleSets.length === 0) && (
-                <p className="text-sm text-slate-500">该平台暂无可用清洗规则集</p>
+                <p className="text-sm text-[var(--text-muted)]">该平台暂无可用清洗规则集</p>
               )}
             </CardBody>
           </Card>
@@ -611,7 +611,7 @@ export function IngestWizardPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-slate-700 text-left text-slate-400">
+                    <tr className="border-b border-[var(--border)] text-left text-[var(--text-muted)]">
                       <th className="py-2 pr-3">业务日期</th>
                       <th className="py-2 pr-3">渠道</th>
                       {Object.keys(preview.mappedPreview[0]?.values || {}).map((k) => (
@@ -621,7 +621,7 @@ export function IngestWizardPage() {
                   </thead>
                   <tbody>
                     {preview.mappedPreview.map((r, i) => (
-                      <tr key={i} className="border-b border-slate-800/60 text-slate-300">
+                      <tr key={i} className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                         <td className="py-1.5 pr-3 font-mono">{r.bizDate}</td>
                         <td className="py-1.5 pr-3">{r.channelName}</td>
                         {Object.keys(preview.mappedPreview[0]?.values || {}).map((k) => (
@@ -653,20 +653,20 @@ export function IngestWizardPage() {
               <CardHeader>清洗 Diff 对照（前 10 条）</CardHeader>
               <CardBody className="space-y-2">
                 {preview.cleanReport.sampleDiffs.slice(0, 10).map((d, i) => (
-                  <div key={i} className="rounded border border-slate-700/60 p-2 text-xs">
+                  <div key={i} className="rounded border border-[var(--border)] p-2 text-xs">
                     <div className="mb-1 flex items-center gap-2">
                       <Badge variant={d.status === 'dropped' ? 'danger' : d.status === 'marked' ? 'warning' : 'success'}>
                         {d.status}
                       </Badge>
-                      <span className="text-slate-500">第 {d.rowIndex} 行</span>
-                      {d.reason && <span className="text-slate-400">{d.reason}</span>}
+                      <span className="text-[var(--text-muted)]">第 {d.rowIndex} 行</span>
+                      {d.reason && <span className="text-[var(--text-muted)]">{d.reason}</span>}
                     </div>
                     {d.status !== 'dropped' && (
                       <div className="grid grid-cols-2 gap-2">
-                        <pre className="overflow-x-auto rounded bg-slate-900/60 p-1.5 text-[10px] text-slate-500">
+                        <pre className="overflow-x-auto rounded bg-orbit-ink/60 p-1.5 text-[10px] text-orbit-snow/70">
                           {JSON.stringify(d.original).slice(0, 200)}
                         </pre>
-                        <pre className="overflow-x-auto rounded bg-slate-900/60 p-1.5 text-[10px] text-emerald-400/80">
+                        <pre className="overflow-x-auto rounded bg-orbit-ink/60 p-1.5 text-[10px] text-emerald-400/80">
                           {JSON.stringify(d.cleaned).slice(0, 200)}
                         </pre>
                       </div>
@@ -685,13 +685,13 @@ export function IngestWizardPage() {
           <Card>
             <CardBody className="space-y-3 text-center py-10">
               <CheckCircle className="mx-auto h-12 w-12 text-emerald-400" />
-              <h2 className="text-lg font-semibold text-slate-100">导入完成</h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">导入完成</h2>
               <div className="mx-auto grid max-w-md grid-cols-3 gap-3 text-sm">
                 <StatCard label="输入行数" value={result.inputRows} />
                 <StatCard label="成功入库" value={result.insertedRows} tone="ok" />
                 <StatCard label="拒绝行数" value={result.rejectedRows} tone={result.rejectedRows > 0 ? 'warn' : 'ok'} />
               </div>
-              <p className="text-xs text-slate-500">任务 ID: {result.jobId}</p>
+              <p className="text-xs text-[var(--text-muted)]">任务 ID: {result.jobId}</p>
               <Button onClick={reset} className="mt-2">继续上传下一份</Button>
             </CardBody>
           </Card>
@@ -728,16 +728,16 @@ export function IngestWizardPage() {
 
 function StatCard({ label, value, tone }: { label: string; value: number; tone?: 'ok' | 'warn' }) {
   return (
-    <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 px-3 py-2 text-center">
+    <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 px-3 py-2 text-center">
       <div
         className={cn(
           'text-xl font-semibold',
-          tone === 'ok' ? 'text-emerald-400' : tone === 'warn' ? 'text-amber-400' : 'text-slate-200',
+          tone === 'ok' ? 'text-emerald-400' : tone === 'warn' ? 'text-amber-400' : 'text-[var(--text-secondary)]',
         )}
       >
         {value}
       </div>
-      <div className="mt-0.5 text-[11px] text-slate-500">{label}</div>
+      <div className="mt-0.5 text-[11px] text-[var(--text-muted)]">{label}</div>
     </div>
   )
 }

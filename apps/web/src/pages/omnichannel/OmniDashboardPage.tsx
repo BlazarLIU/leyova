@@ -58,7 +58,7 @@ function fmtMoney(n: number): string {
 
 function Growth({ value }: { value: number | null | undefined }) {
   if (value === null || value === undefined) {
-    return <span className="text-xs text-slate-500">—</span>
+    return <span className="text-xs text-[var(--text-muted)]">—</span>
   }
   const up = value >= 0
   return (
@@ -122,19 +122,19 @@ export function OmniDashboardPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">全渠道经营大盘</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">全渠道经营大盘</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               跨平台经营汇总 · 当前视图 {currentPlatform?.platform_name || '全部平台'}
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button
                 key={d}
                 onClick={() => setDays(d)}
                 className={cn(
                   'rounded px-3 py-1.5 text-xs transition',
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200',
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                 )}
               >
                 近 {d} 天
@@ -170,7 +170,7 @@ export function OmniDashboardPage() {
       )}
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : (
         <>
           {/* 核心指标 */}
@@ -212,7 +212,7 @@ export function OmniDashboardPage() {
                           className="rounded-t bg-gradient-to-t from-cyan-600/60 to-cyan-400/80 transition-all hover:from-cyan-500 hover:to-cyan-300"
                           style={{ height: `${Math.max((t.gmv / maxTrend) * 140, 2)}px` }}
                         />
-                        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-[10px] text-slate-200 ring-1 ring-slate-700 group-hover:block">
+                        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-orbit-ink px-2 py-1 text-[10px] text-orbit-snow/80 ring-1 ring-[var(--border)] group-hover:block">
                           {t.biz_date}<br />{fmtMoney(t.gmv)}
                         </div>
                       </div>
@@ -226,7 +226,7 @@ export function OmniDashboardPage() {
           {/* 平台对比 */}
           <motion.div {...fadeIn}>
             <Card>
-              <CardHeader>平台经营对比 <span className="text-xs font-normal text-slate-500">（始终展示全部已启用平台，用于横向对比）</span></CardHeader>
+              <CardHeader>平台经营对比 <span className="text-xs font-normal text-[var(--text-muted)]">（始终展示全部已启用平台，用于横向对比）</span></CardHeader>
               <CardBody>
                 {platforms.length === 0 ? (
                   <EmptyHint />
@@ -234,7 +234,7 @@ export function OmniDashboardPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                        <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                           <th className="py-2 pr-3">平台</th>
                           <th className="py-2 pr-3">类型</th>
                           <th className="py-2 pr-3 text-right">GMV</th>
@@ -248,8 +248,8 @@ export function OmniDashboardPage() {
                       </thead>
                       <tbody>
                         {platforms.map((p) => (
-                          <tr key={p.platform_code} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
-                            <td className="py-2 pr-3 font-medium text-slate-200">{p.platform_name}</td>
+                          <tr key={p.platform_code} className="border-b border-[var(--border)] text-[var(--text-secondary)] hover:bg-orbit-ink/30">
+                            <td className="py-2 pr-3 font-medium text-[var(--text-secondary)]">{p.platform_name}</td>
                             <td className="py-2 pr-3">
                               <Badge variant={p.category === 'live' ? 'info' : p.category === 'shelf' ? 'success' : 'warning'}>
                                 {CATEGORY_LABEL[p.category] || p.category}
@@ -261,7 +261,7 @@ export function OmniDashboardPage() {
                             </td>
                             <td className="py-2 pr-3 text-right font-mono">{p.paid_order_count}</td>
                             <td className="py-2 pr-3 text-right font-mono">{p.paid_buyer_count}</td>
-                            <td className={cn('py-2 pr-3 text-right font-mono', p.refund_rate > 10 ? 'text-rose-400' : 'text-slate-300')}>
+                            <td className={cn('py-2 pr-3 text-right font-mono', p.refund_rate > 10 ? 'text-rose-400' : 'text-[var(--text-secondary)]')}>
                               {p.refund_rate}%
                             </td>
                             <td className="py-2 pr-3 text-right font-mono">{fmtMoney(p.avg_order_value)}</td>
@@ -289,13 +289,13 @@ export function OmniDashboardPage() {
                       const max = shops[0]?.gmv || 1
                       return (
                         <div key={s.shop_id} className="flex items-center gap-3">
-                          <span className="w-5 text-xs text-slate-500">{i + 1}</span>
+                          <span className="w-5 text-xs text-[var(--text-muted)]">{i + 1}</span>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-baseline justify-between gap-2">
-                              <span className="truncate text-sm text-slate-200">{s.shop_name}</span>
-                              <span className="shrink-0 font-mono text-xs text-slate-400">{fmtMoney(s.gmv)}</span>
+                              <span className="truncate text-sm text-[var(--text-secondary)]">{s.shop_name}</span>
+                              <span className="shrink-0 font-mono text-xs text-[var(--text-muted)]">{fmtMoney(s.gmv)}</span>
                             </div>
-                            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
+                            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-orbit-ink">
                               <div
                                 className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400"
                                 style={{ width: `${Math.max((s.gmv / max) * 100, 1)}%` }}
@@ -323,13 +323,13 @@ function MetricCard({
   icon: any; label: string; value: string; growth?: number | null
 }) {
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+    <div className="rounded-xl border border-[var(--border)] bg-orbit-ink/40 p-3">
+      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
         <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
       <div className="mt-1.5 flex items-baseline justify-between">
-        <span className="text-lg font-semibold text-slate-100">{value}</span>
+        <span className="text-lg font-semibold text-[var(--text-primary)]">{value}</span>
         {growth !== undefined && <Growth value={growth} />}
       </div>
     </div>
@@ -338,7 +338,7 @@ function MetricCard({
 
 function EmptyHint() {
   return (
-    <div className="py-10 text-center text-xs text-slate-500">
+    <div className="py-10 text-center text-xs text-[var(--text-muted)]">
       暂无数据 · 请先通过「数据管理 → 多平台接入」导入各平台经营数据
     </div>
   )

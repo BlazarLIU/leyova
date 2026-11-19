@@ -80,16 +80,16 @@ export function KsIndirectGmvPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">间接成交分析</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">间接成交分析</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               {currentShop ? currentShop.name : '未选择店铺'} · 快手独有的一级指标
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -110,13 +110,13 @@ export function KsIndirectGmvPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : !hasData ? (
         <Card><CardBody>
           <div className="py-14 text-center">
-            <Zap className="mx-auto h-10 w-10 text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400">该店铺在选定周期内暂无投放数据</p>
-            <p className="mt-1 text-xs text-slate-600">需从磁力金牛导出投放报表（含直接/间接成交拆分）</p>
+            <Zap className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+            <p className="mt-3 text-sm text-[var(--text-muted)]">该店铺在选定周期内暂无投放数据</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]">需从磁力金牛导出投放报表（含直接/间接成交拆分）</p>
           </div>
         </CardBody></Card>
       ) : (
@@ -134,7 +134,7 @@ export function KsIndirectGmvPage() {
                     {(100 - ratio) >= 15 && `直接 ${(100 - ratio).toFixed(1)}%`}
                   </div>
                   <div
-                    className="flex items-center justify-center bg-violet-600/70 text-xs font-medium text-white"
+                    className="flex items-center justify-center bg-orbit-primary/70 text-xs font-medium text-white"
                     style={{ width: `${ratio}%` }}
                   >
                     {ratio >= 15 && `间接 ${ratio.toFixed(1)}%`}
@@ -150,21 +150,21 @@ export function KsIndirectGmvPage() {
                     </div>
                     <p className="mt-1.5 text-[11px] text-cyan-500/60">{indirect!.direct.note}</p>
                   </div>
-                  <div className="rounded-lg border border-violet-600/40 bg-violet-500/5 p-3">
-                    <div className="text-xs text-violet-400">间接成交（快手特色）</div>
+                  <div className="rounded-lg border border-orbit-primary/40 bg-orbit-primary/5 p-3">
+                    <div className="text-xs text-orbit-primary">间接成交（快手特色）</div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                      <span className="text-xl font-semibold text-violet-300">{fmt(indirect!.indirect.gmv)}</span>
-                      <span className="text-xs text-violet-500/70">{fmtPct(indirect!.indirect.share)}</span>
+                      <span className="text-xl font-semibold text-orbit-primary">{fmt(indirect!.indirect.gmv)}</span>
+                      <span className="text-xs text-orbit-primary/70">{fmtPct(indirect!.indirect.share)}</span>
                     </div>
-                    <p className="mt-1.5 text-[11px] text-violet-500/60">{indirect!.indirect.note}</p>
+                    <p className="mt-1.5 text-[11px] text-orbit-primary/60">{indirect!.indirect.note}</p>
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 rounded-lg bg-slate-800/40 px-3 py-2 text-xs">
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-orbit-ink/40 px-3 py-2 text-xs">
                   <Badge variant={ratio >= 30 ? 'success' : ratio >= 15 ? 'info' : 'neutral'}>
                     {ratio >= 30 ? '私域承接强' : ratio >= 15 ? '衔接良好' : '沉淀较弱'}
                   </Badge>
-                  <span className="text-slate-400">{indirect!.assessment}</span>
+                  <span className="text-[var(--text-muted)]">{indirect!.assessment}</span>
                 </div>
               </CardBody>
             </Card>
@@ -187,12 +187,12 @@ export function KsIndirectGmvPage() {
                     <RoiCard label="7日累计 ROI" value={adRoi.rois.roi7d} note="需7日累计数据" />
                   </div>
 
-                  <div className="mt-4 flex items-center gap-3 rounded-lg bg-slate-800/40 px-3 py-2 text-xs">
-                    <span className="text-slate-400">花费</span>
-                    <span className="font-mono text-slate-200">{fmt(adRoi.spend)}</span>
-                    <ArrowRight className="h-3 w-3 text-slate-600" />
-                    <span className="text-slate-400">总成交</span>
-                    <span className="font-mono text-slate-200">{fmt(adRoi.gmv.total)}</span>
+                  <div className="mt-4 flex items-center gap-3 rounded-lg bg-orbit-ink/40 px-3 py-2 text-xs">
+                    <span className="text-[var(--text-muted)]">花费</span>
+                    <span className="font-mono text-[var(--text-secondary)]">{fmt(adRoi.spend)}</span>
+                    <ArrowRight className="h-3 w-3 text-[var(--text-primary)]" />
+                    <span className="text-[var(--text-muted)]">总成交</span>
+                    <span className="font-mono text-[var(--text-secondary)]">{fmt(adRoi.gmv.total)}</span>
                   </div>
 
                   {/* 双源对账 */}
@@ -200,10 +200,10 @@ export function KsIndirectGmvPage() {
                     <div className="mt-3 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         <span className="text-amber-400">双源对比</span>
-                        <span className="text-slate-400">金牛口径:</span>
-                        <span className="font-mono text-slate-200">{fmt(adRoi.comparison.adPlatformGmv)}</span>
-                        <span className="text-slate-400">生意通口径:</span>
-                        <span className="font-mono text-slate-200">{fmt(adRoi.comparison.merchantGmv)}</span>
+                        <span className="text-[var(--text-muted)]">金牛口径:</span>
+                        <span className="font-mono text-[var(--text-secondary)]">{fmt(adRoi.comparison.adPlatformGmv)}</span>
+                        <span className="text-[var(--text-muted)]">生意通口径:</span>
+                        <span className="font-mono text-[var(--text-secondary)]">{fmt(adRoi.comparison.merchantGmv)}</span>
                         {adRoi.comparison.diffPct !== null && (
                           <Badge variant={Math.abs(adRoi.comparison.diffPct) > 20 ? 'warning' : 'neutral'}>
                             差异 {adRoi.comparison.diffPct > 0 ? '+' : ''}{adRoi.comparison.diffPct}%
@@ -230,15 +230,15 @@ function RoiCard({ label, value, note, highlight }: {
 }) {
   return (
     <div className={`rounded-lg border p-3 ${
-      highlight ? 'border-cyan-600/40 bg-cyan-500/5' : 'border-slate-700/60 bg-slate-800/40'
+      highlight ? 'border-cyan-600/40 bg-cyan-500/5' : 'border-[var(--border)] bg-orbit-ink/40'
     }`}>
-      <div className={`text-xs ${highlight ? 'text-cyan-400' : 'text-slate-400'}`}>{label}</div>
+      <div className={`text-xs ${highlight ? 'text-cyan-400' : 'text-[var(--text-muted)]'}`}>{label}</div>
       <div className={`mt-1.5 text-xl font-semibold ${
-        value === null ? 'text-slate-600' : highlight ? 'text-cyan-300' : 'text-slate-100'
+        value === null ? 'text-[var(--text-primary)]' : highlight ? 'text-cyan-300' : 'text-[var(--text-primary)]'
       }`}>
         {value === null ? '—' : value.toFixed(2)}
       </div>
-      <div className="mt-1 text-[10px] text-slate-500">{note}</div>
+      <div className="mt-1 text-[10px] text-[var(--text-muted)]">{note}</div>
     </div>
   )
 }

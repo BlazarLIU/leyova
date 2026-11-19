@@ -59,15 +59,15 @@ const statusBadgeVariantMap: Record<string, 'success' | 'neutral' | 'warning'> =
 
 
 function getScoreColor(score: number | null): string {
-  if (score == null) return 'text-slate-500'
+  if (score == null) return 'text-[var(--text-muted)]'
   if (score >= 80) return 'text-emerald-400'
   if (score >= 65) return 'text-amber-400'
   return 'text-red-400'
 }
 
 function getWeaknessColor(weakness: string): string {
-  if (!weakness) return 'bg-slate-500/15 text-slate-400'
-  if (weakness === '引流') return 'bg-violet-500/15 text-violet-300'
+  if (!weakness) return 'bg-[var(--surface3)] text-[var(--text-muted)]'
+  if (weakness === '引流') return 'bg-orbit-primary/15 text-orbit-primary'
   if (weakness === '互动') return 'bg-cyan-500/15 text-cyan-300'
   if (weakness === '转化') return 'bg-emerald-500/15 text-emerald-300'
   return 'bg-amber-500/15 text-amber-300'
@@ -125,8 +125,8 @@ export function AnchorListPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">主播列表</h1>
-            <p className="text-slate-500 text-sm mt-1">主播信息管理与KPI监控</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">主播列表</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">主播信息管理与KPI监控</p>
           </div>
         </div>
       </motion.div>
@@ -155,7 +155,7 @@ export function AnchorListPage() {
                 'px-3 py-1.5 text-xs font-medium rounded-lg transition-colors',
                 statusFilter === f.value
                   ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
               )}
             >
               {f.label}
@@ -177,8 +177,8 @@ export function AnchorListPage() {
       >
         {filteredAnchors.length === 0 ? (
           <div className="text-center py-16">
-            <Users className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-500 text-sm">没有匹配的主播</p>
+            <Users className="w-12 h-12 text-[var(--text-primary)] mx-auto mb-4" />
+            <p className="text-[var(--text-muted)] text-sm">没有匹配的主播</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -195,7 +195,7 @@ export function AnchorListPage() {
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar initials={anchor.initials} size="xl" />
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-semibold text-slate-100 truncate">
+                        <h3 className="text-base font-semibold text-[var(--text-primary)] truncate">
                           {anchor.name}
                         </h3>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -203,7 +203,7 @@ export function AnchorListPage() {
                             {anchor.level}
                           </span>
                           {anchor.tags.map((tag) => (
-                            <span key={tag} className="text-xs text-slate-500">
+                            <span key={tag} className="text-xs text-[var(--text-muted)]">
                               {tag}
                             </span>
                           ))}
@@ -219,16 +219,16 @@ export function AnchorListPage() {
                     {/* KPI Grid: 2 cols x 4 rows */}
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <Users className="w-3.5 h-3.5" />
                           粉丝
                         </span>
-                        <span className="text-slate-200 font-medium tabular-nums text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium tabular-nums text-xs">
                           {(anchor.followers / 10000).toFixed(0)}万
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <DollarSign className="w-3.5 h-3.5" />
                           场均GMV
                         </span>
@@ -237,16 +237,16 @@ export function AnchorListPage() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <Eye className="w-3.5 h-3.5" />
                           场均观看
                         </span>
-                        <span className="text-slate-200 font-medium tabular-nums text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium tabular-nums text-xs">
                           {anchor.avgViews.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <Target className="w-3.5 h-3.5" />
                           UV价值
                         </span>
@@ -255,25 +255,25 @@ export function AnchorListPage() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <TrendingUp className="w-3.5 h-3.5" />
                           互动率
                         </span>
-                        <span className="text-slate-200 font-medium tabular-nums text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium tabular-nums text-xs">
                           {anchor.avgInteractionRate.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <TrendingUp className="w-3.5 h-3.5" />
                           留存率
                         </span>
-                        <span className="text-slate-200 font-medium tabular-nums text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium tabular-nums text-xs">
                           {anchor.avgRetentionRate.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <DollarSign className="w-3.5 h-3.5" />
                           GPM
                         </span>
@@ -282,7 +282,7 @@ export function AnchorListPage() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500 flex items-center gap-1">
+                        <span className="text-[var(--text-muted)] flex items-center gap-1">
                           <Star className="w-3.5 h-3.5" />
                           综合分
                         </span>

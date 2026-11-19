@@ -55,16 +55,16 @@ export function TaobaoAdReconciliationPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">万相台投放对账</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">万相台投放对账</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               {currentShop ? currentShop.name : '未选择店铺'} · 广告后台 vs 经营后台口径对比
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -85,13 +85,13 @@ export function TaobaoAdReconciliationPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : !hasData ? (
         <Card><CardBody>
           <div className="py-14 text-center">
-            <Megaphone className="mx-auto h-10 w-10 text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400">该店铺在选定周期内暂无投放或交易数据</p>
-            <p className="mt-1 text-xs text-slate-600">需导入万相台报表（含花费/成交）与生意参谋交易数据</p>
+            <Megaphone className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+            <p className="mt-3 text-sm text-[var(--text-muted)]">该店铺在选定周期内暂无投放或交易数据</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]">需导入万相台报表（含花费/成交）与生意参谋交易数据</p>
           </div>
         </CardBody></Card>
       ) : (
@@ -106,10 +106,10 @@ export function TaobaoAdReconciliationPage() {
               </CardHeader>
               <CardBody>
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-4">
-                    <div className="text-xs text-slate-400">投放花费</div>
-                    <div className="mt-1 text-xl font-semibold text-slate-100">{fmt(data!.adPlatform.spend)}</div>
-                    <div className="mt-1 text-[11px] text-slate-500">万相台后台</div>
+                  <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-4">
+                    <div className="text-xs text-[var(--text-muted)]">投放花费</div>
+                    <div className="mt-1 text-xl font-semibold text-[var(--text-primary)]">{fmt(data!.adPlatform.spend)}</div>
+                    <div className="mt-1 text-[11px] text-[var(--text-muted)]">万相台后台</div>
                   </div>
                   <div className="rounded-lg border border-cyan-600/40 bg-cyan-500/5 p-4">
                     <div className="text-xs text-cyan-400">万相台口径 GMV</div>
@@ -124,10 +124,10 @@ export function TaobaoAdReconciliationPage() {
                 </div>
 
                 {data!.diffPct !== null && (
-                  <div className="mt-3 flex items-center gap-2 rounded-lg bg-slate-800/40 px-3 py-2 text-xs">
-                    <span className="text-slate-400">差异率：</span>
+                  <div className="mt-3 flex items-center gap-2 rounded-lg bg-orbit-ink/40 px-3 py-2 text-xs">
+                    <span className="text-[var(--text-muted)]">差异率：</span>
                     <span className={`font-mono font-medium ${
-                      Math.abs(data!.diffPct) > 20 ? 'text-rose-400' : 'text-slate-300'
+                      Math.abs(data!.diffPct) > 20 ? 'text-rose-400' : 'text-[var(--text-secondary)]'
                     }`}>
                       {data!.diffPct > 0 ? '+' : ''}{data!.diffPct}%
                     </span>
@@ -153,7 +153,7 @@ export function TaobaoAdReconciliationPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                        <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                           <th className="py-2 pr-3">投放工具</th>
                           <th className="py-2 pr-3 text-right">花费</th>
                           <th className="py-2 pr-3 text-right">成交金额</th>
@@ -162,8 +162,8 @@ export function TaobaoAdReconciliationPage() {
                       </thead>
                       <tbody>
                         {data!.byTool.map((t) => (
-                          <tr key={t.tool} className="border-b border-slate-800/60 text-slate-300">
-                            <td className="py-2 pr-3 text-slate-200">{t.tool}</td>
+                          <tr key={t.tool} className="border-b border-[var(--border)] text-[var(--text-secondary)]">
+                            <td className="py-2 pr-3 text-[var(--text-secondary)]">{t.tool}</td>
                             <td className="py-2 pr-3 text-right font-mono">{fmt(t.spend)}</td>
                             <td className="py-2 pr-3 text-right font-mono">{fmt(t.adGmv)}</td>
                             <td className="py-2 text-right font-mono text-cyan-400">{t.roi}</td>

@@ -49,16 +49,16 @@ export function DouyinShortVideoFunnelPage() {
     <div className="p-6 space-y-4 max-w-[1600px] mx-auto">
       <motion.div {...fadeIn} className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Video className="w-6 h-6 text-orbit-primary" /> 抖音 · 短视频引流 → 直播承接
           </h1>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[var(--text-muted)] text-xs mt-1">
             抖音三池结构：短视频负责蓄水，直播负责收割。本页回答「短视频到底带来了多少直播观众、又换回多少 GMV」
           </p>
         </div>
         <div className="flex items-center gap-2">
           <select value={days} onChange={e => setDays(Number(e.target.value))}
-            className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-slate-300">
+            className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-[var(--text-secondary)]">
             <option value={7}>近 7 天</option><option value={30}>近 30 天</option><option value={90}>近 90 天</option>
           </select>
           <Button variant="secondary" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
@@ -77,14 +77,14 @@ export function DouyinShortVideoFunnelPage() {
 
       <Card>
         <CardHeader>
-          <span className="text-sm font-semibold text-slate-200 flex items-center gap-1.5"><TrendingUp className="w-4 h-4" /> 引流 → 承接趋势</span>
+          <span className="text-sm font-semibold text-[var(--text-secondary)] flex items-center gap-1.5"><TrendingUp className="w-4 h-4" /> 引流 → 承接趋势</span>
           <Badge variant="info">直播 GMV ¥{fmt(data?.summary.liveGmv)}</Badge>
         </CardHeader>
         <CardBody className="p-0">
           <div className="overflow-x-auto max-h-[340px]">
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-orbit-surface border-b border-orbit-border">
-                <tr className="text-slate-400">
+                <tr className="text-[var(--text-muted)]">
                   <th className="text-left px-4 py-2">日期</th>
                   <th className="text-right px-3 py-2">短视频引流进房</th>
                   <th className="text-right px-4 py-2">直播 GMV</th>
@@ -93,9 +93,9 @@ export function DouyinShortVideoFunnelPage() {
               <tbody>
                 {(data?.trend || []).map(t => (
                   <tr key={t.date} className="border-b border-orbit-border/40">
-                    <td className="px-4 py-1.5 text-slate-300">{t.date}</td>
-                    <td className="px-3 py-1.5 text-right text-slate-300">{fmt(t.videoEntries)}</td>
-                    <td className="px-4 py-1.5 text-right text-slate-200">¥{fmt(t.liveGmv)}</td>
+                    <td className="px-4 py-1.5 text-[var(--text-secondary)]">{t.date}</td>
+                    <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(t.videoEntries)}</td>
+                    <td className="px-4 py-1.5 text-right text-[var(--text-secondary)]">¥{fmt(t.liveGmv)}</td>
                   </tr>
                 ))}
                 {(data?.trend || []).length === 0 && <Empty colSpan={3} />}
@@ -106,12 +106,12 @@ export function DouyinShortVideoFunnelPage() {
       </Card>
 
       <Card>
-        <CardHeader><span className="text-sm font-semibold text-slate-200">短视频引流明细（Top 50）</span></CardHeader>
+        <CardHeader><span className="text-sm font-semibold text-[var(--text-secondary)]">短视频引流明细（Top 50）</span></CardHeader>
         <CardBody className="p-0">
           <div className="overflow-x-auto max-h-[420px]">
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-orbit-surface border-b border-orbit-border">
-                <tr className="text-slate-400">
+                <tr className="text-[var(--text-muted)]">
                   <th className="text-left px-4 py-2">视频</th>
                   <th className="text-right px-3 py-2">关联场次</th>
                   <th className="text-right px-3 py-2">曝光</th>
@@ -122,11 +122,11 @@ export function DouyinShortVideoFunnelPage() {
               <tbody>
                 {(data?.videos || []).map((v, i) => (
                   <tr key={`${v.videoName}-${i}`} className="border-b border-orbit-border/40">
-                    <td className="px-4 py-1.5 text-slate-200 truncate max-w-[320px]">{v.videoName || '(未命名)'}</td>
-                    <td className="px-3 py-1.5 text-right text-slate-400">{v.sessionCount}</td>
-                    <td className="px-3 py-1.5 text-right text-slate-300">{fmt(v.impressions)}</td>
-                    <td className="px-3 py-1.5 text-right text-slate-300">{fmt(v.entries)}</td>
-                    <td className="px-4 py-1.5 text-right text-slate-300">{v.clickRate}%</td>
+                    <td className="px-4 py-1.5 text-[var(--text-secondary)] truncate max-w-[320px]">{v.videoName || '(未命名)'}</td>
+                    <td className="px-3 py-1.5 text-right text-[var(--text-muted)]">{v.sessionCount}</td>
+                    <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(v.impressions)}</td>
+                    <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(v.entries)}</td>
+                    <td className="px-4 py-1.5 text-right text-[var(--text-secondary)]">{v.clickRate}%</td>
                   </tr>
                 ))}
                 {(data?.videos || []).length === 0 && <Empty colSpan={5} />}
@@ -136,7 +136,7 @@ export function DouyinShortVideoFunnelPage() {
         </CardBody>
       </Card>
 
-      <p className="text-[11px] text-slate-500">{data?.note}</p>
+      <p className="text-[11px] text-[var(--text-muted)]">{data?.note}</p>
     </div>
   )
 }
@@ -146,8 +146,8 @@ const fmt = (n: number | null | undefined) => (n == null ? '—' : Number(n).toL
 function Stat({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: boolean }) {
   return (
     <Card><CardBody>
-      <div className="text-[11px] text-slate-400">{label}</div>
-      <div className={`text-lg font-semibold mt-0.5 tabular-nums ${highlight ? 'text-orbit-primary' : 'text-slate-100'}`}>{value}</div>
+      <div className="text-[11px] text-[var(--text-muted)]">{label}</div>
+      <div className={`text-lg font-semibold mt-0.5 tabular-nums ${highlight ? 'text-orbit-primary' : 'text-[var(--text-primary)]'}`}>{value}</div>
     </CardBody></Card>
   )
 }
@@ -158,7 +158,7 @@ function ErrBar({ text }: { text: string }) {
   return <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{text}</div>
 }
 function Empty({ colSpan }: { colSpan: number }) {
-  return <tr><td colSpan={colSpan} className="px-4 py-6 text-center text-slate-500">暂无数据</td></tr>
+  return <tr><td colSpan={colSpan} className="px-4 py-6 text-center text-[var(--text-muted)]">暂无数据</td></tr>
 }
 
 export default DouyinShortVideoFunnelPage

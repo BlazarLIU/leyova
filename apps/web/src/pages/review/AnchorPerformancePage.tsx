@@ -13,6 +13,7 @@ import { TrendingUp, Users, Clock, DollarSign, ArrowUp, ArrowDown, ArrowUpDown }
 import { api } from '@/services/api'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { cn } from '@/utils/cn'
+import { CHART_GRID, CHART_AXIS } from '@/constants/chartPalette'
 
 // ---- Types ----
 
@@ -203,14 +204,14 @@ export function AnchorPerformancePage() {
     return (
       <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px]">
         <motion.div {...fadeIn}>
-          <h1 className="text-2xl font-bold text-slate-100">主播效能分析</h1>
-          <p className="text-slate-500 text-sm mt-1">主播维度效能评估</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">主播效能分析</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">主播维度效能评估</p>
         </motion.div>
         <Card>
           <CardBody>
             <div className="flex flex-col items-center justify-center py-16">
-              <Users className="w-12 h-12 text-slate-500 mb-4" />
-              <p className="text-slate-400 text-sm">暂无主播数据</p>
+              <Users className="w-12 h-12 text-[var(--text-muted)] mb-4" />
+              <p className="text-[var(--text-muted)] text-sm">暂无主播数据</p>
             </div>
           </CardBody>
         </Card>
@@ -228,8 +229,8 @@ export function AnchorPerformancePage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">主播效能分析</h1>
-            <p className="text-slate-500 text-sm mt-1">主播维度效能评估</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">主播效能分析</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">主播维度效能评估</p>
           </div>
         </div>
       </motion.div>
@@ -289,10 +290,10 @@ export function AnchorPerformancePage() {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarChartData}>
-                  <PolarGrid stroke="#334155" />
+                  <PolarGrid stroke={CHART_GRID} />
                   <PolarAngleAxis
                     dataKey="dimension"
-                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 12 }}
                   />
                   <PolarRadiusAxis
                     angle={90}
@@ -310,7 +311,7 @@ export function AnchorPerformancePage() {
                     />
                   ))}
                   <Legend
-                    wrapperStyle={{ fontSize: 12, color: '#94a3b8' }}
+                    wrapperStyle={{ fontSize: 12, color: CHART_AXIS }}
                   />
                 </RadarChart>
               </ResponsiveContainer>
@@ -344,7 +345,7 @@ export function AnchorPerformancePage() {
                     <TableHeader colSpan={1}>转化</TableHeader>
                   </tr>
                   {/* Column header row */}
-                  <tr className="border-b border-orbit-border text-xs text-slate-500">
+                  <tr className="border-b border-orbit-border text-xs text-[var(--text-muted)]">
                     <Th sortable sortKey="anchor_id" currentKey={sortKey} dir={sortDir} onSort={toggleSort}>
                       账号
                     </Th>
@@ -411,7 +412,7 @@ export function AnchorPerformancePage() {
                       )}
                     >
                       <Td>{row.anchor_id}</Td>
-                      <Td className="font-medium text-slate-200">{row.anchor_name}</Td>
+                      <Td className="font-medium text-[var(--text-secondary)]">{row.anchor_name}</Td>
                       <Td>{formatDuration(row.duration_min)}</Td>
                       <Td>{formatCurrency(row.gmv)}</Td>
                       <Td>{formatCurrency(row.gmv_per_hour)}</Td>
@@ -421,7 +422,7 @@ export function AnchorPerformancePage() {
                       <Td>{formatNumber(row.avg_online)}</Td>
                       <Td>{formatPercent(row.exposure_view_rate)}</Td>
                       <Td>{formatPercent(row.retention_rate)}</Td>
-                      <Td className="text-slate-500">—</Td>
+                      <Td className="text-[var(--text-muted)]">—</Td>
                       <Td>{formatPercent(row.interaction_rate)}</Td>
                       <Td>{formatNumber(row.new_fans)}</Td>
                       <Td>{formatPercent(row.view_follow_rate)}</Td>
@@ -465,13 +466,13 @@ export function AnchorPerformancePage() {
             ) : (
               <div className="border-2 border-dashed border-orbit-border rounded-xl p-8">
                 <div className="text-center">
-                  <Users className="w-10 h-10 text-slate-500 mx-auto mb-2" />
-                  <p className="text-slate-400 text-sm font-medium">
+                  <Users className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-2" />
+                  <p className="text-[var(--text-muted)] text-sm font-medium">
                     {data && data.length > 0
                       ? '该主播暂无人群画像数据'
                       : '暂无主播数据'}
                   </p>
-                  <p className="text-slate-500 text-xs mt-1">
+                  <p className="text-[var(--text-muted)] text-xs mt-1">
                     {data && data.length > 0
                       ? '请确认主播分析文件已导入且包含人群画像字段'
                       : '请先上传主播分析数据'}
@@ -508,11 +509,11 @@ function SummaryCard({
       transition={{ duration: 0.3, delay }}
       className="rounded-lg bg-orbit-surface2/50 border border-orbit-border p-4"
     >
-      <div className="flex items-center gap-2 text-slate-500 text-xs mb-2">
+      <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs mb-2">
         <Icon className="w-4 h-4" />
         <span>{label}</span>
       </div>
-      <p className="text-lg font-semibold text-slate-100">{value}</p>
+      <p className="text-lg font-semibold text-[var(--text-primary)]">{value}</p>
     </motion.div>
   )
 }
@@ -538,8 +539,8 @@ function Th({
     <th
       className={cn(
         'px-3 py-2 text-left font-medium whitespace-nowrap',
-        sortable && 'cursor-pointer hover:text-slate-300 select-none',
-        active ? 'text-slate-200' : 'text-slate-500'
+        sortable && 'cursor-pointer hover:text-[var(--text-primary)] select-none',
+        active ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
       )}
       onClick={() => {
         if (sortable && sortKey) onSort?.(sortKey)
@@ -555,7 +556,7 @@ function Th({
 
 function Td({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <td className={cn('px-3 py-2.5 whitespace-nowrap text-slate-400', className)}>
+    <td className={cn('px-3 py-2.5 whitespace-nowrap text-[var(--text-muted)]', className)}>
       {children}
     </td>
   )
@@ -565,7 +566,7 @@ function TableHeader({ colSpan, children }: { colSpan: number; children: React.R
   return (
     <th
       colSpan={colSpan}
-      className="px-3 py-2 text-left text-xs font-semibold text-slate-500 bg-orbit-surface2/20 border-r border-orbit-border last:border-r-0"
+      className="px-3 py-2 text-left text-xs font-semibold text-[var(--text-muted)] bg-orbit-surface2/20 border-r border-orbit-border last:border-r-0"
     >
       {children}
     </th>
@@ -575,8 +576,8 @@ function TableHeader({ colSpan, children }: { colSpan: number; children: React.R
 function ProfileBox({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-lg bg-orbit-surface2/50 border border-orbit-border p-4 text-center">
-      <p className="text-xs text-slate-500 font-medium mb-2">{title}</p>
-      <p className="text-sm font-medium text-slate-200">{value}</p>
+      <p className="text-xs text-[var(--text-muted)] font-medium mb-2">{title}</p>
+      <p className="text-sm font-medium text-[var(--text-secondary)]">{value}</p>
     </div>
   )
 }

@@ -179,11 +179,11 @@ export function NetRoiPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-cyan-400" />
             全域投流与 T+7 净成交 ROI 双时间线
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             同步对比 T+0 消耗支付 ROI（千川/万相台/精准通/聚光）与 T+N 回款周期核销净成交 ROI
           </p>
         </div>
@@ -191,7 +191,7 @@ export function NetRoiPage() {
           <select
             value={platform}
             onChange={(e) => setPlatform(e.target.value)}
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200"
+            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-[var(--text-secondary)]"
           >
             <option value="">全部平台</option>
             <option value="douyin">抖音</option>
@@ -230,7 +230,7 @@ export function NetRoiPage() {
           <CardBody>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="text-slate-400 block mb-1">平台</label>
+                <label className="text-[var(--text-muted)] block mb-1">平台</label>
                 <select
                   value={form.platformCode}
                   onChange={(e) => {
@@ -239,7 +239,7 @@ export function NetRoiPage() {
                     const firstShop = shops.find((s) => s.platform_code === p)?.id
                     setForm({ ...form, platformCode: p, adToolCode: firstTool, shopId: firstShop ? String(firstShop) : '' })
                   }}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 >
                   {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                     <option key={p} value={p}>{p}</option>
@@ -247,11 +247,11 @@ export function NetRoiPage() {
                 </select>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">店铺</label>
+                <label className="text-[var(--text-muted)] block mb-1">店铺</label>
                 <select
                   value={form.shopId}
                   onChange={(e) => setForm({ ...form, shopId: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 >
                   <option value="">选择店铺</option>
                   {filteredShops.map((s) => (
@@ -260,11 +260,11 @@ export function NetRoiPage() {
                 </select>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">投流工具</label>
+                <label className="text-[var(--text-muted)] block mb-1">投流工具</label>
                 <select
                   value={form.adToolCode}
                   onChange={(e) => setForm({ ...form, adToolCode: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 >
                   {filteredTools.map((t) => (
                     <option key={t.code} value={t.code}>{t.name}</option>
@@ -272,49 +272,49 @@ export function NetRoiPage() {
                 </select>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">消耗日期</label>
+                <label className="text-[var(--text-muted)] block mb-1">消耗日期</label>
                 <input
                   type="date"
                   value={form.bizDate}
                   onChange={(e) => setForm({ ...form, bizDate: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">消耗金额 (元)</label>
+                <label className="text-[var(--text-muted)] block mb-1">消耗金额 (元)</label>
                 <input
                   type="number"
                   value={form.adSpend}
                   onChange={(e) => setForm({ ...form, adSpend: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                   placeholder="例如 12000"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">T+0 归因支付 GMV</label>
+                <label className="text-[var(--text-muted)] block mb-1">T+0 归因支付 GMV</label>
                 <input
                   type="number"
                   value={form.attributedGrossGmv}
                   onChange={(e) => setForm({ ...form, attributedGrossGmv: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">T+N 预估/已结算净 GMV</label>
+                <label className="text-[var(--text-muted)] block mb-1">T+N 预估/已结算净 GMV</label>
                 <input
                   type="number"
                   value={form.attributedSettledGmv}
                   onChange={(e) => setForm({ ...form, attributedSettledGmv: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">退款减扣预备金</label>
+                <label className="text-[var(--text-muted)] block mb-1">退款减扣预备金</label>
                 <input
                   type="number"
                   value={form.refundReserveAmount}
                   onChange={(e) => setForm({ ...form, refundReserveAmount: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
             </div>
@@ -332,26 +332,26 @@ export function NetRoiPage() {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
             <Card><CardBody>
-              <div className="text-xs text-slate-400">总投流消耗</div>
-              <div className="text-xl font-bold text-slate-100 mt-1 tabular-nums">¥{overview.summary.total_ad_spend.toLocaleString()}</div>
+              <div className="text-xs text-[var(--text-muted)]">总投流消耗</div>
+              <div className="text-xl font-bold text-[var(--text-primary)] mt-1 tabular-nums">¥{overview.summary.total_ad_spend.toLocaleString()}</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">T+0 归因支付 GMV</div>
+              <div className="text-xs text-[var(--text-muted)]">T+0 归因支付 GMV</div>
               <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">¥{overview.summary.total_attributed_gross_gmv.toLocaleString()}</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">支付 ROI {overview.summary.pay_roi}x</div>
+              <div className="text-[11px] text-[var(--text-muted)] mt-0.5">支付 ROI {overview.summary.pay_roi}x</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">T+N 结算净 GMV</div>
+              <div className="text-xs text-[var(--text-muted)]">T+N 结算净 GMV</div>
               <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">¥{overview.summary.total_attributed_settled_gmv.toLocaleString()}</div>
               <div className="text-[11px] text-emerald-400 mt-0.5">净成交 ROI {overview.summary.net_roi}x</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">退款/预留核减</div>
+              <div className="text-xs text-[var(--text-muted)]">退款/预留核减</div>
               <div className="text-xl font-bold text-amber-400 mt-1 tabular-nums">¥{overview.summary.total_refund_reserve.toLocaleString()}</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">平均点击成本 (CPC)</div>
-              <div className="text-xl font-bold text-slate-200 mt-1 tabular-nums">¥{overview.summary.avg_cpc.toFixed(2)}</div>
+              <div className="text-xs text-[var(--text-muted)]">平均点击成本 (CPC)</div>
+              <div className="text-xl font-bold text-[var(--text-secondary)] mt-1 tabular-nums">¥{overview.summary.avg_cpc.toFixed(2)}</div>
             </CardBody></Card>
           </div>
 
@@ -364,7 +364,7 @@ export function NetRoiPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-orbit-border text-slate-500">
+                    <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                       <th className="text-left px-4 py-2.5">平台/店铺</th>
                       <th className="text-left px-4 py-2.5">T+0 下单日</th>
                       <th className="text-left px-4 py-2.5">T+N 结算日</th>
@@ -379,18 +379,18 @@ export function NetRoiPage() {
                   <tbody>
                     {overview.dualTimeline.map((row) => (
                       <tr key={row.id} className="border-b border-orbit-border/60 hover:bg-white/5">
-                        <td className="px-4 py-2.5 text-slate-200">{row.platform_name} · {row.shop_name}</td>
-                        <td className="px-4 py-2.5 font-mono text-slate-300">{String(row.order_date).slice(0, 10)}</td>
+                        <td className="px-4 py-2.5 text-[var(--text-secondary)]">{row.platform_name} · {row.shop_name}</td>
+                        <td className="px-4 py-2.5 font-mono text-[var(--text-secondary)]">{String(row.order_date).slice(0, 10)}</td>
                         <td className="px-4 py-2.5 font-mono text-cyan-300">
-                          {String(row.settle_date).slice(0, 10)} <span className="text-slate-500">(T+{row.settlement_cycle_days})</span>
+                          {String(row.settle_date).slice(0, 10)} <span className="text-[var(--text-muted)]">(T+{row.settlement_cycle_days})</span>
                         </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-slate-200">¥{Number(row.gross_gmv).toLocaleString()}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">¥{Number(row.gross_gmv).toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-amber-400">-¥{Number(row.refund_deducted).toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400">¥{Number(row.settled_gmv).toLocaleString()}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-slate-300">¥{Number(row.ad_spend).toLocaleString()}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">¥{Number(row.ad_spend).toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">
-                          <span className="text-slate-400">{row.pay_roi}x</span>
-                          <span className="mx-1 text-slate-600">→</span>
+                          <span className="text-[var(--text-muted)]">{row.pay_roi}x</span>
+                          <span className="mx-1 text-[var(--text-primary)]">→</span>
                           <span className="font-semibold text-emerald-400">{row.net_roi}x</span>
                         </td>
                         <td className="px-4 py-2.5">
@@ -415,7 +415,7 @@ export function NetRoiPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-orbit-border text-slate-500">
+                <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                   <th className="text-left px-4 py-2.5">平台</th>
                   <th className="text-left px-4 py-2.5">投流工具</th>
                   <th className="text-right px-4 py-2.5">点击窗口</th>
@@ -428,15 +428,15 @@ export function NetRoiPage() {
               <tbody>
                 {tools.map((t) => (
                   <tr key={t.code} className="border-b border-orbit-border/60 hover:bg-white/5">
-                    <td className="px-4 py-2.5 text-slate-300">{t.platform_name || t.platform_code}</td>
-                    <td className="px-4 py-2.5 text-slate-100 font-medium">{t.name} <span className="text-slate-500 font-mono">({t.code})</span></td>
+                    <td className="px-4 py-2.5 text-[var(--text-secondary)]">{t.platform_name || t.platform_code}</td>
+                    <td className="px-4 py-2.5 text-[var(--text-primary)] font-medium">{t.name} <span className="text-[var(--text-muted)] font-mono">({t.code})</span></td>
                     <td className="px-4 py-2.5 text-right text-cyan-300 tabular-nums">
                       {t.default_attribution_hours ? `${t.default_attribution_hours}h` : '自定义'}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-slate-300 tabular-nums">{t.impression_window_hours}h</td>
-                    <td className="px-4 py-2.5 text-slate-300">{t.supported_windows}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-200 tabular-nums">
-                      <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3 text-slate-400" />T+{t.settlement_cycle_days}</span>
+                    <td className="px-4 py-2.5 text-right text-[var(--text-secondary)] tabular-nums">{t.impression_window_hours}h</td>
+                    <td className="px-4 py-2.5 text-[var(--text-secondary)]">{t.supported_windows}</td>
+                    <td className="px-4 py-2.5 text-right text-[var(--text-secondary)] tabular-nums">
+                      <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3 text-[var(--text-muted)]" />T+{t.settlement_cycle_days}</span>
                     </td>
                     <td className="px-4 py-2.5">
                       {t.is_verified ? <Badge variant="success"><ShieldCheck className="w-3 h-3 inline mr-0.5" />已核验</Badge> : <Badge variant="warning">待校准</Badge>}

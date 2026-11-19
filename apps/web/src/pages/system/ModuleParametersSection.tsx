@@ -459,7 +459,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
               onClick={() => setSelectedModule(tab.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium shrink-0 transition-all border ${isActive
                 ? 'bg-orbit-primary/15 text-orbit-primary-light border-orbit-primary/40 shadow-sm shadow-orbit-primary/10'
-                : 'bg-orbit-surface2 text-slate-400 border-orbit-border hover:text-slate-300 hover:border-orbit-border2'
+                : 'bg-orbit-surface2 text-[var(--text-muted)] border-orbit-border hover:text-[var(--text-primary)] hover:border-orbit-border2'
                 }`}
             >
               <Icon className="w-4 h-4" />
@@ -531,94 +531,94 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl border border-orbit-border bg-orbit-surface2/40">
                 {/* 操盘手 */}
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
-                  <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                     <Award className="w-3.5 h-3.5 text-emerald-400" /> 操盘运营分红比例
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">净利润分红比例 (%)</label>
+                    <label className="text-[11px] text-[var(--text-muted)] block mb-1">净利润分红比例 (%)</label>
                     <input
                       type="number"
                       step="0.5"
                       disabled={isReadOnly}
                       value={operatorProfitShare}
                       onChange={(e) => setOperatorProfitShare(Number(e.target.value))}
-                      className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2.5 py-1.5 font-mono font-bold text-slate-200"
+                      className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2.5 py-1.5 font-mono font-bold text-[var(--text-secondary)]"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-500">经营毛利扣减投流与履约后的净利润分红</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">经营毛利扣减投流与履约后的净利润分红</p>
                 </div>
 
                 {/* 千川投手 */}
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
-                  <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5 text-amber-400" /> 千川投手激励基准
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">消耗提成 (%)</label>
+                      <label className="text-[11px] text-[var(--text-muted)] block mb-1">消耗提成 (%)</label>
                       <input
                         type="number"
                         step="0.1"
                         disabled={isReadOnly}
                         value={adBuyerRate}
                         onChange={(e) => setAdBuyerRate(Number(e.target.value))}
-                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-slate-200"
+                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-[var(--text-secondary)]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">保本目标 ROI</label>
+                      <label className="text-[11px] text-[var(--text-muted)] block mb-1">保本目标 ROI</label>
                       <input
                         type="number"
                         step="0.1"
                         disabled={isReadOnly}
                         value={adBuyerTargetRoi}
                         onChange={(e) => setAdBuyerTargetRoi(Number(e.target.value))}
-                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-slate-200"
+                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-[var(--text-secondary)]"
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-500">按实际消耗比例提成，挂钩 ROI 达成</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">按实际消耗比例提成，挂钩 ROI 达成</p>
                 </div>
 
                 {/* 中控场控 */}
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
-                  <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-sky-400" /> 中控/场控出勤津贴
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">场次津贴 (元/场)</label>
+                      <label className="text-[11px] text-[var(--text-muted)] block mb-1">场次津贴 (元/场)</label>
                       <input
                         type="number"
                         step="10"
                         disabled={isReadOnly}
                         value={controllerPerSession}
                         onChange={(e) => setControllerPerSession(Number(e.target.value))}
-                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-slate-200"
+                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-[var(--text-secondary)]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">安全奖金 (元/月)</label>
+                      <label className="text-[11px] text-[var(--text-muted)] block mb-1">安全奖金 (元/月)</label>
                       <input
                         type="number"
                         step="100"
                         disabled={isReadOnly}
                         value={controllerBonus}
                         onChange={(e) => setControllerBonus(Number(e.target.value))}
-                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-slate-200"
+                        className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1.5 font-mono font-bold text-[var(--text-secondary)]"
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-500">出勤场次按劳分配及月度零失误奖</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">出勤场次按劳分配及月度零失误奖</p>
                 </div>
 
                 {/* 人效红线 */}
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                     <ShieldAlert className="w-3.5 h-3.5 text-rose-400" /> 经营人效罗盘警戒线
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">全员薪效比红线 (%)</label>
+                    <label className="text-[11px] text-[var(--text-muted)] block mb-1">全员薪效比红线 (%)</label>
                     <input
                       type="number"
                       step="0.5"
@@ -628,7 +628,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                       className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2.5 py-1.5 font-mono font-bold text-rose-400"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-500">团队总薪酬占净成交比例超过此值在罗盘标红</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">团队总薪酬占净成交比例超过此值在罗盘标红</p>
                 </div>
               </div>
             </CardBody>
@@ -691,15 +691,15 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               const val = e.target.value
                               setAnchorTiers((prev) => prev.map((t, i) => (i === tIdx ? { ...t, tierName: val } : t)))
                             }}
-                            className="text-sm font-semibold bg-transparent border-b border-dashed border-orbit-border hover:border-orbit-primary text-slate-200 outline-none px-1"
+                            className="text-sm font-semibold bg-transparent border-b border-dashed border-orbit-border hover:border-orbit-primary text-[var(--text-secondary)] outline-none px-1"
                           />
-                          <span className="text-[11px] text-slate-500 ml-2">基准标识: {tier.tierCode}</span>
+                          <span className="text-[11px] text-[var(--text-muted)] ml-2">基准标识: {tier.tierCode}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-slate-400">保底底薪:</span>
+                          <span className="text-xs text-[var(--text-muted)]">保底底薪:</span>
                           <input
                             type="number"
                             step="500"
@@ -709,9 +709,9 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               const val = Number(e.target.value)
                               setAnchorTiers((prev) => prev.map((t, i) => (i === tIdx ? { ...t, baseSalary: val } : t)))
                             }}
-                            className="w-24 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-slate-200"
+                            className="w-24 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-[var(--text-secondary)]"
                           />
-                          <span className="text-xs text-slate-500">元/月</span>
+                          <span className="text-xs text-[var(--text-muted)]">元/月</span>
                         </div>
 
                         {!isReadOnly && anchorTiers.length > 1 && (
@@ -721,7 +721,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                 setAnchorTiers((prev) => prev.filter((_, i) => i !== tIdx))
                               }
                             }}
-                            className="text-xs text-slate-500 hover:text-rose-400 transition-colors p-1"
+                            className="text-xs text-[var(--text-muted)] hover:text-rose-400 transition-colors p-1"
                             title="删除该等级"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -733,7 +733,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                     {/* 阶梯表格 */}
                     <div className="bg-orbit-surface2/60 rounded-xl p-3 border border-orbit-border/60">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-slate-400 font-medium">GMV 达成阶梯提成率设置：</span>
+                        <span className="text-xs text-[var(--text-muted)] font-medium">GMV 达成阶梯提成率设置：</span>
                         {!isReadOnly && (
                           <button
                             onClick={() => {
@@ -760,7 +760,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
                         {tier.tiers.map((step, sIdx) => (
                           <div key={sIdx} className="bg-orbit-surface border border-orbit-border rounded-lg p-2.5 flex flex-col gap-1.5 relative group">
-                            <div className="flex items-center justify-between text-[11px] text-slate-400">
+                            <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
                               <span>阶梯 {sIdx + 1}</span>
                               {!isReadOnly && tier.tiers.length > 1 && (
                                 <button
@@ -771,14 +771,14 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                       )
                                     )
                                   }}
-                                  className="text-slate-500 hover:text-rose-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                  className="text-[var(--text-muted)] hover:text-rose-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                   ×
                                 </button>
                               )}
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] text-slate-500">区间上限:</span>
+                              <span className="text-[10px] text-[var(--text-muted)]">区间上限:</span>
                               <input
                                 type="number"
                                 step="10"
@@ -798,12 +798,12 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                     )
                                   )
                                 }}
-                                className="w-20 text-xs bg-orbit-surface2 border border-orbit-border rounded px-1.5 py-1 font-mono text-slate-200"
+                                className="w-20 text-xs bg-orbit-surface2 border border-orbit-border rounded px-1.5 py-1 font-mono text-[var(--text-secondary)]"
                               />
-                              <span className="text-[10px] text-slate-500">万元</span>
+                              <span className="text-[10px] text-[var(--text-muted)]">万元</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] text-slate-500">提成比例:</span>
+                              <span className="text-[10px] text-[var(--text-muted)]">提成比例:</span>
                               <input
                                 type="number"
                                 step="0.5"
@@ -824,7 +824,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                 }}
                                 className="w-20 text-xs bg-orbit-surface2 border border-orbit-border rounded px-1.5 py-1 font-mono font-bold text-orbit-primary-light"
                               />
-                              <span className="text-[10px] text-slate-500">%</span>
+                              <span className="text-[10px] text-[var(--text-muted)]">%</span>
                             </div>
                           </div>
                         ))}
@@ -869,7 +869,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-orbit-border text-slate-500 text-xs">
+                    <tr className="border-b border-orbit-border text-[var(--text-muted)] text-xs">
                       <th className="text-left px-5 py-3 font-medium">类目名称</th>
                       <th className="text-left px-5 py-3 font-medium">退货率警戒红线 (%)</th>
                       <th className="text-left px-5 py-3 font-medium">基准毛利率 (%)</th>
@@ -880,7 +880,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                   <tbody>
                     {categoryBenchmarks.map((cat, idx) => (
                       <tr key={cat.category} className="border-b border-orbit-border/60 hover:bg-white/[0.015] transition-colors">
-                        <td className="px-5 py-3.5 font-bold text-slate-200">
+                        <td className="px-5 py-3.5 font-bold text-[var(--text-secondary)]">
                           <input
                             type="text"
                             disabled={isReadOnly}
@@ -889,7 +889,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               const v = e.target.value
                               setCategoryBenchmarks((prev) => prev.map((c, i) => (i === idx ? { ...c, category: v } : c)))
                             }}
-                            className="bg-transparent border-b border-dashed border-orbit-border text-slate-200 text-xs outline-none px-1"
+                            className="bg-transparent border-b border-dashed border-orbit-border text-[var(--text-secondary)] text-xs outline-none px-1"
                           />
                         </td>
                         <td className="px-5 py-3.5">
@@ -907,7 +907,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               }}
                               className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-rose-400"
                             />
-                            <span className="text-xs text-slate-500">%</span>
+                            <span className="text-xs text-[var(--text-muted)]">%</span>
                           </div>
                         </td>
                         <td className="px-5 py-3.5">
@@ -925,10 +925,10 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               }}
                               className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-emerald-400"
                             />
-                            <span className="text-xs text-slate-500">%</span>
+                            <span className="text-xs text-[var(--text-muted)]">%</span>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-xs text-slate-400">
+                        <td className="px-5 py-3.5 text-xs text-[var(--text-muted)]">
                           <input
                             type="text"
                             disabled={isReadOnly}
@@ -938,7 +938,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               const v = e.target.value
                               setCategoryBenchmarks((prev) => prev.map((c, i) => (i === idx ? { ...c, desc: v } : c)))
                             }}
-                            className="w-full bg-transparent border-b border-orbit-border/40 text-slate-400 text-xs outline-none px-1 py-0.5"
+                            className="w-full bg-transparent border-b border-orbit-border/40 text-[var(--text-muted)] text-xs outline-none px-1 py-0.5"
                           />
                         </td>
                         {!isReadOnly && (
@@ -949,7 +949,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                   setCategoryBenchmarks((prev) => prev.filter((_, i) => i !== idx))
                                 }
                               }}
-                              className="text-xs text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                              className="text-xs text-[var(--text-muted)] hover:text-rose-400 p-1 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -999,14 +999,14 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
             />
             <CardBody className="px-0">
               {entityOverrides.length === 0 ? (
-                <div className="py-10 text-center text-slate-500 text-xs">
+                <div className="py-10 text-center text-[var(--text-muted)] text-xs">
                   暂无个人专属覆盖记录。当前全员按等级基准阶梯正常继承生效。点击右上角可为核心大主播或战略直播间创建专属对赌协议。
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-orbit-border text-slate-500 text-xs">
+                      <tr className="border-b border-orbit-border text-[var(--text-muted)] text-xs">
                         <th className="text-left px-5 py-3 font-medium">覆盖对象</th>
                         <th className="text-left px-5 py-3 font-medium">保底底薪</th>
                         <th className="text-left px-5 py-3 font-medium">专属提成模式</th>
@@ -1022,11 +1022,11 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                         return (
                           <tr key={ov.id} className="border-b border-orbit-border/60 hover:bg-white/[0.015] transition-colors">
                             <td className="px-5 py-3.5">
-                              <span className="font-bold text-slate-200 block text-xs">{val.target_name || ov.param_name}</span>
-                              <span className="text-[10px] font-mono text-slate-500">ID: {ov.scope_id}</span>
+                              <span className="font-bold text-[var(--text-secondary)] block text-xs">{val.target_name || ov.param_name}</span>
+                              <span className="text-[10px] font-mono text-[var(--text-muted)]">ID: {ov.scope_id}</span>
                             </td>
-                            <td className="px-5 py-3.5 font-mono text-xs text-slate-300 font-bold">
-                              ¥{(val.base_salary ?? 0).toLocaleString()} <span className="text-[10px] font-normal text-slate-500">/月</span>
+                            <td className="px-5 py-3.5 font-mono text-xs text-[var(--text-secondary)] font-bold">
+                              ¥{(val.base_salary ?? 0).toLocaleString()} <span className="text-[10px] font-normal text-[var(--text-muted)]">/月</span>
                             </td>
                             <td className="px-5 py-3.5">
                               <Badge variant={val.commission_mode === 'flat' ? 'warning' : 'info'}>
@@ -1038,7 +1038,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                 ? `净 GMV × ${val.rate}%`
                                 : (val.tiers || []).map((t: any) => `<${t.max_gmv > 10000 ? '超额' : t.max_gmv + '万'}:${t.rate}%`).join(' / ')}
                             </td>
-                            <td className="px-5 py-3.5 text-xs text-slate-400 max-w-xs truncate">{val.note || '-'}</td>
+                            <td className="px-5 py-3.5 text-xs text-[var(--text-muted)] max-w-xs truncate">{val.note || '-'}</td>
                             <td className="px-5 py-3.5">
                               <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
                                 <CheckCircle2 className="w-3 h-3" /> L3 覆盖生效中
@@ -1048,7 +1048,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               <td className="px-5 py-3.5 text-right">
                                 <button
                                   onClick={() => handleDeleteOverride(ov.id, val.target_name || ov.param_name)}
-                                  className="text-xs text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1 ml-auto"
+                                  className="text-xs text-[var(--text-muted)] hover:text-rose-400 transition-colors flex items-center gap-1 ml-auto"
                                   title="移除专属覆盖，恢复继承通用等级标准"
                                 >
                                   <RotateCcw className="w-3.5 h-3.5" /> 恢复继承
@@ -1080,13 +1080,13 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 左侧：输入模拟器 */}
                 <div className="p-4 rounded-xl bg-orbit-surface border border-orbit-border space-y-3">
-                  <div className="text-xs font-bold text-slate-200">第一步：选择试算对象与模拟业绩</div>
+                  <div className="text-xs font-bold text-[var(--text-secondary)]">第一步：选择试算对象与模拟业绩</div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">选择试算主播 (共 {anchors.length} 名主播可供验证)</label>
+                    <label className="text-[11px] text-[var(--text-muted)] block mb-1">选择试算主播 (共 {anchors.length} 名主播可供验证)</label>
                     <select
                       value={simAnchorId}
                       onChange={(e) => setSimAnchorId(e.target.value)}
-                      className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-orbit-primary"
+                      className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                     >
                       {anchors.map((a) => (
                         <option key={a.id} value={`anchor:${a.id}`}>
@@ -1097,7 +1097,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] text-slate-400">当月净成交 GMV (扣退货)</label>
+                      <label className="text-[11px] text-[var(--text-muted)]">当月净成交 GMV (扣退货)</label>
                       <span className="text-xs font-mono font-bold text-orbit-primary-light">{simGmv} 万元</span>
                     </div>
                     <input
@@ -1109,7 +1109,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                       onChange={(e) => setSimGmv(Number(e.target.value))}
                       className="w-full accent-orbit-primary cursor-pointer"
                     />
-                    <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                    <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono mt-1">
                       <span>10万 (起步)</span>
                       <span>100万 (百万场)</span>
                       <span>300万 (核心)</span>
@@ -1122,7 +1122,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                 {simulationResult && (
                   <div className="p-4 rounded-xl bg-orbit-surface border border-orbit-border space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-200">第二步：引擎解析与激励分润产出</span>
+                      <span className="text-xs font-bold text-[var(--text-secondary)]">第二步：引擎解析与激励分润产出</span>
                       <span
                         className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${simulationResult.isOverride
                           ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
@@ -1135,17 +1135,17 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
 
                     <div className="grid grid-cols-3 gap-2 text-center py-2 bg-orbit-surface2/60 rounded-lg border border-orbit-border/60">
                       <div>
-                        <span className="text-[10px] text-slate-500 block">保底底薪</span>
-                        <span className="text-sm font-mono font-bold text-slate-200">¥{simulationResult.baseSalary.toLocaleString()}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block">保底底薪</span>
+                        <span className="text-sm font-mono font-bold text-[var(--text-secondary)]">¥{simulationResult.baseSalary.toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block">提成测算金额</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block">提成测算金额</span>
                         <span className="text-sm font-mono font-bold text-orbit-primary-light">
                           ¥{Math.round(simulationResult.commission).toLocaleString()}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block">预计全月总薪酬</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block">预计全月总薪酬</span>
                         <span className="text-sm font-mono font-bold text-emerald-400">
                           ¥{Math.round(simulationResult.totalPay).toLocaleString()}
                         </span>
@@ -1153,11 +1153,11 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                     </div>
 
                     <div className="space-y-1 text-xs">
-                      <div className="flex justify-between text-slate-400">
+                      <div className="flex justify-between text-[var(--text-muted)]">
                         <span>提成费率说明:</span>
-                        <span className="font-mono text-slate-300 font-bold">{simulationResult.rateDesc}</span>
+                        <span className="font-mono text-[var(--text-secondary)] font-bold">{simulationResult.rateDesc}</span>
                       </div>
-                      <div className="flex justify-between text-slate-400">
+                      <div className="flex justify-between text-[var(--text-muted)]">
                         <span>测算薪效比:</span>
                         <span
                           className={`font-mono font-bold ${simulationResult.costRatio > laborAlert ? 'text-rose-400' : 'text-emerald-400'
@@ -1194,14 +1194,14 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
           />
           <CardBody>
             {params.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 text-xs">暂无配置参数项</div>
+              <div className="py-12 text-center text-[var(--text-muted)] text-xs">暂无配置参数项</div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {params.map((p) => (
                   <div key={p.id} className="p-4 rounded-xl bg-orbit-surface2/60 border border-orbit-border space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-200">{p.param_name}</span>
-                      <span className="text-[10px] font-mono text-slate-500">{p.param_key}</span>
+                      <span className="text-xs font-bold text-[var(--text-secondary)]">{p.param_name}</span>
+                      <span className="text-[10px] font-mono text-[var(--text-muted)]">{p.param_key}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <input
@@ -1213,11 +1213,11 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                           const val = e.target.value
                           setGenericForm((prev) => ({ ...prev, [p.param_key]: val }))
                         }}
-                        className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 font-mono font-bold text-slate-200 outline-none focus:border-orbit-primary"
+                        className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-2 font-mono font-bold text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                       />
-                      {p.unit && <span className="text-xs text-slate-400 font-mono w-12">{p.unit}</span>}
+                      {p.unit && <span className="text-xs text-[var(--text-muted)] font-mono w-12">{p.unit}</span>}
                     </div>
-                    {p.description && <p className="text-[11px] text-slate-500">{p.description}</p>}
+                    {p.description && <p className="text-[11px] text-[var(--text-muted)]">{p.description}</p>}
                   </div>
                 ))}
               </div>
@@ -1233,18 +1233,18 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowOverrideModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-orbit-border flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-200 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-[var(--text-secondary)] flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-orbit-accent" />
                 新增个人专属对赌覆盖 (L3 Override)
               </h3>
-              <button onClick={() => setShowOverrideModal(false)} className="text-slate-400 hover:text-slate-200">
+              <button onClick={() => setShowOverrideModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 ×
               </button>
             </div>
 
             <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">选择覆盖对象类型与目标</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">选择覆盖对象类型与目标</label>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <button
                     type="button"
@@ -1259,7 +1259,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                     }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border ${overrideForm.targetType === 'anchor'
                       ? 'bg-orbit-primary/20 text-orbit-primary-light border-orbit-primary'
-                      : 'bg-orbit-surface2 text-slate-400 border-orbit-border'
+                      : 'bg-orbit-surface2 text-[var(--text-muted)] border-orbit-border'
                       }`}
                   >
                     按主播个人覆盖
@@ -1277,7 +1277,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                     }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border ${overrideForm.targetType === 'room'
                       ? 'bg-orbit-primary/20 text-orbit-primary-light border-orbit-primary'
-                      : 'bg-orbit-surface2 text-slate-400 border-orbit-border'
+                      : 'bg-orbit-surface2 text-[var(--text-muted)] border-orbit-border'
                       }`}
                   >
                     按直播间覆盖
@@ -1295,7 +1295,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                         targetName: target ? `${target.name} (${target.level || 'S'}级)` : '指定对象',
                       }))
                     }}
-                    className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-orbit-primary"
+                    className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                   >
                     {anchors.map((a) => (
                       <option key={a.id} value={`anchor:${a.id}`}>
@@ -1315,7 +1315,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                         targetName: target ? target.name || `直播间 ${target.id}` : '直播间',
                       }))
                     }}
-                    className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-orbit-primary"
+                    className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                   >
                     {rooms.map((r) => (
                       <option key={r.id} value={`room:${r.id}`}>
@@ -1327,25 +1327,25 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">协议专属底薪 (元/月)</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">协议专属底薪 (元/月)</label>
                 <input
                   type="number"
                   step="1000"
                   value={overrideForm.baseSalary}
                   onChange={(e) => setOverrideForm((prev) => ({ ...prev, baseSalary: Number(e.target.value) }))}
-                  className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 font-mono text-slate-200 outline-none focus:border-orbit-primary"
+                  className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 font-mono text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">专属提成模式</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">专属提成模式</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setOverrideForm((prev) => ({ ...prev, commissionMode: 'flat' }))}
                     className={`px-3 py-2 text-xs rounded-lg border font-medium transition-colors ${overrideForm.commissionMode === 'flat'
                       ? 'bg-orbit-primary/20 text-orbit-primary-light border-orbit-primary'
-                      : 'bg-orbit-surface2 text-slate-400 border-orbit-border'
+                      : 'bg-orbit-surface2 text-[var(--text-muted)] border-orbit-border'
                       }`}
                   >
                     单一固定比例 (%)
@@ -1355,7 +1355,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                     onClick={() => setOverrideForm((prev) => ({ ...prev, commissionMode: 'tiered' }))}
                     className={`px-3 py-2 text-xs rounded-lg border font-medium transition-colors ${overrideForm.commissionMode === 'tiered'
                       ? 'bg-orbit-primary/20 text-orbit-primary-light border-orbit-primary'
-                      : 'bg-orbit-surface2 text-slate-400 border-orbit-border'
+                      : 'bg-orbit-surface2 text-[var(--text-muted)] border-orbit-border'
                       }`}
                   >
                     专属多阶梯累进制
@@ -1365,7 +1365,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
 
               {overrideForm.commissionMode === 'flat' ? (
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">净 GMV 提成比例 (%)</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">净 GMV 提成比例 (%)</label>
                   <input
                     type="number"
                     step="0.5"
@@ -1373,12 +1373,12 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                     onChange={(e) => setOverrideForm((prev) => ({ ...prev, flatRate: Number(e.target.value) }))}
                     className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 font-mono font-bold text-orbit-primary-light outline-none focus:border-orbit-primary"
                   />
-                  <p className="text-[10px] text-slate-500 mt-1">适用于大主播单一包干比例，如净成交 GMV 直接提 8.5%</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">适用于大主播单一包干比例，如净成交 GMV 直接提 8.5%</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-slate-400">专属阶梯设置</label>
+                    <label className="text-xs font-medium text-[var(--text-muted)]">专属阶梯设置</label>
                     <button
                       type="button"
                       onClick={() =>
@@ -1394,7 +1394,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                   </div>
                   {overrideForm.tiers.map((t, idx) => (
                     <div key={idx} className="flex items-center gap-2 bg-orbit-surface2 p-2 rounded-lg border border-orbit-border">
-                      <span className="text-[11px] text-slate-500">上限:</span>
+                      <span className="text-[11px] text-[var(--text-muted)]">上限:</span>
                       <input
                         type="number"
                         value={t.max_gmv >= 99999 ? '' : t.max_gmv}
@@ -1406,9 +1406,9 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                             tiers: prev.tiers.map((st, i) => (i === idx ? { ...st, max_gmv: v } : st)),
                           }))
                         }}
-                        className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-1.5 py-1 text-slate-200 font-mono"
+                        className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-1.5 py-1 text-[var(--text-secondary)] font-mono"
                       />
-                      <span className="text-[11px] text-slate-500">万元，比例:</span>
+                      <span className="text-[11px] text-[var(--text-muted)]">万元，比例:</span>
                       <input
                         type="number"
                         step="0.5"
@@ -1422,7 +1422,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                         }}
                         className="w-16 text-xs bg-orbit-surface border border-orbit-border rounded px-1.5 py-1 text-orbit-primary-light font-mono font-bold"
                       />
-                      <span className="text-[11px] text-slate-500">%</span>
+                      <span className="text-[11px] text-[var(--text-muted)]">%</span>
                       {overrideForm.tiers.length > 1 && (
                         <button
                           type="button"
@@ -1432,7 +1432,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               tiers: prev.tiers.filter((_, i) => i !== idx),
                             }))
                           }
-                          className="text-slate-500 hover:text-rose-400 text-xs ml-auto"
+                          className="text-[var(--text-muted)] hover:text-rose-400 text-xs ml-auto"
                         >
                           ×
                         </button>
@@ -1443,13 +1443,13 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">对赌协议说明 / 签署批号</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">对赌协议说明 / 签署批号</label>
                 <textarea
                   rows={2}
                   value={overrideForm.note}
                   onChange={(e) => setOverrideForm((prev) => ({ ...prev, note: e.target.value }))}
                   placeholder="如：2026年年度S级特约合伙人对赌协议..."
-                  className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg p-2 text-slate-200 outline-none focus:border-orbit-primary"
+                  className="w-full text-xs bg-orbit-surface2 border border-orbit-border rounded-lg p-2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                 />
               </div>
             </div>

@@ -914,7 +914,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-[var(--text-muted)]">
         <div className="w-7 h-7 border-2 border-orbit-primary border-t-transparent rounded-full animate-spin mb-3" />
         <span className="text-xs">HRBP 经营人效中枢装载中...</span>
       </div>
@@ -931,13 +931,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <Users className="w-5 h-5 text-orbit-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
                 HRBP 业务工作台
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-600 dark:text-slate-300 font-normal border border-orbit-border">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-orbit-surface2 text-[var(--text-primary)] font-normal border border-orbit-border">
                   亿级直播电商组织经营中枢
                 </span>
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] dark:text-[var(--text-muted)] mt-0.5">
                 全域人效罗盘 · 九宫格人才盘点 · 全息人才画像 · 铁三角作战协同 · 全岗分润精算 · 试镜漏斗 · 资产法务风控
               </p>
             </div>
@@ -947,18 +947,18 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
         {/* 顶部核心经营状态指标胶囊 */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orbit-surface border border-orbit-border text-xs">
-            <span className="text-slate-500">周期 GMV:</span>
+            <span className="text-[var(--text-muted)]">周期 GMV:</span>
             <span className="font-bold text-orbit-primary">{fmtWan(effSummary?.kpi.totalGmv)}</span>
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orbit-surface border border-orbit-border text-xs">
-            <span className="text-slate-500">小时人效:</span>
+            <span className="text-[var(--text-muted)]">小时人效:</span>
             <span className="font-bold text-emerald-700 dark:text-emerald-400">{fmtWan(effSummary?.efficiency.gmvPerHour)}/h</span>
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orbit-surface border border-orbit-border text-xs">
-            <span className="text-slate-500">全员薪效比:</span>
-            <span className="font-bold text-slate-800 dark:text-slate-200">{commissionSim.staffCostRatio.toFixed(1)}%</span>
+            <span className="text-[var(--text-muted)]">全员薪效比:</span>
+            <span className="font-bold text-[var(--text-primary)]">{commissionSim.staffCostRatio.toFixed(1)}%</span>
             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">(健康 6%~10%)</span>
           </div>
 
@@ -967,7 +967,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <select
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
-              className="text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 font-medium"
+              className="text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2.5 py-1.5 text-[var(--text-primary)] font-medium"
             >
               <option value={7}>近 7 天</option>
               <option value={30}>近 30 天</option>
@@ -998,7 +998,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-all duration-150 ${
                 active
                   ? 'border-orbit-primary text-orbit-primary bg-orbit-primary/5 rounded-t-lg font-bold'
-                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -1006,7 +1006,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               {t.badge && (
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded font-normal ${
-                    active ? 'bg-orbit-primary text-white' : 'bg-orbit-surface2 text-slate-500'
+                    active ? 'bg-orbit-primary text-white' : 'bg-orbit-surface2 text-[var(--text-muted)]'
                   }`}
                 >
                   {t.badge}
@@ -1067,7 +1067,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <LineChart className="w-4 h-4 text-orbit-primary" />
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">近 12 周大盘人效与工时利用走势</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">近 12 周大盘人效与工时利用走势</span>
                 </div>
                 <Badge variant="neutral">周度监控</Badge>
               </CardHeader>
@@ -1075,7 +1075,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                      <tr className="text-slate-600 dark:text-slate-400">
+                      <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                         <th className="text-left px-4 py-2.5 font-medium">统计周期</th>
                         <th className="text-right px-3 py-2.5 font-medium">当周 GMV</th>
                         <th className="text-right px-3 py-2.5 font-medium">累计工时</th>
@@ -1086,11 +1086,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     <tbody className="divide-y divide-orbit-border/40">
                       {(effSummary?.trend || []).map((t) => (
                         <tr key={t.week} className="hover:bg-orbit-surface2/50 transition-colors">
-                          <td className="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">{t.week}</td>
-                          <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300 font-mono font-medium">{fmtWan(t.gmv)}</td>
-                          <td className="px-3 py-2 text-right text-slate-500 font-mono">{t.hours} h</td>
+                          <td className="px-4 py-2 text-[var(--text-primary)] font-medium">{t.week}</td>
+                          <td className="px-3 py-2 text-right text-[var(--text-primary)] font-mono font-medium">{fmtWan(t.gmv)}</td>
+                          <td className="px-3 py-2 text-right text-[var(--text-muted)] font-mono">{t.hours} h</td>
                           <td className="px-3 py-2 text-right text-orbit-primary font-mono font-bold">{fmtWan(t.gmvPerHour)}/h</td>
-                          <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-300 font-mono">{t.activeAnchors} 人</td>
+                          <td className="px-4 py-2 text-right text-[var(--text-primary)] font-mono">{t.activeAnchors} 人</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1103,7 +1103,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <PieChart className="w-4 h-4 text-orbit-primary" />
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">梯队 GMV 产出贡献比</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">梯队 GMV 产出贡献比</span>
                 </div>
                 <Badge variant="neutral">二八定律</Badge>
               </CardHeader>
@@ -1113,22 +1113,22 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1.5">
                         <LevelBadge level={tier.tier} />
-                        <span className="text-slate-700 dark:text-slate-300 font-medium">{tier.anchorCount} 名主播</span>
+                        <span className="text-[var(--text-primary)] font-medium">{tier.anchorCount} 名主播</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-slate-900 dark:text-slate-100 font-bold">{fmtWan(tier.gmv)}</span>
-                        <span className="text-[11px] text-slate-500 font-mono">({fmtPct(tier.gmvShare)})</span>
+                        <span className="font-mono text-[var(--text-primary)] font-bold">{fmtWan(tier.gmv)}</span>
+                        <span className="text-[11px] text-[var(--text-muted)] font-mono">({fmtPct(tier.gmvShare)})</span>
                       </div>
                     </div>
                     <div className="h-1.5 rounded-full bg-orbit-surface2 overflow-hidden">
                       <div
                         className={`h-full ${
-                          tier.tier === 'S' ? 'bg-rose-500' : tier.tier === 'A' ? 'bg-amber-500' : tier.tier === 'B' ? 'bg-sky-500' : 'bg-slate-400'
+                          tier.tier === 'S' ? 'bg-rose-500' : tier.tier === 'A' ? 'bg-amber-500' : tier.tier === 'B' ? 'bg-sky-500' : 'bg-[var(--text-subtle)]'
                         }`}
                         style={{ width: `${Math.min(100, Math.max(0, tier.gmvShare || 0))}%` }}
                       />
                     </div>
-                    <div className="text-[10px] text-slate-500 flex justify-between">
+                    <div className="text-[10px] text-[var(--text-muted)] flex justify-between">
                       <span>小时人效: {fmtWan(tier.gmvPerHour)}/h</span>
                       <span>工时: {tier.hours} h</span>
                     </div>
@@ -1142,11 +1142,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-orbit-primary" />
                   直播电商 6 大核心岗位编制与人效矩阵
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">HRBP 组织架构配比与岗位单位经济价值评估</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">HRBP 组织架构配比与岗位单位经济价值评估</p>
               </div>
               <Badge variant="info">全域人效模型</Badge>
             </CardHeader>
@@ -1154,7 +1154,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                    <tr className="text-slate-600 dark:text-slate-400">
+                    <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                       <th className="text-left px-4 py-2.5 font-medium">核心岗位</th>
                       <th className="text-left px-3 py-2.5 font-medium">编制配比</th>
                       <th className="text-left px-4 py-2.5 font-medium">核心职责与交付</th>
@@ -1164,45 +1164,45 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </thead>
                   <tbody className="divide-y divide-orbit-border/40">
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">带货主播 (Anchor)</td>
-                      <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">1个直播间配 2~3人 (轮播)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">承接流量爆发、憋单放价、商品背书、引导成交</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">小时人效、GPM、转粉率、低退货率</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">带货主播 (Anchor)</td>
+                      <td className="px-3 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">1个直播间配 2~3人 (轮播)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">承接流量爆发、憋单放价、商品背书、引导成交</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">小时人效、GPM、转粉率、低退货率</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">≥ 5 万/h</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">千川投放手 (Media Buyer)</td>
-                      <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">1人管 2~3个直播间</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">操盘付费流量、出价抢量、人群定向放大自然流</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">综合 ROI、投流 GMV 贡献占比、引流成本</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">千川投放手 (Media Buyer)</td>
+                      <td className="px-3 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">1人管 2~3个直播间</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">操盘付费流量、出价抢量、人群定向放大自然流</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">综合 ROI、投流 GMV 贡献占比、引流成本</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">综合 ROI ≥ 3.5</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">直播间操盘手 (Operator)</td>
-                      <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">1人统筹 1个主力直播间</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">全场控盘、排品节奏、喊麦控场、联动投流与主播</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">直播间全场净利润、开播履约率、增量达成</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">直播间操盘手 (Operator)</td>
+                      <td className="px-3 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">1人统筹 1个主力直播间</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">全场控盘、排品节奏、喊麦控场、联动投流与主播</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">直播间全场净利润、开播履约率、增量达成</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">净利润率 ≥ 12%</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">中控/场控 (Controller)</td>
-                      <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">1个直播间配 1~2人</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">改价上车、发优惠券、弹幕互动、音效氛围、防断播</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">零价格失误、弹幕敏感词响应、上架及时率</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">中控/场控 (Controller)</td>
+                      <td className="px-3 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">1个直播间配 1~2人</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">改价上车、发优惠券、弹幕互动、音效氛围、防断播</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">零价格失误、弹幕敏感词响应、上架及时率</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">失误率 0 次/月</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">助播 (Co-host)</td>
-                      <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">1个直播间配 1人 (随主播)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">副咖搭腔、演示上身、补足话术间隙、促单逼单</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">配合默契度、促单转化增量、主咖疲劳替班</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">助播 (Co-host)</td>
+                      <td className="px-3 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">1个直播间配 1人 (随主播)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">副咖搭腔、演示上身、补足话术间隙、促单逼单</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">配合默契度、促单转化增量、主咖疲劳替班</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">留存率提升 15%</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">选品编导 (Merchandiser)</td>
-                      <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">1人服务 2~4个直播间</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">品类测款、破价机制谈判、排品梯队 (引流/承接/利润)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">动销率、爆品成活率、商品毛利率、退货率控制</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">选品编导 (Merchandiser)</td>
+                      <td className="px-3 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">1人服务 2~4个直播间</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">品类测款、破价机制谈判、排品梯队 (引流/承接/利润)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">动销率、爆品成活率、商品毛利率、退货率控制</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">动销率 ≥ 85%</td>
                     </tr>
                   </tbody>
@@ -1218,11 +1218,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
         <motion.div {...fadeIn} className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-orbit-surface p-3 rounded-xl border border-orbit-border">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">排序依据:</span>
+              <span className="text-xs font-semibold text-[var(--text-primary)]">排序依据:</span>
               <select
                 value={effSort}
                 onChange={(e) => setEffSort(e.target.value)}
-                className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 font-medium"
+                className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-2.5 py-1 text-[var(--text-primary)] font-medium"
               >
                 <option value="gmv">总成交 GMV (降序)</option>
                 <option value="hourly">小时人效 GMV/h (降序)</option>
@@ -1237,7 +1237,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 placeholder="搜索主播姓名或层级 (S/A/B/C)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 w-60 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-orbit-primary"
+                className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 w-60 text-[var(--text-primary)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:border-orbit-primary"
               />
               <Badge variant="neutral">共 {filteredAnchors.length} 名主播</Badge>
             </div>
@@ -1248,7 +1248,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                    <tr className="text-slate-600 dark:text-slate-400">
+                    <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                       <th className="text-left px-4 py-3 font-medium">排名</th>
                       <th className="text-left px-4 py-3 font-medium">主播</th>
                       <th className="text-left px-3 py-3 font-medium">层级</th>
@@ -1272,28 +1272,28 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                               className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${
                                 isTop3
                                   ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30'
-                                  : 'text-slate-500'
+                                  : 'text-[var(--text-muted)]'
                               }`}
                             >
                               {idx + 1}
                             </span>
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">{a.name}</span>
+                            <span className="font-semibold text-[var(--text-primary)]">{a.name}</span>
                           </td>
                           <td className="px-3 py-2.5">
                             <LevelBadge level={a.level} />
                           </td>
-                          <td className="px-3 py-2.5 text-right font-mono text-slate-600 dark:text-slate-300">{a.sessions} 场</td>
-                          <td className="px-3 py-2.5 text-right font-mono text-slate-600 dark:text-slate-300">{a.hours} h</td>
-                          <td className="px-4 py-2.5 text-right font-mono font-bold text-slate-900 dark:text-slate-100">{fmtWan(a.gmv)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-[var(--text-primary)]">{a.sessions} 场</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-[var(--text-primary)]">{a.hours} h</td>
+                          <td className="px-4 py-2.5 text-right font-mono font-bold text-[var(--text-primary)]">{fmtWan(a.gmv)}</td>
                           <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">{fmtWan(a.gmvPerHour)}/h</td>
                           <td className="px-3 py-2.5 text-right font-mono">
-                            <span className={hasHighReturn ? 'text-rose-700 dark:text-rose-400 font-bold' : 'text-slate-600 dark:text-slate-300'}>
+                            <span className={hasHighReturn ? 'text-rose-700 dark:text-rose-400 font-bold' : 'text-[var(--text-primary)]'}>
                               {fmtPct(a.returnRate)}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 text-right font-mono text-slate-600 dark:text-slate-300">{fmtPct(a.attendanceRate)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-[var(--text-primary)]">{fmtPct(a.attendanceRate)}</td>
                           <td className="px-4 py-2.5 text-right">
                             {a.gmvPerHour >= 50000 ? (
                               <Badge variant="success">高产标杆</Badge>
@@ -1321,9 +1321,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center gap-2 mb-2">
                 <Flame className="w-4 h-4 text-rose-500" />
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">主力旗舰作战单元（S级班组）</span>
+                <span className="text-xs font-bold text-[var(--text-primary)]">主力旗舰作战单元（S级班组）</span>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 黄金档（19:00 - 24:00）主力攻坚。配 1名 S级主咖 + 1名 高能助播 + 1名 资深千川投手 + 1名 控场中控，专注核心爆款与冲刺 GMV。
               </p>
             </div>
@@ -1331,9 +1331,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">分销矩阵作战单元（A/B级轮播）</span>
+                <span className="text-xs font-bold text-[var(--text-primary)]">分销矩阵作战单元（A/B级轮播）</span>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 平销下午档（13:00 - 18:00）。配 2名 A/B级主播轮流上镜 + 1名 矩阵投手 + 1名 中控，注重长尾自然流承接与长线转粉。
               </p>
             </div>
@@ -1341,9 +1341,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center gap-2 mb-2">
                 <ShieldAlert className="w-4 h-4 text-emerald-500" />
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">新人自播孵化班组（B/C级练兵）</span>
+                <span className="text-xs font-bold text-[var(--text-primary)]">新人自播孵化班组（B/C级练兵）</span>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 晨间平销档（6:00 - 9:00）练兵。前 5 场 Ramp-up 话术实战，编导现场监播陪跑，敏捷校验选品节奏。
               </p>
             </div>
@@ -1352,11 +1352,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <CalendarClock className="w-4 h-4 text-orbit-primary" />
                   主播工时利用率与排班履约度
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">对比计划排班 vs 实际开播，评估团队履约可靠性</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">对比计划排班 vs 实际开播，评估团队履约可靠性</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="neutral">排班计划 {effUtil?.totals.assignedSessions ?? 0} 场</Badge>
@@ -1372,7 +1372,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                    <tr className="text-slate-600 dark:text-slate-400">
+                    <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                       <th className="text-left px-4 py-2.5 font-medium">主播</th>
                       <th className="text-left px-3 py-2.5 font-medium">层级</th>
                       <th className="text-right px-3 py-2.5 font-medium">计划排班</th>
@@ -1386,15 +1386,15 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   <tbody className="divide-y divide-orbit-border/40">
                     {(effUtil?.anchors || []).map((a) => (
                       <tr key={a.id} className="hover:bg-orbit-surface2/50 transition-colors">
-                        <td className="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">{a.name}</td>
+                        <td className="px-4 py-2 text-[var(--text-primary)] font-medium">{a.name}</td>
                         <td className="px-3 py-2">
                           <LevelBadge level={a.level} />
                         </td>
-                        <td className="px-3 py-2 text-right text-slate-500">{a.assignedSessions} 场</td>
-                        <td className="px-3 py-2 text-right text-slate-800 dark:text-slate-200 font-medium">{a.actualSessions} 场</td>
-                        <td className="px-3 py-2 text-right text-slate-600 dark:text-slate-300">{a.hours} h</td>
-                        <td className="px-3 py-2 text-right font-medium text-slate-700 dark:text-slate-300">{fmtPct(a.attendanceRate)}</td>
-                        <td className="px-3 py-2 text-right text-slate-500">
+                        <td className="px-3 py-2 text-right text-[var(--text-muted)]">{a.assignedSessions} 场</td>
+                        <td className="px-3 py-2 text-right text-[var(--text-primary)] font-medium">{a.actualSessions} 场</td>
+                        <td className="px-3 py-2 text-right text-[var(--text-primary)]">{a.hours} h</td>
+                        <td className="px-3 py-2 text-right font-medium text-[var(--text-primary)]">{fmtPct(a.attendanceRate)}</td>
+                        <td className="px-3 py-2 text-right text-[var(--text-muted)]">
                           {a.restDays} 休 / {a.leaveDays} 假
                         </td>
                         <td className="px-4 py-2 text-right">
@@ -1424,11 +1424,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <Calculator className="w-4 h-4 text-orbit-primary" />
                   直播间铁三角全岗激励精算与损益平衡模拟
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
                   基于「净成交 GMV (扣退货) × 岗位提成权重」倒推全员薪效比，测算主播、运营操盘手、千川投手、中控分配池
                 </p>
               </div>
@@ -1443,11 +1443,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <CardBody className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl border border-orbit-border bg-orbit-surface2/30">
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
-                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5 text-orbit-primary" /> 主播阶梯提成
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 block mb-0.5">底薪 (元/人/月)</label>
+                    <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">底薪 (元/人/月)</label>
                     <input
                       type="number"
                       value={baseSalary}
@@ -1457,7 +1457,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                   <div className="grid grid-cols-3 gap-1">
                     <div>
-                      <label className="text-[10px] text-slate-500 block mb-0.5">&lt;40万(%)</label>
+                      <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">&lt;40万(%)</label>
                       <input
                         type="number"
                         step="0.5"
@@ -1467,7 +1467,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-500 block mb-0.5">40-80万</label>
+                      <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">40-80万</label>
                       <input
                         type="number"
                         step="0.5"
@@ -1477,7 +1477,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-500 block mb-0.5">&gt;80万</label>
+                      <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">&gt;80万</label>
                       <input
                         type="number"
                         step="0.5"
@@ -1490,11 +1490,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </div>
 
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
-                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-amber-500" /> 千川投手激励
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 block mb-0.5">投流消耗提成率 (%)</label>
+                    <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">投流消耗提成率 (%)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -1505,7 +1505,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                   <div className="grid grid-cols-2 gap-1.5">
                     <div>
-                      <label className="text-[10px] text-slate-500 block mb-0.5">目标 ROI</label>
+                      <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">目标 ROI</label>
                       <input
                         type="number"
                         step="0.1"
@@ -1515,7 +1515,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-500 block mb-0.5">实际 ROI</label>
+                      <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">实际 ROI</label>
                       <input
                         type="number"
                         step="0.1"
@@ -1528,11 +1528,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </div>
 
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
-                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                     <Award className="w-3.5 h-3.5 text-emerald-500" /> 操盘运营分红
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 block mb-0.5">净利润分红比例 (%)</label>
+                    <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">净利润分红比例 (%)</label>
                     <input
                       type="number"
                       step="1"
@@ -1541,17 +1541,17 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2 py-1 font-mono font-bold"
                     />
                   </div>
-                  <div className="text-[10px] text-slate-500 pt-2 leading-relaxed">
+                  <div className="text-[10px] text-[var(--text-muted)] pt-2 leading-relaxed">
                     全场真实经营毛利扣除投流与平台履约后的净利润分红，与直播间盈亏直接对赌绑定。
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-sky-500" /> 中控/场控津贴
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 block mb-0.5">场次津贴 (元/场)</label>
+                    <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">场次津贴 (元/场)</label>
                     <input
                       type="number"
                       value={controllerPerSession}
@@ -1560,7 +1560,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-500 block mb-0.5">月度零失误安全奖 (元/人)</label>
+                    <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">月度零失误安全奖 (元/人)</label>
                     <input
                       type="number"
                       value={controllerBonus}
@@ -1608,7 +1608,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-orbit-accent" />
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                <span className="text-sm font-semibold text-[var(--text-primary)]">
                   主播个体差异化提成透视 (不同人对应不同比例，已穿透系统参数中枢)
                 </span>
               </div>
@@ -1626,11 +1626,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             </CardHeader>
             <CardBody className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-400">选择要透视的主播:</span>
+                <span className="text-xs text-[var(--text-muted)]">选择要透视的主播:</span>
                 <select
                   value={selectedInspectAnchorId ?? (effAnchors[0]?.id ?? '')}
                   onChange={(e) => setSelectedInspectAnchorId(Number(e.target.value))}
-                  className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-slate-200 outline-none"
+                  className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                 >
                   {effAnchors.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -1713,7 +1713,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   <div className="p-4 rounded-xl bg-orbit-surface border border-orbit-border space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-200 text-sm">{targetAnchor.name}</span>
+                        <span className="font-bold text-[var(--text-secondary)] text-sm">{targetAnchor.name}</span>
                         <Badge variant="accent">{targetAnchor.level || 'A'}级主播</Badge>
                         <Badge variant="neutral">{targetAnchor.sessions}场开播</Badge>
                       </div>
@@ -1724,25 +1724,25 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center py-2 bg-orbit-surface2/60 rounded-lg">
                       <div>
-                        <span className="text-[10px] text-slate-500 block">生效保底底薪</span>
-                        <span className="text-sm font-mono font-bold text-slate-200">¥{salary.toLocaleString()}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block">生效保底底薪</span>
+                        <span className="text-sm font-mono font-bold text-[var(--text-secondary)]">¥{salary.toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block">净成交 GMV</span>
-                        <span className="text-sm font-mono font-bold text-slate-300">¥{Math.round(netGmv).toLocaleString()}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block">净成交 GMV</span>
+                        <span className="text-sm font-mono font-bold text-[var(--text-secondary)]">¥{Math.round(netGmv).toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block">提成测算金额</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block">提成测算金额</span>
                         <span className="text-sm font-mono font-bold text-orbit-primary-light">¥{Math.round(commission).toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 block">预计个人总所得</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block">预计个人总所得</span>
                         <span className="text-sm font-mono font-bold text-emerald-400">¥{Math.round(totalIncome).toLocaleString()}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                      <span>适用提成费率: <strong className="text-slate-300 font-mono">{rateDesc}</strong></span>
+                    <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-1">
+                      <span>适用提成费率: <strong className="text-[var(--text-secondary)] font-mono">{rateDesc}</strong></span>
                       <span>个人薪效比: <strong className="font-mono text-emerald-400">{costRatio.toFixed(2)}%</strong></span>
                     </div>
                   </div>
@@ -1757,7 +1757,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-orbit-primary" />
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">主播五维胜任力雷达均分</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">主播五维胜任力雷达均分</span>
                 </div>
                 <Badge variant="neutral">已评估 {performance?.evaluatedCount ?? 0} 人</Badge>
               </CardHeader>
@@ -1769,7 +1769,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   <Stat label="货品专业度" value={performance?.dimensions.professionalism ?? '—'} hint="材质与说服" />
                   <Stat label="综合评分" value={performance?.dimensions.overall ?? '—'} highlight hint="加权总成绩" />
                 </div>
-                <div className="text-[11px] text-slate-500 bg-orbit-surface2/60 p-2.5 rounded-lg border border-orbit-border/60">
+                <div className="text-[11px] text-[var(--text-muted)] bg-orbit-surface2/60 p-2.5 rounded-lg border border-orbit-border/60">
                   胜任力评分由操盘总监、HRBP 与系统平台雷达规则联合评估，直接作为主播 S/A/B/C 评级与时段调配依据。
                 </div>
               </CardBody>
@@ -1779,34 +1779,34 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-orbit-primary" />
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">GMV 贡献分档与激励倾斜</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">GMV 贡献分档与激励倾斜</span>
                 </div>
-                <span className="text-xs text-slate-500">近 30 天产出分段</span>
+                <span className="text-xs text-[var(--text-muted)]">近 30 天产出分段</span>
               </CardHeader>
               <CardBody className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
                     <div className="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold mb-1">头部主咖（前 1/3）</div>
                     <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{performance?.gmvBands.top ?? 0} 人</div>
-                    <div className="text-[10px] text-slate-500 mt-1">享冲刺高阶分润，锁定黄金时段</div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-1">享冲刺高阶分润，锁定黄金时段</div>
                   </div>
 
                   <div className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-3">
                     <div className="text-[11px] text-sky-800 dark:text-sky-300 font-semibold mb-1">腰部中坚（中 1/3）</div>
                     <div className="text-xl font-bold text-sky-700 dark:text-sky-400">{performance?.gmvBands.mid ?? 0} 人</div>
-                    <div className="text-[10px] text-slate-500 mt-1">稳健轮播承接，重点辅导转化力</div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-1">稳健轮播承接，重点辅导转化力</div>
                   </div>
 
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
                     <div className="text-[11px] text-amber-800 dark:text-amber-300 font-semibold mb-1">尾部轮播（后 1/3）</div>
                     <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{performance?.gmvBands.low ?? 0} 人</div>
-                    <div className="text-[10px] text-slate-500 mt-1">晨间/通宵承接，设 15 天观察期</div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-1">晨间/通宵承接，设 15 天观察期</div>
                   </div>
 
                   <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-3">
                     <div className="text-[11px] text-rose-800 dark:text-rose-300 font-semibold mb-1">周期零产出</div>
                     <div className="text-xl font-bold text-rose-700 dark:text-rose-400">{performance?.gmvBands.none ?? 0} 人</div>
-                    <div className="text-[10px] text-slate-500 mt-1">触发 HRBP 谈话与排班淘汰程序</div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-1">触发 HRBP 谈话与排班淘汰程序</div>
                   </div>
                 </div>
               </CardBody>
@@ -1828,7 +1828,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <span className="font-mono font-bold">2 人</span>
               </div>
               <div className="text-xl font-bold text-rose-700 dark:text-rose-400">15.4%</div>
-              <div className="text-[10px] text-slate-500 mt-1">高绩效 × 高潜力 · 重点合伙留任</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">高绩效 × 高潜力 · 重点合伙留任</div>
             </div>
 
             <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
@@ -1839,7 +1839,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <span className="font-mono font-bold">2 人</span>
               </div>
               <div className="text-xl font-bold text-sky-700 dark:text-sky-400">18.2%</div>
-              <div className="text-[10px] text-slate-500 mt-1">中低绩效 × 高潜力 · 金牌教练1v1</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">中低绩效 × 高潜力 · 金牌教练1v1</div>
             </div>
 
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
@@ -1850,7 +1850,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <span className="font-mono font-bold">3 人</span>
               </div>
               <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">54.5%</div>
-              <div className="text-[10px] text-slate-500 mt-1">中高绩效 × 中潜力 · 矩阵压舱石</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">中高绩效 × 中潜力 · 矩阵压舱石</div>
             </div>
 
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
@@ -1861,7 +1861,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <span className="font-mono font-bold">2 人</span>
               </div>
               <div className="text-xl font-bold text-amber-700 dark:text-amber-400">11.9%</div>
-              <div className="text-[10px] text-slate-500 mt-1">低绩效 × 低中潜 · 15天改进或转岗</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">低绩效 × 低中潜 · 15天改进或转岗</div>
             </div>
           </div>
 
@@ -1869,11 +1869,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <LayoutGrid className="w-4 h-4 text-orbit-primary" />
                   直播电商主播人才盘点九宫格矩阵 (9-Box Talent Matrix)
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
                   纵轴：近周期产出绩效（高/中/低 GMV） × 横轴：胜任力发展潜能（高/中/低 潜能雷达）
                 </p>
               </div>
@@ -1886,9 +1886,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="rounded-xl border border-sky-500/40 bg-sky-500/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-sky-800 dark:text-sky-300">中流砥柱 (High Performer)</span>
-                    <span className="text-[10px] font-mono text-slate-500">高绩 · 中潜</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">高绩 · 中潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">业务极其熟练的腰部骨干，稳定保量</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">业务极其熟练的腰部骨干，稳定保量</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {filteredPersonas
                       .filter((p) => p.nineBox.perf === 'high' && p.nineBox.pot === 'med')
@@ -1899,7 +1899,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
                               ? 'bg-sky-500 text-white border-sky-600 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-slate-700 dark:text-slate-300 hover:border-sky-400'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-sky-400'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -1914,9 +1914,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-rose-800 dark:text-rose-300">🌟 超级明星 (Star)</span>
-                    <span className="text-[10px] font-mono text-slate-500">高绩 · 高潜</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">高绩 · 高潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">核心 S 级大咖，战略倾斜资源与顶流 IP 孵化</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">核心 S 级大咖，战略倾斜资源与顶流 IP 孵化</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {filteredPersonas
                       .filter((p) => p.nineBox.perf === 'high' && p.nineBox.pot === 'high')
@@ -1927,7 +1927,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
                               ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-slate-800 dark:text-slate-200 hover:border-rose-400 font-bold'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-rose-400 font-bold'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -1939,21 +1939,21 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">专业工匠 (Solid Pro)</span>
-                    <span className="text-[10px] font-mono text-slate-500">高绩 · 熟练潜</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">高绩 · 熟练潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">稳定打法熟练工，规范控价防违规退货</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">稳定打法熟练工，规范控价防违规退货</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    <span className="text-[11px] text-slate-400 italic">暂无归入此格人员</span>
+                    <span className="text-[11px] text-[var(--text-muted)] italic">暂无归入此格人员</span>
                   </div>
                 </div>
 
                 {/* 第二行：中绩效 (Medium Performance) */}
-                <div className="rounded-xl border border-slate-500/30 bg-slate-500/5 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-border bg-orbit-surface2/60 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">核心中坚 (Core Contributor)</span>
-                    <span className="text-[10px] font-mono text-slate-500">中绩 · 中潜</span>
+                    <span className="text-xs font-bold text-[var(--text-primary)]">核心中坚 (Core Contributor)</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">中绩 · 中潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">常规平销矩阵主力轮播，稳健贡献长尾流量</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">常规平销矩阵主力轮播，稳健贡献长尾流量</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {filteredPersonas
                       .filter((p) => p.nineBox.perf === 'med' && p.nineBox.pot === 'med')
@@ -1963,8 +1963,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           onClick={() => setSelectedPersonaId(p.id)}
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
-                              ? 'bg-slate-700 text-white dark:bg-slate-300 dark:text-slate-900 border-slate-600 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-slate-700 dark:text-slate-300 hover:border-slate-400'
+                              ? 'bg-[var(--text-primary)] text-[var(--surface)] border-[var(--border)] shadow-sm'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-secondary)] hover:border-orbit-border2'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -1976,9 +1976,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-sky-800 dark:text-sky-300">🚀 潜力黑马 (High Potential)</span>
-                    <span className="text-[10px] font-mono text-slate-500">中绩 · 高潜</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">中绩 · 高潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">高潜能成长新星，重点配教练带教冲刺黄金档</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">高潜能成长新星，重点配教练带教冲刺黄金档</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {filteredPersonas
                       .filter((p) => p.nineBox.perf === 'med' && p.nineBox.pot === 'high')
@@ -1989,7 +1989,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
                               ? 'bg-sky-600 text-white border-sky-700 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-slate-700 dark:text-slate-300 hover:border-sky-400'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-sky-400'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -1998,14 +1998,14 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-500/30 bg-slate-500/5 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-border bg-orbit-surface2/60 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">合格执行 (Effective)</span>
-                    <span className="text-[10px] font-mono text-slate-500">中绩 · 低潜</span>
+                    <span className="text-xs font-bold text-[var(--text-primary)]">合格执行 (Effective)</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">中绩 · 低潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">常规话术脚本执行，按标准排班打卡</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">常规话术脚本执行，按标准排班打卡</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    <span className="text-[11px] text-slate-400 italic">暂无归入此格人员</span>
+                    <span className="text-[11px] text-[var(--text-muted)] italic">暂无归入此格人员</span>
                   </div>
                 </div>
 
@@ -2013,9 +2013,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-800 dark:text-amber-300">📉 需要辅导 (Underperformer)</span>
-                    <span className="text-[10px] font-mono text-slate-500">低绩 · 中潜</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">低绩 · 中潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">下达 15 天 PIP 改进计划，质检排查话术短板</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">下达 15 天 PIP 改进计划，质检排查话术短板</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {filteredPersonas
                       .filter((p) => p.nineBox.perf === 'low' && p.nineBox.pot === 'med')
@@ -2026,7 +2026,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
                               ? 'bg-amber-600 text-white border-amber-700 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-slate-700 dark:text-slate-300 hover:border-amber-400'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-amber-400'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -2035,12 +2035,12 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-indigo-500/40 bg-indigo-500/5 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-primary/40 bg-orbit-primary/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-indigo-800 dark:text-indigo-300">❓ 待发掘 (Enigma)</span>
-                    <span className="text-[10px] font-mono text-slate-500">低绩 · 高潜</span>
+                    <span className="text-xs font-bold text-orbit-primary dark:text-orbit-primary">❓ 待发掘 (Enigma)</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">低绩 · 高潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">新人高潜但未出单，排查货盘机制是否匹配</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">新人高潜但未出单，排查货盘机制是否匹配</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {filteredPersonas
                       .filter((p) => p.nineBox.perf === 'low' && p.nineBox.pot === 'high')
@@ -2050,8 +2050,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           onClick={() => setSelectedPersonaId(p.id)}
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
-                              ? 'bg-indigo-600 text-white border-indigo-700 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-slate-700 dark:text-slate-300 hover:border-indigo-400'
+                              ? 'bg-orbit-primary text-white border-orbit-primary-dark shadow-sm'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-orbit-primary/40'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -2063,9 +2063,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="rounded-xl border border-rose-500/40 bg-rose-500/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-rose-800 dark:text-rose-300">⚠️ 不达标汰换 (Risk)</span>
-                    <span className="text-[10px] font-mono text-slate-500">低绩 · 低潜</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">低绩 · 低潜</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">长期占编零产出，敏捷汰换解约或转岗助播</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">长期占编零产出，敏捷汰换解约或转岗助播</p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {filteredPersonas
                       .filter((p) => p.nineBox.perf === 'low' && p.nineBox.pot === 'low')
@@ -2076,7 +2076,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
                               ? 'bg-rose-600 text-white border-rose-700 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-slate-700 dark:text-slate-300 hover:border-rose-400'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-rose-400'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -2092,12 +2092,12 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <Target className="w-4 h-4 text-orbit-primary" />
                   主播全息人才画像档案 · {activePersona.name}
                   <LevelBadge level={activePersona.level} />
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
                   主攻 {activePersona.category} · {activePersona.platform} 平台 · {activePersona.experienceMonths} 个月经验
                 </p>
               </div>
@@ -2116,7 +2116,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
               {/* 核心特质标签墙 */}
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                <div className="text-xs font-semibold text-[var(--text-primary)] mb-2 flex items-center gap-1.5">
                   <Tag className="w-3.5 h-3.5 text-orbit-primary" />
                   主播特质与风格标签墙 (Talent Style Tags)
                 </div>
@@ -2124,7 +2124,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   {activePersona.tags.map((tag, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-orbit-surface2 border border-orbit-border text-slate-800 dark:text-slate-200"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                     >
                       <Sparkles className="w-3 h-3 text-orbit-primary" />
                       {tag}
@@ -2135,42 +2135,42 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
               {/* 五维胜任力雷达条形打分 */}
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                <div className="text-xs font-semibold text-[var(--text-primary)] mb-2 flex items-center gap-1.5">
                   <Award className="w-3.5 h-3.5 text-orbit-primary" />
                   五维胜任力深度模型打分 (综合分: {activePersona.radar.overall} / 10.0)
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                    <div className="text-[11px] text-slate-500">表达感染力</div>
-                    <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activePersona.radar.expression}</div>
+                    <div className="text-[11px] text-[var(--text-muted)]">表达感染力</div>
+                    <div className="text-base font-bold text-[var(--text-primary)] mt-0.5">{activePersona.radar.expression}</div>
                     <div className="h-1 bg-orbit-surface2 rounded-full mt-1.5 overflow-hidden">
                       <div className="h-full bg-orbit-primary" style={{ width: `${activePersona.radar.expression * 10}%` }} />
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                    <div className="text-[11px] text-slate-500">互动敏捷度</div>
-                    <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activePersona.radar.interaction}</div>
+                    <div className="text-[11px] text-[var(--text-muted)]">互动敏捷度</div>
+                    <div className="text-base font-bold text-[var(--text-primary)] mt-0.5">{activePersona.radar.interaction}</div>
                     <div className="h-1 bg-orbit-surface2 rounded-full mt-1.5 overflow-hidden">
                       <div className="h-full bg-orbit-primary" style={{ width: `${activePersona.radar.interaction * 10}%` }} />
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                    <div className="text-[11px] text-slate-500">促单转化力</div>
-                    <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activePersona.radar.conversion}</div>
+                    <div className="text-[11px] text-[var(--text-muted)]">促单转化力</div>
+                    <div className="text-base font-bold text-[var(--text-primary)] mt-0.5">{activePersona.radar.conversion}</div>
                     <div className="h-1 bg-orbit-surface2 rounded-full mt-1.5 overflow-hidden">
                       <div className="h-full bg-orbit-primary" style={{ width: `${activePersona.radar.conversion * 10}%` }} />
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                    <div className="text-[11px] text-slate-500">货品专业度</div>
-                    <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activePersona.radar.professionalism}</div>
+                    <div className="text-[11px] text-[var(--text-muted)]">货品专业度</div>
+                    <div className="text-base font-bold text-[var(--text-primary)] mt-0.5">{activePersona.radar.professionalism}</div>
                     <div className="h-1 bg-orbit-surface2 rounded-full mt-1.5 overflow-hidden">
                       <div className="h-full bg-orbit-primary" style={{ width: `${activePersona.radar.professionalism * 10}%` }} />
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                    <div className="text-[11px] text-slate-500">抗压控场力</div>
-                    <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activePersona.radar.resilience}</div>
+                    <div className="text-[11px] text-[var(--text-muted)]">抗压控场力</div>
+                    <div className="text-base font-bold text-[var(--text-primary)] mt-0.5">{activePersona.radar.resilience}</div>
                     <div className="h-1 bg-orbit-surface2 rounded-full mt-1.5 overflow-hidden">
                       <div className="h-full bg-orbit-primary" style={{ width: `${activePersona.radar.resilience * 10}%` }} />
                     </div>
@@ -2184,10 +2184,10 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   <div className="text-xs font-bold text-orbit-primary flex items-center gap-1.5">
                     <Briefcase className="w-4 h-4" /> HRBP 梯队决策与发展建议：
                   </div>
-                  <div className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
+                  <div className="text-xs text-[var(--text-primary)] mt-1 leading-relaxed">
                     {activePersona.hrbpAdvice}
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-1 font-mono">
+                  <div className="text-[11px] text-[var(--text-muted)] mt-1 font-mono">
                     建议行动方案: {activePersona.nineBox.actionPlan}
                   </div>
                 </div>
@@ -2207,11 +2207,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-orbit-primary" />
                   直播电商 5 大主流品类主播画像与胜任力标杆定义
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">HRBP 针对不同直播间货盘选拔、培训与评估主播的行业基准</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">HRBP 针对不同直播间货盘选拔、培训与评估主播的行业基准</p>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 <Button
@@ -2262,7 +2262,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                    <tr className="text-slate-600 dark:text-slate-400">
+                    <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                       <th className="text-left px-4 py-2.5 font-medium">直播品类</th>
                       <th className="text-left px-4 py-2.5 font-medium">核心能力权重</th>
                       <th className="text-left px-4 py-2.5 font-medium">外貌与形象特征</th>
@@ -2272,38 +2272,38 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </thead>
                   <tbody className="divide-y divide-orbit-border/40">
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">美妆护肤 (Beauty)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">专业度 30% + 表达 25% + 转化 25%</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">皮肤白皙通透、五官亲和、镜头耐看</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">成份党背书、反转憋单、痛点放大与机制破价</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">美妆护肤 (Beauty)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">专业度 30% + 表达 25% + 转化 25%</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">皮肤白皙通透、五官亲和、镜头耐看</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">成份党背书、反转憋单、痛点放大与机制破价</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">≥ 6.0 万/h</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">服装 (Apparel)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">表达 30% + 转化 30% + 抗压 20%</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">身材比例优越、衣架子上身气质佳</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">高频过款逼单、库存紧迫感煽动、换装节奏敏捷</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">服装 (Apparel)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">表达 30% + 转化 30% + 抗压 20%</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">身材比例优越、衣架子上身气质佳</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">高频过款逼单、库存紧迫感煽动、换装节奏敏捷</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">≥ 5.5 万/h</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">食品生鲜 (Food)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">互动 30% + 表达 25% + 转化 25%</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">亲切邻家有食欲、笑容治愈、吃播诱人</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">沉浸式诱惑吃播、市井烟火共情、大规格买赠喊麦</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">食品生鲜 (Food)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">互动 30% + 表达 25% + 转化 25%</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">亲切邻家有食欲、笑容治愈、吃播诱人</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">沉浸式诱惑吃播、市井烟火共情、大规格买赠喊麦</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">≥ 3.5 万/h</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">3C数码 (Digital)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">专业度 35% + 表达 25% + 转化 20%</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">干练理性、极客气质、手部动作清晰</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">参数横向硬核对比、场景化功能演示、逻辑严密说服</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">3C数码 (Digital)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">专业度 35% + 表达 25% + 转化 20%</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">干练理性、极客气质、手部动作清晰</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">参数横向硬核对比、场景化功能演示、逻辑严密说服</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">≥ 4.5 万/h</td>
                     </tr>
                     <tr className="hover:bg-orbit-surface2/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200">鞋箱包 (Shoes &amp; Bags)</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">专业度 30% + 表达 25% + 转化 25%</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">体态挺拔、手部特写镜头感好、搭配协调</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">皮料材质/五金细节特写、多场景收纳演示、大牌同源机制放量</td>
+                      <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">鞋箱包 (Shoes &amp; Bags)</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">专业度 30% + 表达 25% + 转化 25%</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">体态挺拔、手部特写镜头感好、搭配协调</td>
+                      <td className="px-4 py-2.5 text-[var(--text-primary)] dark:text-[var(--text-muted)]">皮料材质/五金细节特写、多场景收纳演示、大牌同源机制放量</td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">≥ 5.0 万/h</td>
                     </tr>
                   </tbody>
@@ -2321,7 +2321,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <CardHeader>
               <div className="flex items-center gap-2">
                 <GitBranch className="w-4 h-4 text-orbit-primary" />
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">主播人才供应链金字塔</span>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">主播人才供应链金字塔</span>
               </div>
               <Badge variant="info">在岗主播 {overview?.totalActive ?? 0} 名</Badge>
             </CardHeader>
@@ -2343,7 +2343,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-orbit-primary" />
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">新人前 10 场成长爬坡曲线 (Ramp Curve)</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">新人前 10 场成长爬坡曲线 (Ramp Curve)</span>
                 </div>
                 <Badge variant="neutral">按开播场次递增</Badge>
               </CardHeader>
@@ -2351,7 +2351,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                      <tr className="text-slate-600 dark:text-slate-400">
+                      <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                         <th className="text-left px-4 py-2.5 font-medium">开播序号</th>
                         <th className="text-right px-3 py-2.5 font-medium">样本量</th>
                         <th className="text-right px-4 py-2.5 font-medium">场均净 GMV 表现</th>
@@ -2361,8 +2361,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     <tbody className="divide-y divide-orbit-border/40">
                       {(effGrowth?.rampCurve || []).map((r) => (
                         <tr key={r.nth} className="hover:bg-orbit-surface2/50 transition-colors">
-                          <td className="px-4 py-2 text-slate-800 dark:text-slate-200 font-medium">第 {r.nth} 场</td>
-                          <td className="px-3 py-2 text-right text-slate-500">{r.anchorCount} 人</td>
+                          <td className="px-4 py-2 text-[var(--text-primary)] font-medium">第 {r.nth} 场</td>
+                          <td className="px-3 py-2 text-right text-[var(--text-muted)]">{r.anchorCount} 人</td>
                           <td className="px-4 py-2 text-right text-orbit-primary font-bold">¥ {fmtNum(r.avgGmv)}</td>
                           <td className="px-4 py-2 text-right">
                             {r.nth <= 3 ? (
@@ -2385,7 +2385,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <GraduationCap className="w-4 h-4 text-orbit-primary" />
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">专业技能带教与培训进度</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">专业技能带教与培训进度</span>
                 </div>
                 <div className="flex gap-2">
                   <Badge variant="neutral">计划 {training?.planCount ?? 0} 个</Badge>
@@ -2396,19 +2396,19 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 {(training?.plans || []).map((p) => (
                   <div key={p.id} className="rounded-lg border border-orbit-border p-3 bg-orbit-surface">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{p.name}</span>
-                      <span className="text-[11px] text-slate-500">
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">{p.name}</span>
+                      <span className="text-[11px] text-[var(--text-muted)]">
                         {p.anchor_count} 人参与 · 状态：{p.status}
                       </span>
                     </div>
                     <div className="h-1.5 rounded-full bg-orbit-surface2 overflow-hidden">
                       <div className="h-full bg-orbit-primary" style={{ width: `${Math.min(100, Math.max(0, p.progress || 0))}%` }} />
                     </div>
-                    <div className="text-[10px] text-slate-500 mt-1.5 flex justify-between">
+                    <div className="text-[10px] text-[var(--text-muted)] mt-1.5 flex justify-between">
                       <span>
                         周期: {p.start_date} ~ {p.end_date}
                       </span>
-                      <span className="font-medium text-slate-700 dark:text-slate-300">进度: {p.progress}%</span>
+                      <span className="font-medium text-[var(--text-primary)]">进度: {p.progress}%</span>
                     </div>
                   </div>
                 ))}
@@ -2424,11 +2424,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-orbit-primary" />
                   主播引才试镜漏斗 (Audition &amp; Talent Funnel)
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">每周供给池吞吐分析：从线索投递、声画试镜、15分钟试播到转正入库</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">每周供给池吞吐分析：从线索投递、声画试镜、15分钟试播到转正入库</p>
               </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="primary" onClick={() => setShowCreateCandidateModal(true)}>
@@ -2441,22 +2441,22 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <CardBody className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
-                  <div className="text-[11px] text-slate-500 mb-0.5">1. 渠道线索初筛</div>
-                  <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{recruitmentFunnel.resume_screening} 人</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">待初评</div>
+                  <div className="text-[11px] text-[var(--text-muted)] mb-0.5">1. 渠道线索初筛</div>
+                  <div className="text-xl font-bold text-[var(--text-primary)]">{recruitmentFunnel.resume_screening} 人</div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5">待初评</div>
                 </div>
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
-                  <div className="text-[11px] text-slate-500 mb-0.5">2. 试镜邀约</div>
-                  <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{recruitmentFunnel.audition_scheduled} 人</div>
+                  <div className="text-[11px] text-[var(--text-muted)] mb-0.5">2. 试镜邀约</div>
+                  <div className="text-xl font-bold text-[var(--text-primary)]">{recruitmentFunnel.audition_scheduled} 人</div>
                   <div className="text-[10px] text-sky-600 dark:text-sky-400 mt-0.5">声画实测</div>
                 </div>
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
-                  <div className="text-[11px] text-slate-500 mb-0.5">3. 15min试播实测</div>
+                  <div className="text-[11px] text-[var(--text-muted)] mb-0.5">3. 15min试播实测</div>
                   <div className="text-xl font-bold text-orbit-primary">{recruitmentFunnel.trial_streaming} 人</div>
                   <div className="text-[10px] text-orbit-primary mt-0.5">带货实操</div>
                 </div>
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
-                  <div className="text-[11px] text-slate-500 mb-0.5">4. 发放意向Offer</div>
+                  <div className="text-[11px] text-[var(--text-muted)] mb-0.5">4. 发放意向Offer</div>
                   <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{recruitmentFunnel.offer_extended} 人</div>
                   <div className="text-[10px] text-amber-600 mt-0.5">待办入职</div>
                 </div>
@@ -2466,40 +2466,40 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   <div className="text-[10px] text-emerald-600 mt-0.5">正式主播档案</div>
                 </div>
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
-                  <div className="text-[11px] text-slate-500 mb-0.5">淘汰止损</div>
-                  <div className="text-xl font-bold text-slate-500">{recruitmentFunnel.eliminated} 人</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">未达及格线</div>
+                  <div className="text-[11px] text-[var(--text-muted)] mb-0.5">淘汰止损</div>
+                  <div className="text-xl font-bold text-[var(--text-muted)]">{recruitmentFunnel.eliminated} 人</div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5">未达及格线</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs pt-2">
                 <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                  <div className="text-slate-500 font-medium">BOSS直聘 &amp; 猎聘平台</div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200 mt-1">
+                  <div className="text-[var(--text-muted)] font-medium">BOSS直聘 &amp; 猎聘平台</div>
+                  <div className="font-bold text-[var(--text-primary)] mt-1">
                     {recruitmentList.filter(c => c.source.includes('BOSS') || c.source.includes('猎头')).length} 人在库 · 转化高
                   </div>
                   <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">主打成熟带货主咖 · 即插即用</div>
                 </div>
                 <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                  <div className="text-slate-500 font-medium">内部主播/运营转介绍</div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200 mt-1">
+                  <div className="text-[var(--text-muted)] font-medium">内部主播/运营转介绍</div>
+                  <div className="font-bold text-[var(--text-primary)] mt-1">
                     {recruitmentList.filter(c => c.source.includes('转介')).length} 人在库 · 稳定性高
                   </div>
                   <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">团队默契度佳 · 离职率低</div>
                 </div>
                 <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                  <div className="text-slate-500 font-medium">抖音/快手平台私信挖猎</div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200 mt-1">
+                  <div className="text-[var(--text-muted)] font-medium">抖音/快手平台私信挖猎</div>
+                  <div className="font-bold text-[var(--text-primary)] mt-1">
                     {recruitmentList.filter(c => c.source.includes('自荐') || c.source.includes('私信')).length} 人在库 · 气场强
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">镜头感强 · 需对齐合规协议</div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5">镜头感强 · 需对齐合规协议</div>
                 </div>
                 <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
-                  <div className="text-slate-500 font-medium">播音主持/艺校校园招聘</div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200 mt-1">
+                  <div className="text-[var(--text-muted)] font-medium">播音主持/艺校校园招聘</div>
+                  <div className="font-bold text-[var(--text-primary)] mt-1">
                     {recruitmentList.filter(c => c.source.includes('校')).length} 人在库 · 梯队储备
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">底薪成本优 · 配套 5 场实战带教</div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5">底薪成本优 · 配套 5 场实战带教</div>
                 </div>
               </div>
             </CardBody>
@@ -2508,11 +2508,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <Video className="w-4 h-4 text-orbit-primary" />
                   主播镜头试镜打分与试播实测档案库 (真实数据源)
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">五维打分卡（颜值上镜、声线穿透、产品背书、逼单促单、节奏把控）与 15分钟带货实测，支持一键转正入库</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">五维打分卡（颜值上镜、声线穿透、产品背书、逼单促单、节奏把控）与 15分钟带货实测，支持一键转正入库</p>
               </div>
               <Badge variant="neutral">候选池 {recruitmentList.length} 人</Badge>
             </CardHeader>
@@ -2520,7 +2520,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                    <tr className="text-slate-600 dark:text-slate-400">
+                    <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                       <th className="text-left px-4 py-2.5 font-medium">候选人姓名</th>
                       <th className="text-left px-3 py-2.5 font-medium">主攻类目 / 渠道</th>
                       <th className="text-left px-3 py-2.5 font-medium">经验 / 期望月薪</th>
@@ -2535,18 +2535,18 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       recruitmentList.map((c) => (
                         <tr key={c.id} className="hover:bg-orbit-surface2/50 transition-colors">
                           <td className="px-4 py-3">
-                            <div className="font-bold text-slate-800 dark:text-slate-200">{c.name}</div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">{c.phone || '未留电话'}</div>
+                            <div className="font-bold text-[var(--text-primary)]">{c.name}</div>
+                            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{c.phone || '未留电话'}</div>
                           </td>
                           <td className="px-3 py-3">
-                            <span className="inline-block px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-medium text-[11px]">
+                            <span className="inline-block px-1.5 py-0.5 rounded bg-orbit-primary/10 text-orbit-primary font-medium text-[11px]">
                               {c.target_category}
                             </span>
-                            <div className="text-[10px] text-slate-400 mt-0.5">{c.source}</div>
+                            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{c.source}</div>
                           </td>
-                          <td className="px-3 py-3 font-mono text-slate-600 dark:text-slate-300">
+                          <td className="px-3 py-3 font-mono text-[var(--text-primary)]">
                             <div>{c.experience_years} 年经验</div>
-                            <div className="text-[11px] text-slate-400 font-medium">¥ {fmtNum(c.expected_salary)}/月</div>
+                            <div className="text-[11px] text-[var(--text-muted)] font-medium">¥ {fmtNum(c.expected_salary)}/月</div>
                           </td>
                           <td className="px-4 py-3 text-center">
                             {c.total_score ? (
@@ -2554,29 +2554,29 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                                 <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-orbit-surface2 border border-orbit-border font-mono font-bold text-orbit-primary">
                                   综合 {c.total_score} 分
                                 </div>
-                                <div className="text-[10px] text-slate-400 mt-1 flex justify-center gap-1.5">
+                                <div className="text-[10px] text-[var(--text-muted)] mt-1 flex justify-center gap-1.5">
                                   <span>上镜 {c.camera_presence_score}</span>
                                   <span>声线 {c.vocal_clarity_score}</span>
                                   <span>促单 {c.sales_pitch_score}</span>
                                 </div>
                               </>
                             ) : (
-                              <span className="text-slate-400 text-[11px]">待安排试镜</span>
+                              <span className="text-[var(--text-muted)] text-[11px]">待安排试镜</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
                             {c.trial_gmv ? (
                               <>
                                 <div className="font-mono font-bold text-emerald-700 dark:text-emerald-400">¥ {fmtNum(c.trial_gmv)}</div>
-                                <div className="text-[10px] text-slate-400">
+                                <div className="text-[10px] text-[var(--text-muted)]">
                                   转化 {c.trial_orders || 0} 单 · 15min测试
                                 </div>
                               </>
                             ) : (
-                              <span className="text-slate-400 text-[11px]">未实测</span>
+                              <span className="text-[var(--text-muted)] text-[11px]">未实测</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 max-w-xs text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+                          <td className="px-4 py-3 max-w-xs text-[var(--text-primary)] text-[11px] leading-relaxed">
                             {c.audition_comments || (c.stage === 'eliminated' ? c.eliminated_reason || '考评不合格' : '暂无评语记录')}
                           </td>
                           <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -2622,7 +2622,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-slate-500">
+                        <td colSpan={7} className="py-12 text-center text-[var(--text-muted)]">
                           暂无候选人记录，点击右上角录入应聘候选人
                         </td>
                       </tr>
@@ -2638,46 +2638,46 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
               <div className="bg-orbit-surface border border-orbit-border rounded-xl shadow-2xl w-full max-w-lg p-5 space-y-4 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between pb-2 border-b border-orbit-border">
-                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                     <Plus className="w-4 h-4 text-orbit-primary" />
                     录入主播应聘候选人
                   </h3>
-                  <button onClick={() => setShowCreateCandidateModal(false)} className="text-slate-400 hover:text-white">
+                  <button onClick={() => setShowCreateCandidateModal(false)} className="text-[var(--text-muted)] hover:text-white">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 <form onSubmit={handleCreateCandidate} className="space-y-3 text-xs">
                   <div>
-                    <label className="block text-slate-300 mb-1 font-medium">候选人姓名 *</label>
+                    <label className="block text-[var(--text-secondary)] mb-1 font-medium">候选人姓名 *</label>
                     <input
                       required
                       type="text"
                       placeholder="例如：张雪萌"
                       value={newCandidateForm.name}
                       onChange={(e) => setNewCandidateForm({ ...newCandidateForm, name: e.target.value })}
-                      className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-orbit-primary"
+                      className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-slate-300 mb-1 font-medium">联系电话</label>
+                      <label className="block text-[var(--text-secondary)] mb-1 font-medium">联系电话</label>
                       <input
                         type="text"
                         placeholder="手机号码"
                         value={newCandidateForm.phone}
                         onChange={(e) => setNewCandidateForm({ ...newCandidateForm, phone: e.target.value })}
-                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-orbit-primary"
+                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1 font-medium">应聘品类 *</label>
+                      <label className="block text-[var(--text-secondary)] mb-1 font-medium">应聘品类 *</label>
                       <select
                         required
                         value={newCandidateForm.targetCategory}
                         onChange={(e) => setNewCandidateForm({ ...newCandidateForm, targetCategory: e.target.value })}
-                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-orbit-primary"
+                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary"
                       >
                         {['美妆护肤', '服装', '食品生鲜', '3C数码', '鞋箱包'].map((cat) => (
                           <option key={cat} value={cat}>
@@ -2690,23 +2690,23 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                   {/* ── 新增字段 1：面试时间（年月日时分） ── */}
                   <div>
-                    <label className="block text-slate-300 mb-1 font-medium">
+                    <label className="block text-[var(--text-secondary)] mb-1 font-medium">
                       面试时间
-                      <span className="text-slate-500 font-normal ml-1">（年月日时分）</span>
+                      <span className="text-[var(--text-muted)] font-normal ml-1">（年月日时分）</span>
                     </label>
                     <input
                       type="datetime-local"
                       value={newCandidateForm.interviewTime}
                       onChange={(e) => setNewCandidateForm({ ...newCandidateForm, interviewTime: e.target.value })}
-                      className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-orbit-primary font-mono"
+                      className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary font-mono"
                     />
                   </div>
 
                   {/* ── 新增字段 2：过往品类（多选 Checkbox 组） ── */}
                   <div>
-                    <label className="block text-slate-300 mb-2 font-medium">
+                    <label className="block text-[var(--text-secondary)] mb-2 font-medium">
                       过往带货品类
-                      <span className="text-slate-500 font-normal ml-1">（可多选）</span>
+                      <span className="text-[var(--text-muted)] font-normal ml-1">（可多选）</span>
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {['美妆护肤', '服装', '食品生鲜', '3C数码', '鞋箱包', '珠宝配饰', '家居家纺', '运动户外', '宠物用品', '母婴用品'].map((cat) => {
@@ -2724,7 +2724,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                             className={`px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
                               checked
                                 ? 'bg-orbit-primary/20 border-orbit-primary/60 text-orbit-primary-light font-medium'
-                                : 'bg-orbit-surface2 border-orbit-border text-slate-400 hover:border-orbit-border2'
+                                : 'bg-orbit-surface2 border-orbit-border text-[var(--text-muted)] hover:border-orbit-border2'
                             }`}
                           >
                             {checked && <span className="mr-0.5">✓</span>}
@@ -2742,9 +2742,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                   {/* ── 新增字段 3：档案附件（视频 + 图片 上传） ── */}
                   <div>
-                    <label className="block text-slate-300 mb-1.5 font-medium">
+                    <label className="block text-[var(--text-secondary)] mb-1.5 font-medium">
                       候选人档案
-                      <span className="text-slate-500 font-normal ml-1">（支持视频、图片，最多 10 个文件）</span>
+                      <span className="text-[var(--text-muted)] font-normal ml-1">（支持视频、图片，最多 10 个文件）</span>
                     </label>
                     {/* 隐藏的原生文件选择器 */}
                     <input
@@ -2766,11 +2766,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       onClick={() => fileInputRef.current?.click()}
                       className="border-2 border-dashed border-orbit-border hover:border-orbit-primary/50 rounded-xl p-4 text-center cursor-pointer transition-colors group bg-orbit-surface2"
                     >
-                      <Upload className="w-5 h-5 text-slate-400 group-hover:text-orbit-primary-light mx-auto mb-1.5" />
-                      <p className="text-[11px] text-slate-400 group-hover:text-slate-300">
+                      <Upload className="w-5 h-5 text-[var(--text-muted)] group-hover:text-orbit-primary-light mx-auto mb-1.5" />
+                      <p className="text-[11px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">
                         点击选择或拖拽上传视频、图片
                       </p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                         支持 MP4、MOV、AVI、JPG、PNG、GIF 等格式，单文件不超过 500MB
                       </p>
                     </div>
@@ -2786,28 +2786,28 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           return (
                             <div key={idx} className="flex items-center gap-2 bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5">
                               {isVideo ? (
-                                <FileVideo className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                                <FileVideo className="w-3.5 h-3.5 text-orbit-info shrink-0" />
                               ) : isImage ? (
                                 <ImageIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                               ) : (
-                                <Paperclip className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <Paperclip className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                               )}
-                              <span className="text-[11px] text-slate-300 flex-1 truncate">{file.name}</span>
-                              <span className="text-[10px] text-slate-500 shrink-0">{sizeLabel}</span>
+                              <span className="text-[11px] text-[var(--text-secondary)] flex-1 truncate">{file.name}</span>
+                              <span className="text-[10px] text-[var(--text-muted)] shrink-0">{sizeLabel}</span>
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setAttachmentFiles(attachmentFiles.filter((_, i) => i !== idx))
                                 }}
-                                className="text-slate-500 hover:text-red-400 shrink-0"
+                                className="text-[var(--text-muted)] hover:text-red-400 shrink-0"
                               >
                                 <X className="w-3 h-3" />
                               </button>
                             </div>
                           )
                         })}
-                        <p className="text-[10px] text-slate-500">
+                        <p className="text-[10px] text-[var(--text-muted)]">
                           共 {attachmentFiles.length} 个文件（上限 10 个）
                         </p>
                       </div>
@@ -2816,33 +2816,33 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-slate-300 mb-1 font-medium">带货经验 (年)</label>
+                      <label className="block text-[var(--text-secondary)] mb-1 font-medium">带货经验 (年)</label>
                       <input
                         type="number"
                         step="0.5"
                         value={newCandidateForm.experienceYears}
                         onChange={(e) => setNewCandidateForm({ ...newCandidateForm, experienceYears: e.target.value })}
-                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-orbit-primary"
+                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1 font-medium">期望月薪 (元)</label>
+                      <label className="block text-[var(--text-secondary)] mb-1 font-medium">期望月薪 (元)</label>
                       <input
                         type="number"
                         step="1000"
                         value={newCandidateForm.expectedSalary}
                         onChange={(e) => setNewCandidateForm({ ...newCandidateForm, expectedSalary: e.target.value })}
-                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-orbit-primary"
+                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 mb-1 font-medium">招聘渠道</label>
+                    <label className="block text-[var(--text-secondary)] mb-1 font-medium">招聘渠道</label>
                     <select
                       value={newCandidateForm.source}
                       onChange={(e) => setNewCandidateForm({ ...newCandidateForm, source: e.target.value })}
-                      className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-orbit-primary"
+                      className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary"
                     >
                       {['BOSS直聘', '猎头推荐', '内部转介', '校园招聘', '抖音自荐'].map((s) => (
                         <option key={s} value={s}>
@@ -2870,21 +2870,21 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
               <div className="bg-orbit-surface border border-orbit-border rounded-xl shadow-2xl w-full max-w-lg p-5 space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-orbit-border">
-                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                     <Camera className="w-4 h-4 text-orbit-primary" />
                     声画试镜打分与15min试播实测 · 【{auditionCandidate.name}】
                   </h3>
-                  <button onClick={() => setShowAuditionModal(false)} className="text-slate-400 hover:text-white">
+                  <button onClick={() => setShowAuditionModal(false)} className="text-[var(--text-muted)] hover:text-white">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 <form onSubmit={handleSaveAudition} className="space-y-3 text-xs">
                   <div className="p-2.5 rounded-lg bg-orbit-surface2/60 border border-orbit-border">
-                    <div className="font-semibold text-slate-200 mb-2">五维声画雷达打分 (0 ~ 10分)：</div>
+                    <div className="font-semibold text-[var(--text-secondary)] mb-2">五维声画雷达打分 (0 ~ 10分)：</div>
                     <div className="grid grid-cols-2 gap-2.5">
                       <div>
-                        <label className="text-slate-400 block mb-0.5">颜值上镜表现 (25%)</label>
+                        <label className="text-[var(--text-muted)] block mb-0.5">颜值上镜表现 (25%)</label>
                         <input
                           type="number"
                           step="0.1"
@@ -2892,11 +2892,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           max="10"
                           value={auditionForm.cameraPresenceScore}
                           onChange={(e) => setAuditionForm({ ...auditionForm, cameraPresenceScore: Number(e.target.value) })}
-                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-slate-100"
+                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-[var(--text-primary)]"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-0.5">声线穿透控场 (20%)</label>
+                        <label className="text-[var(--text-muted)] block mb-0.5">声线穿透控场 (20%)</label>
                         <input
                           type="number"
                           step="0.1"
@@ -2904,11 +2904,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           max="10"
                           value={auditionForm.vocalClarityScore}
                           onChange={(e) => setAuditionForm({ ...auditionForm, vocalClarityScore: Number(e.target.value) })}
-                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-slate-100"
+                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-[var(--text-primary)]"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-0.5">带货话术逼单 (25%)</label>
+                        <label className="text-[var(--text-muted)] block mb-0.5">带货话术逼单 (25%)</label>
                         <input
                           type="number"
                           step="0.1"
@@ -2916,11 +2916,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           max="10"
                           value={auditionForm.salesPitchScore}
                           onChange={(e) => setAuditionForm({ ...auditionForm, salesPitchScore: Number(e.target.value) })}
-                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-slate-100"
+                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-[var(--text-primary)]"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-0.5">脚本变通临场 (15%)</label>
+                        <label className="text-[var(--text-muted)] block mb-0.5">脚本变通临场 (15%)</label>
                         <input
                           type="number"
                           step="0.1"
@@ -2928,11 +2928,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           max="10"
                           value={auditionForm.scriptAdaptabilityScore}
                           onChange={(e) => setAuditionForm({ ...auditionForm, scriptAdaptabilityScore: Number(e.target.value) })}
-                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-slate-100"
+                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-[var(--text-primary)]"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="text-slate-400 block mb-0.5">节奏把控与过品动线 (15%)</label>
+                        <label className="text-[var(--text-muted)] block mb-0.5">节奏把控与过品动线 (15%)</label>
                         <input
                           type="number"
                           step="0.1"
@@ -2940,32 +2940,32 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           max="10"
                           value={auditionForm.rhythmControlScore}
                           onChange={(e) => setAuditionForm({ ...auditionForm, rhythmControlScore: Number(e.target.value) })}
-                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-slate-100"
+                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-[var(--text-primary)]"
                         />
                       </div>
                     </div>
                   </div>
 
                   <div className="p-2.5 rounded-lg bg-orbit-surface2/60 border border-orbit-border">
-                    <div className="font-semibold text-slate-200 mb-2">15分钟实战试播测试产出：</div>
+                    <div className="font-semibold text-[var(--text-secondary)] mb-2">15分钟实战试播测试产出：</div>
                     <div className="grid grid-cols-2 gap-2.5">
                       <div>
-                        <label className="text-slate-400 block mb-0.5">实测带货 GMV (元)</label>
+                        <label className="text-[var(--text-muted)] block mb-0.5">实测带货 GMV (元)</label>
                         <input
                           type="number"
                           step="100"
                           value={auditionForm.trialGmv}
                           onChange={(e) => setAuditionForm({ ...auditionForm, trialGmv: Number(e.target.value) })}
-                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-slate-100"
+                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-[var(--text-primary)]"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-0.5">实测成交订单量</label>
+                        <label className="text-[var(--text-muted)] block mb-0.5">实测成交订单量</label>
                         <input
                           type="number"
                           value={auditionForm.trialOrders}
                           onChange={(e) => setAuditionForm({ ...auditionForm, trialOrders: Number(e.target.value) })}
-                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-slate-100"
+                          className="w-full bg-orbit-surface border border-orbit-border rounded px-2.5 py-1 text-[var(--text-primary)]"
                         />
                       </div>
                     </div>
@@ -2973,11 +2973,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-slate-300 mb-1 font-medium">评定结果</label>
+                      <label className="block text-[var(--text-secondary)] mb-1 font-medium">评定结果</label>
                       <select
                         value={auditionForm.result}
                         onChange={(e) => setAuditionForm({ ...auditionForm, result: e.target.value })}
-                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100"
+                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)]"
                       >
                         <option value="pass">通过试镜 (建议发Offer)</option>
                         <option value="pending">待定观望 (需复测)</option>
@@ -2985,13 +2985,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       </select>
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1 font-medium">考评说明评语</label>
+                      <label className="block text-[var(--text-secondary)] mb-1 font-medium">考评说明评语</label>
                       <input
                         type="text"
                         placeholder="例如：控场佳、逼单熟练"
                         value={auditionForm.comments}
                         onChange={(e) => setAuditionForm({ ...auditionForm, comments: e.target.value })}
-                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-slate-100"
+                        className="w-full bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 text-[var(--text-primary)]"
                       />
                     </div>
                   </div>
@@ -3016,50 +3016,50 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
         <motion.div {...fadeIn} className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
                 <span>核心主播独家签约率</span>
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
               </div>
-              <div className="text-xl font-bold text-slate-900 dark:text-slate-100">100.0%</div>
+              <div className="text-xl font-bold text-[var(--text-primary)]">100.0%</div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">全员排他协议已签署生效</div>
             </div>
 
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
                 <span>矩阵官方主号确权率</span>
                 <FileCheck className="w-4 h-4 text-orbit-primary" />
               </div>
-              <div className="text-xl font-bold text-slate-900 dark:text-slate-100">100.0%</div>
-              <div className="text-[10px] text-slate-500 mt-1">企业法人主体实名认证绑定</div>
+              <div className="text-xl font-bold text-[var(--text-primary)]">100.0%</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">企业法人主体实名认证绑定</div>
             </div>
 
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
                 <span>竞业限制与保密期签署率</span>
                 <Scale className="w-4 h-4 text-sky-500" />
               </div>
-              <div className="text-xl font-bold text-slate-900 dark:text-slate-100">96.4%</div>
-              <div className="text-[10px] text-slate-500 mt-1">离职在册监控 4 人（按月补偿）</div>
+              <div className="text-xl font-bold text-[var(--text-primary)]">96.4%</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">离职在册监控 4 人（按月补偿）</div>
             </div>
 
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
                 <span>直播间违规风控综合分</span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
               </div>
               <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">98.6 分</div>
-              <div className="text-[10px] text-slate-500 mt-1">平台信用绿灯 · 零重大违规封号</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">平台信用绿灯 · 零重大违规封号</div>
             </div>
           </div>
 
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <Briefcase className="w-4 h-4 text-orbit-primary" />
                   主播独家合约、账号资产确权与竞业到期预警台账
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">防账号流失、防私下导流、防带走粉丝社群与竞对违规挖猎</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">防账号流失、防私下导流、防带走粉丝社群与竞对违规挖猎</p>
               </div>
               <Badge variant="neutral">法务存证档案</Badge>
             </CardHeader>
@@ -3067,7 +3067,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-orbit-surface2 border-b border-orbit-border">
-                    <tr className="text-slate-600 dark:text-slate-400">
+                    <tr className="text-[var(--text-primary)] dark:text-[var(--text-muted)]">
                       <th className="text-left px-4 py-2.5 font-medium">签约主播</th>
                       <th className="text-left px-3 py-2.5 font-medium">签约性质</th>
                       <th className="text-left px-4 py-2.5 font-medium">合约起止期限</th>
@@ -3084,7 +3084,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       return (
                         <tr key={c.id} className="hover:bg-orbit-surface2/50 transition-colors">
                           <td className="px-4 py-3">
-                            <div className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <div className="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                               {c.anchorName}
                               <LevelBadge level={c.level} />
                             </div>
@@ -3092,13 +3092,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           <td className="px-3 py-3">
                             <Badge variant={c.contractType === '独家全职' ? 'info' : 'neutral'}>{c.contractType}</Badge>
                           </td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                          <td className="px-4 py-3 text-[var(--text-primary)] font-mono text-[11px]">
                             {c.startDate} ~ {c.endDate}
                           </td>
                           <td className="px-3 py-3 font-mono">
                             <span
                               className={`font-bold ${
-                                isExpiringSoon ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'
+                                isExpiringSoon ? 'text-amber-700 dark:text-amber-400' : 'text-[var(--text-primary)]'
                               }`}
                             >
                               {c.remainingDays} 天
@@ -3110,11 +3110,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="font-bold text-slate-800 dark:text-slate-200">{c.boundAccount}</div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">{c.accountOwner}</div>
+                            <div className="font-bold text-[var(--text-primary)]">{c.boundAccount}</div>
+                            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{c.accountOwner}</div>
                           </td>
-                          <td className="px-3 py-3 text-slate-600 dark:text-slate-300 font-mono">{c.nonCompeteMonths} 个月</td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-[11px] font-mono">
+                          <td className="px-3 py-3 text-[var(--text-primary)] font-mono">{c.nonCompeteMonths} 个月</td>
+                          <td className="px-4 py-3 text-[var(--text-primary)] text-[11px] font-mono">
                             {c.liquidatedDamages}
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -3156,7 +3156,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 mb-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 私域引流与微信飞单抽检
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 本月直播音视频实时质检与弹幕违规词扫描 0 起违规，严禁主播私下引导粉丝添加个人微信或分流第三方成交。
               </p>
             </div>
@@ -3165,7 +3165,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="text-xs font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1.5 mb-1.5">
                 <FileCheck className="w-4 h-4 text-sky-500" /> 品牌寄样与贵重样品盘点核销
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 在库样品 142 件，主播已退库 140 件，剩余 2 件轻奢样衣已登记待归还，杜绝主播私留样品资产。
               </p>
             </div>
@@ -3174,7 +3174,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               <div className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 mb-1.5">
                 <AlertTriangle className="w-4 h-4 text-amber-500" /> 竞业补偿金合规发放闭环
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 本月离职竞业在册人员（4人）已全额对公发放竞业限制补偿金（按原月薪 30% 约定），保全企业核心商密法律效力。
               </p>
             </div>
@@ -3195,7 +3195,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   {(effRisk?.declining || []).length} 人
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-[var(--text-muted)]">
                 主播最近场次 GMV 对比前期下滑超 20%，疑似状态低迷、选品不配或有离职单飞异动。
               </p>
             </div>
@@ -3209,7 +3209,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   {(effRisk?.zeroOutput || []).length} 人
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-[var(--text-muted)]">
                 签约但在当前周期内 0 场次产出，长期占编占用固定保底，建议敏捷汰换或换岗。
               </p>
             </div>
@@ -3223,7 +3223,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   {(effRisk?.highAbsence || []).length} 人
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-[var(--text-muted)]">
                 请假/病假达到 3 天以上，严重影响排班完整度，需排查健康状态与替补备播。
               </p>
             </div>
@@ -3232,12 +3232,12 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <Card>
             <CardHeader>
               <div>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                   <ShieldAlert className="w-4 h-4 text-orbit-primary" />
                   人效异常待处置闭环清单（
                   {(effRisk?.declining || []).length + (effRisk?.zeroOutput || []).length + (effRisk?.highAbsence || []).length} 项）
                 </span>
-                <p className="text-xs text-slate-500 mt-0.5">HRBP 联动现场运营主管、选品与排班实施协同干预</p>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">HRBP 联动现场运营主管、选品与排班实施协同干预</p>
               </div>
               <Badge variant="warning">待办处置中</Badge>
             </CardHeader>
@@ -3251,14 +3251,14 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-orbit-border bg-orbit-surface gap-2"
                   >
                     <div>
-                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                      <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span>{d.name}</span>
                         <LevelBadge level={d.level} />
                         <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-800 dark:text-rose-300 font-medium">
                           下滑 {fmtPct(d.dropRate)}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-1">
+                      <div className="text-[11px] text-[var(--text-muted)] mt-1">
                         前期 GMV: {fmtWan(d.prevGmv)} → 当前 GMV: {fmtWan(d.currGmv)}
                       </div>
                     </div>
@@ -3291,14 +3291,14 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-orbit-border bg-orbit-surface gap-2"
                   >
                     <div>
-                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                      <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span>{z.name}</span>
                         <LevelBadge level={z.level} />
                         <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-800 dark:text-amber-300 font-medium">
                           周期零产出
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-1">
+                      <div className="text-[11px] text-[var(--text-muted)] mt-1">
                         末次开播: {z.lastSessionDate || '从未开播'} · 占用固定底薪编制
                       </div>
                     </div>
@@ -3331,13 +3331,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border border-orbit-border bg-orbit-surface gap-2"
                   >
                     <div>
-                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                      <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span>{h.name}</span>
                         <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-800 dark:text-sky-300 font-medium">
                           缺勤/病假 {h.leaveDays} 天
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-1">
+                      <div className="text-[11px] text-[var(--text-muted)] mt-1">
                         排休 {h.restDays} 天 · 请假率超标影响班组排期
                       </div>
                     </div>
@@ -3362,7 +3362,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               })}
 
               {(effRisk?.riskCount ?? 0) === 0 && (
-                <div className="py-8 text-center text-slate-500 text-xs flex flex-col items-center gap-2">
+                <div className="py-8 text-center text-[var(--text-muted)] text-xs flex flex-col items-center gap-2">
                   <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                   <span>当前周期暂无人效异常或严重风险，组织运转稳健</span>
                 </div>
@@ -3395,7 +3395,7 @@ function CompassCard({
   return (
     <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500 font-medium">{title}</span>
+        <span className="text-xs text-[var(--text-muted)] font-medium">{title}</span>
         <div
           className={`w-6 h-6 rounded-lg flex items-center justify-center ${
             status === 'excellent'
@@ -3408,10 +3408,10 @@ function CompassCard({
           <Icon className="w-3.5 h-3.5" />
         </div>
       </div>
-      <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{value}</div>
-      <div className="text-[10px] text-slate-500 border-t border-orbit-border/40 pt-1.5 flex items-center justify-between">
+      <div className="text-xl font-bold text-[var(--text-primary)]">{value}</div>
+      <div className="text-[10px] text-[var(--text-muted)] border-t border-orbit-border/40 pt-1.5 flex items-center justify-between">
         <span>{hint}</span>
-        <span className="font-medium text-slate-600 dark:text-slate-400">{benchmark}</span>
+        <span className="font-medium text-[var(--text-primary)] dark:text-[var(--text-muted)]">{benchmark}</span>
       </div>
     </div>
   )
@@ -3440,15 +3440,15 @@ function Stat({
           : 'border-orbit-border/60 bg-orbit-surface'
       }`}
     >
-      <div className="text-[11px] text-slate-500 font-medium">{label}</div>
+      <div className="text-[11px] text-[var(--text-muted)] font-medium">{label}</div>
       <div
         className={`text-lg font-bold mt-0.5 ${
-          warn ? 'text-amber-700 dark:text-amber-300' : highlight ? 'text-orbit-primary' : 'text-slate-900 dark:text-slate-100'
+          warn ? 'text-amber-700 dark:text-amber-300' : highlight ? 'text-orbit-primary' : 'text-[var(--text-primary)]'
         }`}
       >
         {value}
       </div>
-      {hint && <div className="text-[10px] text-slate-500 mt-0.5">{hint}</div>}
+      {hint && <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{hint}</div>}
     </div>
   )
 }
@@ -3461,7 +3461,7 @@ function LevelBadge({ level }: { level: string }) {
       ? 'text-amber-800 dark:text-amber-300 border-amber-500/40 bg-amber-500/10'
       : level === 'B'
       ? 'text-sky-700 dark:text-sky-300 border-sky-500/40 bg-sky-500/10'
-      : 'text-slate-600 dark:text-slate-400 border-orbit-border/60 bg-orbit-surface2'
+      : 'text-[var(--text-primary)] dark:text-[var(--text-muted)] border-orbit-border/60 bg-orbit-surface2'
   return <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold border ${color}`}>{level}</span>
 }
 

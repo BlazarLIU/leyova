@@ -89,8 +89,8 @@ export function SessionsPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">场次管理</h1>
-            <p className="text-slate-500 text-sm mt-1">直播场次管理与查看</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">场次管理</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">直播场次管理与查看</p>
           </div>
         </div>
       </motion.div>
@@ -104,13 +104,13 @@ export function SessionsPage() {
       >
         {/* Search */}
         <div className="relative flex-1 max-w-xs w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
             type="text"
             value={searchText}
             onChange={(e) => { setSearchText(e.target.value); setCurrentPage(1) }}
             placeholder="搜索场次 ID、标题或主播..."
-            className="w-full h-9 pl-9 pr-3 text-sm bg-orbit-surface2 border border-orbit-border rounded-lg text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary/50 transition-colors"
+            className="w-full h-9 pl-9 pr-3 text-sm bg-orbit-surface2 border border-orbit-border rounded-lg text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary/50 transition-colors"
           />
         </div>
 
@@ -123,7 +123,7 @@ export function SessionsPage() {
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 filterStatus === f.value
                   ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300 hover:bg-white/5'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)] hover:bg-white/5'
               }`}
             >
               {f.label}
@@ -153,20 +153,20 @@ export function SessionsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">场次 ID</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">直播标题</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">主播</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">开始时间</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">结束时间</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">GMV</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">ROI</th>
-                    <th className="text-center text-xs text-slate-500 font-medium px-5 py-3">状态</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">场次 ID</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">直播标题</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">主播</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">开始时间</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">结束时间</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">GMV</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">ROI</th>
+                    <th className="text-center text-xs text-[var(--text-muted)] font-medium px-5 py-3">状态</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedSessions.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-12 text-slate-500 text-sm">
+                      <td colSpan={8} className="text-center py-12 text-[var(--text-muted)] text-sm">
                         没有匹配的场次记录
                       </td>
                     </tr>
@@ -179,18 +179,18 @@ export function SessionsPage() {
                           className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                         >
                           <td className="px-5 py-3.5">
-                            <span className="text-slate-400 font-mono text-xs">{session.id}</span>
+                            <span className="text-[var(--text-muted)] font-mono text-xs">{session.id}</span>
                           </td>
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-2">
-                              <CalendarRange className="w-4 h-4 text-slate-600" />
-                              <span className="text-slate-200 font-medium">{session.title}</span>
+                              <CalendarRange className="w-4 h-4 text-[var(--text-primary)]" />
+                              <span className="text-[var(--text-secondary)] font-medium">{session.title}</span>
                             </div>
                           </td>
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-slate-600" />
-                              <span className="text-slate-400">{session.anchor}</span>
+                              <User className="w-3.5 h-3.5 text-[var(--text-primary)]" />
+                              <span className="text-[var(--text-muted)]">{session.anchor}</span>
                             </div>
                             {/* P0-2：排班与场次联动 —— 展示当班岗位分工 */}
                             {session.staff.length > 0 && (
@@ -199,7 +199,7 @@ export function SessionsPage() {
                                   <span
                                     key={i}
                                     title={`${st.roleName}：${st.staffName}`}
-                                    className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-slate-400"
+                                    className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-[var(--text-muted)]"
                                   >
                                     {st.roleName} {st.staffName}
                                   </span>
@@ -207,12 +207,12 @@ export function SessionsPage() {
                               </div>
                             )}
                           </td>
-                          <td className="px-5 py-3.5 text-slate-400 text-xs">{session.startTime}</td>
-                          <td className="px-5 py-3.5 text-slate-400 text-xs">{session.endTime}</td>
+                          <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{session.startTime}</td>
+                          <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{session.endTime}</td>
                           <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">
                             {session.gmv}
                           </td>
-                          <td className="px-5 py-3.5 text-right text-slate-300">
+                          <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">
                             {session.roi > 0 ? session.roi.toFixed(2) : '-'}
                           </td>
                           <td className="px-5 py-3.5 text-center">
@@ -236,14 +236,14 @@ export function SessionsPage() {
         transition={{ duration: 0.3, delay: 0.35 }}
         className="flex items-center justify-between text-sm"
       >
-        <p className="text-slate-500 text-xs">
+        <p className="text-[var(--text-muted)] text-xs">
           显示第 {(safePage - 1) * PAGE_SIZE + 1} - {Math.min(safePage * PAGE_SIZE, filteredSessions.length)} 条，共 {filteredSessions.length} 条
         </p>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
             disabled={safePage <= 1}
-            className="px-3 py-1.5 text-xs rounded-lg text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 text-xs rounded-lg text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             上一页
           </button>
@@ -254,7 +254,7 @@ export function SessionsPage() {
               className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
                 page === safePage
                   ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
               }`}
             >
               {page}
@@ -263,7 +263,7 @@ export function SessionsPage() {
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, safePage + 1))}
             disabled={safePage >= totalPages}
-            className="px-3 py-1.5 text-xs rounded-lg text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 text-xs rounded-lg text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             下一页
           </button>

@@ -19,9 +19,9 @@ export function PlatformInsightPage() {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="max-w-md w-full rounded-2xl border border-orbit-border bg-orbit-surface p-8 text-center space-y-3">
-          <Compass className="w-10 h-10 mx-auto text-slate-500" />
-          <h2 className="text-lg font-semibold text-slate-200">该洞察页暂不可用</h2>
-          <p className="text-sm text-slate-400">页面入口可能已调整，请从左侧菜单重新进入。</p>
+          <Compass className="w-10 h-10 mx-auto text-[var(--text-muted)]" />
+          <h2 className="text-lg font-semibold text-[var(--text-secondary)]">该洞察页暂不可用</h2>
+          <p className="text-sm text-[var(--text-muted)]">页面入口可能已调整，请从左侧菜单重新进入。</p>
           <button
             onClick={() => navigate('/overview')}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orbit-primary text-white text-sm"

@@ -96,15 +96,15 @@ export const PerformanceLeaderboard: React.FC<PerformanceLeaderboardProps> = ({ 
     : (projectItems.length > 0 ? projectItems : defaultProjects)
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-100 shadow-sm p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-orbit-border shadow-sm p-6 ${className}`}>
       {/* 头部与切换 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-gray-50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-orbit-border">
         <div>
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-500" />
-            <h3 className="text-base font-semibold text-gray-900">业绩排行榜</h3>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">业绩排行榜</h3>
           </div>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             {activeTab === 'anchor' 
               ? '按已同步的主播直播间成交金额统计' 
               : '按各代播项目及旗舰店合同周期汇总统计'}
@@ -112,13 +112,13 @@ export const PerformanceLeaderboard: React.FC<PerformanceLeaderboardProps> = ({ 
         </div>
 
         {/* Tab 切换按钮 */}
-        <div className="flex items-center bg-gray-100/80 p-1 rounded-lg">
+        <div className="flex items-center bg-[var(--surface2)//80] p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('anchor')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
               activeTab === 'anchor'
-                ? 'bg-white text-blue-600 shadow-xs'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-orbit-primary shadow-xs'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -128,8 +128,8 @@ export const PerformanceLeaderboard: React.FC<PerformanceLeaderboardProps> = ({ 
             onClick={() => setActiveTab('project')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
               activeTab === 'project'
-                ? 'bg-white text-blue-600 shadow-xs'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-orbit-primary shadow-xs'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Building2 className="w-3.5 h-3.5" />
@@ -142,7 +142,7 @@ export const PerformanceLeaderboard: React.FC<PerformanceLeaderboardProps> = ({ 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-[11px] font-medium text-gray-400 border-b border-gray-100">
+            <tr className="text-[11px] font-medium text-[var(--text-muted)] border-b border-orbit-border">
               <th className="py-2.5 px-2 w-12 text-center">#</th>
               <th className="py-2.5 px-3">{activeTab === 'anchor' ? '主播' : '项目名称'}</th>
               <th className="py-2.5 px-3">{activeTab === 'anchor' ? '所属项目' : '平台与客户'}</th>
@@ -150,16 +150,16 @@ export const PerformanceLeaderboard: React.FC<PerformanceLeaderboardProps> = ({ 
               <th className="py-2.5 px-3 w-40">占比</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50 text-xs">
+          <tbody className="divide-y divide-orbit-border text-xs">
             {items.map((item, index) => {
               const rank = index + 1
-              let rankBadgeClass = 'bg-gray-100 text-gray-500'
-              if (rank === 1) rankBadgeClass = 'bg-blue-600 text-white font-bold shadow-xs'
-              else if (rank === 2) rankBadgeClass = 'bg-blue-500 text-white font-medium'
-              else if (rank === 3) rankBadgeClass = 'bg-blue-400 text-white font-medium'
+              let rankBadgeClass = 'bg-[var(--surface2)] text-[var(--text-muted)]'
+              if (rank === 1) rankBadgeClass = 'bg-orbit-primary text-white font-bold shadow-xs'
+              else if (rank === 2) rankBadgeClass = 'bg-orbit-info text-white font-medium'
+              else if (rank === 3) rankBadgeClass = 'bg-orbit-info text-white font-medium'
 
               return (
-                <tr key={item.id} className="hover:bg-blue-50/30 transition-colors">
+                <tr key={item.id} className="hover:bg-orbit-info/30 transition-colors">
                   {/* 排名序号 */}
                   <td className="py-3 px-2 text-center">
                     <span
@@ -170,32 +170,32 @@ export const PerformanceLeaderboard: React.FC<PerformanceLeaderboardProps> = ({ 
                   </td>
 
                   {/* 名称 */}
-                  <td className="py-3 px-3 font-medium text-gray-800">
+                  <td className="py-3 px-3 font-medium text-[var(--text-primary)]">
                     {item.name}
                   </td>
 
                   {/* 所属项目 / 平台 */}
-                  <td className="py-3 px-3 text-gray-500">
+                  <td className="py-3 px-3 text-[var(--text-muted)]">
                     <span className="inline-block max-w-[180px] truncate" title={item.subtitle}>
                       {item.subtitle}
                     </span>
                   </td>
 
                   {/* 成交金额 */}
-                  <td className="py-3 px-3 text-right font-semibold text-gray-900 tabular-nums">
+                  <td className="py-3 px-3 text-right font-semibold text-[var(--text-primary)] tabular-nums">
                     ¥{item.gmv.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
 
                   {/* 占比可视化进度条 */}
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div className="flex-1 bg-[var(--surface2)] rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                          className="bg-orbit-primary h-1.5 rounded-full transition-all duration-500"
                           style={{ width: `${item.percentage}%` }}
                         />
                       </div>
-                      <span className="text-[10px] text-gray-400 tabular-nums w-8 text-right">
+                      <span className="text-[10px] text-[var(--text-muted)] tabular-nums w-8 text-right">
                         {item.percentage}%
                       </span>
                     </div>

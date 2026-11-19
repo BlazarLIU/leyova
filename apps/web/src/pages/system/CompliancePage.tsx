@@ -114,11 +114,11 @@ export function CompliancePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-amber-400" />
             2026 平台合规与风控台账
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             聚焦 2026 年网络交易平台新规：仅退款/自动跟价风险监测、工商税务主体一致性核验、信用扣分与限流申诉闭环
           </p>
         </div>
@@ -126,7 +126,7 @@ export function CompliancePage() {
           <select
             value={platform}
             onChange={(e) => setPlatform(e.target.value)}
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200"
+            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-[var(--text-secondary)]"
           >
             <option value="">全部平台</option>
             <option value="douyin">抖音</option>
@@ -162,41 +162,41 @@ export function CompliancePage() {
           <CardBody>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="text-slate-400 block mb-1">平台</label>
-                <select value={form.platformCode} onChange={(e) => setForm({ ...form, platformCode: e.target.value })} className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200">
+                <label className="text-[var(--text-muted)] block mb-1">平台</label>
+                <select value={form.platformCode} onChange={(e) => setForm({ ...form, platformCode: e.target.value })} className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]">
                   {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">法规/规则编号</label>
-                <input value={form.regulationCode} onChange={(e) => setForm({ ...form, regulationCode: e.target.value })} className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200" />
+                <label className="text-[var(--text-muted)] block mb-1">法规/规则编号</label>
+                <input value={form.regulationCode} onChange={(e) => setForm({ ...form, regulationCode: e.target.value })} className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]" />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">严重程度 & 扣分</label>
+                <label className="text-[var(--text-muted)] block mb-1">严重程度 & 扣分</label>
                 <div className="grid grid-cols-2 gap-1.5">
-                  <select value={form.severity} onChange={(e) => setForm({ ...form, severity: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200">
+                  <select value={form.severity} onChange={(e) => setForm({ ...form, severity: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]">
                     <option value="info">info</option>
                     <option value="warning">warning</option>
                     <option value="critical">critical</option>
                   </select>
-                  <input type="number" value={form.creditPointsDeducted} onChange={(e) => setForm({ ...form, creditPointsDeducted: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
+                  <input type="number" value={form.creditPointsDeducted} onChange={(e) => setForm({ ...form, creditPointsDeducted: e.target.value })} className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]" />
                 </div>
               </div>
               <div className="flex flex-col justify-end gap-1.5">
-                <label className="inline-flex items-center gap-2 text-slate-300">
+                <label className="inline-flex items-center gap-2 text-[var(--text-secondary)]">
                   <input type="checkbox" checked={form.autoPriceFollowRisk} onChange={(e) => setForm({ ...form, autoPriceFollowRisk: e.target.checked })} />
                   涉及自动跟价/强制降价风险
                 </label>
-                <label className="inline-flex items-center gap-2 text-slate-300">
+                <label className="inline-flex items-center gap-2 text-[var(--text-secondary)]">
                   <input type="checkbox" checked={!form.entityConsistencyOk} onChange={(e) => setForm({ ...form, entityConsistencyOk: !e.target.checked })} />
                   资质主体不一致警告
                 </label>
               </div>
               <div className="md:col-span-4">
-                <label className="text-slate-400 block mb-1">风险摘要与整改要求</label>
-                <input value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="描述具体触发场景、影响店铺及申诉截止日" className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200" />
+                <label className="text-[var(--text-muted)] block mb-1">风险摘要与整改要求</label>
+                <input value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="描述具体触发场景、影响店铺及申诉截止日" className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]" />
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
@@ -211,23 +211,23 @@ export function CompliancePage() {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <Card><CardBody>
-              <div className="text-xs text-slate-400">待处置合规事项</div>
+              <div className="text-xs text-[var(--text-muted)]">待处置合规事项</div>
               <div className="text-xl font-bold text-amber-400 mt-1 tabular-nums">{data.summary.open_count}</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">严重告警 (Critical)</div>
+              <div className="text-xs text-[var(--text-muted)]">严重告警 (Critical)</div>
               <div className="text-xl font-bold text-rose-400 mt-1 tabular-nums">{data.summary.critical_count}</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">累计信用扣分</div>
-              <div className="text-xl font-bold text-slate-100 mt-1 tabular-nums">{data.summary.total_points_deducted}</div>
+              <div className="text-xs text-[var(--text-muted)]">累计信用扣分</div>
+              <div className="text-xl font-bold text-[var(--text-primary)] mt-1 tabular-nums">{data.summary.total_points_deducted}</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">自动跟价风险单</div>
+              <div className="text-xs text-[var(--text-muted)]">自动跟价风险单</div>
               <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">{data.summary.auto_price_follow_risk_count}</div>
             </CardBody></Card>
             <Card><CardBody>
-              <div className="text-xs text-slate-400">主体不一致异常</div>
+              <div className="text-xs text-[var(--text-muted)]">主体不一致异常</div>
               <div className="text-xl font-bold text-rose-300 mt-1 tabular-nums">{data.summary.entity_inconsistent_count}</div>
             </CardBody></Card>
           </div>
@@ -238,7 +238,7 @@ export function CompliancePage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-orbit-border text-slate-500">
+                    <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                       <th className="text-left px-4 py-2.5">平台/店铺</th>
                       <th className="text-left px-4 py-2.5">规则与事件类型</th>
                       <th className="text-left px-4 py-2.5">风控标签</th>
@@ -250,10 +250,10 @@ export function CompliancePage() {
                   <tbody>
                     {data.events.map((e) => (
                       <tr key={e.id} className="border-b border-orbit-border/60 hover:bg-white/5">
-                        <td className="px-4 py-3 text-slate-200">{e.platform_name} {e.shop_name ? `· ${e.shop_name}` : ''}</td>
+                        <td className="px-4 py-3 text-[var(--text-secondary)]">{e.platform_name} {e.shop_name ? `· ${e.shop_name}` : ''}</td>
                         <td className="px-4 py-3">
                           <div className="font-mono text-cyan-300">{e.regulation_code}</div>
-                          <div className="text-slate-400">{e.event_type}</div>
+                          <div className="text-[var(--text-muted)]">{e.event_type}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
@@ -263,7 +263,7 @@ export function CompliancePage() {
                             {!e.entity_consistency_ok && <Badge variant="danger">主体不一致</Badge>}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-slate-300 max-w-md">{e.summary}</td>
+                        <td className="px-4 py-3 text-[var(--text-secondary)] max-w-md">{e.summary}</td>
                         <td className="px-4 py-3">
                           <Badge variant={e.status === 'resolved' ? 'success' : e.status === 'remediating' ? 'info' : 'warning'}>{e.status}</Badge>
                         </td>
@@ -278,7 +278,7 @@ export function CompliancePage() {
                               </Button>
                             </div>
                           ) : (
-                            <span className="text-slate-500">已归档</span>
+                            <span className="text-[var(--text-muted)]">已归档</span>
                           )}
                         </td>
                       </tr>

@@ -55,16 +55,16 @@ export function KsFansTeamPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">粉丝团运营</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">粉丝团运营</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               {currentShop ? currentShop.name : '未选择店铺'} · 快手独有��粉丝资产运营
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -84,13 +84,13 @@ export function KsFansTeamPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : !hasData ? (
         <Card><CardBody>
           <div className="py-14 text-center">
-            <Users className="mx-auto h-10 w-10 text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400">该店铺在选定周期内暂无粉丝数据</p>
-            <p className="mt-1 text-xs text-slate-600">需从快手生意通导出粉丝与粉丝团数据</p>
+            <Users className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+            <p className="mt-3 text-sm text-[var(--text-muted)]">该店铺在选定周期内暂无粉丝数据</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]">需从快手生意通导出粉丝与粉丝团数据</p>
           </div>
         </CardBody></Card>
       ) : (
@@ -120,26 +120,26 @@ export function KsFansTeamPage() {
                       <Badge variant={joinRate >= 40 ? 'success' : joinRate >= 20 ? 'warning' : 'danger'}>
                         {joinRate >= 40 ? '优秀' : joinRate >= 20 ? '正常' : '偏低'}
                       </Badge>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-[var(--text-muted)]">
                         {data!.fansTeam.newJoiners} / {data!.followers.new} 新粉丝加入
                       </span>
                     </div>
-                    <p className="text-sm text-slate-300">{data!.assessment}</p>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
+                    <p className="text-sm text-[var(--text-secondary)]">{data!.assessment}</p>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-orbit-ink">
                       <div
                         className={`h-full rounded-full ${joinRate >= 40 ? 'bg-emerald-500' : joinRate >= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}
                         style={{ width: `${Math.min(joinRate, 100)}%` }}
                       />
                     </div>
-                    <p className="mt-2 text-[11px] text-slate-500">{data!.fansTeam.note}</p>
+                    <p className="mt-2 text-[11px] text-[var(--text-muted)]">{data!.fansTeam.note}</p>
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-3 rounded-lg bg-slate-800/40 px-3 py-2 text-xs">
-                  <span className="text-slate-400">高亲密度粉丝</span>
-                  <span className="font-mono text-slate-200">{data!.closeFriends}</span>
-                  <span className="text-slate-600">·</span>
-                  <span className="text-slate-500">亲密度达标的核心复购人群</span>
+                <div className="mt-4 flex items-center gap-3 rounded-lg bg-orbit-ink/40 px-3 py-2 text-xs">
+                  <span className="text-[var(--text-muted)]">高亲密度粉丝</span>
+                  <span className="font-mono text-[var(--text-secondary)]">{data!.closeFriends}</span>
+                  <span className="text-[var(--text-primary)]">·</span>
+                  <span className="text-[var(--text-muted)]">亲密度达标的核心复购人群</span>
                 </div>
               </CardBody>
             </Card>
@@ -154,13 +154,13 @@ function Stat({ icon: Icon, label, value, unit }: {
   icon: any; label: string; value: string; unit: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+    <div className="rounded-xl border border-[var(--border)] bg-orbit-ink/40 p-3">
+      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
         <Icon className="h-3.5 w-3.5" />{label}
       </div>
       <div className="mt-1.5 flex items-baseline gap-1">
-        <span className="text-lg font-semibold text-slate-100">{value}</span>
-        <span className="text-[11px] text-slate-500">{unit}</span>
+        <span className="text-lg font-semibold text-[var(--text-primary)]">{value}</span>
+        <span className="text-[11px] text-[var(--text-muted)]">{unit}</span>
       </div>
     </div>
   )

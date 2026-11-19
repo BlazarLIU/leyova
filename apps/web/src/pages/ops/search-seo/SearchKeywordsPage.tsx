@@ -163,7 +163,7 @@ export function SearchKeywordsPage() {
         sortable: true,
         render: (_, r) => (
           <div>
-            <div className="font-semibold text-slate-100 flex items-center gap-1.5">
+            <div className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
               <span>{r.keyword}</span>
               {r.note_id && (
                 <span className="text-[10px] text-cyan-400 bg-cyan-950/60 px-1.5 py-0.2 rounded border border-cyan-800">
@@ -171,7 +171,7 @@ export function SearchKeywordsPage() {
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono mt-0.5">{r.biz_date}</div>
+            <div className="text-[11px] text-[var(--text-muted)] font-mono mt-0.5">{r.biz_date}</div>
           </div>
         ),
       },
@@ -181,7 +181,7 @@ export function SearchKeywordsPage() {
         render: (_, r) => (
           <div>
             <Badge variant="neutral">{r.platform_name || r.platform_code}</Badge>
-            <div className="text-slate-400 text-xs mt-0.5">{r.shop_name}</div>
+            <div className="text-[var(--text-muted)] text-xs mt-0.5">{r.shop_name}</div>
           </div>
         ),
       },
@@ -193,7 +193,7 @@ export function SearchKeywordsPage() {
         render: (v) => (
           <span
             className={`font-bold tabular-nums ${
-              v <= 3 ? 'text-amber-400' : v <= 10 ? 'text-emerald-400' : 'text-slate-400'
+              v <= 3 ? 'text-amber-400' : v <= 10 ? 'text-emerald-400' : 'text-[var(--text-muted)]'
             }`}
           >
             #{v}
@@ -212,8 +212,8 @@ export function SearchKeywordsPage() {
         align: 'right',
         render: (_, r) => (
           <div className="text-right tabular-nums">
-            <div className="text-slate-200">{Number(r.impressions || 0).toLocaleString()}</div>
-            <div className="text-slate-500 text-[11px]">{Number(r.clicks || 0).toLocaleString()} 点击</div>
+            <div className="text-[var(--text-secondary)]">{Number(r.impressions || 0).toLocaleString()}</div>
+            <div className="text-[var(--text-muted)] text-[11px]">{Number(r.clicks || 0).toLocaleString()} 点击</div>
           </div>
         ),
       },
@@ -221,7 +221,7 @@ export function SearchKeywordsPage() {
         key: 'orders',
         header: '订单',
         align: 'right',
-        render: (v) => <span className="tabular-nums text-slate-200">{Number(v || 0).toLocaleString()}</span>,
+        render: (v) => <span className="tabular-nums text-[var(--text-secondary)]">{Number(v || 0).toLocaleString()}</span>,
       },
       {
         key: 'cvr',
@@ -265,7 +265,7 @@ export function SearchKeywordsPage() {
           <CardBody>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="text-slate-400 block mb-1">平台</label>
+                <label className="text-[var(--text-muted)] block mb-1">平台</label>
                 <select
                   value={form.platformCode}
                   onChange={(e) => {
@@ -273,7 +273,7 @@ export function SearchKeywordsPage() {
                     const firstShop = shops.find((s) => s.platform_code === p)?.id
                     setForm({ ...form, platformCode: p, shopId: firstShop ? String(firstShop) : '' })
                   }}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 >
                   {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                     <option key={p} value={p}>
@@ -283,11 +283,11 @@ export function SearchKeywordsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">店铺</label>
+                <label className="text-[var(--text-muted)] block mb-1">店铺</label>
                 <select
                   value={form.shopId}
                   onChange={(e) => setForm({ ...form, shopId: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 >
                   <option value="">选择店铺</option>
                   {filteredShops.map((s) => (
@@ -298,75 +298,75 @@ export function SearchKeywordsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">关键词</label>
+                <label className="text-[var(--text-muted)] block mb-1">关键词</label>
                 <input
                   value={form.keyword}
                   onChange={(e) => setForm({ ...form, keyword: e.target.value })}
                   placeholder="例如：防晒衣女夏"
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">自然坑位排名</label>
+                <label className="text-[var(--text-muted)] block mb-1">自然坑位排名</label>
                 <input
                   type="number"
                   value={form.searchRank}
                   onChange={(e) => setForm({ ...form, searchRank: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">搜索占比 (%)</label>
+                <label className="text-[var(--text-muted)] block mb-1">搜索占比 (%)</label>
                 <input
                   type="number"
                   value={form.searchSharePct}
                   onChange={(e) => setForm({ ...form, searchSharePct: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">曝光量</label>
+                <label className="text-[var(--text-muted)] block mb-1">曝光量</label>
                 <input
                   type="number"
                   value={form.impressions}
                   onChange={(e) => setForm({ ...form, impressions: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">点击量 / 成交订单</label>
+                <label className="text-[var(--text-muted)] block mb-1">点击量 / 成交订单</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <input
                     type="number"
                     placeholder="点击"
                     value={form.clicks}
                     onChange={(e) => setForm({ ...form, clicks: e.target.value })}
-                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
                   />
                   <input
                     type="number"
                     placeholder="订单"
                     value={form.orders}
                     onChange={(e) => setForm({ ...form, orders: e.target.value })}
-                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">搜索成交 GMV / 笔记 ID</label>
+                <label className="text-[var(--text-muted)] block mb-1">搜索成交 GMV / 笔记 ID</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <input
                     type="number"
                     placeholder="GMV"
                     value={form.searchGmv}
                     onChange={(e) => setForm({ ...form, searchGmv: e.target.value })}
-                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
                   />
                   <input
                     placeholder="note_id(选填)"
                     value={form.noteId}
                     onChange={(e) => setForm({ ...form, noteId: e.target.value })}
-                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
                   />
                 </div>
               </div>
@@ -388,24 +388,24 @@ export function SearchKeywordsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardBody>
-              <div className="text-xs text-slate-400">追踪关键词数</div>
-              <div className="text-xl font-bold text-slate-100 mt-1 tabular-nums">
+              <div className="text-xs text-[var(--text-muted)]">追踪关键词数</div>
+              <div className="text-xl font-bold text-[var(--text-primary)] mt-1 tabular-nums">
                 {summary.total_keywords}
               </div>
             </CardBody>
           </Card>
           <Card>
             <CardBody>
-              <div className="text-xs text-slate-400">Top 5 卡位词</div>
+              <div className="text-xs text-[var(--text-muted)]">Top 5 卡位词</div>
               <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">
                 {summary.top_rank_count}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">平均排名 #{summary.avg_rank}</div>
+              <div className="text-[11px] text-[var(--text-muted)] mt-0.5">平均排名 #{summary.avg_rank}</div>
             </CardBody>
           </Card>
           <Card>
             <CardBody>
-              <div className="text-xs text-slate-400">搜索总曝光</div>
+              <div className="text-xs text-[var(--text-muted)]">搜索总曝光</div>
               <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">
                 {summary.total_impressions.toLocaleString()}
               </div>
@@ -413,15 +413,15 @@ export function SearchKeywordsPage() {
           </Card>
           <Card>
             <CardBody>
-              <div className="text-xs text-slate-400">搜索平均 CVR</div>
-              <div className="text-xl font-bold text-slate-200 mt-1 tabular-nums">
+              <div className="text-xs text-[var(--text-muted)]">搜索平均 CVR</div>
+              <div className="text-xl font-bold text-[var(--text-secondary)] mt-1 tabular-nums">
                 {summary.avg_cvr}%
               </div>
             </CardBody>
           </Card>
           <Card>
             <CardBody>
-              <div className="text-xs text-slate-400">搜索贡献 GMV</div>
+              <div className="text-xs text-[var(--text-muted)]">搜索贡献 GMV</div>
               <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">
                 ¥{summary.total_search_gmv.toLocaleString()}
               </div>
@@ -440,7 +440,7 @@ export function SearchKeywordsPage() {
         }
         subtitle="监测天猫/淘宝/京东/拼多多/小红书核心类目搜索坑位排名、搜推占比、转化率及种草笔记反搜归因"
         badge={
-          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-400 border border-orbit-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-[var(--text-muted)] border border-orbit-border">
             已接入 DataPage
           </span>
         }
@@ -461,7 +461,7 @@ export function SearchKeywordsPage() {
           <select
             value={table.filters.platform}
             onChange={(e) => table.setFilter('platform', e.target.value)}
-            className="h-9 px-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-xs text-slate-200 focus:outline-none focus:border-orbit-primary"
+            className="h-9 px-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-xs text-[var(--text-secondary)] focus:outline-none focus:border-orbit-primary"
           >
             <option value="">全部平台</option>
             <option value="douyin">抖音</option>
@@ -485,7 +485,7 @@ export function SearchKeywordsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-orbit-border text-slate-500">
+                  <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                     <th className="text-left px-4 py-2.5">种草笔记</th>
                     <th className="text-left px-4 py-2.5">关联店铺</th>
                     <th className="text-left px-4 py-2.5">核心搜索词包</th>
@@ -498,24 +498,24 @@ export function SearchKeywordsPage() {
                   {xhsNotes.map((n) => (
                     <tr key={n.id} className="hover:bg-orbit-surface2/30 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-slate-200">{n.title}</div>
-                        <div className="text-slate-500 font-mono text-[11px] mt-0.5">{n.note_id}</div>
+                        <div className="font-semibold text-[var(--text-secondary)]">{n.title}</div>
+                        <div className="text-[var(--text-muted)] font-mono text-[11px] mt-0.5">{n.note_id}</div>
                       </td>
-                      <td className="px-4 py-3 text-slate-300">{n.shop_name}</td>
+                      <td className="px-4 py-3 text-[var(--text-secondary)]">{n.shop_name}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
                           {(n.search_keywords || []).map((k) => (
                             <span
                               key={k}
-                              className="inline-flex items-center gap-0.5 text-[11px] px-2 py-0.5 rounded bg-orbit-surface2 text-slate-300 border border-orbit-border"
+                              className="inline-flex items-center gap-0.5 text-[11px] px-2 py-0.5 rounded bg-orbit-surface2 text-[var(--text-secondary)] border border-orbit-border"
                             >
-                              <Hash className="w-3 h-3 text-slate-500" />
+                              <Hash className="w-3 h-3 text-[var(--text-muted)]" />
                               {k}
                             </span>
                           ))}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-200">
+                      <td className="px-4 py-3 text-right tabular-nums text-[var(--text-secondary)]">
                         {Number(n.search_impressions || 0).toLocaleString()}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-cyan-400 font-medium">

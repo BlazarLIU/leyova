@@ -196,35 +196,35 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-orbit-border">
-                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">用户名</th>
-                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">姓名</th>
-                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">角色</th>
-                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">状态</th>
-                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">最后登录</th>
-                  <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">操作</th>
+                  <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">用户名</th>
+                  <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">姓名</th>
+                  <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">角色</th>
+                  <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">状态</th>
+                  <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">最后登录</th>
+                  <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {users.length === 0 ? (
-                  <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-500">暂无账号数据</td></tr>
+                  <tr><td colSpan={6} className="px-5 py-8 text-center text-[var(--text-muted)]">暂无账号数据</td></tr>
                 ) : users.map((u) => (
                   <tr key={u.id} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
-                    <td className="px-5 py-3.5 text-slate-200 font-medium">{u.username}</td>
-                    <td className="px-5 py-3.5 text-slate-300">{u.realName}</td>
+                    <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{u.username}</td>
+                    <td className="px-5 py-3.5 text-[var(--text-secondary)]">{u.realName}</td>
                     <td className="px-5 py-3.5"><Badge variant={roleBadgeVariant(u.role)}>{roleLabels[u.role] || u.role}</Badge></td>
                     <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${u.status === 1 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-500'}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${u.status === 1 ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${u.status === 1 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[var(--surface3)] text-[var(--text-muted)]'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${u.status === 1 ? 'bg-emerald-400' : 'bg-[var(--text-subtle)]'}`} />
                         {u.status === 1 ? '启用' : '禁用'}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-slate-500 text-xs">{u.lastLogin || '-'}</td>
+                    <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{u.lastLogin || '-'}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors" onClick={() => openEdit(u)}>
                           <Edit className="w-3.5 h-3.5 inline mr-0.5" />编辑
                         </button>
-                        <button className="text-xs text-slate-500 hover:text-orbit-danger transition-colors" onClick={() => setDeletingId(u.id)}>
+                        <button className="text-xs text-[var(--text-muted)] hover:text-orbit-danger transition-colors" onClick={() => setDeletingId(u.id)}>
                           <Trash2 className="w-3.5 h-3.5 inline mr-0.5" />删除
                         </button>
                       </div>
@@ -241,33 +241,33 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-2xl mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-orbit-border">
-              <h3 className="text-base font-semibold text-slate-200">{editingUser ? '编辑账号' : '新增账号'}</h3>
+              <h3 className="text-base font-semibold text-[var(--text-secondary)]">{editingUser ? '编辑账号' : '新增账号'}</h3>
             </div>
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">用户名</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">用户名</label>
                   <input value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} disabled={!!editingUser}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 disabled:opacity-50" placeholder="输入用户名" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 disabled:opacity-50" placeholder="输入用户名" />
                 </div>
                 {!editingUser && (
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">密码</label>
+                    <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">密码</label>
                     <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="默认 123456" />
+                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="默认 123456" />
                   </div>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">姓名</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">姓名</label>
                   <input value={form.realName} onChange={e => setForm(p => ({ ...p, realName: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入姓名" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入姓名" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">角色</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">角色</label>
                   <select value={form.role} onChange={e => handleRoleChange(e.target.value)}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                     <option value="super_admin">系统管理员</option>
                     {ROLE_OPTIONS.filter((r) => r.code !== 'super_admin').map((r) => (
                       <option key={r.code} value={r.code}>{r.label.replace(/^\S+\s/, '')}</option>
@@ -276,20 +276,20 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">状态</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">状态</label>
                 <select value={form.status} onChange={e => setForm(p => ({ ...p, status: parseInt(e.target.value) }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                   <option value={1}>启用</option>
                   <option value={0}>禁用</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">
-                  模块权限 <span className="text-slate-500 font-normal">（勾选该账号可见的系统模块）</span>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-2">
+                  模块权限 <span className="text-[var(--text-muted)] font-normal">（勾选该账号可见的系统模块）</span>
                 </label>
                 <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-orbit-surface2 border border-orbit-border">
                   {allModules.map((mod) => (
-                    <label key={mod.code} className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${form.modules.includes(mod.code) ? 'bg-orbit-primary/10 text-slate-200' : 'text-slate-400 hover:bg-white/5'}`}>
+                    <label key={mod.code} className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${form.modules.includes(mod.code) ? 'bg-orbit-primary/10 text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:bg-white/5'}`}>
                       <input type="checkbox" checked={form.modules.includes(mod.code)} onChange={() => toggleModule(mod.code)}
                         className="w-3.5 h-3.5 rounded border-orbit-border bg-orbit-surface3 accent-orbit-primary" />
                       <span className="text-xs">{moduleNameMap[mod.code] || mod.name}</span>
@@ -314,8 +314,8 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
       {deletingId !== null && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setDeletingId(null)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-200 mb-2">确认删除</h3>
-            <p className="text-sm text-slate-400 mb-6">确定要删除该账号吗？此操作不可撤销。</p>
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mb-2">确认删除</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6">确定要删除该账号吗？此操作不可撤销。</p>
             <div className="flex items-center justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeletingId(null)}>取消</Button>
               <Button variant="destructive" onClick={handleDelete}>确认删除</Button>
@@ -347,7 +347,7 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                     selectedRoleCode === r.code
                       ? 'bg-orbit-primary/15 text-orbit-primary-light border-orbit-primary/40'
-                      : 'bg-orbit-surface2 text-slate-400 border-orbit-border hover:text-slate-200'
+                      : 'bg-orbit-surface2 text-[var(--text-muted)] border-orbit-border hover:text-[var(--text-primary)]'
                   }`}
                 >
                   {roleLabels[r.code] || r.name || r.code}
@@ -371,7 +371,7 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
                 <label
                   key={mod.code}
                   className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${
-                    roleDraftModules.includes(mod.code) ? 'bg-orbit-primary/10 text-slate-200' : 'text-slate-400 hover:bg-white/5'
+                    roleDraftModules.includes(mod.code) ? 'bg-orbit-primary/10 text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:bg-white/5'
                   }`}
                 >
                   <input

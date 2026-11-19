@@ -60,16 +60,16 @@ export function WechatPrivatePublicPage() {
     <div className="p-6 space-y-4 max-w-[1600px] mx-auto">
       <motion.div {...fadeIn} className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Share2 className="w-6 h-6 text-orbit-primary" /> 视频号 · 公私域流量拆分
           </h1>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[var(--text-muted)] text-xs mt-1">
             视频号是公私域混合度最高的平台：朋友点赞/分享是独有流量，必须与公域推荐、私域社群分开看
           </p>
         </div>
         <div className="flex items-center gap-2">
           <select value={days} onChange={e => setDays(Number(e.target.value))}
-            className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-slate-300">
+            className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-[var(--text-secondary)]">
             <option value={7}>近 7 天</option><option value={30}>近 30 天</option><option value={90}>近 90 天</option>
           </select>
           <Button variant="secondary" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
@@ -88,31 +88,31 @@ export function WechatPrivatePublicPage() {
           const Icon = meta.icon
           const colorCls = meta.color === 'sky' ? 'border-sky-500/30 bg-sky-500/5'
             : meta.color === 'emerald' ? 'border-emerald-500/30 bg-emerald-500/5'
-            : 'border-violet-500/30 bg-violet-500/5'
+            : 'border-orbit-primary/30 bg-orbit-primary/5'
           const textCls = meta.color === 'sky' ? 'text-sky-300'
-            : meta.color === 'emerald' ? 'text-emerald-300' : 'text-violet-300'
+            : meta.color === 'emerald' ? 'text-emerald-300' : 'text-orbit-primary'
           return (
             <Card key={k}>
               <CardBody className={`border ${colorCls} rounded-lg`}>
                 <div className={`flex items-center gap-1.5 text-xs font-semibold ${textCls}`}>
                   <Icon className="w-4 h-4" /> {meta.label}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">{meta.desc}</div>
+                <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{meta.desc}</div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <div>
-                    <div className="text-[10px] text-slate-400">GMV</div>
-                    <div className="text-base font-semibold text-slate-100 tabular-nums">¥{fmt(b?.gmv)}</div>
+                    <div className="text-[10px] text-[var(--text-muted)]">GMV</div>
+                    <div className="text-base font-semibold text-[var(--text-primary)] tabular-nums">¥{fmt(b?.gmv)}</div>
                     <div className={`text-[10px] ${textCls}`}>{gmvPct ?? 0}%</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-slate-400">观看</div>
-                    <div className="text-base font-semibold text-slate-100 tabular-nums">{fmt(b?.views)}</div>
+                    <div className="text-[10px] text-[var(--text-muted)]">观看</div>
+                    <div className="text-base font-semibold text-[var(--text-primary)] tabular-nums">{fmt(b?.views)}</div>
                     <div className={`text-[10px] ${textCls}`}>{viewPct ?? 0}%</div>
                   </div>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {(b?.channels || []).slice(0, 4).map(c => (
-                    <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 border border-orbit-border/60 text-slate-400">{c}</span>
+                    <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 border border-orbit-border/60 text-[var(--text-muted)]">{c}</span>
                   ))}
                 </div>
               </CardBody>
@@ -122,24 +122,24 @@ export function WechatPrivatePublicPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <Card><CardBody><div className="text-[11px] text-slate-400">总 GMV</div>
+        <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">总 GMV</div>
           <div className="text-lg font-semibold text-orbit-primary mt-0.5 tabular-nums">¥{fmt(s?.totalGmv)}</div></CardBody></Card>
-        <Card><CardBody><div className="text-[11px] text-slate-400">总观看</div>
-          <div className="text-lg font-semibold text-slate-100 mt-0.5 tabular-nums">{fmt(s?.totalViews)}</div></CardBody></Card>
-        <Card><CardBody><div className="text-[11px] text-slate-400">私域+社交 GMV 占比</div>
+        <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">总观看</div>
+          <div className="text-lg font-semibold text-[var(--text-primary)] mt-0.5 tabular-nums">{fmt(s?.totalViews)}</div></CardBody></Card>
+        <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">私域+社交 GMV 占比</div>
           <div className="text-lg font-semibold text-emerald-400 mt-0.5 tabular-nums">
             {Number((s?.privateGmvPct ?? 0) + (s?.socialGmvPct ?? 0)).toFixed(2)}%
           </div></CardBody></Card>
       </div>
 
       <Card>
-        <CardHeader><span className="text-sm font-semibold text-slate-200">渠道明细</span>
+        <CardHeader><span className="text-sm font-semibold text-[var(--text-secondary)]">渠道明细</span>
           <Badge variant="neutral">{data?.channels.length ?? 0} 个渠道</Badge></CardHeader>
         <CardBody className="p-0">
           <div className="overflow-x-auto max-h-[440px]">
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-orbit-surface border-b border-orbit-border">
-                <tr className="text-slate-400">
+                <tr className="text-[var(--text-muted)]">
                   <th className="text-left px-4 py-2">渠道</th>
                   <th className="text-left px-3 py-2">归类</th>
                   <th className="text-right px-3 py-2">场次</th>
@@ -153,28 +153,28 @@ export function WechatPrivatePublicPage() {
               <tbody>
                 {(data?.channels || []).map((c, i) => {
                   const meta = BUCKET_META[c.bucket]
-                  const cls = c.bucket === 'public' ? 'text-sky-300' : c.bucket === 'private' ? 'text-emerald-300' : 'text-violet-300'
+                  const cls = c.bucket === 'public' ? 'text-sky-300' : c.bucket === 'private' ? 'text-emerald-300' : 'text-orbit-primary'
                   return (
                     <tr key={`${c.channel}-${i}`} className="border-b border-orbit-border/40">
-                      <td className="px-4 py-1.5 text-slate-200">{c.channel || '(未命名)'}</td>
+                      <td className="px-4 py-1.5 text-[var(--text-secondary)]">{c.channel || '(未命名)'}</td>
                       <td className={`px-3 py-1.5 ${cls}`}>{meta.label}</td>
-                      <td className="px-3 py-1.5 text-right text-slate-400">{c.sessions}</td>
-                      <td className="px-3 py-1.5 text-right text-slate-300">{fmt(c.views)}</td>
-                      <td className="px-3 py-1.5 text-right text-slate-300">{fmt(c.productClicks)}</td>
-                      <td className="px-3 py-1.5 text-right text-slate-300">{fmt(c.orders)}</td>
-                      <td className="px-3 py-1.5 text-right text-slate-200">¥{fmt(c.gmv)}</td>
-                      <td className="px-4 py-1.5 text-right text-slate-400">{c.avgWatchSec}</td>
+                      <td className="px-3 py-1.5 text-right text-[var(--text-muted)]">{c.sessions}</td>
+                      <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(c.views)}</td>
+                      <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(c.productClicks)}</td>
+                      <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(c.orders)}</td>
+                      <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">¥{fmt(c.gmv)}</td>
+                      <td className="px-4 py-1.5 text-right text-[var(--text-muted)]">{c.avgWatchSec}</td>
                     </tr>
                   )
                 })}
-                {(data?.channels || []).length === 0 && <tr><td colSpan={8} className="px-4 py-6 text-center text-slate-500">暂无渠道数据</td></tr>}
+                {(data?.channels || []).length === 0 && <tr><td colSpan={8} className="px-4 py-6 text-center text-[var(--text-muted)]">暂无渠道数据</td></tr>}
               </tbody>
             </table>
           </div>
         </CardBody>
       </Card>
 
-      <p className="text-[11px] text-slate-500">{data?.note}</p>
+      <p className="text-[11px] text-[var(--text-muted)]">{data?.note}</p>
     </div>
   )
 }

@@ -60,19 +60,19 @@ export function AiOpsInboxPage() {
   }
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-slate-100 min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               工作面 1 · 待办中心
             </span>
-            <span className="text-xs text-slate-500 font-mono">整合 Artifact 审批 + SOP 人工任务 + 预警确认</span>
+            <span className="text-xs text-[var(--text-muted)] font-mono">整合 Artifact 审批 + SOP 人工任务 + 预警确认</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
             统一待办审批收件箱 (/inbox)
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             每天唯一必须打开的页面。带影响金额、审批级次与一键拍板流。
           </p>
         </div>
@@ -80,14 +80,14 @@ export function AiOpsInboxPage() {
 
       <div className="space-y-4">
         {tasks.map((t) => (
-          <div key={t.id} className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div key={t.id} className="p-5 rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300">{t.id}</span>
+                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orbit-ink text-orbit-snow/80">{t.id}</span>
                 <span className="text-sm font-bold text-white">{t.type}</span>
-                <span className="text-xs text-slate-400 font-medium">({t.source})</span>
+                <span className="text-xs text-[var(--text-muted)] font-medium">({t.source})</span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[var(--text-muted)]">
                 涉及影响金额：<strong className="text-cyan-400 font-mono">{t.impactGmv}</strong> · 审批角色：{t.approver} · 截止：{t.deadline}
               </p>
             </div>
@@ -107,7 +107,7 @@ export function AiOpsInboxPage() {
                 <>
                   <button
                     onClick={() => handleDecision(t.id, t.toolLogId, 'reject')}
-                    className="px-4 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-xs font-semibold text-slate-300 transition-colors"
+                    className="px-4 py-1.5 rounded-lg border border-[var(--border)] hover:bg-orbit-ink text-xs font-semibold text-[var(--text-secondary)] transition-colors"
                   >
                     驳回
                   </button>

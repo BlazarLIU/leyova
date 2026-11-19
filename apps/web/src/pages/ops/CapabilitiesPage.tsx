@@ -51,7 +51,7 @@ const getScoreRating = (score: number): { label: string; variant: 'success' | 'p
 }
 
 const colorConfig: Record<string, { bar: string; glow: string; text: string }> = {
-  primary: { bar: 'bg-orbit-primary', glow: 'shadow-orbit-primary/20', text: 'text-violet-400' },
+  primary: { bar: 'bg-orbit-primary', glow: 'shadow-orbit-primary/20', text: 'text-orbit-primary' },
   accent: { bar: 'bg-orbit-accent', glow: 'shadow-orbit-accent/20', text: 'text-cyan-400' },
   success: { bar: 'bg-orbit-success', glow: 'shadow-orbit-success/20', text: 'text-emerald-400' },
   warning: { bar: 'bg-orbit-warning', glow: 'shadow-orbit-warning/20', text: 'text-amber-400' },
@@ -144,8 +144,8 @@ export function CapabilitiesPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">能力看板</h1>
-            <p className="text-slate-500 text-sm mt-1">主播能力评估</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">能力看板</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">主播能力评估</p>
           </div>
         </div>
       </motion.div>
@@ -162,10 +162,10 @@ export function CapabilitiesPage() {
                 <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4">
                   <AlertCircle className="w-6 h-6" />
                 </div>
-                <h3 className="text-base font-semibold text-slate-200">
+                <h3 className="text-base font-semibold text-[var(--text-secondary)]">
                   当前平台（{currentPlatform?.platform_name || '当前渠道'}）不支持主播能力评估
                 </h3>
-                <p className="text-slate-400 text-sm mt-1 max-w-md">
+                <p className="text-[var(--text-muted)] text-sm mt-1 max-w-md">
                   当前平台为货架电商业态，不涉及直播间与主播业务。主播能力评估仅适用于直播电商平台（如抖音、快手）。
                 </p>
                 <div className="flex items-center gap-3 mt-6">
@@ -178,7 +178,7 @@ export function CapabilitiesPage() {
                   </button>
                   <button
                     onClick={() => setPlatformCode('douyin')}
-                    className="px-4 py-2 rounded-lg bg-white/5 border border-orbit-border text-slate-300 text-xs font-medium hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-lg bg-white/5 border border-orbit-border text-[var(--text-secondary)] text-xs font-medium hover:bg-white/10 transition"
                   >
                     切换至抖音电商
                   </button>
@@ -196,9 +196,9 @@ export function CapabilitiesPage() {
           <Card>
             <CardBody>
               <div className="flex flex-col items-center justify-center py-16">
-                <AlertCircle className="w-12 h-12 text-slate-500 mb-4" />
-                <p className="text-slate-400 text-sm">暂无能力评估数据</p>
-                <p className="text-slate-500 text-xs mt-2">请上传主播分析数据后查看</p>
+                <AlertCircle className="w-12 h-12 text-[var(--text-muted)] mb-4" />
+                <p className="text-[var(--text-muted)] text-sm">暂无能力评估数据</p>
+                <p className="text-[var(--text-muted)] text-xs mt-2">请上传主播分析数据后查看</p>
               </div>
             </CardBody>
           </Card>
@@ -226,10 +226,10 @@ export function CapabilitiesPage() {
                     </div>
                     <Badge variant={rating.variant}>{rating.label}</Badge>
                   </div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">{dim.label}</p>
+                  <p className="text-xs text-[var(--text-muted)] font-medium mb-1">{dim.label}</p>
                   <div className="flex items-baseline gap-1 mb-3">
-                    <span className="text-3xl font-bold text-slate-100">{dim.score}</span>
-                    <span className="text-xs text-slate-500">/ 100</span>
+                    <span className="text-3xl font-bold text-[var(--text-primary)]">{dim.score}</span>
+                    <span className="text-xs text-[var(--text-muted)]">/ 100</span>
                   </div>
                   {/* Progress bar */}
                   <div className="h-2 bg-orbit-surface2 rounded-full overflow-hidden">
@@ -265,7 +265,7 @@ export function CapabilitiesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-orbit-border text-slate-500 text-xs">
+                  <tr className="border-b border-orbit-border text-[var(--text-muted)] text-xs">
                     <th className="text-center px-5 py-3 font-medium w-12">排名</th>
                     <th className="text-left px-5 py-3 font-medium">主播名</th>
                     <th className="text-center px-5 py-3 font-medium">综合分</th>
@@ -289,21 +289,21 @@ export function CapabilitiesPage() {
                           'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mx-auto',
                           anchor.rank <= 3
                             ? 'bg-orbit-primary/15 text-orbit-primary-light'
-                            : 'bg-orbit-surface2 text-slate-500'
+                            : 'bg-orbit-surface2 text-[var(--text-muted)]'
                         )}>
                           {anchor.rank}
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orbit-primary to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold">
                             {(anchor.name || '主').slice(0, 1)}
                           </div>
-                          <span className="text-sm font-medium text-slate-200">{anchor.name || '未知主播'}</span>
+                          <span className="text-sm font-medium text-[var(--text-secondary)]">{anchor.name || '未知主播'}</span>
                         </div>
                       </td>
                       <td className="px-5 py-3.5 text-center">
-                        <span className="text-sm font-bold text-slate-100">{anchor.overall}</span>
+                        <span className="text-sm font-bold text-[var(--text-primary)]">{anchor.overall}</span>
                       </td>
                       <td className="px-5 py-3.5 text-center">
                         <ScoreBar value={anchor.expression} />
@@ -346,7 +346,7 @@ function ScoreBar({ value }: { value: number }) {
       </div>
       <span className={cn(
         'text-xs font-medium',
-        score >= 85 ? 'text-emerald-400' : score >= 75 ? 'text-violet-400' : score >= 60 ? 'text-amber-400' : 'text-red-400'
+        score >= 85 ? 'text-emerald-400' : score >= 75 ? 'text-orbit-primary' : score >= 60 ? 'text-amber-400' : 'text-red-400'
       )}>
         {score}
       </span>

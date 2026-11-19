@@ -164,11 +164,11 @@ export function ContentSchedulePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-cyan-400" />
             内容排产工作流、广审校验与多端归因台账
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             选题 → 脚本 → 拍摄 → 剪辑 → 广审强制闸门 → 多端一鱼多吃派生 → 搜索回搜/种草成交 GMV 归因
           </p>
         </div>
@@ -205,21 +205,21 @@ export function ContentSchedulePage() {
           <CardBody>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
               <div>
-                <label className="text-slate-400 block mb-1">选题标题</label>
+                <label className="text-[var(--text-muted)] block mb-1">选题标题</label>
                 <input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   placeholder="例如：轻薄防晒衣水洗30次对比实测"
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">首发主平台 / 类目</label>
+                <label className="text-[var(--text-muted)] block mb-1">首发主平台 / 类目</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <select
                     value={form.platformCode}
                     onChange={(e) => setForm({ ...form, platformCode: e.target.value })}
-                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
                   >
                     {['douyin', 'kuaishou', 'wechat', 'taobao', 'tmall', 'xiaohongshu'].map((p) => (
                       <option key={p} value={p}>{p}</option>
@@ -228,26 +228,26 @@ export function ContentSchedulePage() {
                   <input
                     value={form.topicCategory}
                     onChange={(e) => setForm({ ...form, topicCategory: e.target.value })}
-                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">计划发布时间</label>
+                <label className="text-[var(--text-muted)] block mb-1">计划发布时间</label>
                 <input
                   type="datetime-local"
                   value={form.plannedPublishAt}
                   onChange={(e) => setForm({ ...form, plannedPublishAt: e.target.value })}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="text-slate-400 block mb-1">脚本要点与合规约束</label>
+                <label className="text-[var(--text-muted)] block mb-1">脚本要点与合规约束</label>
                 <input
                   value={form.scriptSummary}
                   onChange={(e) => setForm({ ...form, scriptSummary: e.target.value })}
                   placeholder="列出核心卖点分镜与禁用夸大宣传词自检项"
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-slate-200"
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-[var(--text-secondary)]"
                 />
               </div>
             </div>
@@ -265,7 +265,7 @@ export function ContentSchedulePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-orbit-border text-slate-500">
+                <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                   <th className="text-left px-4 py-2.5">内容选题</th>
                   <th className="text-left px-4 py-2.5">首发与分发矩阵</th>
                   <th className="text-left px-4 py-2.5">当前阶段</th>
@@ -278,9 +278,9 @@ export function ContentSchedulePage() {
                   const stageObj = STAGES.find((s) => s.code === row.stage)
                   return (
                     <tr key={row.id} className="border-b border-orbit-border/60 hover:bg-white/5">
-                      <td className="px-4 py-3 text-slate-200">
+                      <td className="px-4 py-3 text-[var(--text-secondary)]">
                         <div className="font-medium">{row.title}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{row.topic_category} · {row.script_summary}</div>
+                        <div className="text-[11px] text-[var(--text-muted)] mt-0.5">{row.topic_category} · {row.script_summary}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
@@ -347,7 +347,7 @@ export function ContentSchedulePage() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-orbit-border text-slate-500">
+                  <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                     <th className="text-left px-4 py-2.5">内容 ID / 关联排期</th>
                     <th className="text-left px-4 py-2.5">平台/店铺</th>
                     <th className="text-left px-4 py-2.5">归因链路 / 窗口</th>
@@ -360,20 +360,20 @@ export function ContentSchedulePage() {
                 <tbody>
                   {attribution.items.map((it) => (
                     <tr key={it.id} className="border-b border-orbit-border/60 hover:bg-white/5">
-                      <td className="px-4 py-2.5 text-slate-200">
+                      <td className="px-4 py-2.5 text-[var(--text-secondary)]">
                         <div className="font-mono text-[11px]">{it.content_id}</div>
-                        <div className="text-slate-400">{it.schedule_title || '-'}</div>
+                        <div className="text-[var(--text-muted)]">{it.schedule_title || '-'}</div>
                       </td>
-                      <td className="px-4 py-2.5 text-slate-300">{it.platform_name} · {it.shop_name}</td>
+                      <td className="px-4 py-2.5 text-[var(--text-secondary)]">{it.platform_name} · {it.shop_name}</td>
                       <td className="px-4 py-2.5">
                         <Badge variant="info">{it.attribution_channel}</Badge>
-                        <span className="ml-1.5 text-slate-500">{it.attribution_window_hours}h</span>
+                        <span className="ml-1.5 text-[var(--text-muted)]">{it.attribution_window_hours}h</span>
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-300">{Number(it.views).toLocaleString()}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{Number(it.views).toLocaleString()}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-cyan-300">{it.search_back_count.toLocaleString()}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-200">{it.attributed_orders}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{it.attributed_orders}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400">
-                        ¥{Number(it.attributed_gmv).toLocaleString()} <span className="text-slate-500">(净 ¥{Number(it.settled_gmv).toLocaleString()})</span>
+                        ¥{Number(it.attributed_gmv).toLocaleString()} <span className="text-[var(--text-muted)]">(净 ¥{Number(it.settled_gmv).toLocaleString()})</span>
                       </td>
                     </tr>
                   ))}

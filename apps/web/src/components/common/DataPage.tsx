@@ -211,12 +211,12 @@ export function DataPage<T>({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={searchPlaceholder}
-                  prefix={<Search className="w-4 h-4 text-slate-400" />}
+                  prefix={<Search className="w-4 h-4 text-[var(--text-muted)]" />}
                   suffix={
                     search ? (
                       <button
                         onClick={() => setSearch('')}
-                        className="text-slate-500 hover:text-slate-300 transition-colors p-0.5 rounded"
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-0.5 rounded"
                         title="清空搜索"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -235,7 +235,7 @@ export function DataPage<T>({
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="h-9 text-xs text-slate-400 hover:text-slate-200"
+                className="h-9 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
                 <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                 重置筛选
@@ -286,14 +286,14 @@ export function DataPage<T>({
             className="overflow-hidden"
           >
             <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-orbit-primary/10 border border-orbit-primary/30 text-xs">
-              <div className="flex items-center gap-2 text-slate-200">
+              <div className="flex items-center gap-2 text-[var(--text-secondary)]">
                 <span className="font-semibold text-orbit-primary-light">
                   已选中 {selectedRowKeys.size} 项
                 </span>
-                <span className="text-slate-500">|</span>
+                <span className="text-[var(--text-muted)]">|</span>
                 <button
                   onClick={clearSelection}
-                  className="text-slate-400 hover:text-slate-200 underline transition-colors"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)] underline transition-colors"
                 >
                   取消选择
                 </button>
@@ -353,7 +353,7 @@ export function DataPage<T>({
                       >
                         <span>{col.header}</span>
                         {col.sortable && (
-                          <span className="text-slate-500">
+                          <span className="text-[var(--text-muted)]">
                             {isSorted && sortOrder === 'asc' ? (
                               <ArrowUp className="w-3.5 h-3.5 text-orbit-primary-light" />
                             ) : isSorted && sortOrder === 'desc' ? (
@@ -382,8 +382,8 @@ export function DataPage<T>({
                       <div className="w-10 h-10 rounded-full bg-orbit-danger/10 text-orbit-danger flex items-center justify-center">
                         <AlertCircle className="w-5 h-5" />
                       </div>
-                      <div className="text-sm font-medium text-slate-300">加载数据失败</div>
-                      <p className="text-xs text-slate-500 max-w-md">{error.message}</p>
+                      <div className="text-sm font-medium text-[var(--text-secondary)]">加载数据失败</div>
+                      <p className="text-xs text-[var(--text-muted)] max-w-md">{error.message}</p>
                       <Button variant="secondary" size="sm" onClick={() => reload()} className="mt-2 text-xs">
                         重新尝试
                       </Button>
@@ -397,7 +397,7 @@ export function DataPage<T>({
                     colSpan={columns.length + (selectable ? 1 : 0)}
                     className="py-16 text-center"
                   >
-                    <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
                       <Loader2 className="w-6 h-6 animate-spin text-orbit-primary-light" />
                       <span className="text-xs">{loadingText}</span>
                     </div>
@@ -502,7 +502,7 @@ export function DataPage<T>({
 
             {/* Right: Page Navigation Buttons */}
             <div className="flex items-center gap-1 self-end sm:self-auto">
-              <span className="mr-2 text-slate-500">
+              <span className="mr-2 text-[var(--text-muted)]">
                 第 {page} / {Math.max(1, totalPages)} 页
               </span>
 
@@ -510,7 +510,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(1)}
                 disabled={page <= 1 || loading}
-                className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="首页"
               >
                 <ChevronsLeft className="w-4 h-4" />
@@ -520,7 +520,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(page - 1)}
                 disabled={page <= 1 || loading}
-                className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="上一页"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -538,13 +538,13 @@ export function DataPage<T>({
                         'min-w-[28px] h-7 px-1.5 rounded text-xs font-medium transition-colors',
                         page === p
                           ? 'bg-orbit-primary text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
                       )}
                     >
                       {p}
                     </button>
                   ) : (
-                    <span key={`dots-${i}`} className="px-1 text-slate-600">
+                    <span key={`dots-${i}`} className="px-1 text-[var(--text-primary)]">
                       {p}
                     </span>
                   )
@@ -555,7 +555,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= totalPages || loading}
-                className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="下一页"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -565,7 +565,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(totalPages)}
                 disabled={page >= totalPages || loading}
-                className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="末页"
               >
                 <ChevronsRight className="w-4 h-4" />

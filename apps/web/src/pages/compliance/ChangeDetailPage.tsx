@@ -112,8 +112,8 @@ export function ChangeDetailPage() {
 
   if (loading) {
     return (
-      <div className="py-24 text-center text-slate-400">
-        <Sparkles className="w-8 h-8 animate-spin text-violet-400 mx-auto mb-3" />
+      <div className="py-24 text-center text-[var(--text-muted)]">
+        <Sparkles className="w-8 h-8 animate-spin text-orbit-primary mx-auto mb-3" />
         加载合规变更及 AI 风险评估中...
       </div>
     )
@@ -136,7 +136,7 @@ export function ChangeDetailPage() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/compliance/rules')}
-          className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           返回平台规则雷达
@@ -165,14 +165,14 @@ export function ChangeDetailPage() {
       {/* Main Header Card */}
       <div className="p-6 rounded-2xl bg-gradient-to-r from-orbit-surface to-orbit-surface/60 border border-orbit-border space-y-4">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className="px-2.5 py-1 rounded text-xs font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">
+          <span className="px-2.5 py-1 rounded text-xs font-bold bg-orbit-primary/20 text-orbit-primary border border-orbit-primary/30">
             {change.platform_name || change.platform_code}
           </span>
           {getSeverityBadge(change.severity)}
-          <span className="text-xs px-2.5 py-1 rounded bg-orbit-surface2 text-slate-300 font-mono">
+          <span className="text-xs px-2.5 py-1 rounded bg-orbit-surface2 text-[var(--text-secondary)] font-mono">
             {change.change_type === 'new' ? '全新发布' : change.change_type === 'revised' ? '规则修订' : '废止'}
           </span>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-[var(--text-muted)]">
             检出时间: {new Date(change.created_at).toLocaleString('zh-CN')}
           </span>
         </div>
@@ -185,21 +185,21 @@ export function ChangeDetailPage() {
                 href={change.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-slate-400 hover:text-violet-400 text-sm font-normal inline-flex items-center gap-1"
+                className="text-[var(--text-muted)] hover:text-orbit-primary text-sm font-normal inline-flex items-center gap-1"
               >
                 平台原文
                 <ExternalLink className="w-4 h-4" />
               </a>
             )}
           </h1>
-          <p className="text-sm text-slate-300 mt-2 font-mono">
+          <p className="text-sm text-[var(--text-secondary)] mt-2 font-mono">
             外部编号: {change.external_id} | 类目分类: {change.rule_category} | 预计生效时间:{' '}
             {change.effective_at ? new Date(change.effective_at).toLocaleDateString('zh-CN') : '即时生效'}
           </p>
         </div>
 
-        <div className="p-4 rounded-xl bg-violet-950/20 border border-violet-500/30 text-violet-200 text-sm leading-relaxed">
-          <strong className="text-violet-300">变更差量摘要：</strong>
+        <div className="p-4 rounded-xl bg-orbit-primary/20 border border-orbit-primary/30 text-orbit-primary text-sm leading-relaxed">
+          <strong className="text-orbit-primary">变更差量摘要：</strong>
           {change.diff_summary}
         </div>
       </div>
@@ -211,12 +211,12 @@ export function ChangeDetailPage() {
           <Card className="p-5 bg-orbit-surface border-orbit-border space-y-3">
             <div className="flex items-center justify-between border-b border-orbit-border pb-3">
               <h3 className="text-sm font-bold text-orbit-text flex items-center gap-2">
-                <FileText className="w-4 h-4 text-violet-400" />
+                <FileText className="w-4 h-4 text-orbit-primary" />
                 规则原文快照 (SHA-256 哈希防伪)
               </h3>
             </div>
 
-            <div className="text-xs text-slate-300 font-mono bg-orbit-surface2/60 p-4 rounded-xl border border-orbit-border/40 whitespace-pre-wrap leading-relaxed max-h-[550px] overflow-y-auto">
+            <div className="text-xs text-[var(--text-secondary)] font-mono bg-orbit-surface2/60 p-4 rounded-xl border border-orbit-border/40 whitespace-pre-wrap leading-relaxed max-h-[550px] overflow-y-auto">
               {change.content_text}
             </div>
           </Card>
@@ -224,15 +224,15 @@ export function ChangeDetailPage() {
 
         {/* Right Column (7 cols): AI Risk Assessment & Actions */}
         <div className="lg:col-span-7 space-y-4">
-          <Card className="p-6 bg-orbit-surface border-violet-500/30 shadow-xl shadow-violet-950/20 space-y-5">
+          <Card className="p-6 bg-orbit-surface border-orbit-primary/30 shadow-xl shadow-violet-950/20 space-y-5">
             <div className="flex items-center justify-between border-b border-orbit-border pb-3">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-violet-500/10 text-violet-400">
+                <div className="p-2 rounded-lg bg-orbit-primary/10 text-orbit-primary">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-orbit-text">AI 风险与运营影响智能研判</h3>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-[var(--text-muted)]">
                     评估引擎: {assessment?.assessed_by || 'AI_RISK_ENGINE'}
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export function ChangeDetailPage() {
               <div className="space-y-4">
                 {/* Risk Summary */}
                 <div className="space-y-1.5">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                     核心风险摘要
                   </h4>
@@ -254,18 +254,18 @@ export function ChangeDetailPage() {
 
                 {/* Operational Impact */}
                 <div className="space-y-1.5">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-blue-400" />
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-orbit-info" />
                     对业务与排班的实质影响
                   </h4>
-                  <p className="text-sm text-slate-300 bg-orbit-surface2/40 p-3.5 rounded-xl border border-orbit-border/40 leading-relaxed">
+                  <p className="text-sm text-[var(--text-secondary)] bg-orbit-surface2/40 p-3.5 rounded-xl border border-orbit-border/40 leading-relaxed">
                     {assessment.operational_impact}
                   </p>
                 </div>
 
                 {/* Recommended Actions */}
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     建议应对闭环措施 (Checklist)
                   </h4>
@@ -273,7 +273,7 @@ export function ChangeDetailPage() {
                     {assessment.recommended_actions?.map((act, idx) => (
                       <div
                         key={idx}
-                        className="p-3 rounded-lg bg-orbit-surface2/60 border border-orbit-border/50 text-xs text-slate-200 flex items-start gap-2.5"
+                        className="p-3 rounded-lg bg-orbit-surface2/60 border border-orbit-border/50 text-xs text-[var(--text-secondary)] flex items-start gap-2.5"
                       >
                         <span className="flex-shrink-0 w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] mt-0.5">
                           {idx + 1}
@@ -286,10 +286,10 @@ export function ChangeDetailPage() {
 
                 {/* Evidence citation */}
                 {assessment.evidence_refs && assessment.evidence_refs.length > 0 && (
-                  <div className="text-xs text-slate-400 pt-2 border-t border-orbit-border flex items-center gap-2">
+                  <div className="text-xs text-[var(--text-muted)] pt-2 border-t border-orbit-border flex items-center gap-2">
                     <span>证据链原文引用:</span>
                     {assessment.evidence_refs.map((ref, idx) => (
-                      <span key={idx} className="font-mono text-violet-400">
+                      <span key={idx} className="font-mono text-orbit-primary">
                         {ref.source}
                       </span>
                     ))}
@@ -297,7 +297,7 @@ export function ChangeDetailPage() {
                 )}
               </div>
             ) : (
-              <div className="py-8 text-center text-slate-400">
+              <div className="py-8 text-center text-[var(--text-muted)]">
                 暂无专门生成的 AI 风险评估记录
               </div>
             )}
@@ -307,17 +307,17 @@ export function ChangeDetailPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card
               onClick={() => navigate('/ai/selection')}
-              className="p-4 bg-orbit-surface border-orbit-border hover:border-violet-500 cursor-pointer transition-all group"
+              className="p-4 bg-orbit-surface border-orbit-border hover:border-orbit-primary/40 cursor-pointer transition-all group"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-violet-500/10 text-violet-400 group-hover:scale-105 transition-transform">
+                <div className="p-2.5 rounded-xl bg-orbit-primary/10 text-orbit-primary group-hover:scale-105 transition-transform">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-orbit-text group-hover:text-violet-300">
+                  <h4 className="text-sm font-semibold text-orbit-text group-hover:text-orbit-primary">
                     去多因子 AI 选品
                   </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">
                     基于合规红线过滤不可售/违禁品类
                   </p>
                 </div>
@@ -326,17 +326,17 @@ export function ChangeDetailPage() {
 
             <Card
               onClick={() => navigate('/ops/script-library')}
-              className="p-4 bg-orbit-surface border-orbit-border hover:border-violet-500 cursor-pointer transition-all group"
+              className="p-4 bg-orbit-surface border-orbit-border hover:border-orbit-primary/40 cursor-pointer transition-all group"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-105 transition-transform">
+                <div className="p-2.5 rounded-xl bg-orbit-primary/10 text-orbit-primary group-hover:scale-105 transition-transform">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-orbit-text group-hover:text-indigo-300">
+                  <h4 className="text-sm font-semibold text-orbit-text group-hover:text-orbit-primary">
                     话术模板库合规校验
                   </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">
                     核验话术模板中的违禁词与合规规范
                   </p>
                 </div>

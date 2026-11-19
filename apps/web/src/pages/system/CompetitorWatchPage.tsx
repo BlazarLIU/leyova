@@ -71,8 +71,8 @@ export function CompetitorWatchPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">竞品观察</h1>
-            <p className="text-slate-500 text-sm mt-1">竞品动态监测</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">竞品观察</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">竞品动态监测</p>
           </div>
         </div>
       </motion.div>
@@ -86,13 +86,13 @@ export function CompetitorWatchPage() {
       >
         {/* Search */}
         <div className="flex items-center gap-2 h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm focus-within:border-orbit-primary focus-within:ring-1 focus-within:ring-orbit-primary/30 w-full sm:w-64">
-          <Search className="w-4 h-4 text-slate-500 flex-shrink-0" />
+          <Search className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索品牌或行业..."
-            className="flex-1 bg-transparent text-slate-200 placeholder-slate-600 outline-none min-w-0"
+            className="flex-1 bg-transparent text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none min-w-0"
           />
         </div>
 
@@ -113,7 +113,7 @@ export function CompetitorWatchPage() {
             title="竞品品牌列表"
             subtitle="监测中的品牌动态数据"
             actions={
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
                 <BarChart3 className="w-3.5 h-3.5" />
                 <span>共 {filteredCompetitors.length} 个品牌</span>
               </div>
@@ -124,13 +124,13 @@ export function CompetitorWatchPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">品牌名称</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">行业</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">监测商品数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">均价</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">预估销量</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">趋势</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">操作</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">品牌名称</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">行业</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">监测商品数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">均价</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">预估销量</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">趋势</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -148,11 +148,11 @@ export function CompetitorWatchPage() {
                         onClick={() => setSelectedBrand(selectedBrand === competitor.brand ? null : competitor.brand)}
                       >
                         <td className="px-5 py-3.5">
-                          <span className="text-slate-200 font-medium">{competitor.brand}</span>
+                          <span className="text-[var(--text-secondary)] font-medium">{competitor.brand}</span>
                         </td>
-                        <td className="px-5 py-3.5 text-slate-400">{competitor.industry}</td>
-                        <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{competitor.monitoredProducts}</td>
-                        <td className="px-5 py-3.5 text-right text-slate-300">{competitor.avgPrice}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-muted)]">{competitor.industry}</td>
+                        <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{competitor.monitoredProducts}</td>
+                        <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{competitor.avgPrice}</td>
                         <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{competitor.estimatedSales}</td>
                         <td className="px-5 py-3.5">
                           <Badge variant={trend.variant}>
@@ -193,7 +193,7 @@ export function CompetitorWatchPage() {
               actions={
                 <button
                   onClick={() => setSelectedBrand(null)}
-                  className="text-xs text-slate-500 hover:text-slate-300 transition-colors px-2 py-1 rounded hover:bg-white/5"
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors px-2 py-1 rounded hover:bg-white/5"
                 >
                   关闭
                 </button>
@@ -202,7 +202,7 @@ export function CompetitorWatchPage() {
             <CardBody>
               {/* Price comparison bar chart */}
               <div className="mb-6">
-                <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1.5">
                   <ShoppingCart className="w-3.5 h-3.5" />
                   价格对比 (元)
                 </h4>
@@ -210,7 +210,7 @@ export function CompetitorWatchPage() {
                   {comparisonDetail.priceData.map((item) => (
                     <div key={item.label}>
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-400">{item.label}</span>
+                        <span className="text-[var(--text-muted)]">{item.label}</span>
                         <div className="flex items-center gap-3">
                           <span className="text-orbit-primary-light font-medium">我方: ¥{item.ours}</span>
                           <span className="text-orbit-accent-light font-medium">竞品: ¥{item.theirs}</span>
@@ -237,7 +237,7 @@ export function CompetitorWatchPage() {
 
               {/* Sales comparison */}
               <div>
-                <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-4 flex items-center gap-1.5">
                   <BarChart3 className="w-3.5 h-3.5" />
                   销量对比
                 </h4>
@@ -245,7 +245,7 @@ export function CompetitorWatchPage() {
                   {comparisonDetail.salesData.map((item) => (
                     <div key={item.label}>
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-400">{item.label}</span>
+                        <span className="text-[var(--text-muted)]">{item.label}</span>
                         <div className="flex items-center gap-3">
                           <span className="text-orbit-primary-light font-medium">我方: {item.ours.toLocaleString()}</span>
                           <span className="text-orbit-accent-light font-medium">竞品: {item.theirs.toLocaleString()}</span>
@@ -279,21 +279,21 @@ export function CompetitorWatchPage() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowAddModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-orbit-border">
-              <h3 className="text-base font-semibold text-slate-200">添加竞品</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-500 hover:text-slate-300 transition-colors">
+              <h3 className="text-base font-semibold text-[var(--text-secondary)]">添加竞品</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">品牌名称</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">品牌名称</label>
                 <input value={newCompetitor.brand} onChange={e => setNewCompetitor(p => ({ ...p, brand: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入品牌名称" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入品牌名称" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">所属行业</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">所属行业</label>
                 <input value={newCompetitor.industry} onChange={e => setNewCompetitor(p => ({ ...p, industry: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入所属行业" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入所属行业" />
               </div>
             </div>
             <div className="px-6 py-4 border-t border-orbit-border flex items-center justify-end gap-3">

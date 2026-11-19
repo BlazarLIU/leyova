@@ -67,10 +67,10 @@ export function ModuleManagementPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-5">
       <div>
-        <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+        <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
           <Shield className="w-5 h-5 text-orbit-primary-light" /> 模块热插拔
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-sm text-[var(--text-muted)] mt-1">
           超级管理员可开启 / 关闭非核心模块；核心模块受保护不可关闭。关闭后该模块对所有角色（含超管）从导航隐藏，接口访问返回 403。
         </p>
       </div>
@@ -94,7 +94,7 @@ export function ModuleManagementPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-slate-400 text-sm">
+        <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm">
           <Loader2 className="w-4 h-4 animate-spin" /> 加载中…
         </div>
       ) : (
@@ -122,7 +122,7 @@ function ModuleSection({
 }) {
   return (
     <div className="rounded-xl border border-orbit-border bg-orbit-surface p-4">
-      <h2 className="text-sm font-semibold text-slate-200 mb-3">
+      <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-3">
         {title}（{rows.length}）
       </h2>
       <div className="space-y-1">
@@ -130,8 +130,8 @@ function ModuleSection({
           <div key={m.code} className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-white/5">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-200 truncate">{m.name}</span>
-                <code className="text-[11px] text-slate-500">{m.code}</code>
+                <span className="text-sm text-[var(--text-secondary)] truncate">{m.name}</span>
+                <code className="text-[11px] text-[var(--text-muted)]">{m.code}</code>
                 {m.is_core && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
                     核心
@@ -146,10 +146,10 @@ function ModuleSection({
               title={m.is_core ? '核心模块不可关闭' : m.is_enabled ? '点击关闭' : '点击开启'}
               className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                 core || m.is_core
-                  ? 'text-slate-600 cursor-not-allowed'
+                  ? 'text-[var(--text-primary)] cursor-not-allowed'
                   : m.is_enabled
                     ? 'text-emerald-300 hover:bg-emerald-500/10'
-                    : 'text-slate-400 hover:bg-white/10'
+                    : 'text-[var(--text-muted)] hover:bg-white/10'
               }`}
             >
               {core || m.is_core ? (
@@ -163,7 +163,7 @@ function ModuleSection({
             </button>
           </div>
         ))}
-        {rows.length === 0 && <p className="text-xs text-slate-500 px-3 py-2">暂无</p>}
+        {rows.length === 0 && <p className="text-xs text-[var(--text-muted)] px-3 py-2">暂无</p>}
       </div>
     </div>
   )

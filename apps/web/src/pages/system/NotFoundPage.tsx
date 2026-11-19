@@ -21,9 +21,9 @@ export function NotFoundPage() {
           <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase tracking-widest text-orbit-primary-light bg-orbit-primary/10 border border-orbit-primary/20">
             404 · Page Not Found
           </span>
-          <h2 className="text-xl font-bold text-slate-100">这个页面不存在</h2>
-          <p className="text-sm text-slate-400 leading-relaxed">
-            地址 <code className="text-slate-300 break-all">{location.pathname}</code> 未匹配到任何页面。
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">这个页面不存在</h2>
+          <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+            地址 <code className="text-[var(--text-secondary)] break-all">{location.pathname}</code> 未匹配到任何页面。
             可能是旧链接、已下线的平台页面，或地址输入有误。
           </p>
         </div>
@@ -37,7 +37,7 @@ export function NotFoundPage() {
           </Link>
           <button
             onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-orbit-border bg-white/5 hover:bg-white/10 text-sm text-slate-200 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-orbit-border bg-white/5 hover:bg-white/10 text-sm text-[var(--text-secondary)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>返回上一页</span>

@@ -113,8 +113,8 @@ export function AnalyticsPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">数据分析</h1>
-            <p className="text-slate-500 text-sm mt-1">多维度数据分析</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">数据分析</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">多维度数据分析</p>
           </div>
         </div>
       </motion.div>
@@ -128,7 +128,7 @@ export function AnalyticsPage() {
       >
         {/* Date range */}
         <div className="flex items-center gap-2">
-          <CalendarDays className="w-4 h-4 text-slate-500" />
+          <CalendarDays className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {dateRangeOptions.map((opt) => (
               <button
@@ -137,7 +137,7 @@ export function AnalyticsPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   dateRange === opt.value
                     ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -148,7 +148,7 @@ export function AnalyticsPage() {
 
         {/* Metric selector */}
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-slate-500" />
+          <TrendingUp className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {metricOptions.map((opt) => {
               const Icon = opt.icon
@@ -159,7 +159,7 @@ export function AnalyticsPage() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                     metric === opt.value
                       ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                      : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                      : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -182,7 +182,7 @@ export function AnalyticsPage() {
             title="趋势图表"
             subtitle={`选定指标的趋势变化 (${dateRange === '7d' ? '近7天' : dateRange === '30d' ? '近30天' : '自定义'})`}
             actions={
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] bg-orbit-surface2 px-2 py-1 rounded-md border border-orbit-border">
                 <MetricIcon className="w-3.5 h-3.5" />
                 <span>{metricOptions.find(o => o.value === metric)?.label}</span>
               </div>
@@ -192,14 +192,14 @@ export function AnalyticsPage() {
             <div className="flex items-end justify-between gap-2 h-56 pt-2 pb-1">
               {trendData.map((item) => (
                 <div key={item.date} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                  <span className="text-[11px] text-slate-500 font-medium">
+                  <span className="text-[11px] text-[var(--text-muted)] font-medium">
                     {formatValue(item.value)}
                   </span>
                   <div
                     className="w-full max-w-[48px] bg-gradient-to-t from-orbit-accent to-cyan-400 rounded-t-md transition-all duration-300 hover:to-cyan-300"
                     style={{ height: `${(item.value / maxValue) * 100}%` }}
                   />
-                  <span className="text-[11px] text-slate-600">{item.date}</span>
+                  <span className="text-[11px] text-[var(--text-primary)]">{item.date}</span>
                 </div>
               ))}
             </div>
@@ -220,12 +220,12 @@ export function AnalyticsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">日期</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">GMV</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">订单数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">客单价</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">观看人数</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">转化率</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">日期</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">GMV</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">订单数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">客单价</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">观看人数</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">转化率</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,24 +234,24 @@ export function AnalyticsPage() {
                       key={row.date}
                       className="border-b border-orbit-border hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-5 py-3.5 text-slate-300 font-medium">{row.date}</td>
+                      <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{row.date}</td>
                       <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{row.gmv}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{row.orders.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300">{row.avgOrder}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300 tabular-nums">{row.viewers.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-slate-300">{row.conversion}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.orders.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.avgOrder}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.viewers.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.conversion}</td>
                     </tr>
                   ))}
                 </tbody>
                 {/* Summary row */}
                 <tfoot>
                   <tr className="bg-orbit-surface2 border-t-2 border-orbit-border">
-                    <td className="px-5 py-3.5 text-xs font-semibold text-slate-200 uppercase tracking-wider">合计</td>
+                    <td className="px-5 py-3.5 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">合计</td>
                     <td className="px-5 py-3.5 text-right text-emerald-400 font-bold">{totals.gmv}</td>
-                    <td className="px-5 py-3.5 text-right text-slate-200 font-bold tabular-nums">{totals.orders.toLocaleString()}</td>
-                    <td className="px-5 py-3.5 text-right text-slate-200 font-bold">{totals.avgOrder}</td>
-                    <td className="px-5 py-3.5 text-right text-slate-200 font-bold tabular-nums">{totals.viewers.toLocaleString()}</td>
-                    <td className="px-5 py-3.5 text-right text-slate-200 font-bold">{totals.conversion}</td>
+                    <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-bold tabular-nums">{totals.orders.toLocaleString()}</td>
+                    <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-bold">{totals.avgOrder}</td>
+                    <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-bold tabular-nums">{totals.viewers.toLocaleString()}</td>
+                    <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-bold">{totals.conversion}</td>
                   </tr>
                 </tfoot>
               </table>

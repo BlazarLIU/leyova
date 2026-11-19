@@ -29,19 +29,19 @@ export function AiOpsActionItemsPage() {
   }
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-slate-100 min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               工作面 2 · 场次闭环
             </span>
-            <span className="text-xs text-slate-500 font-mono">反 ERP 判据第 3 条：有闭环</span>
+            <span className="text-xs text-[var(--text-muted)] font-mono">反 ERP 判据第 3 条：有闭环</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
             复盘行动项下场验证看板
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             动作做完不结束，下一场自动检验实际效果。行动项未闭环则阻断下场无责发布。
           </p>
         </div>
@@ -54,17 +54,17 @@ export function AiOpsActionItemsPage() {
       ) : (
         <div className="space-y-4">
           {items.map((it) => (
-            <div key={it.id} className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={it.id} className="p-5 rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orbit-ink text-orbit-snow/80">
                     {it.id}
                   </span>
-                  <span className="text-xs text-slate-500">源自：{it.sessionSource}</span>
+                  <span className="text-xs text-[var(--text-muted)]">源自：{it.sessionSource}</span>
                   <span className="text-xs font-bold text-cyan-300">责任人：{it.owner}</span>
                 </div>
                 <p className="text-sm font-semibold text-white">{it.content}</p>
-                <p className="text-xs text-slate-400 flex items-center gap-3">
+                <p className="text-xs text-[var(--text-muted)] flex items-center gap-3">
                   <span>验收目标：<strong className="text-emerald-400 font-mono">{it.target}</strong></span>
                   <span>·</span>
                   <span>验证场次：<strong className="text-cyan-400">{it.nextSessionVerify}</strong></span>
@@ -90,7 +90,7 @@ export function AiOpsActionItemsPage() {
                     </span>
                     <button
                       onClick={() => handleMarkVerified(it)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-400 border border-slate-700 hover:border-emerald-500/40 text-xs font-semibold flex items-center gap-1 transition-all"
+                      className="px-3 py-1.5 rounded-xl bg-orbit-ink hover:bg-emerald-950/40 text-orbit-snow/80 hover:text-emerald-400 border border-[var(--border)] hover:border-emerald-500/40 text-xs font-semibold flex items-center gap-1 transition-all"
                     >
                       <Check className="w-3 h-3" />
                       <span>标记已闭环</span>

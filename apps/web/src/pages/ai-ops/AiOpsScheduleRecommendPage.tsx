@@ -77,14 +77,14 @@ export function AiOpsScheduleRecommendPage() {
   }
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-slate-100 min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               工作面 4 · 人效与排班
             </span>
-            <span className="text-xs text-slate-500 font-mono">HRBP 与运营协同专区</span>
+            <span className="text-xs text-[var(--text-muted)] font-mono">HRBP 与运营协同专区</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
             AI 智能排班推荐
@@ -92,7 +92,7 @@ export function AiOpsScheduleRecommendPage() {
               时段×货盘×主播 三维匹配
             </span>
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             根据场次规划货盘品类与历史时段承接数据，智能匹配最适主播并生成排班草案。
           </p>
         </div>
@@ -100,7 +100,7 @@ export function AiOpsScheduleRecommendPage() {
         <button
           onClick={handleRecalculate}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orbit-ink hover:bg-orbit-ink/85 border border-[var(--border)] text-xs font-semibold text-orbit-snow/80 transition-colors disabled:opacity-50"
         >
           <RefreshCw className={cn("w-3.5 h-3.5 text-cyan-400", loading && "animate-spin")} />
           <span>重新运算排班推荐</span>
@@ -112,7 +112,7 @@ export function AiOpsScheduleRecommendPage() {
           <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : plans.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl border border-slate-800 bg-slate-900/60 text-slate-400">
+        <div className="p-12 text-center rounded-2xl border border-[var(--border)] bg-orbit-ink/60 text-orbit-snow/60">
           暂无排班推荐数据
         </div>
       ) : (
@@ -124,12 +124,12 @@ export function AiOpsScheduleRecommendPage() {
                 "p-6 rounded-2xl border backdrop-blur-xl transition-all shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4",
                 p.applied
                   ? "border-emerald-500/30 bg-emerald-950/10"
-                  : "border-slate-800 bg-slate-900/60 hover:border-cyan-500/30"
+                  : "border-[var(--border)] bg-orbit-ink/60 hover:border-cyan-500/30"
               )}
             >
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orbit-ink text-orbit-snow/80">
                     {p.id}
                   </span>
                   <span className="text-sm font-bold text-white">{p.slotName}</span>
@@ -143,19 +143,19 @@ export function AiOpsScheduleRecommendPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-slate-200 font-medium">
+                <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)] font-medium">
                   <div className="flex items-center gap-1.5">
                     <UserCheck className="w-4 h-4 text-cyan-400" />
                     <span>首发主讲：<strong className="text-white">{p.recommendedAnchor}</strong></span>
                   </div>
                   {p.supportAnchor && (
-                    <div className="flex items-center gap-1 text-slate-400 text-xs">
+                    <div className="flex items-center gap-1 text-[var(--text-muted)] text-xs">
                       <span>副播搭配：{p.supportAnchor}</span>
                     </div>
                   )}
                 </div>
 
-                <p className="text-xs text-slate-400 leading-relaxed max-w-3xl">
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed max-w-3xl">
                   {p.reason}
                 </p>
               </div>
@@ -169,7 +169,7 @@ export function AiOpsScheduleRecommendPage() {
                 ) : (
                   <button
                     onClick={() => handleApply(p.id, p)}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-md shadow-cyan-900/30 transition-all"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-orbit-primary hover:from-cyan-500 hover:to-orbit-primary text-white text-xs font-bold shadow-md shadow-cyan-900/30 transition-all"
                   >
                     采纳并更新排班
                   </button>

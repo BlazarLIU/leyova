@@ -49,19 +49,19 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 const categoryColors: Record<string, string> = {
   '商品问题': 'bg-rose-500/15 text-rose-400',
   '物流问题': 'bg-amber-500/15 text-amber-400',
-  '售后问题': 'bg-blue-500/15 text-blue-400',
-  '话术问题': 'bg-violet-500/15 text-violet-400',
+  '售后问题': 'bg-orbit-info/15 text-orbit-info',
+  '话术问题': 'bg-orbit-primary/15 text-orbit-primary',
 }
 
 const severityConfig = {
   high: { label: '严重', color: 'bg-red-500/15 text-red-400 border-red-500/20', icon: AlertTriangle },
   medium: { label: '中等', color: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: Activity },
-  low: { label: '轻微', color: 'bg-blue-500/15 text-blue-400 border-blue-500/20', icon: Activity },
+  low: { label: '轻微', color: 'bg-orbit-info/15 text-orbit-info border-orbit-info/20', icon: Activity },
 }
 
 const typeConfig = {
   anchor: { label: '主播', icon: Users, color: 'text-cyan-400' },
-  channel: { label: '渠道', icon: Radio, color: 'text-violet-400' },
+  channel: { label: '渠道', icon: Radio, color: 'text-orbit-primary' },
 }
 
 export function IssueLibraryPage() {
@@ -125,8 +125,8 @@ export function IssueLibraryPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">问题库</h1>
-            <p className="text-slate-500 text-sm mt-1">常见问题应对与自动数据异常检测</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">问题库</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">常见问题应对与自动数据异常检测</p>
           </div>
         </div>
       </motion.div>
@@ -134,13 +134,13 @@ export function IssueLibraryPage() {
       {/* Search + Category filter */}
       <motion.div {...fadeIn} transition={{ ...fadeIn.transition, delay: 0.05 }} className="flex flex-col sm:flex-row gap-3">
         <div className="relative max-w-md flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="搜索问题标题或解决方案..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 pl-9 pr-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors"
+            className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 pl-9 pr-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors"
           />
         </div>
         <div className="flex items-center gap-1 flex-wrap">
@@ -152,7 +152,7 @@ export function IssueLibraryPage() {
                 'px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap',
                 categoryFilter === cat
                   ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
               )}
             >
               {cat}
@@ -183,8 +183,8 @@ export function IssueLibraryPage() {
             <CardBody>
               <div className="flex items-center gap-2 mb-4">
                 <Activity className="w-4 h-4 text-orange-400" />
-                <h2 className="text-sm font-semibold text-slate-200">自动检测数据异常</h2>
-                <span className="text-[10px] text-slate-500 bg-orbit-surface2 px-1.5 py-0.5 rounded-full border border-orbit-border">
+                <h2 className="text-sm font-semibold text-[var(--text-secondary)]">自动检测数据异常</h2>
+                <span className="text-[10px] text-[var(--text-muted)] bg-orbit-surface2 px-1.5 py-0.5 rounded-full border border-orbit-border">
                   {autoTags.length} 项
                 </span>
               </div>
@@ -216,17 +216,17 @@ export function IssueLibraryPage() {
                           <span className="text-[10px] font-medium">{sev.label}</span>
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-slate-200 mb-2">{tag.title}</p>
+                      <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">{tag.title}</p>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">
-                          {tag.metric}: <span className="text-slate-300 font-medium">{tag.value}</span>
+                        <span className="text-[var(--text-muted)]">
+                          {tag.metric}: <span className="text-[var(--text-secondary)] font-medium">{tag.value}</span>
                         </span>
-                        <span className="text-slate-600">
+                        <span className="text-[var(--text-primary)]">
                           阈值: {tag.threshold}
                         </span>
                       </div>
                       {tag.date && (
-                        <p className="text-[10px] text-slate-600 mt-2">
+                        <p className="text-[10px] text-[var(--text-primary)] mt-2">
                           最近检测: {tag.date}
                         </p>
                       )}
@@ -277,9 +277,9 @@ export function IssueLibraryPage() {
                           <span className={cn('inline-flex px-2 py-0.5 rounded text-[10px] font-medium mb-1.5', categoryColors[issue.category])}>
                             {issue.category}
                           </span>
-                          <h3 className="text-sm font-semibold text-slate-200 leading-snug">{issue.title}</h3>
+                          <h3 className="text-sm font-semibold text-[var(--text-secondary)] leading-snug">{issue.title}</h3>
                         </div>
-                        <div className="flex-shrink-0 text-slate-500 mt-1">
+                        <div className="flex-shrink-0 text-[var(--text-muted)] mt-1">
                           {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                         </div>
                       </div>
@@ -288,7 +288,7 @@ export function IssueLibraryPage() {
 
                   {/* Solution preview */}
                   <p className={cn(
-                    'text-xs text-slate-400 leading-relaxed',
+                    'text-xs text-[var(--text-muted)] leading-relaxed',
                     isExpanded ? '' : 'line-clamp-2'
                   )}>
                     {isExpanded && issue.detailedSolution ? issue.detailedSolution : issue.solution}
@@ -302,17 +302,17 @@ export function IssueLibraryPage() {
                       className="mt-3 p-3 rounded-lg bg-orbit-primary/5 border border-orbit-primary/10"
                     >
                       <p className="text-[11px] font-medium text-orbit-primary-light mb-1.5">详细应对步骤</p>
-                      <p className="text-xs text-slate-400 leading-relaxed">{issue.detailedSolution}</p>
+                      <p className="text-xs text-[var(--text-muted)] leading-relaxed">{issue.detailedSolution}</p>
                     </motion.div>
                   )}
 
                   {/* Footer stats */}
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-orbit-border">
-                    <div className="flex items-center gap-1 text-slate-500">
+                    <div className="flex items-center gap-1 text-[var(--text-muted)]">
                       <AlertTriangle className="w-3.5 h-3.5" />
                       <span className="text-xs">发生次数</span>
                     </div>
-                    <span className="text-sm font-semibold text-slate-200">{issue.occurrenceCount}</span>
+                    <span className="text-sm font-semibold text-[var(--text-secondary)]">{issue.occurrenceCount}</span>
                   </div>
                 </CardBody>
               </Card>
@@ -328,8 +328,8 @@ export function IssueLibraryPage() {
           animate={{ opacity: 1 }}
           className="text-center py-16"
         >
-          <HelpCircle className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-500 text-sm">未找到匹配的问题记录</p>
+          <HelpCircle className="w-12 h-12 text-[var(--text-primary)] mx-auto mb-3" />
+          <p className="text-[var(--text-muted)] text-sm">未找到匹配的问题记录</p>
         </motion.div>
       )}
     </div>

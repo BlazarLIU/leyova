@@ -141,18 +141,18 @@ export function ShopProductsPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">商品与 SKU 结构分析</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">商品与 SKU 结构分析</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               {currentShop ? `${currentShop.name} · ${currentPlatform?.platform_name || ''}` : (currentPlatform?.platform_name || '未选择店铺')}
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button
                 key={d}
                 onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 近 {d} 天
@@ -173,7 +173,7 @@ export function ShopProductsPage() {
       {!currentShop?.id && !hasProducts ? (
         <Card><CardBody><Empty text="当前平台下暂无在营店铺与商品映射" onGo={() => navigate('/data/ingest')} /></CardBody></Card>
       ) : loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : !hasTradeData && !hasProducts && !hasSkuSales ? (
         <Card><CardBody><Empty text="该店铺在选定周期内暂无商品与成交数据" onGo={() => navigate('/data/ingest')} /></CardBody></Card>
       ) : (
@@ -204,7 +204,7 @@ export function ShopProductsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                        <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                           <th className="py-2 pr-3">商品 / SPU</th>
                           <th className="py-2 pr-3">内部 SKU / 平台 SKU</th>
                           <th className="py-2 pr-3 text-right">销售件数</th>
@@ -217,23 +217,23 @@ export function ShopProductsPage() {
                       </thead>
                       <tbody>
                         {skuSales.items.map((item) => (
-                          <tr key={`${item.skuCode}-${item.platformSkuId}`} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
+                          <tr key={`${item.skuCode}-${item.platformSkuId}`} className="border-b border-[var(--border)] text-[var(--text-secondary)] hover:bg-orbit-ink/30">
                             <td className="py-2.5 pr-3">
-                              <div className="font-medium text-slate-100">{item.productName}</div>
-                              <div className="font-mono text-[11px] text-slate-500">{item.spuCode || '—'} · {item.category}</div>
+                              <div className="font-medium text-[var(--text-primary)]">{item.productName}</div>
+                              <div className="font-mono text-[11px] text-[var(--text-muted)]">{item.spuCode || '—'} · {item.category}</div>
                             </td>
                             <td className="py-2.5 pr-3 font-mono text-xs">
                               <div className="text-cyan-300">{item.skuCode}</div>
-                              <div className="text-[11px] text-slate-500">{item.platformSkuId || '—'}</div>
+                              <div className="text-[11px] text-[var(--text-muted)]">{item.platformSkuId || '—'}</div>
                             </td>
                             <td className="py-2.5 pr-3 text-right font-mono">{item.soldQty.toFixed(0)}</td>
                             <td className="py-2.5 pr-3 text-right font-mono">{item.orderCount}</td>
-                            <td className="py-2.5 pr-3 text-right font-mono text-slate-100">¥{item.paidAmount.toFixed(2)}</td>
+                            <td className="py-2.5 pr-3 text-right font-mono text-[var(--text-primary)]">¥{item.paidAmount.toFixed(2)}</td>
                             <td className="py-2.5 pr-3 text-right font-mono text-amber-300">¥{item.discountAllocated.toFixed(2)}</td>
                             <td className="py-2.5 pr-3 text-right font-mono">¥{item.avgUnitPrice.toFixed(2)}</td>
                             <td className="py-2.5 text-right font-mono">
                               {skuSales.costMasked || item.estimatedProfit === null ? (
-                                <span className="text-xs text-slate-500">已脱敏</span>
+                                <span className="text-xs text-[var(--text-muted)]">已脱敏</span>
                               ) : (
                                 <span className={item.estimatedProfit >= 0 ? 'text-emerald-300' : 'text-rose-400'}>
                                   ¥{item.estimatedProfit.toFixed(2)} ({item.marginRatePct?.toFixed(1)}%)
@@ -267,7 +267,7 @@ export function ShopProductsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                        <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                           <th className="py-2 pr-3">商品名称 / SPU</th>
                           <th className="py-2 pr-3">SKU 编码</th>
                           <th className="py-2 pr-3">品类</th>
@@ -283,21 +283,21 @@ export function ShopProductsPage() {
                             (m) => m.platformCode === currentPlatform?.platform_code,
                           )
                           return (
-                            <tr key={p.id} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
+                            <tr key={p.id} className="border-b border-[var(--border)] text-[var(--text-secondary)] hover:bg-orbit-ink/30">
                               <td className="py-2.5 pr-3">
-                                <div className="font-medium text-slate-100">{p.productName}</div>
-                                <div className="font-mono text-[11px] text-slate-500">{p.spuCode}</div>
+                                <div className="font-medium text-[var(--text-primary)]">{p.productName}</div>
+                                <div className="font-mono text-[11px] text-[var(--text-muted)]">{p.spuCode}</div>
                               </td>
                               <td className="py-2.5 pr-3 font-mono text-xs text-cyan-300">{p.skuCode}</td>
-                              <td className="py-2.5 pr-3 text-xs text-slate-400">{p.category}</td>
+                              <td className="py-2.5 pr-3 text-xs text-[var(--text-muted)]">{p.category}</td>
                               <td className="py-2.5 pr-3 text-right font-mono">¥{p.retailPrice.toFixed(2)}</td>
                               <td className="py-2.5 pr-3 text-right font-mono">
-                                <span className={p.isLowStock ? 'text-rose-400 font-semibold' : 'text-slate-200'}>
+                                <span className={p.isLowStock ? 'text-rose-400 font-semibold' : 'text-[var(--text-secondary)]'}>
                                   {p.availableQty}
                                 </span>
-                                <span className="text-slate-500"> / {p.safetyStock}</span>
+                                <span className="text-[var(--text-muted)]"> / {p.safetyStock}</span>
                               </td>
-                              <td className="py-2.5 pr-3 text-xs text-slate-400">
+                              <td className="py-2.5 pr-3 text-xs text-[var(--text-muted)]">
                                 {platMaps.length > 0 ? (
                                   <div className="space-y-0.5 font-mono text-[11px]">
                                     {platMaps.map((m) => (
@@ -335,12 +335,12 @@ export function ShopProductsPage() {
                   </CardHeader>
                   <CardBody>
                     {data.channels.length === 0 ? (
-                      <div className="py-8 text-center text-xs text-slate-500">暂无渠道数据</div>
+                      <div className="py-8 text-center text-xs text-[var(--text-muted)]">暂无渠道数据</div>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
-                            <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                            <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                               <th className="py-2 pr-3">渠道</th>
                               <th className="py-2 pr-3 text-right">成交金额</th>
                               <th className="py-2 pr-3 text-right">订单数</th>
@@ -352,8 +352,8 @@ export function ShopProductsPage() {
                             {data.channels.map((c) => {
                               const total = data.trade.gmv || 1
                               return (
-                                <tr key={c.channel_name} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
-                                  <td className="py-2 pr-3 text-slate-200">{c.channel_name}</td>
+                                <tr key={c.channel_name} className="border-b border-[var(--border)] text-[var(--text-secondary)] hover:bg-orbit-ink/30">
+                                  <td className="py-2 pr-3 text-[var(--text-secondary)]">{c.channel_name}</td>
                                   <td className="py-2 pr-3 text-right font-mono">{c.gmv.toFixed(2)}</td>
                                   <td className="py-2 pr-3 text-right font-mono">{c.orders}</td>
                                   <td className="py-2 pr-3 text-right text-cyan-400">
@@ -380,7 +380,7 @@ export function ShopProductsPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                          <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                             <th className="py-2 pr-3">日期</th>
                             <th className="py-2 pr-3 text-right">成交金额</th>
                             <th className="py-2 pr-3 text-right">订单数</th>
@@ -389,7 +389,7 @@ export function ShopProductsPage() {
                         </thead>
                         <tbody>
                           {data.daily.slice().reverse().map((d) => (
-                            <tr key={d.biz_date} className="border-b border-slate-800/60 text-slate-300">
+                            <tr key={d.biz_date} className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                               <td className="py-2 pr-3 font-mono text-xs">{String(d.biz_date).slice(0, 10)}</td>
                               <td className="py-2 pr-3 text-right font-mono">{d.gmv.toFixed(2)}</td>
                               <td className="py-2 pr-3 text-right font-mono">{d.orders}</td>
@@ -414,11 +414,11 @@ export function ShopProductsPage() {
 
 function Stat({ label, value, unit }: { label: string; value: string; unit: string }) {
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-3">
-      <div className="text-xs text-slate-400">{label}</div>
+    <div className="rounded-xl border border-[var(--border)] bg-orbit-ink/40 p-3">
+      <div className="text-xs text-[var(--text-muted)]">{label}</div>
       <div className="mt-1.5 flex items-baseline gap-1">
-        <span className="text-lg font-semibold text-slate-100">{value}</span>
-        <span className="text-[11px] text-slate-500">{unit}</span>
+        <span className="text-lg font-semibold text-[var(--text-primary)]">{value}</span>
+        <span className="text-[11px] text-[var(--text-muted)]">{unit}</span>
       </div>
     </div>
   )
@@ -427,8 +427,8 @@ function Stat({ label, value, unit }: { label: string; value: string; unit: stri
 function Empty({ text, onGo }: { text: string; onGo: () => void }) {
   return (
     <div className="py-14 text-center">
-      <Package className="mx-auto h-10 w-10 text-slate-600" />
-      <p className="mt-3 text-sm text-slate-400">{text}</p>
+      <Package className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+      <p className="mt-3 text-sm text-[var(--text-muted)]">{text}</p>
       <Button className="mt-4" onClick={onGo}>
         去导入数据 <ArrowRight className="ml-1 h-4 w-4" />
       </Button>

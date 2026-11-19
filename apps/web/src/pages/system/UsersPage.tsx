@@ -120,7 +120,7 @@ export function UsersPage() {
         header: '用户名',
         width: 160,
         render: (_, a) => (
-          <span className="font-mono font-semibold text-slate-100 flex items-center gap-1.5">
+          <span className="font-mono font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-cyan-400" />
             {a.username}
           </span>
@@ -131,7 +131,7 @@ export function UsersPage() {
         header: '姓名',
         width: 140,
         render: (_, a) => (
-          <span className="text-slate-200">{a.realName || '-'}</span>
+          <span className="text-[var(--text-secondary)]">{a.realName || '-'}</span>
         ),
       },
       {
@@ -159,7 +159,7 @@ export function UsersPage() {
         header: '创建时间',
         width: 160,
         render: (_, a) => (
-          <span className="font-mono text-xs text-slate-400">
+          <span className="font-mono text-xs text-[var(--text-muted)]">
             {a.createdAt ? new Date(a.createdAt).toLocaleDateString('zh-CN') : '-'}
           </span>
         ),
@@ -175,7 +175,7 @@ export function UsersPage() {
             variant="ghost"
             onClick={() => handleDelete(a.id, a.username)}
             title="删除账号"
-            className="text-slate-500 hover:text-red-400"
+            className="text-[var(--text-muted)] hover:text-red-400"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
@@ -186,7 +186,7 @@ export function UsersPage() {
   )
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px] text-gray-100">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px] text-[var(--text-primary)]">
       {msg && (
         <div className="flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs text-cyan-300">
           <span>{msg}</span>
@@ -201,41 +201,41 @@ export function UsersPage() {
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">系统总账号数</span>
+              <span className="text-xs text-[var(--text-muted)]">系统总账号数</span>
               <Users className="w-4 h-4 text-cyan-400" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-slate-100">{stats.total}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">已分配角色的登录主体</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{stats.total}</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已分配角色的登录主体</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">正常生效账号</span>
+              <span className="text-xs text-[var(--text-muted)]">正常生效账号</span>
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.active}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">具备登录与功能鉴权凭证</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">具备登录与功能鉴权凭证</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">已停用账号</span>
-              <XCircle className="w-4 h-4 text-slate-500" />
+              <span className="text-xs text-[var(--text-muted)]">已停用账号</span>
+              <XCircle className="w-4 h-4 text-[var(--text-muted)]" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-slate-400">{stats.inactive}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">休眠或离职锁定状态</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--text-muted)]">{stats.inactive}</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">休眠或离职锁定状态</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">运营操盘中心人员</span>
+              <span className="text-xs text-[var(--text-muted)]">运营操盘中心人员</span>
               <UserCheck className="w-4 h-4 text-orbit-primary-light" />
             </div>
             <p className="mt-1 text-2xl font-bold text-orbit-primary-light">{stats.operators}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">操盘手、运营总监与专员</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">操盘手、运营总监与专员</p>
           </CardBody>
         </Card>
       </div>
@@ -276,12 +276,12 @@ export function UsersPage() {
         filterControls={
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <div className="flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-slate-500" />
-              <span className="text-gray-400">角色:</span>
+              <Shield className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <span className="text-[var(--text-muted)]">角色:</span>
               <select
                 value={table.filters.role}
                 onChange={(e) => table.setFilter('role', e.target.value)}
-                className="h-7 px-2 text-xs rounded border border-gray-700 bg-gray-800 text-gray-300 focus:outline-none focus:border-cyan-500"
+                className="h-7 px-2 text-xs rounded border border-[var(--border)] bg-orbit-ink text-orbit-snow/80 focus:outline-none focus:border-cyan-500"
               >
                 <option value="all">全部角色</option>
                 {Object.entries(ROLE_LABEL).map(([code, label]) => (
@@ -293,7 +293,7 @@ export function UsersPage() {
             </div>
 
             <div className="flex items-center gap-1.5 ml-2">
-              <span className="text-gray-400">状态:</span>
+              <span className="text-[var(--text-muted)]">状态:</span>
               {[
                 { value: 'all', label: '全部' },
                 { value: '1', label: '正常' },
@@ -305,7 +305,7 @@ export function UsersPage() {
                   className={`px-2 py-0.5 rounded text-xs transition-colors ${
                     table.filters.status === st.value
                       ? 'bg-cyan-600 text-white font-medium'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                      : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                   }`}
                 >
                   {st.label}
@@ -329,16 +329,16 @@ export function UsersPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative"
+              className="bg-orbit-ink border border-[var(--border)] rounded-2xl w-full max-w-md p-6 shadow-2xl relative"
             >
-              <div className="flex items-center justify-between pb-4 border-b border-gray-800 mb-4">
-                <h3 className="text-base font-bold text-gray-100 flex items-center gap-2">
+              <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-4">
+                <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                   <Plus className="w-5 h-5 text-cyan-400" />
                   新建系统账号
                 </h3>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-[var(--text-muted)] hover:text-white"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -346,46 +346,46 @@ export function UsersPage() {
 
               <form onSubmit={handleCreate} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-gray-300 mb-1 font-medium">登录用户名</label>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-medium">登录用户名</label>
                   <input
                     type="text"
                     required
                     placeholder="如 operator_zhang"
                     value={form.username}
                     onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1 font-medium">真实姓名</label>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-medium">真实姓名</label>
                   <input
                     type="text"
                     placeholder="如 张三"
                     value={form.realName}
                     onChange={(e) => setForm({ ...form, realName: e.target.value })}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1 font-medium">初始登录密码</label>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-medium">初始登录密码</label>
                   <input
                     type="password"
                     required
                     placeholder="至少 6 位安全密码"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1 font-medium">分配系统角色</label>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-medium">分配系统角色</label>
                   <select
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
                   >
                     {Object.entries(ROLE_LABEL).map(([code, label]) => (
                       <option key={code} value={code}>
@@ -395,7 +395,7 @@ export function UsersPage() {
                   </select>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                   <Button
                     type="button"
                     variant="ghost"

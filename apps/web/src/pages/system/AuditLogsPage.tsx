@@ -110,7 +110,7 @@ export function AuditLogsPage() {
         header: '时间',
         sortable: true,
         render: (v) => (
-          <span className="font-mono text-xs text-slate-400">
+          <span className="font-mono text-xs text-[var(--text-muted)]">
             {v ? new Date(v).toLocaleString('zh-CN') : '-'}
           </span>
         ),
@@ -121,13 +121,13 @@ export function AuditLogsPage() {
         render: (_, row) => (
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-slate-200 font-medium">
+              <span className="text-[var(--text-secondary)] font-medium">
                 {row.actorRealName || row.actorUsername || `UID:${row.actorUserId ?? 'system'}`}
               </span>
               {row.actorRole && <Badge variant="neutral">{row.actorRole}</Badge>}
             </div>
             {row.actorUsername && (
-              <div className="text-[11px] text-slate-500 font-mono">@{row.actorUsername}</div>
+              <div className="text-[11px] text-[var(--text-muted)] font-mono">@{row.actorUsername}</div>
             )}
           </div>
         ),
@@ -146,9 +146,9 @@ export function AuditLogsPage() {
         header: '资源对象',
         render: (v, row) => (
           <div>
-            <span className="text-slate-300 font-mono text-xs">{v}</span>
+            <span className="text-[var(--text-secondary)] font-mono text-xs">{v}</span>
             {row.resourceId && (
-              <span className="ml-1.5 text-xs text-slate-500 font-mono">#{row.resourceId}</span>
+              <span className="ml-1.5 text-xs text-[var(--text-muted)] font-mono">#{row.resourceId}</span>
             )}
           </div>
         ),
@@ -156,7 +156,7 @@ export function AuditLogsPage() {
       {
         key: 'ipAddress',
         header: '来源 IP',
-        render: (v) => <span className="font-mono text-xs text-slate-400">{v || '-'}</span>,
+        render: (v) => <span className="font-mono text-xs text-[var(--text-muted)]">{v || '-'}</span>,
       },
       {
         key: 'diff',
@@ -191,7 +191,7 @@ export function AuditLogsPage() {
         }
         subtitle="追踪账号权限变更、代运营对账、平台配置与核心数据修改的不可篡改记录（PostgreSQL RLS 受控）"
         badge={
-          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-400 border border-orbit-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-[var(--text-muted)] border border-orbit-border">
             已接入 DataPage
           </span>
         }
@@ -205,7 +205,7 @@ export function AuditLogsPage() {
             <select
               value={table.filters.resourceType}
               onChange={(e) => table.setFilter('resourceType', e.target.value)}
-              className="h-9 px-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-xs text-slate-200 focus:outline-none focus:border-orbit-primary"
+              className="h-9 px-3 rounded-lg border border-orbit-border bg-orbit-surface2 text-xs text-[var(--text-secondary)] focus:outline-none focus:border-orbit-primary"
             >
               {RESOURCE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -221,7 +221,7 @@ export function AuditLogsPage() {
               className="h-9 text-xs w-36"
               placeholder="开始日期"
             />
-            <span className="text-slate-500 text-xs">至</span>
+            <span className="text-[var(--text-muted)] text-xs">至</span>
             <Input
               type="date"
               value={table.filters.to}
@@ -248,17 +248,17 @@ export function AuditLogsPage() {
                 <Badge variant={actionBadgeVariant(selectedLog.action)}>
                   <span className="font-mono">{selectedLog.action}</span>
                 </Badge>
-                <span className="text-sm text-slate-200 font-medium">
+                <span className="text-sm text-[var(--text-secondary)] font-medium">
                   {selectedLog.resourceType}
                   {selectedLog.resourceId ? ` #${selectedLog.resourceId}` : ''}
                 </span>
-                <span className="text-xs text-slate-500 font-mono">
+                <span className="text-xs text-[var(--text-muted)] font-mono">
                   {selectedLog.createdAt ? new Date(selectedLog.createdAt).toLocaleString('zh-CN') : ''}
                 </span>
               </div>
               <button
                 onClick={() => setSelectedLog(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -267,18 +267,18 @@ export function AuditLogsPage() {
             <div className="p-5 overflow-y-auto space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-white/[0.02] border border-orbit-border/60 rounded-xl p-3">
                 <div>
-                  <span className="text-slate-500">操作账号：</span>
-                  <span className="text-slate-200 font-mono">
+                  <span className="text-[var(--text-muted)]">操作账号：</span>
+                  <span className="text-[var(--text-secondary)] font-mono">
                     {selectedLog.actorUsername || `UID:${selectedLog.actorUserId ?? 'system'}`} ({selectedLog.actorRole || '-'})
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500">来源 IP：</span>
-                  <span className="text-slate-200 font-mono">{selectedLog.ipAddress || '-'}</span>
+                  <span className="text-[var(--text-muted)]">来源 IP：</span>
+                  <span className="text-[var(--text-secondary)] font-mono">{selectedLog.ipAddress || '-'}</span>
                 </div>
                 <div className="truncate">
-                  <span className="text-slate-500">User-Agent：</span>
-                  <span className="text-slate-300 font-mono" title={selectedLog.userAgent || ''}>
+                  <span className="text-[var(--text-muted)]">User-Agent：</span>
+                  <span className="text-[var(--text-secondary)] font-mono" title={selectedLog.userAgent || ''}>
                     {selectedLog.userAgent || '-'}
                   </span>
                 </div>
@@ -287,13 +287,13 @@ export function AuditLogsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <div className="text-xs font-medium text-rose-400">变更前（Before）</div>
-                  <pre className="rounded-xl border border-rose-500/20 bg-slate-950/70 p-3.5 text-xs font-mono text-slate-300 overflow-x-auto max-h-80">
+                  <pre className="rounded-xl border border-rose-500/20 bg-orbit-ink/70 p-3.5 text-xs font-mono text-orbit-snow/80 overflow-x-auto max-h-80">
                     {formatJson(selectedLog.beforeData)}
                   </pre>
                 </div>
                 <div className="space-y-1.5">
                   <div className="text-xs font-medium text-emerald-400">变更后（After）</div>
-                  <pre className="rounded-xl border border-emerald-500/20 bg-slate-950/70 p-3.5 text-xs font-mono text-slate-300 overflow-x-auto max-h-80">
+                  <pre className="rounded-xl border border-emerald-500/20 bg-orbit-ink/70 p-3.5 text-xs font-mono text-orbit-snow/80 overflow-x-auto max-h-80">
                     {formatJson(selectedLog.afterData)}
                   </pre>
                 </div>

@@ -9,12 +9,12 @@ export function AiOpsSelectionPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#0b0f19] min-h-screen">
-      <div className="px-6 py-3 border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md flex items-center justify-between">
+      <div className="px-6 py-3 border-b border-[var(--border)] bg-orbit-ink/60 backdrop-blur-md flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
             工作面 3 · 货与内容
           </span>
-          <span className="text-sm text-slate-200 font-bold flex items-center gap-1.5">
+          <span className="text-sm text-[var(--text-secondary)] font-bold flex items-center gap-1.5">
             <ShoppingBag className="w-4 h-4 text-cyan-400" />
             <span>AI 全品类选品与智能提案</span>
           </span>
@@ -27,7 +27,7 @@ export function AiOpsSelectionPage() {
               "px-3 py-1 rounded-lg text-xs font-semibold transition-all",
               subTab === 'selection'
                 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-white"
             )}
           >
             选品提案工作台
@@ -38,7 +38,7 @@ export function AiOpsSelectionPage() {
               "px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1",
               subTab === 'history'
                 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-white"
             )}
           >
             <History className="w-3.5 h-3.5" />

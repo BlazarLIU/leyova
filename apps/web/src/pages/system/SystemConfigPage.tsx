@@ -186,8 +186,8 @@ export function SystemConfigPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">系统配置</h1>
-            <p className="text-slate-400 text-sm mt-1">系统全局规则、业务模块参数、目标与字典配置</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">系统配置</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">系统全局规则、业务模块参数、目标与字典配置</p>
           </div>
         </div>
       </motion.div>
@@ -199,17 +199,17 @@ export function SystemConfigPage() {
           className="flex items-center justify-between p-3.5 bg-orbit-surface/70 hover:bg-orbit-surface2 border border-orbit-border/80 rounded-xl transition-all group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-orbit-primary/10 text-orbit-primary flex items-center justify-center">
               <User className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors">
+              <div className="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-orbit-primary transition-colors">
                 账号与权限中心
               </div>
-              <div className="text-[11px] text-slate-400">统一维护系统操作员、登录口令与数据权限</div>
+              <div className="text-[11px] text-[var(--text-muted)]">统一维护系统操作员、登录口令与数据权限</div>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-orbit-primary transition-colors" />
         </a>
 
         <a
@@ -217,17 +217,17 @@ export function SystemConfigPage() {
           className="flex items-center justify-between p-3.5 bg-orbit-surface/70 hover:bg-orbit-surface2 border border-orbit-border/80 rounded-xl transition-all group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-orbit-primary/10 text-orbit-primary flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-semibold text-slate-200 group-hover:text-purple-300 transition-colors">
+              <div className="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-orbit-primary transition-colors">
                 组织人员名录
               </div>
-              <div className="text-[11px] text-slate-400">全量主播档案、运营编制与主管层级架构</div>
+              <div className="text-[11px] text-[var(--text-muted)]">全量主播档案、运营编制与主管层级架构</div>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-orbit-primary transition-colors" />
         </a>
 
         <a
@@ -239,13 +239,13 @@ export function SystemConfigPage() {
               <Radio className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-semibold text-slate-200 group-hover:text-emerald-300 transition-colors">
+              <div className="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-emerald-300 transition-colors">
                 直播间与机位
               </div>
-              <div className="text-[11px] text-slate-400">自建与多平台直播间物理档案与绑定状态</div>
+              <div className="text-[11px] text-[var(--text-muted)]">自建与多平台直播间物理档案与绑定状态</div>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-emerald-400 transition-colors" />
         </a>
       </div>
 
@@ -258,7 +258,7 @@ export function SystemConfigPage() {
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === tab.key
                 ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}>
               <Icon className="w-4 h-4" />{tab.label}
             </button>
@@ -277,27 +277,27 @@ export function SystemConfigPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-orbit-border">
-                      {['规则名称', '指标', '检测方法', '参数', '严重程度', '启用', '操作'].map(h => <th key={h} className="text-left text-xs text-slate-500 font-medium px-5 py-3">{h}</th>)}
+                      {['规则名称', '指标', '检测方法', '参数', '严重程度', '启用', '操作'].map(h => <th key={h} className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">{h}</th>)}
                     </tr>
                   </thead>
                   <tbody>
                     {rules.map((rule) => (
                       <tr key={rule.name} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
-                        <td className="px-5 py-3.5 text-slate-200 font-medium">{rule.name}</td>
-                        <td className="px-5 py-3.5 text-slate-300">{rule.metric}</td>
-                        <td className="px-5 py-3.5 text-slate-300">{rule.method}</td>
-                        <td className="px-5 py-3.5 text-slate-300">{rule.params}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{rule.name}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{rule.metric}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{rule.method}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{rule.params}</td>
                         <td className="px-5 py-3.5"><Badge variant={severityColorMap[rule.severity]}>{rule.severity}</Badge></td>
                         <td className="px-5 py-3.5">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${rule.enabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-500'}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${rule.enabled ? 'bg-emerald-400' : 'bg-slate-500'}`} />{rule.enabled ? '已启用' : '已禁用'}
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${rule.enabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[var(--surface3)] text-[var(--text-muted)]'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${rule.enabled ? 'bg-emerald-400' : 'bg-[var(--text-subtle)]'}`} />{rule.enabled ? '已启用' : '已禁用'}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
                             <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors"
                               onClick={() => { setEditingRule(rule); setRuleForm({ name: rule.name, metric: rule.metric, method: rule.method, params: rule.params, severity: rule.severity, enabled: rule.enabled }); setShowRuleModal(true) }}>编辑</button>
-                            <button className="text-xs text-slate-500 hover:text-orbit-danger transition-colors"
+                            <button className="text-xs text-[var(--text-muted)] hover:text-orbit-danger transition-colors"
                               onClick={() => setDeletingRule(rule)}>删除</button>
                           </div>
                         </td>
@@ -316,45 +316,45 @@ export function SystemConfigPage() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowRuleModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-orbit-border">
-              <h3 className="text-base font-semibold text-slate-200">{editingRule ? '编辑规则' : '新增规则'}</h3>
+              <h3 className="text-base font-semibold text-[var(--text-secondary)]">{editingRule ? '编辑规则' : '新增规则'}</h3>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">规则名称</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">规则名称</label>
                   <input value={ruleForm.name} onChange={e => setRuleForm(p => ({ ...p, name: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">指标</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">指标</label>
                   <input value={ruleForm.metric} onChange={e => setRuleForm(p => ({ ...p, metric: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">检测方法</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">检测方法</label>
                   <input value={ruleForm.method} onChange={e => setRuleForm(p => ({ ...p, method: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">参数</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">参数</label>
                   <input value={ruleForm.params} onChange={e => setRuleForm(p => ({ ...p, params: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">严重程度</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">严重程度</label>
                   <select value={ruleForm.severity} onChange={e => setRuleForm(p => ({ ...p, severity: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                     <option value="严重">严重</option><option value="警告">警告</option><option value="提示">提示</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">启用</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">启用</label>
                   <select value={ruleForm.enabled ? '1' : '0'} onChange={e => setRuleForm(p => ({ ...p, enabled: e.target.value === '1' }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                     <option value="1">启用</option><option value="0">禁用</option>
                   </select>
                 </div>
@@ -389,8 +389,8 @@ export function SystemConfigPage() {
             <CardBody>
               {targetTemplates.length === 0 ? (
                 <div className="py-14 text-center">
-                  <Target className="w-10 h-10 mx-auto text-slate-600 mb-3" />
-                  <p className="text-sm text-slate-500">暂无目标，点击右上角「新增目标」创建</p>
+                  <Target className="w-10 h-10 mx-auto text-[var(--text-primary)] mb-3" />
+                  <p className="text-sm text-[var(--text-muted)]">暂无目标，点击右上角「新增目标」创建</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -398,30 +398,30 @@ export function SystemConfigPage() {
                     <div key={tmpl.id} className="p-4 rounded-xl bg-orbit-surface2 border border-orbit-border hover:border-orbit-border2 transition-colors">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold text-slate-200">{tmpl.name}</h4>
+                          <h4 className="text-sm font-semibold text-[var(--text-secondary)]">{tmpl.name}</h4>
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-accent/10 text-cyan-400 shrink-0">{PERIOD_LABELS[tmpl.period] || '月度'}</span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors"
                             onClick={() => { setEditingTemplate(tmpl); setTemplateForm({ name: tmpl.name, period: tmpl.period || 'monthly', metrics: (tmpl.metrics || []).map((m: any) => ({ ...m })) }); setTemplateError(''); setShowTemplateModal(true) }}>编辑</button>
-                          <button className="text-xs text-slate-500 hover:text-orbit-danger transition-colors"
+                          <button className="text-xs text-[var(--text-muted)] hover:text-orbit-danger transition-colors"
                             onClick={() => { setDeletingTemplate(tmpl); setDeleteTemplateError('') }}>删除</button>
                         </div>
                       </div>
                       <div className="mt-2 space-y-1.5">
                         {(tmpl.metrics || []).length === 0 ? (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-500">未配置指标</span>
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-[var(--surface3)] text-[var(--text-muted)]">未配置指标</span>
                         ) : tmpl.metrics.map((m: any) => (
                           <div key={m.metric} className="flex items-center gap-2">
                             <span className="text-[11px] px-2 py-0.5 rounded-full bg-orbit-primary/10 text-orbit-primary-light shrink-0">{m.metric}</span>
-                            <span className="text-xs text-slate-300 font-medium">{m.target ?? '-'}<span className="text-slate-500 font-normal"> {m.unit || ''}</span></span>
+                            <span className="text-xs text-[var(--text-secondary)] font-medium">{m.target ?? '-'}<span className="text-[var(--text-muted)] font-normal"> {m.unit || ''}</span></span>
                           </div>
                         ))}
                       </div>
                       <div className="flex items-center gap-2 mt-3">
                         <button className="text-xs px-2.5 py-1 rounded-lg bg-orbit-primary/10 text-orbit-primary-light border border-orbit-primary/30 hover:bg-orbit-primary/20 transition-colors"
                           onClick={() => { setApplyingTemplate(tmpl); setApplyError('') }}>应用到目标达成</button>
-                        <span className="text-xs text-slate-500">更新于 {tmpl.updatedAt}</span>
+                        <span className="text-xs text-[var(--text-muted)]">更新于 {tmpl.updatedAt}</span>
                       </div>
                     </div>
                   ))}
@@ -437,55 +437,55 @@ export function SystemConfigPage() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowTemplateModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-orbit-border">
-              <h3 className="text-base font-semibold text-slate-200">{editingTemplate ? '编辑目标' : '新增目标'}</h3>
+              <h3 className="text-base font-semibold text-[var(--text-secondary)]">{editingTemplate ? '编辑目标' : '新增目标'}</h3>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">目标名称</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">目标名称</label>
                 <input value={templateForm.name} onChange={e => setTemplateForm(p => ({ ...p, name: e.target.value }))} placeholder="如：Q3 运营目标"
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">目标周期</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">目标周期</label>
                 <div className="flex items-center gap-1.5 bg-orbit-surface rounded-lg border border-orbit-border p-1">
                   {([['monthly', '月度'], ['quarterly', '季度'], ['yearly', '年度']] as const).map(([v, label]) => (
                     <button key={v} type="button"
-                      className={`flex-1 px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${templateForm.period === v ? 'bg-orbit-primary/15 text-orbit-primary-light' : 'text-slate-400 hover:text-slate-300'}`}
+                      className={`flex-1 px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${templateForm.period === v ? 'bg-orbit-primary/15 text-orbit-primary-light' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                       onClick={() => setTemplateForm(p => ({ ...p, period: v }))}>{label}</button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">指标（可多选）</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">指标（可多选）</label>
                 <div className="flex flex-wrap gap-1.5">
                   {METRIC_OPTIONS.map((m) => (
                     <button key={m} type="button"
-                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${templateForm.metrics.some(x => x.metric === m) ? 'bg-orbit-primary/15 text-orbit-primary-light border-orbit-primary/40' : 'bg-orbit-surface2 text-slate-400 border-orbit-border hover:text-slate-300'}`}
+                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${templateForm.metrics.some(x => x.metric === m) ? 'bg-orbit-primary/15 text-orbit-primary-light border-orbit-primary/40' : 'bg-orbit-surface2 text-[var(--text-muted)] border-orbit-border hover:text-[var(--text-primary)]'}`}
                       onClick={() => toggleMetric(m)}>{m}</button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">自定义指标</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">自定义指标</label>
                 <div className="flex items-center gap-2">
                   <input value={templateCustomMetric} onChange={e => setTemplateCustomMetric(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomMetric() } }} placeholder="输入指标名，回车添加"
-                    className="flex-1 h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary" />
+                    className="flex-1 h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary" />
                   <Button size="sm" variant="ghost" onClick={addCustomMetric}>添加</Button>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">目标值设定（每个指标填写目标数值与单位，即为目标达成闭环的设定值）</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">目标值设定（每个指标填写目标数值与单位，即为目标达成闭环的设定值）</label>
                 <div className="space-y-2">
                   {templateForm.metrics.length === 0 ? (
-                    <p className="text-xs text-slate-600 py-1">请先在上方选择指标</p>
+                    <p className="text-xs text-[var(--text-primary)] py-1">请先在上方选择指标</p>
                   ) : templateForm.metrics.map((it) => (
                     <div key={it.metric} className="flex items-center gap-2 bg-orbit-surface2 border border-orbit-border rounded-lg px-2.5 py-2">
                       <span className="text-xs font-medium text-orbit-primary-light shrink-0 w-28 truncate">{it.metric}</span>
                       <input value={it.target ?? ''} onChange={e => updateMetric(it.metric, 'target', e.target.value)} placeholder="目标值"
-                        className="flex-1 min-w-0 h-8 rounded-md border border-orbit-border bg-orbit-surface px-2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary" />
+                        className="flex-1 min-w-0 h-8 rounded-md border border-orbit-border bg-orbit-surface px-2 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary" />
                       <input value={it.unit || ''} onChange={e => updateMetric(it.metric, 'unit', e.target.value)} placeholder="单位"
-                        className="w-20 h-8 rounded-md border border-orbit-border bg-orbit-surface px-2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary" />
-                      <button className="text-slate-500 hover:text-orbit-danger transition-colors shrink-0 text-sm" onClick={() => toggleMetric(it.metric)}>×</button>
+                        className="w-20 h-8 rounded-md border border-orbit-border bg-orbit-surface px-2 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary" />
+                      <button className="text-[var(--text-muted)] hover:text-orbit-danger transition-colors shrink-0 text-sm" onClick={() => toggleMetric(it.metric)}>×</button>
                     </div>
                   ))}
                 </div>
@@ -516,22 +516,22 @@ export function SystemConfigPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-orbit-border">
-                      {['字典编码', '字典名称', '数据项数', '状态', '更新时间', '操作'].map(h => <th key={h} className="text-left text-xs text-slate-500 font-medium px-5 py-3">{h}</th>)}
+                      {['字典编码', '字典名称', '数据项数', '状态', '更新时间', '操作'].map(h => <th key={h} className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">{h}</th>)}
                     </tr>
                   </thead>
                   <tbody>
                     {dictItems.map((item) => (
                       <tr key={item.code} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
-                        <td className="px-5 py-3.5 text-slate-200 font-mono text-xs">{item.code}</td>
-                        <td className="px-5 py-3.5 text-slate-300">{item.name}</td>
-                        <td className="px-5 py-3.5 text-slate-300">{item.count} 项</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)] font-mono text-xs">{item.code}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{item.name}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{item.count} 项</td>
                         <td className="px-5 py-3.5"><Badge variant={item.status === '启用' ? 'success' : 'neutral'}>{item.status}</Badge></td>
-                        <td className="px-5 py-3.5 text-slate-300">{item.updated}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-secondary)]">{item.updated}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
                             <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors"
                               onClick={() => { setEditingDict(item); setDictForm({ code: item.code, name: item.name, status: item.status }); setShowDictModal(true) }}>编辑</button>
-                            <button className="text-xs text-slate-500 hover:text-orbit-danger transition-colors"
+                            <button className="text-xs text-[var(--text-muted)] hover:text-orbit-danger transition-colors"
                               onClick={() => setDeletingDict(item)}>删除</button>
                           </div>
                         </td>
@@ -550,23 +550,23 @@ export function SystemConfigPage() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowDictModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-orbit-border">
-              <h3 className="text-base font-semibold text-slate-200">{editingDict ? '编辑字典' : '新增字典'}</h3>
+              <h3 className="text-base font-semibold text-[var(--text-secondary)]">{editingDict ? '编辑字典' : '新增字典'}</h3>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">字典编码</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">字典编码</label>
                 <input value={dictForm.code} onChange={e => setDictForm(p => ({ ...p, code: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">字典名称</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">字典名称</label>
                 <input value={dictForm.name} onChange={e => setDictForm(p => ({ ...p, name: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">状态</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">状态</label>
                 <select value={dictForm.status} onChange={e => setDictForm(p => ({ ...p, status: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                   <option value="启用">启用</option><option value="禁用">禁用</option>
                 </select>
               </div>
@@ -590,8 +590,8 @@ export function SystemConfigPage() {
       {applyingTemplate !== null && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setApplyingTemplate(null)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-200 mb-2">应用到目标达成</h3>
-            <p className="text-sm text-slate-400 mb-4">将目标「{applyingTemplate.name}」的
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mb-2">应用到目标达成</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-4">将目标「{applyingTemplate.name}」的
               {(applyingTemplate.metrics || []).length} 个指标目标（周期：{PERIOD_LABELS[applyingTemplate.period] || '月度'}）写入「运营提效 → 目标达成」进行跟踪？</p>
             {applyError && <p className="text-xs text-orbit-danger mb-4">{applyError}</p>}
             <div className="flex items-center justify-end gap-3">
@@ -606,8 +606,8 @@ export function SystemConfigPage() {
       {deletingTemplate !== null && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setDeletingTemplate(null)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-200 mb-2">确认删除</h3>
-            <p className="text-sm text-slate-400 mb-6">确定要删除目标「{deletingTemplate.name}」吗？已应用到「目标达成」的对应目标记录将一并删除，此操作不可撤销。</p>
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mb-2">确认删除</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6">确定要删除目标「{deletingTemplate.name}」吗？已应用到「目标达成」的对应目标记录将一并删除，此操作不可撤销。</p>
             {deleteTemplateError && <p className="text-xs text-orbit-danger mb-4">{deleteTemplateError}</p>}
             <div className="flex items-center justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeletingTemplate(null)}>取消</Button>
@@ -621,8 +621,8 @@ export function SystemConfigPage() {
       {deletingRule !== null && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setDeletingRule(null)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-200 mb-2">确认删除</h3>
-            <p className="text-sm text-slate-400 mb-6">确定要删除规则「{deletingRule.name}」吗？此操作不可撤销。</p>
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mb-2">确认删除</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6">确定要删除规则「{deletingRule.name}」吗？此操作不可撤销。</p>
             <div className="flex items-center justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeletingRule(null)}>取消</Button>
               <Button variant="destructive" onClick={() => {
@@ -638,8 +638,8 @@ export function SystemConfigPage() {
       {deletingDict !== null && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setDeletingDict(null)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-200 mb-2">确认删除</h3>
-            <p className="text-sm text-slate-400 mb-6">确定要删除字典「{deletingDict.name}」吗？此操作不可撤销。</p>
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mb-2">确认删除</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6">确定要删除字典「{deletingDict.name}」吗？此操作不可撤销。</p>
             <div className="flex items-center justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeletingDict(null)}>取消</Button>
               <Button variant="destructive" onClick={() => {

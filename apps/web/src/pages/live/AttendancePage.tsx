@@ -110,8 +110,8 @@ export function AttendancePage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">个人达成</h1>
-            <p className="text-slate-500 text-sm mt-1">主播和中控人员月度出勤与数据统计</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">个人达成</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">主播和中控人员月度出勤与数据统计</p>
           </div>
         </div>
       </motion.div>
@@ -125,20 +125,20 @@ export function AttendancePage() {
         <Card>
           <CardBody>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-100">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
                 {year}年{month}月
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={prevMonth}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-200 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)] transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   上月
                 </button>
                 <button
                   onClick={nextMonth}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-200 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)] transition-colors"
                 >
                   下月
                   <ChevronRight className="w-4 h-4" />
@@ -179,17 +179,17 @@ export function AttendancePage() {
               <table className="w-full text-sm" style={{ minWidth: dates.length * 40 + 200 }}>
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-3 py-2 sticky left-0 bg-orbit-surface z-10" style={{ width: 80, minWidth: 80 }}>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-3 py-2 sticky left-0 bg-orbit-surface z-10" style={{ width: 80, minWidth: 80 }}>
                       姓名
                     </th>
-                    <th className="text-center text-xs text-slate-500 font-medium px-2 py-2 sticky left-[80px] bg-orbit-surface z-10" style={{ width: 50, minWidth: 50 }}>
+                    <th className="text-center text-xs text-[var(--text-muted)] font-medium px-2 py-2 sticky left-[80px] bg-orbit-surface z-10" style={{ width: 50, minWidth: 50 }}>
                       角色
                     </th>
                     {dates.map((d) => (
                       <th
                         key={d.date}
                         className={`text-center text-[11px] px-1 py-2 font-medium ${
-                          d.isWeekend ? 'text-amber-400 bg-amber-500/5' : 'text-slate-500'
+                          d.isWeekend ? 'text-amber-400 bg-amber-500/5' : 'text-[var(--text-muted)]'
                         }`}
                         style={{ width: 40, minWidth: 40 }}
                       >
@@ -198,13 +198,13 @@ export function AttendancePage() {
                         <span className="text-[10px]">{d.weekday}</span>
                       </th>
                     ))}
-                    <th className="text-center text-xs text-slate-500 font-medium px-2 py-2" style={{ width: 45, minWidth: 45 }}>
+                    <th className="text-center text-xs text-[var(--text-muted)] font-medium px-2 py-2" style={{ width: 45, minWidth: 45 }}>
                       出勤
                     </th>
-                    <th className="text-center text-xs text-slate-500 font-medium px-2 py-2" style={{ width: 55, minWidth: 55 }}>
+                    <th className="text-center text-xs text-[var(--text-muted)] font-medium px-2 py-2" style={{ width: 55, minWidth: 55 }}>
                       总时长
                     </th>
-                    <th className="text-center text-xs text-slate-500 font-medium px-2 py-2" style={{ width: 45, minWidth: 45 }}>
+                    <th className="text-center text-xs text-[var(--text-muted)] font-medium px-2 py-2" style={{ width: 45, minWidth: 45 }}>
                       夜班
                     </th>
                   </tr>
@@ -218,7 +218,7 @@ export function AttendancePage() {
                   </tr>
                   {anchorsWithData.length === 0 ? (
                     <tr>
-                      <td colSpan={dates.length + 4} className="text-center py-8 text-slate-500">当月暂无主播出勤数据</td>
+                      <td colSpan={dates.length + 4} className="text-center py-8 text-[var(--text-muted)]">当月暂无主播出勤数据</td>
                     </tr>
                   ) : anchorsWithData.map((anchor) => {
                     let attendedDays = 0
@@ -227,9 +227,9 @@ export function AttendancePage() {
 
                     return (
                       <tr key={`anchor_${anchor.id}`} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
-                        <td className="px-3 py-2 text-slate-200 font-medium sticky left-0 bg-orbit-surface">
+                        <td className="px-3 py-2 text-[var(--text-secondary)] font-medium sticky left-0 bg-orbit-surface">
                           <div className="flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5 text-slate-600" />
+                            <User className="w-3.5 h-3.5 text-[var(--text-primary)]" />
                             {anchor.name}
                           </div>
                         </td>
@@ -250,8 +250,8 @@ export function AttendancePage() {
                                 }`}
                               >
                                 <div className="text-xs">✅</div>
-                                <div className="text-[10px] text-slate-400">
-                                  {att.nightShift && <Moon className="w-3 h-3 inline text-indigo-400" />}
+                                <div className="text-[10px] text-[var(--text-muted)]">
+                                  {att.nightShift && <Moon className="w-3 h-3 inline text-orbit-primary" />}
                                   {(att.duration / 60).toFixed(1)}h
                                 </div>
                               </td>
@@ -265,13 +265,13 @@ export function AttendancePage() {
                               }`}
                             >
                               <div className="text-xs">❌</div>
-                              <div className="text-[10px] text-slate-500">-</div>
+                              <div className="text-[10px] text-[var(--text-muted)]">-</div>
                             </td>
                           )
                         })}
-                        <td className="text-center px-2 py-2 text-slate-300 font-medium">{attendedDays}</td>
-                        <td className="text-center px-2 py-2 text-slate-300">{(totalDuration / 60).toFixed(1)}</td>
-                        <td className="text-center px-2 py-2 text-slate-300">{nightShifts}</td>
+                        <td className="text-center px-2 py-2 text-[var(--text-secondary)] font-medium">{attendedDays}</td>
+                        <td className="text-center px-2 py-2 text-[var(--text-secondary)]">{(totalDuration / 60).toFixed(1)}</td>
+                        <td className="text-center px-2 py-2 text-[var(--text-secondary)]">{nightShifts}</td>
                       </tr>
                     )
                   })}
@@ -284,7 +284,7 @@ export function AttendancePage() {
                   </tr>
                   {operatorsWithData.length === 0 ? (
                     <tr>
-                      <td colSpan={dates.length + 4} className="text-center py-8 text-slate-500">当月暂无中控出勤数据</td>
+                      <td colSpan={dates.length + 4} className="text-center py-8 text-[var(--text-muted)]">当月暂无中控出勤数据</td>
                     </tr>
                   ) : operatorsWithData.map((op) => {
                     let attendedDays = 0
@@ -292,9 +292,9 @@ export function AttendancePage() {
 
                     return (
                       <tr key={`operator_${op.id}`} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
-                        <td className="px-3 py-2 text-slate-200 font-medium sticky left-0 bg-orbit-surface">
+                        <td className="px-3 py-2 text-[var(--text-secondary)] font-medium sticky left-0 bg-orbit-surface">
                           <div className="flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5 text-slate-600" />
+                            <User className="w-3.5 h-3.5 text-[var(--text-primary)]" />
                             {op.name}
                           </div>
                         </td>
@@ -314,8 +314,8 @@ export function AttendancePage() {
                                 }`}
                               >
                                 <div className="text-xs">✅</div>
-                                <div className="text-[10px] text-slate-400">
-                                  {att.nightShift && <Moon className="w-3 h-3 inline text-indigo-400" />}
+                                <div className="text-[10px] text-[var(--text-muted)]">
+                                  {att.nightShift && <Moon className="w-3 h-3 inline text-orbit-primary" />}
                                 </div>
                               </td>
                             )
@@ -331,9 +331,9 @@ export function AttendancePage() {
                             </td>
                           )
                         })}
-                        <td className="text-center px-2 py-2 text-slate-300 font-medium">{attendedDays}</td>
-                        <td className="text-center px-2 py-2 text-slate-300">-</td>
-                        <td className="text-center px-2 py-2 text-slate-300">{nightShifts}</td>
+                        <td className="text-center px-2 py-2 text-[var(--text-secondary)] font-medium">{attendedDays}</td>
+                        <td className="text-center px-2 py-2 text-[var(--text-secondary)]">-</td>
+                        <td className="text-center px-2 py-2 text-[var(--text-secondary)]">{nightShifts}</td>
                       </tr>
                     )
                   })}
@@ -359,30 +359,30 @@ export function AttendancePage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-orbit-border">
-                      <th className="text-left text-xs text-slate-500 font-medium px-4 py-2">主播</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">总时长(h)</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">总GMV</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">总GSV</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">单场GSV</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">总退货</th>
-                      <th className="text-center text-xs text-slate-500 font-medium px-4 py-2">夜班</th>
+                      <th className="text-left text-xs text-[var(--text-muted)] font-medium px-4 py-2">主播</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">总时长(h)</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">总GMV</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">总GSV</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">单场GSV</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">总退货</th>
+                      <th className="text-center text-xs text-[var(--text-muted)] font-medium px-4 py-2">夜班</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.anchorStats.map((stat) => (
                       <tr key={stat.id} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-2.5 text-slate-200">{stat.name}</td>
-                        <td className="px-4 py-2.5 text-right text-slate-300">{(stat.totalDuration / 60).toFixed(1)}</td>
+                        <td className="px-4 py-2.5 text-[var(--text-secondary)]">{stat.name}</td>
+                        <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{(stat.totalDuration / 60).toFixed(1)}</td>
                         <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGmv.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGsv.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-right text-slate-300">{stat.avgGsv.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{stat.avgGsv.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-right text-red-400">{stat.totalReturn.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-center text-slate-300">{stat.nightShiftCount}</td>
+                        <td className="px-4 py-2.5 text-center text-[var(--text-secondary)]">{stat.nightShiftCount}</td>
                       </tr>
                     ))}
                     {data.anchorStats.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="text-center py-8 text-slate-500">暂无数据</td>
+                        <td colSpan={7} className="text-center py-8 text-[var(--text-muted)]">暂无数据</td>
                       </tr>
                     )}
                   </tbody>
@@ -405,28 +405,28 @@ export function AttendancePage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-orbit-border">
-                      <th className="text-left text-xs text-slate-500 font-medium px-4 py-2">中控</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">直播场次</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">总GMV</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">总GSV</th>
-                      <th className="text-right text-xs text-slate-500 font-medium px-4 py-2">平均GSV</th>
-                      <th className="text-center text-xs text-slate-500 font-medium px-4 py-2">夜班</th>
+                      <th className="text-left text-xs text-[var(--text-muted)] font-medium px-4 py-2">中控</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">直播场次</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">总GMV</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">总GSV</th>
+                      <th className="text-right text-xs text-[var(--text-muted)] font-medium px-4 py-2">平均GSV</th>
+                      <th className="text-center text-xs text-[var(--text-muted)] font-medium px-4 py-2">夜班</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.operatorStats.map((stat) => (
                       <tr key={stat.id} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-2.5 text-slate-200">{stat.name}</td>
-                        <td className="px-4 py-2.5 text-right text-slate-300">{stat.streamCount}</td>
+                        <td className="px-4 py-2.5 text-[var(--text-secondary)]">{stat.name}</td>
+                        <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{stat.streamCount}</td>
                         <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGmv.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGsv.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-right text-slate-300">{stat.avgGsv.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-center text-slate-300">{stat.nightShiftCount}</td>
+                        <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{stat.avgGsv.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-center text-[var(--text-secondary)]">{stat.nightShiftCount}</td>
                       </tr>
                     ))}
                     {data.operatorStats.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="text-center py-8 text-slate-500">暂无数据</td>
+                        <td colSpan={6} className="text-center py-8 text-[var(--text-muted)]">暂无数据</td>
                       </tr>
                     )}
                   </tbody>

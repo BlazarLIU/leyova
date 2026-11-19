@@ -31,10 +31,10 @@ function MarkdownMessage({ content }: { content: string }) {
     const line = lines[i]
 
     if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
-      elements.push(<p key={i} className="font-semibold text-slate-100 mt-3 mb-1">{line.slice(2, -2)}</p>)
+      elements.push(<p key={i} className="font-semibold text-[var(--text-primary)] mt-3 mb-1">{line.slice(2, -2)}</p>)
     } else if (line.startsWith('- ') || line.startsWith('* ')) {
       elements.push(
-        <li key={i} className="ml-4 text-slate-300 list-disc marker:text-orbit-primary">
+        <li key={i} className="ml-4 text-[var(--text-secondary)] list-disc marker:text-orbit-primary">
           {formatInline(line.slice(2))}
         </li>
       )
@@ -52,7 +52,7 @@ function MarkdownMessage({ content }: { content: string }) {
             <thead>
               <tr className="border-b border-orbit-border bg-orbit-surface2">
                 {rows[0]?.map((h, j) => (
-                  <th key={j} className="px-3 py-2 text-left font-semibold text-slate-300">{h}</th>
+                  <th key={j} className="px-3 py-2 text-left font-semibold text-[var(--text-secondary)]">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -60,7 +60,7 @@ function MarkdownMessage({ content }: { content: string }) {
               {rows.slice(1).map((row, j) => (
                 <tr key={j} className="border-b border-orbit-border last:border-0 hover:bg-white/2">
                   {row.map((cell, k) => (
-                    <td key={k} className="px-3 py-2 text-slate-400">{formatInline(cell)}</td>
+                    <td key={k} className="px-3 py-2 text-[var(--text-muted)]">{formatInline(cell)}</td>
                   ))}
                 </tr>
               ))}
@@ -72,7 +72,7 @@ function MarkdownMessage({ content }: { content: string }) {
     } else if (line.trim() === '') {
       elements.push(<div key={i} className="h-1" />)
     } else {
-      elements.push(<p key={i} className="text-slate-300 leading-relaxed">{formatInline(line)}</p>)
+      elements.push(<p key={i} className="text-[var(--text-secondary)] leading-relaxed">{formatInline(line)}</p>)
     }
     i++
   }
@@ -84,7 +84,7 @@ function formatInline(text: string): React.ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*)/g)
   return parts.map((part, i) =>
     part.startsWith('**') && part.endsWith('**')
-      ? <strong key={i} className="font-semibold text-slate-100">{part.slice(2, -2)}</strong>
+      ? <strong key={i} className="font-semibold text-[var(--text-primary)]">{part.slice(2, -2)}</strong>
       : part
   )
 }
@@ -123,8 +123,8 @@ function InfoModule({
     <section className="bg-orbit-surface2 border border-orbit-border rounded-2xl px-5 py-4">
       <div className="flex items-center gap-2 mb-3">
         <Icon className="w-4 h-4 text-orbit-primary-light flex-shrink-0" />
-        <h3 className="text-sm font-semibold text-slate-200">{title}</h3>
-        {date && <span className="text-[11px] text-slate-500">· {date}</span>}
+        <h3 className="text-sm font-semibold text-[var(--text-secondary)]">{title}</h3>
+        {date && <span className="text-[11px] text-[var(--text-muted)]">· {date}</span>}
       </div>
       <div className="border-t border-orbit-border pt-3">
         {loading ? (
@@ -136,7 +136,7 @@ function InfoModule({
         ) : content ? (
           <MarkdownMessage content={content} />
         ) : (
-          <p className="text-sm text-slate-500">{emptyLabel}</p>
+          <p className="text-sm text-[var(--text-muted)]">{emptyLabel}</p>
         )}
       </div>
     </section>
@@ -163,17 +163,17 @@ function ConversationItem({
         <div className="flex items-center gap-2 min-w-0">
           <MessageSquare className={cn(
             'w-4 h-4 flex-shrink-0',
-            isActive ? 'text-orbit-primary-light' : 'text-slate-600'
+            isActive ? 'text-orbit-primary-light' : 'text-[var(--text-primary)]'
           )} />
           <span className={cn(
             'text-sm truncate',
-            isActive ? 'text-slate-100 font-semibold' : 'text-slate-300'
+            isActive ? 'text-[var(--text-primary)] font-semibold' : 'text-[var(--text-secondary)]'
           )}>
             {conv.title}
           </span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-[11px] text-slate-600">{conv.timestamp}</span>
+          <span className="text-[11px] text-[var(--text-primary)]">{conv.timestamp}</span>
           {conv.unread && <span className="w-2 h-2 rounded-full bg-orbit-primary flex-shrink-0" />}
         </div>
       </div>
@@ -182,10 +182,10 @@ function ConversationItem({
           @{conv.ownerName}
         </p>
       )}
-      <p className="text-[12px] text-slate-500 mt-1 truncate pl-6">{conv.lastMessage}</p>
+      <p className="text-[12px] text-[var(--text-muted)] mt-1 truncate pl-6">{conv.lastMessage}</p>
       <button
         onClick={(e) => { e.stopPropagation(); onDelete() }}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-all"
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-[var(--text-muted)] hover:text-red-400 transition-all"
         title="删除会话"
       >
         <Trash2 className="w-3.5 h-3.5" />
@@ -455,21 +455,21 @@ export function ChatPage() {
     <div className="flex flex-1 overflow-hidden bg-orbit-bg">
       <div className="w-72 border-r border-orbit-border flex-shrink-0 hidden md:flex flex-col bg-orbit-surface">
         <div className="h-14 border-b border-orbit-border px-4 flex items-center justify-between flex-shrink-0">
-          <h2 className="text-sm font-semibold text-slate-200">历史会话</h2>
-          <button onClick={handleNewChat} className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-slate-200 transition-colors">
+          <h2 className="text-sm font-semibold text-[var(--text-secondary)]">历史会话</h2>
+          <button onClick={handleNewChat} className="p-1.5 rounded-lg hover:bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
             <Plus className="w-4 h-4" />
           </button>
         </div>
         <div className="px-4 py-3">
           <div className="flex items-center gap-2 h-8 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs">
-            <Search className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-            <input placeholder="搜索会话..." className="flex-1 bg-transparent text-slate-300 placeholder-slate-600 outline-none" />
+            <Search className="w-3.5 h-3.5 text-[var(--text-muted)] flex-shrink-0" />
+            <input placeholder="搜索会话..." className="flex-1 bg-transparent text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none" />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                 <div className="w-2 h-2 rounded-full bg-orbit-accent animate-pulse" />
                 加载中...
               </div>
@@ -486,7 +486,7 @@ export function ChatPage() {
                 >
                   <div className="flex items-center gap-2">
                     <Plus className="w-4 h-4 text-orbit-primary-light" />
-                    <span className={cn('text-sm', !selectedConvId ? 'text-slate-100 font-semibold' : 'text-slate-300')}>
+                    <span className={cn('text-sm', !selectedConvId ? 'text-[var(--text-primary)] font-semibold' : 'text-[var(--text-secondary)]')}>
                       新对话
                     </span>
                   </div>
@@ -512,20 +512,20 @@ export function ChatPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-20 md:hidden" onClick={() => setShowConvList(false)} />
             <motion.div initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} className="fixed left-0 top-0 bottom-0 w-72 z-30 bg-orbit-surface border-r border-orbit-border md:hidden flex flex-col">
               <div className="h-14 border-b border-orbit-border px-4 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-sm font-semibold text-slate-200">历史会话</h2>
-                <button onClick={() => setShowConvList(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-slate-200 transition-colors">
+                <h2 className="text-sm font-semibold text-[var(--text-secondary)]">历史会话</h2>
+                <button onClick={() => setShowConvList(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="px-4 py-3">
                 <div className="flex items-center gap-2 h-8 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs">
-                  <Search className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                  <input placeholder="搜索会话..." className="flex-1 bg-transparent text-slate-300 placeholder-slate-600 outline-none" />
+                  <Search className="w-3.5 h-3.5 text-[var(--text-muted)] flex-shrink-0" />
+                  <input placeholder="搜索会话..." className="flex-1 bg-transparent text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none" />
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto">
                 <div className="px-2 py-1">
-                  <button onClick={handleNewChat} className="w-full text-left px-4 py-3 transition-colors hover:bg-white/5 rounded-lg text-sm text-slate-300 flex items-center gap-2">
+                  <button onClick={handleNewChat} className="w-full text-left px-4 py-3 transition-colors hover:bg-white/5 rounded-lg text-sm text-[var(--text-secondary)] flex items-center gap-2">
                     <Plus className="w-4 h-4 text-orbit-primary-light" />
                     新对话
                   </button>
@@ -547,7 +547,7 @@ export function ChatPage() {
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="h-14 border-b border-orbit-border px-4 flex items-center gap-3 bg-orbit-surface/60 backdrop-blur-xl flex-shrink-0">
-          <button onClick={() => setShowConvList(true)} className="md:hidden p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-slate-200 transition-colors">
+          <button onClick={() => setShowConvList(true)} className="md:hidden p-1.5 rounded-lg hover:bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
             <Menu className="w-4 h-4" />
           </button>
 
@@ -555,15 +555,15 @@ export function ChatPage() {
             <Sparkles className="w-4 h-4 text-orbit-primary-light" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-200 truncate">{currentConvName}</p>
-            <p className="text-[11px] text-slate-500 hidden sm:block">leyova 直播电商 AI 运营助手</p>
+            <p className="text-sm font-semibold text-[var(--text-secondary)] truncate">{currentConvName}</p>
+            <p className="text-[11px] text-[var(--text-muted)] hidden sm:block">leyova 直播电商 AI 运营助手</p>
           </div>
           <div className="ml-auto flex items-center gap-2 flex-shrink-0">
             {/* 报告查看：日报 / 巡检（点击弹窗展示全部记录，最新在上） */}
             <button
               onClick={() => openReportPanel('daily')}
               title="查看全部经营日报"
-              className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border transition-colors bg-orbit-surface2 border-orbit-border text-slate-500 hover:text-slate-300"
+              className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border transition-colors bg-orbit-surface2 border-orbit-border text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               <FileText className="w-3.5 h-3.5" />
               <span className="hidden lg:inline">日报</span>
@@ -571,13 +571,13 @@ export function ChatPage() {
             <button
               onClick={() => openReportPanel('patrol')}
               title="查看全部巡检记录"
-              className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border transition-colors bg-orbit-surface2 border-orbit-border text-slate-500 hover:text-slate-300"
+              className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border transition-colors bg-orbit-surface2 border-orbit-border text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               <ShieldAlert className="w-3.5 h-3.5" />
               <span className="hidden lg:inline">巡检</span>
             </button>
             <div className="relative">
-              <button onClick={() => setShowModelPicker(o => !o)} className="hidden flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-orbit-surface2 px-2.5 py-1.5 rounded-lg border border-orbit-border transition-colors">
+              <button onClick={() => setShowModelPicker(o => !o)} className="hidden flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-orbit-surface2 px-2.5 py-1.5 rounded-lg border border-orbit-border transition-colors">
                 <div className="w-1.5 h-1.5 rounded-full bg-orbit-accent animate-pulse" />
                 <span className="hidden sm:inline">{model}</span>
                 <span className="sm:hidden">Model</span>
@@ -592,7 +592,7 @@ export function ChatPage() {
                         <button
                           key={m}
                           onClick={() => { setModel(m); setShowModelPicker(false) }}
-                          className={cn('w-full text-left px-4 py-2.5 text-xs transition-colors hover:bg-white/5', m === model ? 'text-orbit-primary-light font-medium' : 'text-slate-400')}
+                          className={cn('w-full text-left px-4 py-2.5 text-xs transition-colors hover:bg-white/5', m === model ? 'text-orbit-primary-light font-medium' : 'text-[var(--text-muted)]')}
                         >
                           {m}
                         </button>
@@ -611,14 +611,14 @@ export function ChatPage() {
               <div className="w-16 h-16 rounded-2xl bg-orbit-primary/10 flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-orbit-primary-light" />
               </div>
-              <h2 className="text-xl font-semibold text-slate-200 mb-2">leyova 直播电商 AI 运营助手</h2>
-              <p className="text-sm text-slate-500 mb-8 max-w-md">您可以向我询问关于直播电商运营数据的任何问题，我将为您提供智能分析</p>
+              <h2 className="text-xl font-semibold text-[var(--text-secondary)] mb-2">leyova 直播电商 AI 运营助手</h2>
+              <p className="text-sm text-[var(--text-muted)] mb-8 max-w-md">您可以向我询问关于直播电商运营数据的任何问题，我将为您提供智能分析</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
                 {suggestions.map((suggestion, i) => (
                   <button
                     key={i}
                     onClick={() => handleSend(suggestion)}
-                    className="text-left text-sm text-slate-400 bg-orbit-surface2 border border-orbit-border rounded-xl px-4 py-3 hover:bg-white/5 hover:text-slate-200 transition-colors"
+                    className="text-left text-sm text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border rounded-xl px-4 py-3 hover:bg-white/5 hover:text-[var(--text-primary)] transition-colors"
                   >
                     {suggestion}
                   </button>
@@ -651,11 +651,11 @@ export function ChatPage() {
                   )}
                 </div>
                 <div className={cn('flex items-center gap-2 mt-1.5', msg.role === 'user' && 'flex-row-reverse')}>
-                  <span className="text-[11px] text-slate-600">{msg.timestamp}</span>
+                  <span className="text-[11px] text-[var(--text-primary)]">{msg.timestamp}</span>
                   {msg.role === 'assistant' && (
                     <div className="flex items-center gap-1">
                       {[Copy, ThumbsUp, ThumbsDown, RefreshCw].map((Icon, i) => (
-                        <button key={i} className="p-1 text-slate-700 hover:text-slate-400 transition-colors rounded">
+                        <button key={i} className="p-1 text-[var(--text-primary)] hover:text-[var(--text-muted)] transition-colors rounded">
                           <Icon className="w-3 h-3" />
                         </button>
                       ))}
@@ -671,7 +671,7 @@ export function ChatPage() {
               <div className="w-8 h-8 rounded-lg bg-orbit-primary flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <div className="flex items-center gap-2 bg-orbit-surface2 border border-orbit-border rounded-2xl rounded-tl-sm px-4 py-2.5 text-xs text-slate-400">
+              <div className="flex items-center gap-2 bg-orbit-surface2 border border-orbit-border rounded-2xl rounded-tl-sm px-4 py-2.5 text-xs text-[var(--text-muted)]">
                 <Wrench className="w-3.5 h-3.5 text-orbit-primary-light animate-pulse" />
                 <span>正在调用工具：{activeTools.join('、')}</span>
               </div>
@@ -693,7 +693,7 @@ export function ChatPage() {
 
         <div className="border-t border-orbit-border p-4 bg-orbit-surface/60 backdrop-blur-xl flex-shrink-0">
           <div className="flex items-end gap-3 bg-orbit-surface2 border border-orbit-border rounded-2xl px-4 py-3 focus-within:border-orbit-primary/50 transition-colors">
-            <button className="text-slate-500 hover:text-slate-300 transition-colors mb-0.5 hidden sm:block">
+            <button className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors mb-0.5 hidden sm:block">
               <Paperclip className="w-4 h-4" />
             </button>
             <textarea
@@ -707,7 +707,7 @@ export function ChatPage() {
               }}
               placeholder="输入您的问题，如：本场 GMV 是多少？"
               rows={1}
-              className="flex-1 bg-transparent text-sm text-slate-200 placeholder-slate-600 outline-none resize-none leading-relaxed max-h-32 overflow-y-auto"
+              className="flex-1 bg-transparent text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none resize-none leading-relaxed max-h-32 overflow-y-auto"
               style={{ minHeight: '20px' }}
             />
             <button
@@ -717,15 +717,15 @@ export function ChatPage() {
                 'p-2 rounded-xl transition-all flex-shrink-0',
                 input.trim() && !isTyping
                   ? 'bg-orbit-primary text-white hover:bg-orbit-primary-light shadow-sm shadow-orbit-primary/30'
-                  : 'bg-orbit-surface3 text-slate-600'
+                  : 'bg-orbit-surface3 text-[var(--text-primary)]'
               )}
             >
               <Send className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-[11px] text-slate-700 text-center mt-2 hidden sm:block">
-            按 <kbd className="px-1 py-0.5 bg-orbit-surface3 rounded text-slate-500 text-[10px]">Enter</kbd> 发送，{' '}
-            <kbd className="px-1 py-0.5 bg-orbit-surface3 rounded text-slate-500 text-[10px]">Shift+Enter</kbd> 换行
+          <p className="text-[11px] text-[var(--text-primary)] text-center mt-2 hidden sm:block">
+            按 <kbd className="px-1 py-0.5 bg-orbit-surface3 rounded text-[var(--text-muted)] text-[10px]">Enter</kbd> 发送，{' '}
+            <kbd className="px-1 py-0.5 bg-orbit-surface3 rounded text-[var(--text-muted)] text-[10px]">Shift+Enter</kbd> 换行
           </p>
         </div>
 
@@ -739,14 +739,14 @@ export function ChatPage() {
                   {reportPanel === 'daily'
                     ? <FileText className="w-4 h-4 text-orbit-primary-light" />
                     : <ShieldAlert className="w-4 h-4 text-orbit-primary-light" />}
-                  <h3 className="text-base font-semibold text-slate-200">
+                  <h3 className="text-base font-semibold text-[var(--text-secondary)]">
                     {reportPanel === 'daily' ? '经营日报' : '巡检记录'}
                   </h3>
-                  <span className="text-xs text-slate-500">共 {reportList.length} 条 · 最新在上</span>
+                  <span className="text-xs text-[var(--text-muted)]">共 {reportList.length} 条 · 最新在上</span>
                 </div>
                 <button
                   onClick={() => setReportPanel(null)}
-                  className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-slate-200 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -759,7 +759,7 @@ export function ChatPage() {
                     ))}
                   </div>
                 ) : reportList.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-10">暂无记录</p>
+                  <p className="text-sm text-[var(--text-muted)] text-center py-10">暂无记录</p>
                 ) : (
                   reportList.map((rec) => (
                     <InfoModule

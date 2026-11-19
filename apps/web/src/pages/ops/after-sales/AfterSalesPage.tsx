@@ -166,8 +166,8 @@ export function AfterSalesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-100">售后退货原因归因与工单闭环</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">售后退货原因归因与工单闭环</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
             实时跟踪快手 24h 仅退款 / 36h 退货退款商家自审倒计时、经验分 ≥4.7/4.8 自治保护，并同步写入 canonical_refund_events
           </p>
         </div>
@@ -191,13 +191,13 @@ export function AfterSalesPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">售后工单 / 待处置</p>
-              <p className="mt-1 text-2xl font-bold text-slate-100">{overview.totalTickets} / {overview.openTickets}</p>
+              <p className="text-xs text-[var(--text-muted)]">售后工单 / 待处置</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{overview.totalTickets} / {overview.openTickets}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">6h 临期/超时预警</p>
+              <p className="text-xs text-[var(--text-muted)]">6h 临期/超时预警</p>
               <p className={`mt-1 text-2xl font-bold ${overview.timeoutRiskCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                 {overview.timeoutRiskCount}
               </p>
@@ -205,19 +205,19 @@ export function AfterSalesPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">经验分仅退款自治保护</p>
+              <p className="text-xs text-[var(--text-muted)]">经验分仅退款自治保护</p>
               <p className="mt-1 text-2xl font-bold text-emerald-400">{overview.autonomyProtectedCount}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">工单累计退款额</p>
+              <p className="text-xs text-[var(--text-muted)]">工单累计退款额</p>
               <p className="mt-1 text-2xl font-bold text-amber-400">¥{overview.totalRefundAmount.toLocaleString()}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">标准退款分区事件数</p>
+              <p className="text-xs text-[var(--text-muted)]">标准退款分区事件数</p>
               <p className="mt-1 text-2xl font-bold text-cyan-400">{overview.canonicalRefundRows}</p>
             </CardBody>
           </Card>
@@ -228,14 +228,14 @@ export function AfterSalesPage() {
         <Card>
           <CardHeader className="flex items-center gap-2">
             <Undo2 className="w-4 h-4 text-amber-400" />
-            <span className="font-semibold text-slate-100">退款原因归因占比分布</span>
+            <span className="font-semibold text-[var(--text-primary)]">退款原因归因占比分布</span>
           </CardHeader>
           <CardBody className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {overview.reasonAttribution.map((item) => (
               <div key={item.reasonCategory} className="rounded-lg border border-orbit-border bg-orbit-surface2/40 p-3 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-slate-200">{REASON_LABELS[item.reasonCategory] || item.reasonCategory}</span>
-                  <span className="text-slate-400">{item.ticketCount} 单 · ¥{item.refundAmount.toFixed(0)} ({item.amountShare}%)</span>
+                  <span className="font-medium text-[var(--text-secondary)]">{REASON_LABELS[item.reasonCategory] || item.reasonCategory}</span>
+                  <span className="text-[var(--text-muted)]">{item.ticketCount} 单 · ¥{item.refundAmount.toFixed(0)} ({item.amountShare}%)</span>
                 </div>
                 <div className="h-2 rounded-full bg-orbit-surface3 overflow-hidden">
                   <div className="h-full bg-orbit-primary" style={{ width: `${Math.min(100, item.amountShare)}%` }} />
@@ -250,12 +250,12 @@ export function AfterSalesPage() {
         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-orbit-primary-light" />
-            <span className="font-semibold text-slate-100">售后工单自审队列</span>
+            <span className="font-semibold text-[var(--text-primary)]">售后工单自审队列</span>
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+            className="h-8 px-2.5 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-[var(--text-secondary)]"
           >
             <option value="">全部状态</option>
             <option value="pending_audit">待商家自审</option>
@@ -267,7 +267,7 @@ export function AfterSalesPage() {
         </CardHeader>
         <CardBody className="p-0 overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="border-b border-orbit-border text-xs text-slate-400 bg-orbit-surface2/50">
+            <thead className="border-b border-orbit-border text-xs text-[var(--text-muted)] bg-orbit-surface2/50">
               <tr>
                 <th className="px-4 py-3">工单号 / 平台订单</th>
                 <th className="px-4 py-3">类型与原因归因</th>
@@ -287,30 +287,30 @@ export function AfterSalesPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <Badge variant="info">{t.platform_name}</Badge>
-                        <span className="font-mono font-medium text-slate-100">{t.ticket_no}</span>
+                        <span className="font-mono font-medium text-[var(--text-primary)]">{t.ticket_no}</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">订单 {t.source_order_id} · {t.product_name || t.shop_name}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">订单 {t.source_order_id} · {t.product_name || t.shop_name}</p>
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="neutral">{REFUND_TYPE_LABELS[t.refund_type] || t.refund_type}</Badge>
-                      <span className="ml-2 text-xs text-slate-200">{REASON_LABELS[t.reason_category] || t.reason_category}</span>
-                      {t.reason_detail && <p className="text-xs text-slate-500 mt-0.5">{t.reason_detail}</p>}
+                      <span className="ml-2 text-xs text-[var(--text-secondary)]">{REASON_LABELS[t.reason_category] || t.reason_category}</span>
+                      {t.reason_detail && <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.reason_detail}</p>}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold tabular-nums text-amber-400">
                       ¥{Number(t.refund_amount).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-xs">
-                      <span className="text-slate-300">{t.shop_experience_score} 分</span>
+                      <span className="text-[var(--text-secondary)]">{t.shop_experience_score} 分</span>
                       {t.autonomy_protected && (
                         <Badge variant="success" className="ml-1.5"><ShieldCheck className="w-3 h-3" /> 自治保护</Badge>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right text-xs tabular-nums">
                       {rem !== null && ['pending_audit', 'waiting_return'].includes(t.ticket_status) ? (
-                        <span className={rem <= 6 ? 'text-red-400 font-semibold' : 'text-slate-300'}>
+                        <span className={rem <= 6 ? 'text-red-400 font-semibold' : 'text-[var(--text-secondary)]'}>
                           {rem >= 0 ? `余 ${rem}h` : `超时 ${Math.abs(rem)}h`}
                         </span>
-                      ) : <span className="text-slate-500">—</span>}
+                      ) : <span className="text-[var(--text-muted)]">—</span>}
                     </td>
                     <td className="px-4 py-3"><Badge variant={st.variant} dot>{st.label}</Badge></td>
                     <td className="px-4 py-3 text-right">
@@ -331,7 +331,7 @@ export function AfterSalesPage() {
               })}
               {tickets.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">暂无售后工单数据</td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-muted)]">暂无售后工单数据</td>
                 </tr>
               )}
             </tbody>
@@ -342,7 +342,7 @@ export function AfterSalesPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-orbit-border bg-orbit-surface p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">新建售后工单并同步标准退款事件</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">新建售后工单并同步标准退款事件</h3>
             <form onSubmit={handleCreate} className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <select
@@ -351,7 +351,7 @@ export function AfterSalesPage() {
                     const nextPlatform = e.target.value
                     setForm({ ...form, platformCode: nextPlatform, shopId: getDefaultShopId(nextPlatform) })
                   }}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 >
                   <option value="douyin">抖音</option>
                   <option value="kuaishou">快手 (24h/36h自审)</option>
@@ -364,7 +364,7 @@ export function AfterSalesPage() {
                   required
                   value={form.shopId}
                   onChange={(e) => setForm({ ...form, shopId: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 >
                   {getShopsByPlatform(form.platformCode).map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
@@ -374,14 +374,14 @@ export function AfterSalesPage() {
                   )}
                 </select>
               </div>
-              <input required placeholder="原订单号" value={form.sourceOrderId} onChange={(e) => setForm({ ...form, sourceOrderId: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+              <input required placeholder="原订单号" value={form.sourceOrderId} onChange={(e) => setForm({ ...form, sourceOrderId: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               <div className="grid grid-cols-2 gap-3">
-                <select value={form.refundType} onChange={(e) => setForm({ ...form, refundType: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
+                <select value={form.refundType} onChange={(e) => setForm({ ...form, refundType: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]">
                   <option value="only_refund">仅退款</option>
                   <option value="return_refund">退货退款</option>
                   <option value="exchange">售后换货</option>
                 </select>
-                <select value={form.reasonCategory} onChange={(e) => setForm({ ...form, reasonCategory: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100">
+                <select value={form.reasonCategory} onChange={(e) => setForm({ ...form, reasonCategory: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]">
                   <option value="size_mismatch">尺码/规格不符</option>
                   <option value="quality_defect">品质做工瑕疵</option>
                   <option value="logistics_slow">物流超时未揽收</option>
@@ -391,10 +391,10 @@ export function AfterSalesPage() {
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input required type="number" step="0.01" placeholder="退款金额" value={form.refundAmount} onChange={(e) => setForm({ ...form, refundAmount: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
-                <input required type="number" step="0.01" placeholder="店铺体验分" value={form.shopExperienceScore} onChange={(e) => setForm({ ...form, shopExperienceScore: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+                <input required type="number" step="0.01" placeholder="退款金额" value={form.refundAmount} onChange={(e) => setForm({ ...form, refundAmount: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
+                <input required type="number" step="0.01" placeholder="店铺体验分" value={form.shopExperienceScore} onChange={(e) => setForm({ ...form, shopExperienceScore: e.target.value })} className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               </div>
-              <input placeholder="具体说明（如拉链坏了、尺码偏小）" value={form.reasonDetail} onChange={(e) => setForm({ ...form, reasonDetail: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100" />
+              <input placeholder="具体说明（如拉链坏了、尺码偏小）" value={form.reasonDetail} onChange={(e) => setForm({ ...form, reasonDetail: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]" />
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>取消</Button>
                 <Button type="submit">提交工单</Button>

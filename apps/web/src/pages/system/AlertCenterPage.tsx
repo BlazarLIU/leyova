@@ -260,10 +260,10 @@ export function AlertCenterPage() {
         header: '告警事件与明细',
         render: (_, item) => (
           <div className="py-0.5">
-            <div className="font-semibold text-slate-100 flex items-center gap-2">
+            <div className="font-semibold text-[var(--text-primary)] flex items-center gap-2">
               {item.title}
             </div>
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.description}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">{item.description}</p>
           </div>
         ),
       },
@@ -272,8 +272,8 @@ export function AlertCenterPage() {
         header: '发生时间',
         width: 140,
         render: (_, item) => (
-          <span className="text-xs text-slate-400 inline-flex items-center gap-1.5 font-mono">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-xs text-[var(--text-muted)] inline-flex items-center gap-1.5 font-mono">
+            <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
             {item.time}
           </span>
         ),
@@ -306,7 +306,7 @@ export function AlertCenterPage() {
         width: 120,
         align: 'right',
         render: () => (
-          <button className="text-xs text-slate-400 hover:text-white transition-colors">
+          <button className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">
             查看现场数据 →
           </button>
         ),
@@ -322,7 +322,7 @@ export function AlertCenterPage() {
         key: 'ruleName',
         header: '规则名称',
         render: (_, rule) => (
-          <span className="font-semibold text-slate-100">{rule.ruleName}</span>
+          <span className="font-semibold text-[var(--text-primary)]">{rule.ruleName}</span>
         ),
       },
       {
@@ -331,7 +331,7 @@ export function AlertCenterPage() {
         render: (_, rule) => {
           const metricInfo = METRICS_OPTIONS.find((m) => m.code === rule.metricCode)
           return (
-            <span className="text-slate-300 text-xs">
+            <span className="text-[var(--text-secondary)] text-xs">
               {metricInfo?.name || rule.metricCode}
             </span>
           )
@@ -362,10 +362,10 @@ export function AlertCenterPage() {
         render: (_, rule) => {
           const channel = rule.notifyChannels?.[0]
           if (!channel) {
-            return <span className="text-slate-500 text-xs">仅站内通知</span>
+            return <span className="text-[var(--text-muted)] text-xs">仅站内通知</span>
           }
           return (
-            <span className="inline-flex items-center gap-1.5 text-slate-300 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-[var(--text-secondary)] text-xs">
               <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
               {channel.type === 'feishu'
                 ? '飞书群机器人'
@@ -386,7 +386,7 @@ export function AlertCenterPage() {
             className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
               rule.isActive
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                : 'bg-slate-800 text-slate-500 border border-slate-700'
+                : 'bg-orbit-ink text-orbit-snow/70 border border-[var(--border)]'
             }`}
           >
             {rule.isActive ? '运行中' : '已停用'}
@@ -429,7 +429,7 @@ export function AlertCenterPage() {
   )
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px] text-gray-100">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px] text-[var(--text-primary)]">
       {/* 顶部标题与 Tab 切换 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -437,18 +437,18 @@ export function AlertCenterPage() {
             <ShieldAlert className="w-7 h-7 text-rose-400" />
             指标预警与通知中心
           </h1>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             全渠道核心经营指标实时监控、阈值异常自愈与飞书/钉钉群机器人极速推送
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-gray-900/80 p-1 rounded-xl border border-gray-800">
+        <div className="flex items-center gap-2 bg-orbit-ink/80 p-1 rounded-xl border border-[var(--border)]">
           <button
             onClick={() => setActiveTab('events')}
             className={`flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               activeTab === 'events'
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
-                : 'text-gray-400 hover:text-white'
+                : 'text-orbit-snow/60 hover:text-orbit-snow'
             }`}
           >
             <Bell className="w-3.5 h-3.5" />
@@ -464,12 +464,12 @@ export function AlertCenterPage() {
             className={`flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               activeTab === 'rules'
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
-                : 'text-gray-400 hover:text-white'
+                : 'text-orbit-snow/60 hover:text-orbit-snow'
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
             指标规则与 Webhook 配置
-            <span className="px-1.5 py-0.2 bg-gray-800 text-gray-300 rounded-full text-[10px]">
+            <span className="px-1.5 py-0.2 bg-orbit-ink text-orbit-snow/70 rounded-full text-[10px]">
               {rulesTable.total}
             </span>
           </button>
@@ -477,9 +477,9 @@ export function AlertCenterPage() {
       </div>
 
       {testResult && (
-        <div className="p-3 rounded-lg bg-indigo-950/40 border border-indigo-700/50 text-indigo-300 text-xs flex items-center justify-between">
+        <div className="p-3 rounded-lg bg-orbit-primary/40 border border-orbit-primary/50 text-orbit-primary text-xs flex items-center justify-between">
           <span>{testResult}</span>
-          <button onClick={() => setTestResult(null)} className="text-indigo-400 hover:text-white">
+          <button onClick={() => setTestResult(null)} className="text-orbit-primary hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -492,41 +492,41 @@ export function AlertCenterPage() {
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">告警事件总数</span>
+                  <span className="text-xs text-[var(--text-muted)]">告警事件总数</span>
                   <Activity className="w-4 h-4 text-rose-400" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-slate-100">{eventsStats.total}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">当前监控周期捕获的异常记录</p>
+                <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{eventsStats.total}</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">当前监控周期捕获的异常记录</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">严重级别告警</span>
+                  <span className="text-xs text-[var(--text-muted)]">严重级别告警</span>
                   <AlertCircle className="w-4 h-4 text-rose-500" />
                 </div>
                 <p className="mt-1 text-2xl font-bold text-rose-400">{eventsStats.critical}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">需立即介入的高风险指标突破</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">需立即介入的高风险指标突破</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">待运营处置</span>
+                  <span className="text-xs text-[var(--text-muted)]">待运营处置</span>
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
                 </div>
                 <p className="mt-1 text-2xl font-bold text-amber-400">{eventsStats.pending}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">排队处置中的异常工单</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">排队处置中的异常工单</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">已处置解决</span>
+                  <span className="text-xs text-[var(--text-muted)]">已处置解决</span>
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 </div>
                 <p className="mt-1 text-2xl font-bold text-emerald-400">{eventsStats.resolved}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">已完成自愈或运营闭环</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已完成自愈或运营闭环</p>
               </CardBody>
             </Card>
           </div>
@@ -557,7 +557,7 @@ export function AlertCenterPage() {
             filterControls={
               <div className="flex flex-wrap items-center gap-3 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-gray-400">严重级别:</span>
+                  <span className="text-[var(--text-muted)]">严重级别:</span>
                   {(['all', 'critical', 'warning', 'info'] as const).map((s) => (
                     <button
                       key={s}
@@ -565,7 +565,7 @@ export function AlertCenterPage() {
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         eventsTable.filters.severity === s
                           ? 'bg-rose-600 text-white font-medium'
-                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                          : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
                       {s === 'all' ? '全部' : s === 'critical' ? '严重' : s === 'warning' ? '警告' : '提示'}
@@ -574,7 +574,7 @@ export function AlertCenterPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 ml-2">
-                  <span className="text-gray-400">处置状态:</span>
+                  <span className="text-[var(--text-muted)]">处置状态:</span>
                   {(['all', 'pending', 'resolved'] as const).map((st) => (
                     <button
                       key={st}
@@ -582,7 +582,7 @@ export function AlertCenterPage() {
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         eventsTable.filters.status === st
                           ? 'bg-rose-600 text-white font-medium'
-                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                          : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
                       {st === 'all' ? '全部' : st === 'pending' ? '待处理' : '已解决'}
@@ -591,11 +591,11 @@ export function AlertCenterPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 ml-2">
-                  <span className="text-gray-400">时间周期:</span>
+                  <span className="text-[var(--text-muted)]">时间周期:</span>
                   <select
                     value={eventsTable.filters.period}
                     onChange={(e) => eventsTable.setFilter('period', e.target.value)}
-                    className="h-7 px-2 text-xs rounded border border-gray-700 bg-gray-800 text-gray-300 focus:outline-none focus:border-rose-500"
+                    className="h-7 px-2 text-xs rounded border border-[var(--border)] bg-orbit-ink text-orbit-snow/80 focus:outline-none focus:border-rose-500"
                   >
                     {['全部', '近1小时', '近24小时', '近7天'].map((t) => (
                       <option key={t} value={t}>
@@ -614,41 +614,41 @@ export function AlertCenterPage() {
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">监控规则总数</span>
+                  <span className="text-xs text-[var(--text-muted)]">监控规则总数</span>
                   <Sliders className="w-4 h-4 text-emerald-400" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-slate-100">{rulesStats.total}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">已注册的核心指标预警逻辑</p>
+                <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{rulesStats.total}</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已注册的核心指标预警逻辑</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">运行中规则</span>
+                  <span className="text-xs text-[var(--text-muted)]">运行中规则</span>
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 </div>
                 <p className="mt-1 text-2xl font-bold text-emerald-400">{rulesStats.active}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">实时对齐数据流守护中</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">实时对齐数据流守护中</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">已停用规则</span>
-                  <Clock className="w-4 h-4 text-slate-500" />
+                  <span className="text-xs text-[var(--text-muted)]">已停用规则</span>
+                  <Clock className="w-4 h-4 text-[var(--text-muted)]" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-slate-400">{rulesStats.inactive}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">休眠或临时下线规则</p>
+                <p className="mt-1 text-2xl font-bold text-[var(--text-muted)]">{rulesStats.inactive}</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">休眠或临时下线规则</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">Webhook 机器人通道</span>
+                  <span className="text-xs text-[var(--text-muted)]">Webhook 机器人通道</span>
                   <Radio className="w-4 h-4 text-sky-400" />
                 </div>
                 <p className="mt-1 text-2xl font-bold text-sky-400">{rulesStats.webhooks}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">已挂接飞书/钉钉/企微自动化推送</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已挂接飞书/钉钉/企微自动化推送</p>
               </CardBody>
             </Card>
           </div>
@@ -689,7 +689,7 @@ export function AlertCenterPage() {
             filterControls={
               <div className="flex flex-wrap items-center gap-3 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-gray-400">告警级别:</span>
+                  <span className="text-[var(--text-muted)]">告警级别:</span>
                   {['all', '提示', '警告', '严重'].map((sev) => (
                     <button
                       key={sev}
@@ -697,7 +697,7 @@ export function AlertCenterPage() {
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         rulesTable.filters.severity === sev
                           ? 'bg-rose-600 text-white font-medium'
-                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                          : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
                       {sev === 'all' ? '全部' : sev}
@@ -706,7 +706,7 @@ export function AlertCenterPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 ml-2">
-                  <span className="text-gray-400">运行状态:</span>
+                  <span className="text-[var(--text-muted)]">运行状态:</span>
                   {[
                     { value: 'all', label: '全部' },
                     { value: 'active', label: '运行中' },
@@ -718,7 +718,7 @@ export function AlertCenterPage() {
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         rulesTable.filters.isActive === st.value
                           ? 'bg-rose-600 text-white font-medium'
-                          : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                          : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
                       {st.label}
@@ -739,16 +739,16 @@ export function AlertCenterPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative"
+              className="bg-orbit-ink border border-[var(--border)] rounded-2xl w-full max-w-lg p-6 shadow-2xl relative"
             >
-              <div className="flex items-center justify-between pb-4 border-b border-gray-800 mb-4">
-                <h3 className="text-base font-bold text-gray-100 flex items-center gap-2">
+              <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-4">
+                <h3 className="text-base font-bold text-orbit-snow flex items-center gap-2">
                   <Sliders className="w-5 h-5 text-rose-400" />
                   新建指标预警与通知规则
                 </h3>
                 <button
                   onClick={() => setIsRuleModalOpen(false)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-orbit-snow/60 hover:text-orbit-snow"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -756,19 +756,19 @@ export function AlertCenterPage() {
 
               <form onSubmit={handleCreateRule} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-gray-300 mb-1 font-medium">规则名称</label>
+                  <label className="block text-orbit-snow/80 mb-1 font-medium">规则名称</label>
                   <input
                     type="text"
                     required
                     placeholder="例如：晚高峰直播间退款率飙升告警"
                     value={ruleForm.ruleName}
                     onChange={(e) => setRuleForm({ ...ruleForm, ruleName: e.target.value })}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-rose-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow placeholder:text-orbit-snow/35 focus:outline-none focus:border-rose-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1 font-medium">监控指标</label>
+                  <label className="block text-orbit-snow/80 mb-1 font-medium">监控指标</label>
                   <select
                     value={ruleForm.metricCode}
                     onChange={(e) => {
@@ -780,7 +780,7 @@ export function AlertCenterPage() {
                         threshold: item?.defaultThreshold || 0,
                       })
                     }}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
                   >
                     {METRICS_OPTIONS.map((m) => (
                       <option key={m.code} value={m.code}>
@@ -792,35 +792,35 @@ export function AlertCenterPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-gray-300 mb-1 font-medium">触发条件</label>
+                    <label className="block text-orbit-snow/80 mb-1 font-medium">触发条件</label>
                     <select
                       value={ruleForm.condition}
                       onChange={(e) => setRuleForm({ ...ruleForm, condition: e.target.value })}
-                      className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                      className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
                     >
                       <option value="gt">大于 (&gt;)</option>
                       <option value="lt">小于 (&lt;)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1 font-medium">阈值数值</label>
+                    <label className="block text-orbit-snow/80 mb-1 font-medium">阈值数值</label>
                     <input
                       type="number"
                       step="any"
                       required
                       value={ruleForm.threshold}
                       onChange={(e) => setRuleForm({ ...ruleForm, threshold: Number(e.target.value) })}
-                      className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                      className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1 font-medium">告警级别</label>
+                  <label className="block text-orbit-snow/80 mb-1 font-medium">告警级别</label>
                   <select
                     value={ruleForm.severity}
                     onChange={(e) => setRuleForm({ ...ruleForm, severity: e.target.value })}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
                   >
                     <option value="提示">提示 (普通监控)</option>
                     <option value="警告">警告 (需要关注)</option>
@@ -828,10 +828,10 @@ export function AlertCenterPage() {
                   </select>
                 </div>
 
-                <div className="pt-2 border-t border-gray-800">
-                  <label className="block text-gray-300 mb-1 font-medium flex items-center justify-between">
+                <div className="pt-2 border-t border-[var(--border)]">
+                  <label className="block text-orbit-snow/80 mb-1 font-medium flex items-center justify-between">
                     <span>外部推送 Webhook 机器人 (可选)</span>
-                    <span className="text-[11px] text-gray-500">支持飞书/钉钉/企微自定义机器人</span>
+                    <span className="text-[11px] text-[var(--text-muted)]">支持飞书/钉钉/企微自定义机器人</span>
                   </label>
                   <div className="grid grid-cols-3 gap-2 mb-2">
                     {(['feishu', 'dingtalk', 'wechat'] as const).map((ch) => (
@@ -842,7 +842,7 @@ export function AlertCenterPage() {
                         className={`py-1.5 px-2 rounded-lg text-center font-medium border transition-all ${
                           ruleForm.channelType === ch
                             ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
-                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
+                            : 'bg-orbit-ink border-[var(--border)] text-orbit-snow/60 hover:text-orbit-snow'
                         }`}
                       >
                         {ch === 'feishu' ? '飞书群' : ch === 'dingtalk' ? '钉钉群' : '企业微信'}
@@ -854,11 +854,11 @@ export function AlertCenterPage() {
                     placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
                     value={ruleForm.webhookUrl}
                     onChange={(e) => setRuleForm({ ...ruleForm, webhookUrl: e.target.value })}
-                    className="w-full bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 text-xs"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow placeholder:text-orbit-snow/35 focus:outline-none focus:border-rose-500 text-xs"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                   <Button
                     type="button"
                     variant="ghost"

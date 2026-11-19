@@ -15,12 +15,12 @@ export function RoomsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
-          <Radio className="w-6 h-6 text-primary" />
+        <div className="p-2.5 rounded-xl bg-orbit-primary/10 border border-orbit-primary/20">
+          <Radio className="w-6 h-6 text-orbit-primary" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-100">直播间管理</h1>
-          <p className="text-sm text-slate-400">配置直播间基本信息、所属平台及开播运行状态</p>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">直播间管理</h1>
+          <p className="text-sm text-[var(--text-muted)]">配置直播间基本信息、所属平台及开播运行状态</p>
         </div>
       </div>
 

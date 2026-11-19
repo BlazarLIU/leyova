@@ -238,12 +238,12 @@ function FunnelSummary({ levels }: { levels: FunnelLevel[] }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Total conversion */}
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0">
-                <Target className="w-5 h-5 text-purple-400" />
+              <div className="w-12 h-12 rounded-lg bg-orbit-primary/15 flex items-center justify-center shrink-0">
+                <Target className="w-5 h-5 text-orbit-primary" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5">总转化率（曝光→成交）</p>
-                <p className="text-2xl font-bold text-slate-100">{totalRate.toFixed(2)}%</p>
+                <p className="text-xs text-[var(--text-muted)] mb-0.5">总转化率（曝光→成交）</p>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">{totalRate.toFixed(2)}%</p>
               </div>
             </div>
 
@@ -254,8 +254,8 @@ function FunnelSummary({ levels }: { levels: FunnelLevel[] }) {
                   <TrendingDown className="w-5 h-5 text-red-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 mb-0.5">最大流失环节</p>
-                  <p className="text-lg font-semibold text-slate-100">{biggestDrop.name}</p>
+                  <p className="text-xs text-[var(--text-muted)] mb-0.5">最大流失环节</p>
+                  <p className="text-lg font-semibold text-[var(--text-primary)]">{biggestDrop.name}</p>
                   <p className="text-sm text-red-400">
                     流失 {biggestDrop.drop_off.toLocaleString()}（{biggestDrop.pct.toFixed(1)}%）
                   </p>
@@ -265,13 +265,13 @@ function FunnelSummary({ levels }: { levels: FunnelLevel[] }) {
 
             {/* Total drop */}
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-slate-500/15 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5 text-slate-400" />
+              <div className="w-12 h-12 rounded-lg bg-[var(--surface3)] flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-[var(--text-muted)]" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5">总流失用户</p>
-                <p className="text-2xl font-bold text-slate-100">{totalDrop.toLocaleString()}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[var(--text-muted)] mb-0.5">总流失用户</p>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">{totalDrop.toLocaleString()}</p>
+                <p className="text-xs text-[var(--text-muted)]">
                   从 {levels[0]?.name} → {levels[levels.length - 1]?.name}
                 </p>
               </div>
@@ -353,7 +353,7 @@ function FunnelVisualization({ levels }: { levels: FunnelLevel[] }) {
                             x={Number(x ?? 0) + Number(width ?? 0) + 8}
                             y={Number(y ?? 0) + Number(height ?? 0) / 2 - 6}
                             dy={4}
-                            fill="#e2e8f0"
+                            className="fill-[var(--text-primary)]"
                             fontSize={14}
                             textAnchor="start"
                             fontWeight={600}
@@ -364,7 +364,7 @@ function FunnelVisualization({ levels }: { levels: FunnelLevel[] }) {
                             x={Number(x ?? 0) + Number(width ?? 0) + 8}
                             y={Number(y ?? 0) + Number(height ?? 0) / 2 + 10}
                             dy={4}
-                            fill="#a78bfa"
+                            className="fill-orbit-primary"
                             fontSize={12}
                             textAnchor="start"
                           >
@@ -397,11 +397,11 @@ function PeriodComparisonTable({ levels }: { levels: FunnelLevel[] }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-orbit-border">
-                  <th className="text-left text-slate-500 font-medium py-3 pr-4">环节</th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-4">当前（本场）</th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-4">上周期</th>
-                  <th className="text-right text-slate-500 font-medium py-3 px-4">差值</th>
-                  <th className="text-right text-slate-500 font-medium py-3 pl-4">变化（%）</th>
+                  <th className="text-left text-[var(--text-muted)] font-medium py-3 pr-4">环节</th>
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-4">当前（本场）</th>
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-4">上周期</th>
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 px-4">差值</th>
+                  <th className="text-right text-[var(--text-muted)] font-medium py-3 pl-4">变化（%）</th>
                 </tr>
               </thead>
               <tbody>
@@ -423,11 +423,11 @@ function PeriodComparisonTable({ levels }: { levels: FunnelLevel[] }) {
                         i % 2 === 0 ? 'bg-orbit-surface' : 'bg-orbit-surface2/50',
                       )}
                     >
-                      <td className="py-3 pr-4 text-slate-300">{level.name}</td>
-                      <td className="py-3 px-4 text-right text-slate-100 font-medium tabular-nums">
+                      <td className="py-3 pr-4 text-[var(--text-secondary)]">{level.name}</td>
+                      <td className="py-3 px-4 text-right text-[var(--text-primary)] font-medium tabular-nums">
                         {current.toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 text-right text-slate-400 tabular-nums">
+                      <td className="py-3 px-4 text-right text-[var(--text-muted)] tabular-nums">
                         {prev.toLocaleString()}
                       </td>
                       <td
@@ -494,8 +494,8 @@ function StageDiagnosisSection({ levels }: { levels: FunnelLevel[] }) {
                     {/* Header — name + anomaly badge */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4 text-slate-400" />
-                        <h4 className="text-sm font-semibold text-slate-200">{level.name}</h4>
+                        <Icon className="w-4 h-4 text-[var(--text-muted)]" />
+                        <h4 className="text-sm font-semibold text-[var(--text-secondary)]">{level.name}</h4>
                       </div>
                       <span
                         className={cn(
@@ -511,19 +511,19 @@ function StageDiagnosisSection({ levels }: { levels: FunnelLevel[] }) {
                     {/* Stats row */}
                     <div className="flex items-center gap-4 mb-3 text-sm">
                       <div>
-                        <span className="text-slate-500">当前值：</span>
-                        <span className="text-slate-100 font-medium">
+                        <span className="text-[var(--text-muted)]">当前值：</span>
+                        <span className="text-[var(--text-primary)] font-medium">
                           {level.count.toLocaleString()}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500">转化率：</span>
+                        <span className="text-[var(--text-muted)]">转化率：</span>
                         <span
                           className={cn(
                             'font-medium',
                             level.conversion_rate !== null && level.conversion_rate > 0
                               ? 'text-emerald-400'
-                              : 'text-slate-400',
+                              : 'text-[var(--text-muted)]',
                           )}
                         >
                           {level.conversion_rate !== null
@@ -535,11 +535,11 @@ function StageDiagnosisSection({ levels }: { levels: FunnelLevel[] }) {
 
                     {/* Possible causes */}
                     <div className="mb-3">
-                      <p className="text-xs text-slate-500 mb-1.5 font-medium">可能原因：</p>
+                      <p className="text-xs text-[var(--text-muted)] mb-1.5 font-medium">可能原因：</p>
                       <ul className="space-y-1">
                         {diagnosis.causes.map((cause, ci) => (
-                          <li key={ci} className="flex items-start gap-1.5 text-xs text-slate-400">
-                            <span className="mt-1 w-1 h-1 rounded-full bg-slate-500/60 shrink-0" />
+                          <li key={ci} className="flex items-start gap-1.5 text-xs text-[var(--text-muted)]">
+                            <span className="mt-1 w-1 h-1 rounded-full bg-[var(--text-subtle)] shrink-0" />
                             {cause}
                           </li>
                         ))}
@@ -548,11 +548,11 @@ function StageDiagnosisSection({ levels }: { levels: FunnelLevel[] }) {
 
                     {/* Suggestions */}
                     <div className="mb-4 flex-1">
-                      <p className="text-xs text-slate-500 mb-1.5 font-medium">优化建议：</p>
+                      <p className="text-xs text-[var(--text-muted)] mb-1.5 font-medium">优化建议：</p>
                       <ul className="space-y-1">
                         {diagnosis.suggestions.map((sug, si) => (
-                          <li key={si} className="flex items-start gap-1.5 text-xs text-purple-300">
-                            <span className="mt-1 w-1 h-1 rounded-full bg-purple-500/60 shrink-0" />
+                          <li key={si} className="flex items-start gap-1.5 text-xs text-orbit-primary">
+                            <span className="mt-1 w-1 h-1 rounded-full bg-orbit-primary/60 shrink-0" />
                             {sug}
                           </li>
                         ))}
@@ -562,7 +562,7 @@ function StageDiagnosisSection({ levels }: { levels: FunnelLevel[] }) {
                     {/* Action button */}
                     <button
                       type="button"
-                      className="w-full py-2 rounded-lg border border-orbit-border text-xs text-slate-300 hover:bg-orbit-surface2 hover:text-slate-100 transition-colors cursor-pointer"
+                      className="w-full py-2 rounded-lg border border-orbit-border text-xs text-[var(--text-secondary)] hover:bg-orbit-surface2 hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                     >
                       创建改进任务
                     </button>
@@ -605,12 +605,12 @@ function SessionFilter({
 
   return (
     <div className="relative">
-      <List className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+      <List className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
       <select
         value={selectedKey}
         onChange={(e) => onSessionChange(e.target.value)}
         disabled={loading}
-        className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-slate-300 cursor-pointer focus:outline-none focus:border-purple-500/50 min-w-[200px] disabled:opacity-50"
+        className="appearance-none bg-orbit-surface border border-orbit-border rounded-lg pl-9 pr-8 py-2 text-sm text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-orbit-primary/50 min-w-[200px] disabled:opacity-50"
       >
         <option value="">全部场次（聚合数据）</option>
         {options.map((opt) => (
@@ -618,7 +618,7 @@ function SessionFilter({
         ))}
       </select>
       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-        <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        <svg className="w-3 h-3 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
       </div>
     </div>
   )
@@ -630,15 +630,15 @@ function LoadingSkeleton() {
     <div className="space-y-6">
       {/* Summary skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-40 bg-slate-700/50 rounded mb-6" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-40 bg-[var(--surface3)] rounded mb-6" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-slate-700/50 shrink-0" />
+              <div className="w-12 h-12 rounded-lg bg-[var(--surface3)] shrink-0" />
               <div className="space-y-2">
-                <div className="h-3 w-20 bg-slate-700/50 rounded" />
-                <div className="h-6 w-28 bg-slate-700/50 rounded" />
+                <div className="h-3 w-20 bg-[var(--surface3)] rounded" />
+                <div className="h-6 w-28 bg-[var(--surface3)] rounded" />
               </div>
             </div>
           ))}
@@ -647,29 +647,29 @@ function LoadingSkeleton() {
 
       {/* Chart skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-48 bg-slate-700/50 rounded mb-6" />
-        <div className="h-80 bg-slate-700/30 rounded-lg" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-48 bg-[var(--surface3)] rounded mb-6" />
+        <div className="h-80 bg-[var(--surface3)] rounded-lg" />
       </div>
 
       {/* Table skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-36 bg-slate-700/50 rounded mb-6" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-36 bg-[var(--surface3)] rounded mb-6" />
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-8 bg-slate-700/30 rounded" />
+            <div key={i} className="h-8 bg-[var(--surface3)] rounded" />
           ))}
         </div>
       </div>
 
       {/* Diagnosis skeleton */}
       <div className="rounded-xl border border-orbit-border bg-orbit-surface p-5 animate-pulse">
-        <div className="h-4 w-24 bg-slate-700/50 rounded mb-2" />
-        <div className="h-3 w-36 bg-slate-700/50 rounded mb-6" />
+        <div className="h-4 w-24 bg-[var(--surface3)] rounded mb-2" />
+        <div className="h-3 w-36 bg-[var(--surface3)] rounded mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-52 bg-slate-700/30 rounded-lg" />
+            <div key={i} className="h-52 bg-[var(--surface3)] rounded-lg" />
           ))}
         </div>
       </div>
@@ -751,8 +751,8 @@ export function FunnelAnalysisPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">转化漏斗分析</h1>
-            <p className="text-slate-500 text-sm mt-1">各环节转化效率诊断</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">转化漏斗分析</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">各环节转化效率诊断</p>
           </div>
           <div className="flex items-center gap-3">
             <SessionFilter
@@ -777,8 +777,8 @@ export function FunnelAnalysisPage() {
           <Card>
             <CardBody>
               <div className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="w-10 h-10 text-slate-500 mb-3" />
-                <p className="text-slate-500 text-sm">加载失败，请稍后重试</p>
+                <AlertCircle className="w-10 h-10 text-[var(--text-muted)] mb-3" />
+                <p className="text-[var(--text-muted)] text-sm">加载失败，请稍后重试</p>
               </div>
             </CardBody>
           </Card>
@@ -788,8 +788,8 @@ export function FunnelAnalysisPage() {
           <Card>
             <CardBody>
               <div className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="w-10 h-10 text-slate-500 mb-3" />
-                <p className="text-slate-500 text-sm">暂无漏斗数据</p>
+                <AlertCircle className="w-10 h-10 text-[var(--text-muted)] mb-3" />
+                <p className="text-[var(--text-muted)] text-sm">暂无漏斗数据</p>
               </div>
             </CardBody>
           </Card>

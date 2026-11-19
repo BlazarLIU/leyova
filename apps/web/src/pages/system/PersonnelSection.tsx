@@ -267,7 +267,7 @@ export function PersonnelSection({
     switch (norm) {
       case 'S':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orbit-primary/15 text-orbit-primary border border-orbit-primary/30">
             S 级金牌
           </span>
         )
@@ -279,7 +279,7 @@ export function PersonnelSection({
         )
       case 'B':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/15 text-blue-400 border border-blue-500/30">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orbit-info/15 text-orbit-info border border-orbit-info/30">
             B 级骨干
           </span>
         )
@@ -291,7 +291,7 @@ export function PersonnelSection({
         )
       case 'D':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-normal bg-slate-500/15 text-slate-400 border border-slate-500/30">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-normal bg-[var(--surface3)] text-[var(--text-muted)] border border-orbit-border/30">
             D 级储备
           </span>
         )
@@ -308,14 +308,14 @@ export function PersonnelSection({
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
           isActive
             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-            : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+            : 'bg-[var(--surface3)] text-[var(--text-muted)] border border-orbit-border/20'
         }`}
       >
         <span
           className={`w-1.5 h-1.5 rounded-full ${
             isActive
               ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]'
-              : 'bg-slate-500'
+              : 'bg-[var(--text-subtle)]'
           }`}
         />
         {isActive ? '启用生效' : '已禁用'}
@@ -331,7 +331,7 @@ export function PersonnelSection({
         header: 'ID',
         width: 70,
         render: (_, p) => (
-          <span className="font-mono text-xs text-slate-400">#{p.id}</span>
+          <span className="font-mono text-xs text-[var(--text-muted)]">#{p.id}</span>
         ),
       },
     ]
@@ -342,7 +342,7 @@ export function PersonnelSection({
           key: 'name',
           header: '主播姓名',
           render: (_, p) => (
-            <span className="font-semibold text-slate-100 flex items-center gap-1.5">
+            <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
               <Award className="w-3.5 h-3.5 text-amber-400" />
               {p.name}
             </span>
@@ -360,7 +360,7 @@ export function PersonnelSection({
           key: 'name',
           header: '中控姓名',
           render: (_, p) => (
-            <span className="font-semibold text-slate-100 flex items-center gap-1.5">
+            <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
               {p.name}
             </span>
@@ -370,7 +370,7 @@ export function PersonnelSection({
           key: 'employeeId',
           header: '工号',
           render: (_, p) => (
-            <span className="font-mono text-xs text-slate-300 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+            <span className="font-mono text-xs text-orbit-snow/80 bg-orbit-ink/80 px-2 py-0.5 rounded border border-[var(--border)]">
               {p.employeeId || '-'}
             </span>
           ),
@@ -382,8 +382,8 @@ export function PersonnelSection({
           key: 'username',
           header: '登录用户名',
           render: (_, p) => (
-            <span className="font-semibold text-slate-100 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+            <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-orbit-primary" />
               {p.username || p.name || '-'}
             </span>
           ),
@@ -392,7 +392,7 @@ export function PersonnelSection({
           key: 'realName',
           header: '真实姓名',
           render: (_, p) => (
-            <span className="text-slate-200">{p.realName || p.name || '-'}</span>
+            <span className="text-[var(--text-secondary)]">{p.realName || p.name || '-'}</span>
           ),
         }
       )
@@ -409,7 +409,7 @@ export function PersonnelSection({
         key: 'createdAt',
         header: '登记时间',
         render: (_, p) => (
-          <span className="text-xs text-slate-400 font-mono">
+          <span className="text-xs text-[var(--text-muted)] font-mono">
             {p.createdAt ? String(p.createdAt).slice(0, 16).replace('T', ' ') : '-'}
           </span>
         ),
@@ -423,7 +423,7 @@ export function PersonnelSection({
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 px-2 text-xs text-primary hover:text-primary-light"
+              className="h-7 px-2 text-xs text-orbit-primary hover:text-orbit-primary-light"
               onClick={() => handleOpenEdit(p)}
             >
               <PenLine className="w-3 h-3 mr-1" />
@@ -490,14 +490,14 @@ export function PersonnelSection({
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-400">在册人员总数</p>
-                <p className="text-2xl font-bold text-slate-100 mt-1">{stats.grandTotal} 人</p>
+                <p className="text-xs font-medium text-[var(--text-muted)]">在册人员总数</p>
+                <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">{stats.grandTotal} 人</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+              <div className="p-2.5 rounded-xl bg-orbit-primary/10 border border-orbit-primary/20 text-orbit-primary">
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-[var(--text-muted)] mt-2">
               主播 {anchors.length} · 中控 {operators.length} · 运营 {managers.length}
             </p>
           </CardBody>
@@ -507,14 +507,14 @@ export function PersonnelSection({
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-400">当前在职生效</p>
+                <p className="text-xs font-medium text-[var(--text-muted)]">当前在职生效</p>
                 <p className="text-2xl font-bold text-emerald-400 mt-1">{stats.activeCount} 人</p>
               </div>
               <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-[var(--text-muted)] mt-2">
               禁用 {stats.inactiveCount} 人 · 在职率{' '}
               {stats.currentTabTotal > 0
                 ? ((stats.activeCount / stats.currentTabTotal) * 100).toFixed(0)
@@ -528,7 +528,7 @@ export function PersonnelSection({
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-400">
+                <p className="text-xs font-medium text-[var(--text-muted)]">
                   {activeTab === 'anchor'
                     ? '核心梯队储备'
                     : activeTab === 'operator'
@@ -547,7 +547,7 @@ export function PersonnelSection({
                 <Sparkles className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-[var(--text-muted)] mt-2">
               {activeTab === 'anchor'
                 ? 'S/A 级金牌及骨干主播阵容'
                 : activeTab === 'operator'
@@ -561,14 +561,14 @@ export function PersonnelSection({
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-400">当前视图筛选</p>
-                <p className="text-2xl font-bold text-slate-100 mt-1">{table.total} 人</p>
+                <p className="text-xs font-medium text-[var(--text-muted)]">当前视图筛选</p>
+                <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">{table.total} 人</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-700/50 border border-slate-600/30 text-slate-300">
+              <div className="p-2.5 rounded-xl bg-[var(--surface3)] border border-[var(--border)] text-[var(--text-secondary)]">
                 <Layers className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-[var(--text-muted)] mt-2">
               第 {table.page} / {table.totalPages} 页 · 每页 {table.pageSize} 行
             </p>
           </CardBody>
@@ -599,15 +599,15 @@ export function PersonnelSection({
                     className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
                       activeTab === sub.key
                         ? 'bg-orbit-primary/20 text-orbit-primary-light border border-orbit-primary/40 shadow-sm'
-                        : 'text-slate-400 bg-orbit-surface2/60 border border-orbit-border hover:text-slate-200 hover:bg-orbit-surface2'
+                        : 'text-[var(--text-muted)] bg-orbit-surface2/60 border border-orbit-border hover:text-[var(--text-primary)] hover:bg-orbit-surface2'
                     }`}
                   >
                     <span>{sub.label}</span>
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                         activeTab === sub.key
-                          ? 'bg-primary/30 text-primary-light'
-                          : 'bg-slate-700/60 text-slate-400'
+                          ? 'bg-orbit-primary/30 text-orbit-primary-light'
+                          : 'bg-[var(--surface3)] text-[var(--text-muted)]'
                       }`}
                     >
                       {count}
@@ -645,7 +645,7 @@ export function PersonnelSection({
                 <select
                   value={table.filters.status}
                   onChange={(e) => table.setFilter('status', e.target.value)}
-                  className="h-9 px-3 text-xs rounded-lg border border-orbit-border bg-orbit-surface2 text-slate-300 outline-none focus:border-primary"
+                  className="h-9 px-3 text-xs rounded-lg border border-orbit-border bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                 >
                   <option value="all">全部在职状态</option>
                   <option value="active">启用生效</option>
@@ -656,7 +656,7 @@ export function PersonnelSection({
                   <select
                     value={table.filters.level}
                     onChange={(e) => table.setFilter('level', e.target.value)}
-                    className="h-9 px-3 text-xs rounded-lg border border-orbit-border bg-orbit-surface2 text-slate-300 outline-none focus:border-primary"
+                    className="h-9 px-3 text-xs rounded-lg border border-orbit-border bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                   >
                     <option value="all">全部主播评级</option>
                     <option value="S">S级 金牌</option>
@@ -697,10 +697,10 @@ export function PersonnelSection({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-6 py-4 border-b border-orbit-border flex items-center justify-between">
-                <h3 className="text-base font-semibold text-slate-100">新增{label(activeTab)}</h3>
+                <h3 className="text-base font-semibold text-[var(--text-primary)]">新增{label(activeTab)}</h3>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -710,25 +710,25 @@ export function PersonnelSection({
                 {activeTab === 'anchor' && (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                         主播姓名 <span className="text-rose-400">*</span>
                       </label>
                       <input
                         value={form.name}
                         onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-primary"
+                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary"
                         placeholder="例如：陈主播 / 小雅"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                         主播评级档位
                       </label>
                       <select
                         value={form.level}
                         onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))}
-                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-primary"
+                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                       >
                         <option value="S">S级 (金牌核心)</option>
                         <option value="A">A级 (核心主力)</option>
@@ -743,25 +743,25 @@ export function PersonnelSection({
                 {activeTab === 'operator' && (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                         中控姓名 <span className="text-rose-400">*</span>
                       </label>
                       <input
                         value={form.name}
                         onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-primary"
+                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary"
                         placeholder="例如：李中控"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                         工号标识
                       </label>
                       <input
                         value={form.employeeId}
                         onChange={(e) => setForm((p) => ({ ...p, employeeId: e.target.value }))}
-                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-primary"
+                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary"
                         placeholder="例如：OP-8801"
                       />
                     </div>
@@ -771,25 +771,25 @@ export function PersonnelSection({
                 {activeTab === 'manager' && (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                         登录用户名 <span className="text-rose-400">*</span>
                       </label>
                       <input
                         value={form.username}
                         onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
-                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-primary"
+                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary"
                         placeholder="例如：ops_zhang"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                         真实姓名
                       </label>
                       <input
                         value={form.realName}
                         onChange={(e) => setForm((p) => ({ ...p, realName: e.target.value }))}
-                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-primary"
+                        className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary"
                         placeholder="例如：张运营"
                       />
                     </div>
@@ -825,10 +825,10 @@ export function PersonnelSection({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-6 py-4 border-b border-orbit-border flex items-center justify-between">
-                <h3 className="text-base font-semibold text-slate-100">编辑{label(activeTab)}</h3>
+                <h3 className="text-base font-semibold text-[var(--text-primary)]">编辑{label(activeTab)}</h3>
                 <button
                   onClick={() => setShowEditModal(false)}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -836,26 +836,26 @@ export function PersonnelSection({
 
               <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                     {activeTab === 'manager' ? '登录用户名' : '姓名'}
                   </label>
                   <input
                     value={editForm.name}
                     onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-primary"
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                     required
                   />
                 </div>
 
                 {activeTab === 'anchor' && (
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                    <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
                       主播评级档位
                     </label>
                     <select
                       value={editForm.level}
                       onChange={(e) => setEditForm((p) => ({ ...p, level: e.target.value }))}
-                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-primary"
+                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                     >
                       <option value="S">S级 (金牌核心)</option>
                       <option value="A">A级 (核心主力)</option>
@@ -868,34 +868,34 @@ export function PersonnelSection({
 
                 {activeTab === 'operator' && (
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">工号</label>
+                    <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">工号</label>
                     <input
                       value={editForm.employeeId}
                       onChange={(e) => setEditForm((p) => ({ ...p, employeeId: e.target.value }))}
-                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-primary"
+                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                     />
                   </div>
                 )}
 
                 {activeTab === 'manager' && (
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">真实姓名</label>
+                    <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">真实姓名</label>
                     <input
                       value={editForm.realName}
                       onChange={(e) => setEditForm((p) => ({ ...p, realName: e.target.value }))}
-                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-primary"
+                      className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">在职状态</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">在职状态</label>
                   <select
                     value={editForm.status}
                     onChange={(e) =>
                       setEditForm((p) => ({ ...p, status: parseInt(e.target.value, 10) }))
                     }
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-primary"
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                   >
                     <option value={1}>启用生效</option>
                     <option value={0}>停用/已禁用</option>
@@ -930,8 +930,8 @@ export function PersonnelSection({
               className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-base font-semibold text-slate-100 mb-2">确认移除该{label(activeTab)}？</h3>
-              <p className="text-sm text-slate-400 mb-6">
+              <h3 className="text-base font-semibold text-[var(--text-primary)] mb-2">确认移除该{label(activeTab)}？</h3>
+              <p className="text-sm text-[var(--text-muted)] mb-6">
                 移除后该人员将不再展示于当前列表中。历史关联的出勤登记与排班明细将永久保留，不受影响。
               </p>
               <div className="flex items-center justify-end gap-3">

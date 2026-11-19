@@ -217,8 +217,8 @@ export function PlatformManagementPage() {
   return (
     <div className="space-y-6">
       <motion.div {...fadeIn}>
-        <h1 className="text-2xl font-semibold text-slate-100">平台与渠道管理</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">平台与渠道管理</h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">
           管理全站平台的启用状态、店铺 OAuth/AES-256-GCM API 凭证绑定与角色权限矩阵
         </p>
       </motion.div>
@@ -231,7 +231,7 @@ export function PlatformManagementPage() {
       )}
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : (
         <>
           {/* 平台总控 */}
@@ -240,7 +240,7 @@ export function PlatformManagementPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Settings className="h-4 w-4" /> 平台启停总控
-                  <span className="text-xs text-slate-500">停用后，全站导航、大盘、AI 问答、上传模板中的该平台将全部隐藏</span>
+                  <span className="text-xs text-[var(--text-muted)]">停用后，全站导航、大盘、AI 问答、上传模板中的该平台将全部隐藏</span>
                 </div>
               </CardHeader>
               <CardBody>
@@ -248,27 +248,27 @@ export function PlatformManagementPage() {
                   {platforms.map((p) => (
                     <div
                       key={p.platform_code}
-                      className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/40 px-3 py-2.5"
+                      className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-orbit-ink/40 px-3 py-2.5"
                     >
-                      <span className="text-sm font-medium text-slate-200">{p.platform_name}</span>
+                      <span className="text-sm font-medium text-[var(--text-secondary)]">{p.platform_name}</span>
                       <Badge variant={CATEGORY_VARIANT[p.category] || 'neutral'}>
                         {CATEGORY_LABEL[p.category] || p.category}
                       </Badge>
-                      <span className="font-mono text-[11px] text-slate-600">{p.platform_code}</span>
+                      <span className="font-mono text-[11px] text-[var(--text-primary)]">{p.platform_code}</span>
 
                       {p.capabilities && (
-                        <span className="flex gap-1 text-[10px] text-slate-500">
-                          {p.capabilities.supportsLive && <span className="rounded bg-slate-700/60 px-1.5 py-0.5">直播</span>}
-                          {p.capabilities.supportsShelf && <span className="rounded bg-slate-700/60 px-1.5 py-0.5">货架</span>}
-                          {p.capabilities.supportsContent && <span className="rounded bg-slate-700/60 px-1.5 py-0.5">内容</span>}
+                        <span className="flex gap-1 text-[10px] text-[var(--text-muted)]">
+                          {p.capabilities.supportsLive && <span className="rounded bg-[var(--surface3)] px-1.5 py-0.5">直播</span>}
+                          {p.capabilities.supportsShelf && <span className="rounded bg-[var(--surface3)] px-1.5 py-0.5">货架</span>}
+                          {p.capabilities.supportsContent && <span className="rounded bg-[var(--surface3)] px-1.5 py-0.5">内容</span>}
                           {p.capabilities.supportsAutoSync && <span className="rounded bg-emerald-900/40 px-1.5 py-0.5 text-emerald-400">API</span>}
                         </span>
                       )}
 
-                      <span className="text-xs text-slate-500">{p.shops.length} 个店铺</span>
+                      <span className="text-xs text-[var(--text-muted)]">{p.shops.length} 个店铺</span>
 
                       <div className="ml-auto flex items-center gap-2">
-                        <span className={cn('flex items-center gap-1 text-xs', p.is_enabled ? 'text-emerald-400' : 'text-slate-500')}>
+                        <span className={cn('flex items-center gap-1 text-xs', p.is_enabled ? 'text-emerald-400' : 'text-[var(--text-muted)]')}>
                           {p.is_enabled ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                           {p.is_enabled ? '已启用' : '已停用'}
                         </span>
@@ -277,7 +277,7 @@ export function PlatformManagementPage() {
                           disabled={saving === p.platform_code}
                           className={cn(
                             'relative h-5 w-9 rounded-full transition',
-                            p.is_enabled ? 'bg-emerald-600' : 'bg-slate-700',
+                            p.is_enabled ? 'bg-emerald-600' : 'bg-[var(--border2)]',
                             saving === p.platform_code && 'opacity-50',
                           )}
                         >
@@ -302,14 +302,14 @@ export function PlatformManagementPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Store className="h-4 w-4" /> 店铺接入情况与 OpenAPI 授权
-                  <span className="text-xs text-slate-500">所有敏感密钥采用 AES-256-GCM 密文存储，未授权店铺自动 fail-closed 跳过外部请求</span>
+                  <span className="text-xs text-[var(--text-muted)]">所有敏感密钥采用 AES-256-GCM 密文存储，未授权店铺自动 fail-closed 跳过外部请求</span>
                 </div>
               </CardHeader>
               <CardBody>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                      <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                         <th className="py-2 pr-3">平台</th>
                         <th className="py-2 pr-3">店铺</th>
                         <th className="py-2 pr-3">状态</th>
@@ -321,9 +321,9 @@ export function PlatformManagementPage() {
                     <tbody>
                       {platforms.flatMap((p) =>
                         p.shops.map((s) => (
-                          <tr key={`${p.platform_code}-${s.id}`} className="border-b border-slate-800/60 text-slate-300">
+                          <tr key={`${p.platform_code}-${s.id}`} className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                             <td className="py-2.5 pr-3">{p.platform_name}</td>
-                            <td className="py-2.5 pr-3 text-slate-200">{s.name}</td>
+                            <td className="py-2.5 pr-3 text-[var(--text-secondary)]">{s.name}</td>
                             <td className="py-2.5 pr-3">
                               <Badge variant={s.status === 'active' ? 'success' : 'neutral'}>{s.status}</Badge>
                             </td>
@@ -332,13 +332,13 @@ export function PlatformManagementPage() {
                                 {s.authStatus === 'authorized' ? 'API 已授权' : s.authStatus === 'manual_only' ? '仅手动上传' : s.authStatus}
                               </Badge>
                             </td>
-                            <td className="py-2.5 pr-3 font-mono text-xs text-slate-400">
+                            <td className="py-2.5 pr-3 font-mono text-xs text-[var(--text-muted)]">
                               {s.hasCredentials ? (
                                 <span className="inline-flex items-center gap-1 text-emerald-400">
                                   <Lock className="h-3 w-3" /> {s.appKeyMasked || '已加密'}
                                 </span>
                               ) : (
-                                <span className="text-slate-600">未配置</span>
+                                <span className="text-[var(--text-primary)]">未配置</span>
                               )}
                             </td>
                             <td className="py-2.5 text-right">
@@ -352,7 +352,7 @@ export function PlatformManagementPage() {
                                 <button
                                   onClick={() => handleTriggerSync(p.platform_code, s)}
                                   disabled={syncingShopId === s.id}
-                                  className="inline-flex items-center gap-1 rounded border border-slate-600 bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+                                  className="inline-flex items-center gap-1 rounded border border-[var(--border)] bg-orbit-ink px-2.5 py-1 text-xs text-orbit-snow/80 hover:bg-orbit-ink/85 disabled:opacity-50"
                                 >
                                   <RefreshCw className={cn('h-3 w-3', syncingShopId === s.id && 'animate-spin')} />
                                   {syncingShopId === s.id ? '同步中…' : '立即同步'}
@@ -364,7 +364,7 @@ export function PlatformManagementPage() {
                       )}
                       {platforms.every((p) => p.shops.length === 0) && (
                         <tr>
-                          <td colSpan={6} className="py-8 text-center text-xs text-slate-500">暂无店铺</td>
+                          <td colSpan={6} className="py-8 text-center text-xs text-[var(--text-muted)]">暂无店铺</td>
                         </tr>
                       )}
                     </tbody>
@@ -380,17 +380,17 @@ export function PlatformManagementPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4" /> 角色平台权限矩阵
-                  <span className="text-xs text-slate-500">（只读展示，修改请使用权限编辑接口）</span>
+                  <span className="text-xs text-[var(--text-muted)]">（只读展示，修改请使用权限编辑接口）</span>
                 </div>
               </CardHeader>
               <CardBody>
                 {perms.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-500">暂无权限配置</div>
+                  <div className="py-8 text-center text-xs text-[var(--text-muted)]">暂无权限配置</div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                        <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                           <th className="py-2 pr-3">角色</th>
                           <th className="py-2 pr-3">可访问平台</th>
                           <th className="py-2">模块限制</th>
@@ -404,18 +404,18 @@ export function PlatformManagementPage() {
                             return acc
                           }, {}),
                         ).map(([roleLabel, rows]) => (
-                          <tr key={roleLabel} className="border-b border-slate-800/60 text-slate-300">
-                            <td className="py-2 pr-3 text-slate-200">{roleLabel}</td>
+                          <tr key={roleLabel} className="border-b border-[var(--border)] text-[var(--text-secondary)]">
+                            <td className="py-2 pr-3 text-[var(--text-secondary)]">{roleLabel}</td>
                             <td className="py-2 pr-3">
                               <div className="flex flex-wrap gap-1">
                                 {rows.map((r) => (
-                                  <span key={r.id} className="rounded bg-slate-700/60 px-1.5 py-0.5 text-[10px]">
+                                  <span key={r.id} className="rounded bg-[var(--surface3)] px-1.5 py-0.5 text-[10px]">
                                     {r.platform_name}
                                   </span>
                                 ))}
                               </div>
                             </td>
-                            <td className="py-2 text-xs text-slate-500">
+                            <td className="py-2 text-xs text-[var(--text-muted)]">
                               {rows.every((r) => r.allowed_modules.length === 0)
                                 ? '全部模块'
                                 : Array.from(new Set(rows.flatMap((r) => r.allowed_modules))).join(', ')}
@@ -435,25 +435,25 @@ export function PlatformManagementPage() {
       {/* OAuth / 凭证绑定弹窗 */}
       {activeShop && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-2xl">
+          <div className="w-full max-w-lg rounded-xl border border-[var(--border)] bg-orbit-ink p-5 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-slate-100">
+                <h2 className="text-base font-semibold text-orbit-snow">
                   {activeShop.platformName} · {activeShop.shop.name}
                 </h2>
-                <p className="text-xs text-slate-400">选择通过官方 OAuth 换取 Token 或直接绑定加密 API 凭据</p>
+                <p className="text-xs text-orbit-snow/60">选择通过官方 OAuth 换取 Token 或直接绑定加密 API 凭据</p>
               </div>
-              <button onClick={() => setActiveShop(null)} className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+              <button onClick={() => setActiveShop(null)} className="rounded p-1 text-orbit-snow/60 hover:bg-orbit-ink hover:text-orbit-snow">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mb-4 flex gap-2 border-b border-slate-800 pb-2">
+            <div className="mb-4 flex gap-2 border-b border-[var(--border)] pb-2">
               <button
                 onClick={() => { setModalTab('oauth'); setModalErr(null) }}
                 className={cn(
                   'rounded-md px-3 py-1.5 text-xs font-medium',
-                  modalTab === 'oauth' ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200',
+                  modalTab === 'oauth' ? 'bg-cyan-500/20 text-cyan-300' : 'text-orbit-snow/60 hover:text-orbit-snow',
                 )}
               >
                 官方 OAuth 授权码换 Token
@@ -462,7 +462,7 @@ export function PlatformManagementPage() {
                 onClick={() => { setModalTab('direct'); setModalErr(null) }}
                 className={cn(
                   'rounded-md px-3 py-1.5 text-xs font-medium',
-                  modalTab === 'direct' ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200',
+                  modalTab === 'direct' ? 'bg-cyan-500/20 text-cyan-300' : 'text-orbit-snow/60 hover:text-orbit-snow',
                 )}
               >
                 直接绑定凭证 / 模式切换
@@ -478,22 +478,22 @@ export function PlatformManagementPage() {
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <label className="space-y-1">
-                  <span className="text-slate-400">AppKey</span>
+                  <span className="text-orbit-snow/60">AppKey</span>
                   <input
                     value={appKey}
                     onChange={(e) => setAppKey(e.target.value)}
                     placeholder="填写开放平台真实 AppKey"
-                    className="w-full rounded border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-slate-100 outline-none focus:border-cyan-500"
+                    className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
                   />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-slate-400">AppSecret</span>
+                  <span className="text-orbit-snow/60">AppSecret</span>
                   <input
                     type="password"
                     value={appSecret}
                     onChange={(e) => setAppSecret(e.target.value)}
                     placeholder="将使用 AES-256-GCM 加密存储"
-                    className="w-full rounded border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-slate-100 outline-none focus:border-cyan-500"
+                    className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
                   />
                 </label>
               </div>
@@ -501,18 +501,18 @@ export function PlatformManagementPage() {
               {modalTab === 'oauth' ? (
                 <>
                   <label className="block space-y-1">
-                    <span className="text-slate-400">回调地址 (Redirect URI)</span>
+                    <span className="text-orbit-snow/60">回调地址 (Redirect URI)</span>
                     <input
                       value={redirectUri}
                       onChange={(e) => setRedirectUri(e.target.value)}
-                      className="w-full rounded border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-slate-100 outline-none focus:border-cyan-500"
+                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
                     />
                   </label>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleGenerateOAuthUrl}
                       disabled={submittingCreds}
-                      className="rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+                      className="rounded border border-[var(--border)] bg-orbit-ink px-3 py-1.5 text-orbit-snow/80 hover:bg-orbit-ink/85 disabled:opacity-50"
                     >
                       1. 生成官方授权链接
                     </button>
@@ -528,21 +528,21 @@ export function PlatformManagementPage() {
                     )}
                   </div>
                   {oauthUrl && (
-                    <div className="break-all rounded border border-slate-700/70 bg-slate-950 p-2 font-mono text-[11px] text-slate-400">
+                    <div className="break-all rounded border border-[var(--border)] bg-orbit-snow/10 p-2 font-mono text-[11px] text-orbit-snow/60">
                       {oauthUrl}
                     </div>
                   )}
                   <label className="block space-y-1">
-                    <span className="text-slate-400">2. 输入授权回调得到的 Code</span>
+                    <span className="text-orbit-snow/60">2. 输入授权回调得到的 Code</span>
                     <input
                       value={oauthCode}
                       onChange={(e) => setOauthCode(e.target.value)}
                       placeholder="粘贴回跳 URL 中的 ?code=..."
-                      className="w-full rounded border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-slate-100 outline-none focus:border-cyan-500"
+                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
                     />
                   </label>
                   <div className="flex justify-end gap-2 pt-2">
-                    <button onClick={() => setActiveShop(null)} className="rounded px-3 py-1.5 text-slate-400 hover:text-slate-200">
+                    <button onClick={() => setActiveShop(null)} className="rounded px-3 py-1.5 text-orbit-snow/60 hover:text-orbit-snow">
                       取消
                     </button>
                     <button
@@ -557,11 +557,11 @@ export function PlatformManagementPage() {
               ) : (
                 <>
                   <label className="block space-y-1">
-                    <span className="text-slate-400">授权状态</span>
+                    <span className="text-orbit-snow/60">授权状态</span>
                     <select
                       value={authStatus}
                       onChange={(e) => setAuthStatus(e.target.value as any)}
-                      className="w-full rounded border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-slate-100 outline-none focus:border-cyan-500"
+                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
                     >
                       <option value="authorized">authorized（启用 API 自动同步）</option>
                       <option value="manual_only">manual_only（清空凭证，仅手动上传）</option>
@@ -571,29 +571,29 @@ export function PlatformManagementPage() {
                   {authStatus !== 'manual_only' && (
                     <div className="grid grid-cols-2 gap-3">
                       <label className="space-y-1">
-                        <span className="text-slate-400">AccessToken</span>
+                        <span className="text-orbit-snow/60">AccessToken</span>
                         <input
                           type="password"
                           value={accessToken}
                           onChange={(e) => setAccessToken(e.target.value)}
                           placeholder="真实商户 AccessToken"
-                          className="w-full rounded border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-slate-100 outline-none focus:border-cyan-500"
+                          className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
                         />
                       </label>
                       <label className="space-y-1">
-                        <span className="text-slate-400">RefreshToken（可选）</span>
+                        <span className="text-orbit-snow/60">RefreshToken（可选）</span>
                         <input
                           type="password"
                           value={refreshToken}
                           onChange={(e) => setRefreshToken(e.target.value)}
                           placeholder="用于后续刷新续期"
-                          className="w-full rounded border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-slate-100 outline-none focus:border-cyan-500"
+                          className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
                         />
                       </label>
                     </div>
                   )}
                   <div className="flex justify-end gap-2 pt-2">
-                    <button onClick={() => setActiveShop(null)} className="rounded px-3 py-1.5 text-slate-400 hover:text-slate-200">
+                    <button onClick={() => setActiveShop(null)} className="rounded px-3 py-1.5 text-orbit-snow/60 hover:text-orbit-snow">
                       取消
                     </button>
                     <button

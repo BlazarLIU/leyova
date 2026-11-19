@@ -119,15 +119,15 @@ export function DedicatedInsightShell({ title, subtitle, icon: Icon, endpoint, w
     <div className="p-6 space-y-4 max-w-[1600px] mx-auto">
       <motion.div {...fadeIn} className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Icon className="w-6 h-6 text-orbit-primary" /> {title}
           </h1>
-          <p className="text-slate-400 text-xs mt-1 max-w-3xl">{subtitle}</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1 max-w-3xl">{subtitle}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {withRange && (
             <select value={days} onChange={e => setDays(Number(e.target.value))}
-              className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-slate-300">
+              className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-[var(--text-secondary)]">
               <option value={7}>近 7 天</option>
               <option value={30}>近 30 天</option>
               <option value={90}>近 90 天</option>
@@ -156,15 +156,15 @@ export function DedicatedInsightShell({ title, subtitle, icon: Icon, endpoint, w
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
               {data.kpis.map((k, i) => (
                 <Card key={i}><CardBody>
-                  <div className="text-[11px] text-slate-400">{k.label}</div>
+                  <div className="text-[11px] text-[var(--text-muted)]">{k.label}</div>
                   <div className={`text-lg font-semibold mt-0.5 tabular-nums ${
                     k.accent === 'primary' ? 'text-orbit-primary'
                     : k.accent === 'success' ? 'text-emerald-400'
                     : k.accent === 'warn' ? 'text-amber-400'
                     : k.accent === 'danger' ? 'text-rose-400'
-                    : 'text-slate-100'
+                    : 'text-[var(--text-primary)]'
                   }`}>{k.value}</div>
-                  {k.hint && <div className="text-[10px] text-slate-500 mt-0.5">{k.hint}</div>}
+                  {k.hint && <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{k.hint}</div>}
                 </CardBody></Card>
               ))}
             </div>
@@ -175,7 +175,7 @@ export function DedicatedInsightShell({ title, subtitle, icon: Icon, endpoint, w
             <EnhancedTable key={ti} table={t} title={title} />
           ))}
 
-          {data.note && <p className="text-[11px] text-slate-500 leading-relaxed">{data.note}</p>}
+          {data.note && <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">{data.note}</p>}
         </>
       )}
     </div>
@@ -271,7 +271,7 @@ function EnhancedTable({
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold text-slate-200 truncate">{table.title}</span>
+          <span className="text-sm font-semibold text-[var(--text-secondary)] truncate">{table.title}</span>
           <Badge variant="neutral">
             {filtered.length === table.rows.length
               ? `${table.rows.length} 行`
@@ -280,18 +280,18 @@ function EnhancedTable({
         </div>
         <div className="flex items-center gap-1.5">
           <div className="relative">
-            <Search className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="筛选…"
-              className="w-36 pl-6 pr-2 py-1 text-[11px] bg-orbit-bg border border-orbit-border rounded text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-orbit-primary/50"
+              className="w-36 pl-6 pr-2 py-1 text-[11px] bg-orbit-bg border border-orbit-border rounded text-[var(--text-secondary)] placeholder:text-[var(--text-primary)] focus:outline-none focus:border-orbit-primary/50"
             />
           </div>
           <select
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="text-[11px] bg-orbit-bg border border-orbit-border rounded px-1.5 py-1 text-slate-300"
+            className="text-[11px] bg-orbit-bg border border-orbit-border rounded px-1.5 py-1 text-[var(--text-secondary)]"
           >
             <option value={20}>20 行</option>
             <option value={50}>50 行</option>
@@ -307,12 +307,12 @@ function EnhancedTable({
         <div className="overflow-x-auto max-h-[520px]">
           <table className="w-full text-xs">
             <thead className="sticky top-0 bg-orbit-surface border-b border-orbit-border">
-              <tr className="text-slate-400">
+              <tr className="text-[var(--text-muted)]">
                 {table.columns.map((c) => (
                   <th
                     key={c.key}
                     onClick={() => toggleSort(c.key)}
-                    className={`px-3 py-2 cursor-pointer select-none hover:text-slate-200 ${
+                    className={`px-3 py-2 cursor-pointer select-none hover:text-[var(--text-primary)] ${
                       c.align === 'right' ? 'text-right' : c.align === 'center' ? 'text-center' : 'text-left'
                     }`}
                   >
@@ -336,10 +336,10 @@ function EnhancedTable({
                       key={c.key}
                       className={`px-3 py-1.5 ${
                         c.align === 'right'
-                          ? 'text-right text-slate-300 tabular-nums'
+                          ? 'text-right text-[var(--text-secondary)] tabular-nums'
                           : c.align === 'center'
-                            ? 'text-center text-slate-300'
-                            : 'text-slate-200'
+                            ? 'text-center text-[var(--text-secondary)]'
+                            : 'text-[var(--text-secondary)]'
                       }`}
                     >
                       {String(row[c.key] ?? '—')}
@@ -349,7 +349,7 @@ function EnhancedTable({
               ))}
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={table.columns.length} className="px-4 py-6 text-center text-slate-500">
+                  <td colSpan={table.columns.length} className="px-4 py-6 text-center text-[var(--text-muted)]">
                     {keyword ? `没有匹配「${keyword}」的数据` : table.emptyText || '暂无数据'}
                   </td>
                 </tr>
@@ -358,7 +358,7 @@ function EnhancedTable({
           </table>
         </div>
         {pageSize < 999999 && filtered.length > pageSize && (
-          <div className="px-3 py-1.5 text-[11px] text-slate-500 border-t border-orbit-border/40">
+          <div className="px-3 py-1.5 text-[11px] text-[var(--text-muted)] border-t border-orbit-border/40">
             显示前 {pageSize} 行，共 {filtered.length} 行（可切换「全部」或导出 CSV 查看完整数据）
           </div>
         )}

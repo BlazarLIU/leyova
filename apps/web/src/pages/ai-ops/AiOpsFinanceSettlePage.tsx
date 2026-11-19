@@ -47,7 +47,7 @@ export function AiOpsFinanceSettlePage() {
   ])
 
   return (
-    <div className="flex-1 bg-[#0b0f19] text-slate-100 min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
+    <div className="flex-1 bg-[#0b0f19] text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-amber-500/20">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -55,46 +55,46 @@ export function AiOpsFinanceSettlePage() {
               <Lock className="w-3 h-3 text-amber-400" />
               <span>机密财务板块 · 仅限财务与超管访问</span>
             </span>
-            <span className="text-xs text-slate-500 font-mono">结算分录级对账</span>
+            <span className="text-xs text-[var(--text-muted)] font-mono">结算分录级对账</span>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
             全渠道结算对账分录
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             订单层金额 ≠ 结算层金额。实现分录级自动对账核销，差异 100% 可下钻到具体退款单与扣罚项。
           </p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-2xl">
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl overflow-hidden shadow-2xl">
+        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Receipt className="w-4 h-4 text-amber-400" />
             <h3 className="text-sm font-bold text-white">结算批次核销台账</h3>
           </div>
-          <span className="text-xs text-slate-500 font-mono">差异大于 100 元需财务审批后平账</span>
+          <span className="text-xs text-[var(--text-muted)] font-mono">差异大于 100 元需财务审批后平账</span>
         </div>
 
-        <div className="divide-y divide-slate-800/60">
+        <div className="divide-y divide-[var(--border)]">
           {batches.map((batch) => (
-            <div key={batch.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-800/20">
+            <div key={batch.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-orbit-ink/20">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orbit-ink text-orbit-snow/80 border border-[var(--border)]">
                     {batch.id}
                   </span>
                   <span className="text-sm font-bold text-white">{batch.channel}</span>
-                  <span className="text-xs text-slate-400 font-mono">账期: {batch.period}</span>
+                  <span className="text-xs text-[var(--text-muted)] font-mono">账期: {batch.period}</span>
                 </div>
-                <p className="text-xs text-slate-400">
-                  平台对账单: <span className="font-mono text-slate-200">¥{batch.platformAmount.toLocaleString()}</span> ·
-                  系统账面已确认: <span className="font-mono text-slate-200">¥{batch.systemAmount.toLocaleString()}</span>
+                <p className="text-xs text-[var(--text-muted)]">
+                  平台对账单: <span className="font-mono text-[var(--text-secondary)]">¥{batch.platformAmount.toLocaleString()}</span> ·
+                  系统账面已确认: <span className="font-mono text-[var(--text-secondary)]">¥{batch.systemAmount.toLocaleString()}</span>
                 </p>
               </div>
 
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-500 block">对账差异</span>
+                  <span className="text-[10px] text-[var(--text-muted)] block">对账差异</span>
                   <span className={cn(
                     "text-xs font-mono font-bold",
                     batch.diff === 0 ? "text-emerald-400" : "text-rose-400"

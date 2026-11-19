@@ -114,7 +114,7 @@ export function PromotionLayerSimulator() {
           <select
             value={platformCode}
             onChange={(e) => setPlatformCode(e.target.value)}
-            className="h-8 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-xs text-slate-200"
+            className="h-8 rounded-lg border border-orbit-border bg-orbit-surface2 px-2.5 text-xs text-[var(--text-secondary)]"
           >
             {['tmall', 'taobao', 'jd', 'douyin', 'pdd', 'kuaishou', 'xiaohongshu'].map((p) => (
               <option key={p} value={p}>{p}</option>
@@ -127,7 +127,7 @@ export function PromotionLayerSimulator() {
           <select
             value={newRule.ruleLayer}
             onChange={(e) => setNewRule({ ...newRule, ruleLayer: e.target.value })}
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
           >
             {[1, 2, 3, 4, 5].map((l) => <option key={l} value={l}>{LAYER_LABELS[l]}</option>)}
           </select>
@@ -135,12 +135,12 @@ export function PromotionLayerSimulator() {
             value={newRule.ruleName}
             onChange={(e) => setNewRule({ ...newRule, ruleName: e.target.value })}
             placeholder="规则名(如官方85折)"
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
           />
           <select
             value={newRule.discountMode}
             onChange={(e) => setNewRule({ ...newRule, discountMode: e.target.value })}
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
           >
             <option value="official_reduction">official_reduction</option>
             <option value="store_coupon">store_coupon</option>
@@ -155,14 +155,14 @@ export function PromotionLayerSimulator() {
             value={newRule.discountValue}
             onChange={(e) => setNewRule({ ...newRule, discountValue: e.target.value })}
             placeholder="<1折扣 / >1满减"
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
           />
           <input
             type="number"
             value={newRule.merchantCostRatio}
             onChange={(e) => setNewRule({ ...newRule, merchantCostRatio: e.target.value })}
             placeholder="商家承担比例(0-1)"
-            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-slate-200"
+            className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]"
           />
           <Button size="sm" variant="primary" onClick={addRule}>
             <Plus className="w-3.5 h-3.5" /> 添加层级
@@ -172,7 +172,7 @@ export function PromotionLayerSimulator() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-orbit-border text-slate-500">
+              <tr className="border-b border-orbit-border text-[var(--text-muted)]">
                 <th className="text-left px-3 py-2">层级</th>
                 <th className="text-left px-3 py-2">规则名称</th>
                 <th className="text-left px-3 py-2">模式</th>
@@ -186,15 +186,15 @@ export function PromotionLayerSimulator() {
               {rules.map((r) => (
                 <tr key={r.id} className="border-b border-orbit-border/60">
                   <td className="px-3 py-2"><Badge variant="info">{LAYER_LABELS[r.rule_layer] || `L${r.rule_layer}`}</Badge></td>
-                  <td className="px-3 py-2 text-slate-200">{r.rule_name}</td>
-                  <td className="px-3 py-2 font-mono text-slate-400">{r.discount_mode}</td>
+                  <td className="px-3 py-2 text-[var(--text-secondary)]">{r.rule_name}</td>
+                  <td className="px-3 py-2 font-mono text-[var(--text-muted)]">{r.discount_mode}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-cyan-300">
                     {Number(r.discount_value) < 1 ? `${(Number(r.discount_value) * 10).toFixed(1)} 折` : `-¥${Number(r.discount_value)}`}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-slate-300">{(Number(r.merchant_cost_ratio) * 100).toFixed(0)}%</td>
-                  <td className="px-3 py-2">{r.is_exclusive ? <Badge variant="warning">独占互斥</Badge> : <span className="text-slate-500">可叠加</span>}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-[var(--text-secondary)]">{(Number(r.merchant_cost_ratio) * 100).toFixed(0)}%</td>
+                  <td className="px-3 py-2">{r.is_exclusive ? <Badge variant="warning">独占互斥</Badge> : <span className="text-[var(--text-muted)]">可叠加</span>}</td>
                   <td className="px-3 py-2 text-right">
-                    <button onClick={() => removeRule(r.id)} className="text-slate-500 hover:text-rose-400"><Trash2 className="w-3.5 h-3.5 inline" /></button>
+                    <button onClick={() => removeRule(r.id)} className="text-[var(--text-muted)] hover:text-rose-400"><Trash2 className="w-3.5 h-3.5 inline" /></button>
                   </td>
                 </tr>
               ))}
@@ -205,12 +205,12 @@ export function PromotionLayerSimulator() {
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-orbit-border text-xs">
           <div className="flex items-center gap-1.5">
             <Layers className="w-4 h-4 text-cyan-400" />
-            <span className="text-slate-400">吊牌/日常价:</span>
-            <input type="number" value={retailPrice} onChange={(e) => setRetailPrice(e.target.value)} className="w-24 h-8 rounded border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
+            <span className="text-[var(--text-muted)]">吊牌/日常价:</span>
+            <input type="number" value={retailPrice} onChange={(e) => setRetailPrice(e.target.value)} className="w-24 h-8 rounded border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-400">商品成本(试算):</span>
-            <input type="number" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} className="w-24 h-8 rounded border border-orbit-border bg-orbit-surface2 px-2 text-slate-200" />
+            <span className="text-[var(--text-muted)]">商品成本(试算):</span>
+            <input type="number" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} className="w-24 h-8 rounded border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]" />
           </div>
           <Button size="sm" variant="primary" onClick={runSimulate}>
             <Calculator className="w-3.5 h-3.5" /> 执行 5 层穿透试算
@@ -223,7 +223,7 @@ export function PromotionLayerSimulator() {
               <span>消费者到手价: <strong className="text-cyan-400">¥{simResult.finalConsumerPrice}</strong></span>
               <span>商家让利: <strong className="text-amber-400">¥{simResult.totalMerchantSubsidy}</strong></span>
               <span>平台补贴: <strong className="text-emerald-400">¥{simResult.totalPlatformSubsidy}</strong></span>
-              <span>商家实收(扣扣点前): <strong className="text-slate-100">¥{simResult.merchantReceipts}</strong></span>
+              <span>商家实收(扣扣点前): <strong className="text-[var(--text-primary)]">¥{simResult.merchantReceipts}</strong></span>
               <span>预估单件净毛利: <strong className="text-emerald-400">{simResult.costMasked || simResult.netMargin === null ? '*** (无成本权限)' : `¥${simResult.netMargin}`}</strong></span>
             </div>
             {simResult.exclusiveConflicts.length > 0 && (

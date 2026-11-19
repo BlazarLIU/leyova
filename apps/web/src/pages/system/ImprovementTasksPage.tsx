@@ -85,8 +85,8 @@ export function ImprovementTasksPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">改进任务</h1>
-            <p className="text-slate-500 text-sm mt-1">系统改进任务管理</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">改进任务</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">系统改进任务管理</p>
           </div>
         </div>
       </motion.div>
@@ -104,7 +104,7 @@ export function ImprovementTasksPage() {
         </Button>
 
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-slate-500" />
+          <BarChart3 className="w-4 h-4 text-[var(--text-muted)]" />
           <div className="flex items-center gap-1">
             {statusOptions.map((opt) => (
               <button
@@ -113,7 +113,7 @@ export function ImprovementTasksPage() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   statusFilter === opt.value
                     ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                    : 'text-slate-400 bg-orbit-surface2 border border-orbit-border hover:text-slate-300'
+                    : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)]'
                 }`}
               >
                 {opt.label}
@@ -142,13 +142,13 @@ export function ImprovementTasksPage() {
                     {/* Left content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <h4 className="text-sm font-semibold text-slate-200">{task.title}</h4>
+                        <h4 className="text-sm font-semibold text-[var(--text-secondary)]">{task.title}</h4>
                         <Badge variant={pVariant}>{pLabel}</Badge>
                         <Badge variant={sVariant} dot>{sLabel}</Badge>
                       </div>
-                      <p className="text-sm text-slate-400 line-clamp-2 mb-3">{task.description}</p>
+                      <p className="text-sm text-[var(--text-muted)] line-clamp-2 mb-3">{task.description}</p>
 
-                      <div className="flex items-center gap-4 text-xs text-slate-500">
+                      <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                         <div className="flex items-center gap-1">
                           <User className="w-3 h-3" />
                           <span>{task.assignee}</span>
@@ -199,7 +199,7 @@ export function ImprovementTasksPage() {
                         </button>
                       )}
                       {task.status === 'completed' && (
-                        <span className="text-xs text-slate-500 px-3 py-1.5">已完成</span>
+                        <span className="text-xs text-[var(--text-muted)] px-3 py-1.5">已完成</span>
                       )}
                     </div>
                   </div>
@@ -215,41 +215,41 @@ export function ImprovementTasksPage() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowCreateModal(false)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-orbit-border">
-              <h3 className="text-base font-semibold text-slate-200">创建任务</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-500 hover:text-slate-300 transition-colors">
+              <h3 className="text-base font-semibold text-[var(--text-secondary)]">创建任务</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">任务标题</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">任务标题</label>
                 <input value={newTask.title} onChange={e => setNewTask(p => ({ ...p, title: e.target.value }))}
-                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入任务标题" />
+                  className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="输入任务标题" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">任务描述</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">任务描述</label>
                 <textarea value={newTask.description} onChange={e => setNewTask(p => ({ ...p, description: e.target.value }))}
-                  className="w-full min-h-[80px] rounded-lg border border-orbit-border bg-orbit-surface2 px-3 py-2 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 resize-y" placeholder="描述任务内容..." />
+                  className="w-full min-h-[80px] rounded-lg border border-orbit-border bg-orbit-surface2 px-3 py-2 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 resize-y" placeholder="描述任务内容..." />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">负责人</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">负责人</label>
                   <input value={newTask.assignee} onChange={e => setNewTask(p => ({ ...p, assignee: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="负责人" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" placeholder="负责人" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">优先级</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">优先级</label>
                   <select value={newTask.priority} onChange={e => setNewTask(p => ({ ...p, priority: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30">
                     <option value="high">高优先级</option>
                     <option value="medium">中优先级</option>
                     <option value="low">低优先级</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">截止日期</label>
+                  <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">截止日期</label>
                   <input type="date" value={newTask.dueDate} onChange={e => setNewTask(p => ({ ...p, dueDate: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30" />
                 </div>
               </div>
             </div>

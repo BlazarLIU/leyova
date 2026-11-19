@@ -156,15 +156,15 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
         header: 'ID',
         width: 80,
         render: (_, r) => (
-          <span className="font-mono text-xs text-slate-400">#{r.id}</span>
+          <span className="font-mono text-xs text-[var(--text-muted)]">#{r.id}</span>
         ),
       },
       {
         key: 'name',
         header: '直播间名称',
         render: (_, r) => (
-          <span className="font-semibold text-slate-100 flex items-center gap-1.5">
-            <Radio className="w-3.5 h-3.5 text-primary" />
+          <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+            <Radio className="w-3.5 h-3.5 text-orbit-primary" />
             {r.name}
           </span>
         ),
@@ -193,7 +193,7 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
         header: '创建时间',
         width: 160,
         render: (_, r) => (
-          <span className="font-mono text-xs text-slate-400">
+          <span className="font-mono text-xs text-[var(--text-muted)]">
             {r.created_at ? new Date(r.created_at).toLocaleDateString('zh-CN') : '-'}
           </span>
         ),
@@ -214,7 +214,7 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
             </button>
             <button
               onClick={() => setDeletingId(r.id)}
-              className="text-xs text-slate-500 hover:text-rose-400 transition-colors inline-flex items-center gap-1"
+              className="text-xs text-[var(--text-muted)] hover:text-rose-400 transition-colors inline-flex items-center gap-1"
             >
               <Trash2 className="w-3.5 h-3.5" />
               删除
@@ -233,41 +233,41 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">直播间总数</span>
-              <Radio className="w-4 h-4 text-primary" />
+              <span className="text-xs text-[var(--text-muted)]">直播间总数</span>
+              <Radio className="w-4 h-4 text-orbit-primary" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-slate-100">{stats.total}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">全域各平台已注册播间</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{stats.total}</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">全域各平台已注册播间</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">启用开播中</span>
+              <span className="text-xs text-[var(--text-muted)]">启用开播中</span>
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.active}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">正参与排班与数据统计</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">正参与排班与数据统计</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">停用休眠中</span>
-              <XCircle className="w-4 h-4 text-slate-500" />
+              <span className="text-xs text-[var(--text-muted)]">停用休眠中</span>
+              <XCircle className="w-4 h-4 text-[var(--text-muted)]" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-slate-400">{stats.inactive}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">暂时下线或整顿播间</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--text-muted)]">{stats.inactive}</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">暂时下线或整顿播间</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">覆盖电商平台</span>
+              <span className="text-xs text-[var(--text-muted)]">覆盖电商平台</span>
               <Layers className="w-4 h-4 text-sky-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-sky-400">{stats.platforms} 个</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">多平台阵列协同布局</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">多平台阵列协同布局</p>
           </CardBody>
         </Card>
       </div>
@@ -276,7 +276,7 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
         title="直播间实体列表"
         subtitle="集中配置多平台直播间档案、推流渠道及运行生命周期状态"
         badge={
-          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-primary border border-orbit-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-orbit-primary border border-orbit-border">
             DataPage + useTable
           </span>
         }
@@ -308,15 +308,15 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
         filterControls={
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <div className="flex items-center gap-1.5">
-              <span className="text-gray-400">平台:</span>
+              <span className="text-[var(--text-muted)]">平台:</span>
               {['all', '抖音', '视频号', '快手', '淘宝'].map((plat) => (
                 <button
                   key={plat}
                   onClick={() => table.setFilter('platform', plat)}
                   className={`px-2 py-0.5 rounded text-xs transition-colors ${
                     table.filters.platform === plat
-                      ? 'bg-primary/20 text-primary border border-primary/40 font-medium'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                      ? 'bg-orbit-primary/20 text-orbit-primary border border-orbit-primary/40 font-medium'
+                      : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                   }`}
                 >
                   {plat === 'all' ? '全部' : plat}
@@ -325,7 +325,7 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
             </div>
 
             <div className="flex items-center gap-1.5 ml-2">
-              <span className="text-gray-400">状态:</span>
+              <span className="text-[var(--text-muted)]">状态:</span>
               {[
                 { value: 'all', label: '全部' },
                 { value: 'active', label: '启用' },
@@ -336,8 +336,8 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
                   onClick={() => table.setFilter('status', st.value)}
                   className={`px-2 py-0.5 rounded text-xs transition-colors ${
                     table.filters.status === st.value
-                      ? 'bg-primary/20 text-primary border border-primary/40 font-medium'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                      ? 'bg-orbit-primary/20 text-orbit-primary border border-orbit-primary/40 font-medium'
+                      : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                   }`}
                 >
                   {st.label}
@@ -359,13 +359,13 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
               className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-md p-6 relative text-xs"
             >
               <div className="flex items-center justify-between pb-4 border-b border-orbit-border mb-4">
-                <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                  <Radio className="w-5 h-5 text-primary" />
+                <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+                  <Radio className="w-5 h-5 text-orbit-primary" />
                   {editingRoom ? '编辑直播间' : '新增直播间'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-[var(--text-muted)] hover:text-white"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -373,23 +373,23 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
 
               <form onSubmit={handleSave} className="space-y-4">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">直播间名称</label>
+                  <label className="block text-[var(--text-secondary)] font-medium mb-1">直播间名称</label>
                   <input
                     type="text"
                     required
                     value={form.name}
                     onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-primary"
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary"
                     placeholder="输入直播间名称，如：抖音1号直播间"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">归属平台</label>
+                  <label className="block text-[var(--text-secondary)] font-medium mb-1">归属平台</label>
                   <select
                     value={form.platform}
                     onChange={(e) => setForm((p) => ({ ...p, platform: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200 outline-none focus:border-primary"
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                   >
                     <option value="抖音">抖音</option>
                     <option value="快手">快手</option>
@@ -401,11 +401,11 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">运行状态</label>
+                  <label className="block text-[var(--text-secondary)] font-medium mb-1">运行状态</label>
                   <select
                     value={form.status}
                     onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
-                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-slate-200 outline-none focus:border-primary"
+                    className="w-full h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-xs text-[var(--text-secondary)] outline-none focus:border-orbit-primary"
                   >
                     <option value="active">启用开播</option>
                     <option value="inactive">停用禁用</option>
@@ -441,8 +441,8 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm p-6 text-xs"
             >
-              <h3 className="text-base font-bold text-slate-100 mb-2">确认删除直播间</h3>
-              <p className="text-slate-400 mb-6 leading-relaxed">
+              <h3 className="text-base font-bold text-[var(--text-primary)] mb-2">确认删除直播间</h3>
+              <p className="text-[var(--text-muted)] mb-6 leading-relaxed">
                 确定要删除该直播间吗？已关联的历史出勤与场次流水将保留，但新排班将无法选择该播间。
               </p>
               <div className="flex items-center justify-end gap-2">

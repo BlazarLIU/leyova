@@ -69,16 +69,16 @@ export function BrandPortalPage() {
     <div className="p-6 space-y-4 max-w-[1400px] mx-auto">
       <motion.div {...fadeIn} className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Building2 className="w-6 h-6 text-orbit-primary" /> 品牌方经营看板
           </h1>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[var(--text-muted)] text-xs mt-1">
             {user?.realName || user?.username} · 只读视角 · 数据范围为本品牌授权店铺
           </p>
         </div>
         <div className="flex items-center gap-2">
           <select value={days} onChange={e => setDays(Number(e.target.value))}
-            className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-slate-300">
+            className="text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1.5 text-[var(--text-secondary)]">
             <option value={7}>近 7 天</option>
             <option value={30}>近 30 天</option>
             <option value={90}>近 90 天</option>
@@ -104,14 +104,14 @@ export function BrandPortalPage() {
 
       <Card>
         <CardHeader>
-          <span className="text-sm font-semibold text-slate-200">店铺明细</span>
+          <span className="text-sm font-semibold text-[var(--text-secondary)]">店铺明细</span>
           <Badge variant="neutral">{shops.length} 家</Badge>
         </CardHeader>
         <CardBody className="p-0">
           <div className="overflow-x-auto max-h-[520px]">
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-orbit-surface border-b border-orbit-border">
-                <tr className="text-slate-400">
+                <tr className="text-[var(--text-muted)]">
                   <th className="text-left px-4 py-2">店铺</th>
                   <th className="text-left px-3 py-2">平台</th>
                   <th className="text-right px-3 py-2">GMV</th>
@@ -121,14 +121,14 @@ export function BrandPortalPage() {
               <tbody>
                 {shops.map((s, i) => (
                   <tr key={`${s.shopId}-${i}`} className="border-b border-orbit-border/40">
-                    <td className="px-4 py-1.5 text-slate-200">{s.shopName || `店铺 ${s.shopId}`}</td>
-                    <td className="px-3 py-1.5 text-slate-400">{s.platformCode || '—'}</td>
-                    <td className="px-3 py-1.5 text-right text-slate-200 tabular-nums">¥{fmt(s.gmv)}</td>
-                    <td className="px-4 py-1.5 text-right text-slate-300 tabular-nums">{fmt(s.orders)}</td>
+                    <td className="px-4 py-1.5 text-[var(--text-secondary)]">{s.shopName || `店铺 ${s.shopId}`}</td>
+                    <td className="px-3 py-1.5 text-[var(--text-muted)]">{s.platformCode || '—'}</td>
+                    <td className="px-3 py-1.5 text-right text-[var(--text-secondary)] tabular-nums">¥{fmt(s.gmv)}</td>
+                    <td className="px-4 py-1.5 text-right text-[var(--text-secondary)] tabular-nums">{fmt(s.orders)}</td>
                   </tr>
                 ))}
                 {shops.length === 0 && (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-[var(--text-muted)]">
                     暂无可见店铺（品牌方数据范围由管理员在品牌项目中授权）
                   </td></tr>
                 )}
@@ -138,7 +138,7 @@ export function BrandPortalPage() {
         </CardBody>
       </Card>
 
-      <p className="text-[11px] text-slate-500">
+      <p className="text-[11px] text-[var(--text-muted)]">
         品牌方视角为<strong>只读</strong>：不可写入、不可查看成本与毛利。数据范围受行级安全（RLS）约束。
       </p>
     </div>
@@ -150,10 +150,10 @@ const fmt = (n: number | null | undefined) => (n == null ? '—' : Number(n).toL
 function KpiCard({ label, value, icon: Icon, accent }: {
   label: string; value: React.ReactNode; icon?: any; accent?: 'primary' | 'warn'
 }) {
-  const cls = accent === 'primary' ? 'text-orbit-primary' : accent === 'warn' ? 'text-amber-400' : 'text-slate-100'
+  const cls = accent === 'primary' ? 'text-orbit-primary' : accent === 'warn' ? 'text-amber-400' : 'text-[var(--text-primary)]'
   return (
     <Card><CardBody>
-      <div className="flex items-center gap-1 text-[11px] text-slate-400">
+      <div className="flex items-center gap-1 text-[11px] text-[var(--text-muted)]">
         {Icon && <Icon className="w-3 h-3" />}{label}
       </div>
       <div className={`text-lg font-semibold mt-0.5 tabular-nums ${cls}`}>{value}</div>

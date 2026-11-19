@@ -160,19 +160,19 @@ export function UnifiedDashboardHub({ defaultView = 'cockpit' }: UnifiedDashboar
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orbit-primary/15 text-orbit-primary-light">
                 <currentTabConfig.icon className="w-4 h-4" />
               </div>
-              <h1 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+              <h1 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                 全域经营分析看板
-                <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-slate-400 font-normal border border-orbit-border">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-[var(--text-muted)] font-normal border border-orbit-border">
                   8 视图综合工作台
                 </span>
               </h1>
             </div>
-            <p className="mt-1 text-xs text-slate-400 pl-10.5">
+            <p className="mt-1 text-xs text-[var(--text-muted)] pl-10.5">
               {currentTabConfig.description}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-400 self-end md:self-auto">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] self-end md:self-auto">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-orbit-surface2 border border-orbit-border">
               <Sparkles className="w-3.5 h-3.5 text-orbit-accent-light" />
               已启用聚合汇总层（agg_*）秒级响应
@@ -195,10 +195,10 @@ export function UnifiedDashboardHub({ defaultView = 'cockpit' }: UnifiedDashboar
                     'relative flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 select-none',
                     isActive
                       ? 'bg-orbit-primary text-white shadow-md shadow-orbit-primary/20'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
                   )}
                 >
-                  <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-slate-400')} />
+                  <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-[var(--text-muted)]')} />
                   <span>{tab.label}</span>
                   {tab.badge && (
                     <span
@@ -223,7 +223,7 @@ export function UnifiedDashboardHub({ defaultView = 'cockpit' }: UnifiedDashboar
       <div className="min-h-[500px]">
         <Suspense
           fallback={
-            <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <div className="py-24 flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
               <Loader2 className="w-8 h-8 animate-spin text-orbit-primary-light" />
               <span className="text-xs">正在渲染 {currentTabConfig.label}...</span>
             </div>

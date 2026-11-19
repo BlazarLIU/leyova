@@ -79,16 +79,16 @@ export function XhsNoteBoardPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">笔记经营看板</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">笔记经营看板</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               小红书的核心经营单元是「笔记」，不是店铺
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -110,13 +110,13 @@ export function XhsNoteBoardPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : !hasData ? (
         <Card><CardBody>
           <div className="py-14 text-center">
-            <FileText className="mx-auto h-10 w-10 text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400">暂无笔记数据</p>
-            <p className="mt-1 text-xs text-slate-600">需从千帆「笔记数据」导出后导入</p>
+            <FileText className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+            <p className="mt-3 text-sm text-[var(--text-muted)]">暂无笔记数据</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]">需从千帆「笔记数据」导出后导入</p>
           </div>
         </CardBody></Card>
       ) : (
@@ -151,14 +151,14 @@ export function XhsNoteBoardPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4" /> 笔记明细
-                  <span className="text-xs font-normal text-slate-500">（按阅读量排序）</span>
+                  <span className="text-xs font-normal text-[var(--text-muted)]">（按阅读量排序）</span>
                 </div>
               </CardHeader>
               <CardBody>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-700 text-left text-xs text-slate-400">
+                      <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-muted)]">
                         <th className="py-2 pr-3">笔记标题</th>
                         <th className="py-2 pr-3 text-right">曝光</th>
                         <th className="py-2 pr-3 text-right">阅读</th>
@@ -171,9 +171,9 @@ export function XhsNoteBoardPage() {
                     </thead>
                     <tbody>
                       {data!.notes.map((n) => (
-                        <tr key={n.noteId} className="border-b border-slate-800/60 text-slate-300 hover:bg-slate-800/30">
+                        <tr key={n.noteId} className="border-b border-[var(--border)] text-[var(--text-secondary)] hover:bg-orbit-ink/30">
                           <td className="max-w-[240px] truncate py-2 pr-3">
-                            <span className="text-slate-200">{n.title}</span>
+                            <span className="text-[var(--text-secondary)]">{n.title}</span>
                             {n.isSeedingOnly && (
                               <span className="ml-1.5 inline-block">
                                 <Badge variant="success">种草</Badge>
@@ -189,14 +189,14 @@ export function XhsNoteBoardPage() {
                           <td className="py-2 text-right font-mono text-xs">
                             {n.onsiteGmv > 0 || n.offsiteGmv > 0
                               ? `${fmt(n.onsiteGmv)} / ${fmt(n.offsiteGmv)}`
-                              : <span className="text-slate-600">—</span>}
+                              : <span className="text-[var(--text-primary)]">—</span>}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-3 text-[11px] text-slate-500">{data!.note}</p>
+                <p className="mt-3 text-[11px] text-[var(--text-muted)]">{data!.note}</p>
               </CardBody>
             </Card>
           </motion.div>
@@ -217,25 +217,25 @@ function Stat({ icon: Icon, label, value, unit, extra }: {
   icon: any; label: string; value: string; unit?: string; extra?: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+    <div className="rounded-xl border border-[var(--border)] bg-orbit-ink/40 p-3">
+      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
         <Icon className="h-3.5 w-3.5" />{label}
       </div>
       <div className="mt-1.5 flex items-baseline gap-1">
-        <span className="text-lg font-semibold text-slate-100">{value}</span>
-        {unit && <span className="text-[11px] text-slate-500">{unit}</span>}
+        <span className="text-lg font-semibold text-[var(--text-primary)]">{value}</span>
+        {unit && <span className="text-[11px] text-[var(--text-muted)]">{unit}</span>}
       </div>
-      {extra && <div className="mt-0.5 text-[10px] text-slate-500">{extra}</div>}
+      {extra && <div className="mt-0.5 text-[10px] text-[var(--text-muted)]">{extra}</div>}
     </div>
   )
 }
 
 function SmallStat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-slate-700/60 bg-slate-800/40 px-3 py-2">
-      <Icon className="h-4 w-4 text-slate-500" />
-      <span className="text-xs text-slate-400">{label}</span>
-      <span className="ml-auto font-mono text-sm text-slate-200">{value}</span>
+    <div className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-orbit-ink/40 px-3 py-2">
+      <Icon className="h-4 w-4 text-[var(--text-muted)]" />
+      <span className="text-xs text-[var(--text-muted)]">{label}</span>
+      <span className="ml-auto font-mono text-sm text-[var(--text-secondary)]">{value}</span>
     </div>
   )
 }

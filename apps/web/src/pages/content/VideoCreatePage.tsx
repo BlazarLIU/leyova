@@ -11,8 +11,8 @@ export function VideoCreatePage() {
       >
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">视频创作</h1>
-            <p className="text-slate-500 text-sm mt-1">AI 视频生成页面</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">视频创作</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">AI 视频生成页面</p>
           </div>
         </div>
       </motion.div>
@@ -23,9 +23,9 @@ export function VideoCreatePage() {
         transition={{ duration: 0.4, delay: 0.1 }}
       >
         <div className="flex flex-col items-center justify-center py-24 rounded-xl border border-dashed border-orbit-border2 bg-orbit-surface">
-          <Video className="w-10 h-10 text-slate-600 mb-4" />
-          <p className="text-lg font-medium text-slate-400">正在开发</p>
-          <p className="text-sm text-slate-600 mt-1">即将上线</p>
+          <Video className="w-10 h-10 text-[var(--text-primary)] mb-4" />
+          <p className="text-lg font-medium text-[var(--text-muted)]">正在开发</p>
+          <p className="text-sm text-[var(--text-primary)] mt-1">即将上线</p>
         </div>
       </motion.div>
     </div>

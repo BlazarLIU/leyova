@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/services/api'
 import { cn } from '@/utils/cn'
+import { CHART_SERIES, CHART_AXIS } from '@/constants/chartPalette'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 
@@ -61,13 +62,13 @@ const CHANNEL_CATEGORIES = ['全部', '推荐流量', '搜索流量', '社交流
 const COMPARE_PERIODS = ['无对比', '环比', '同比'] as const
 
 const CHANNEL_COLORS = [
-  '#7C3AED', '#06B6D4', '#10B981', '#F59E0B',
-  '#EF4444', '#EC4899', '#8B5CF6', '#14B8A6',
-  '#F97316', '#22D3EE',
+  '#F42902', '#2563EB', '#4FD64B', '#E0A008',
+  '#0EA5A5', '#C2410C', '#5B7A00', '#9B9B96',
+  '#B45309', '#1D4ED8',
 ]
 
 const funnelStages = [
-  { key: 'impressions', label: '曝光', color: 'from-violet-500/40 to-violet-500/20' },
+  { key: 'impressions', label: '曝光', color: 'from-orbit-primary/40 to-orbit-primary-dark/20' },
   { key: 'views', label: '观看', color: 'from-cyan-500/40 to-cyan-500/20' },
   { key: 'interactions', label: '互动', color: 'from-amber-500/40 to-amber-500/20' },
   { key: 'product_clicks', label: '商品点击', color: 'from-emerald-500/40 to-emerald-500/20' },
@@ -170,12 +171,12 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 shadow-lg text-xs space-y-1">
-      <p className="text-slate-300 font-medium mb-1">{label}</p>
+      <p className="text-[var(--text-secondary)] font-medium mb-1">{label}</p>
       {payload.map((entry: any, i: number) => (
         <p key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-slate-400">{entry.name}: </span>
-          <span className="text-slate-200 font-medium">{formatNumber(entry.value)}</span>
+          <span className="text-[var(--text-muted)]">{entry.name}: </span>
+          <span className="text-[var(--text-secondary)] font-medium">{formatNumber(entry.value)}</span>
         </p>
       ))}
     </div>
@@ -187,11 +188,11 @@ function ScatterTooltip({ active, payload }: any) {
   const d = payload[0].payload
   return (
     <div className="bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-2 shadow-lg text-xs space-y-1 max-w-48">
-      <p className="text-slate-200 font-medium mb-1">{d.channel}</p>
-      <p className="text-slate-400">GPM: <span className="text-slate-200">{formatCurrency(d.gpm)}</span></p>
-      <p className="text-slate-400">曝光-观看率: <span className="text-slate-200">{formatPercent(d.exposure_view_rate)}</span></p>
-      <p className="text-slate-400">GMV: <span className="text-slate-200">{formatCurrency(d.gmv)}</span></p>
-      <p className="text-slate-400">ROI: <span className="text-slate-200">{roiFromData(d).toFixed(2)}</span></p>
+      <p className="text-[var(--text-secondary)] font-medium mb-1">{d.channel}</p>
+      <p className="text-[var(--text-muted)]">GPM: <span className="text-[var(--text-secondary)]">{formatCurrency(d.gpm)}</span></p>
+      <p className="text-[var(--text-muted)]">曝光-观看率: <span className="text-[var(--text-secondary)]">{formatPercent(d.exposure_view_rate)}</span></p>
+      <p className="text-[var(--text-muted)]">GMV: <span className="text-[var(--text-secondary)]">{formatCurrency(d.gmv)}</span></p>
+      <p className="text-[var(--text-muted)]">ROI: <span className="text-[var(--text-secondary)]">{roiFromData(d).toFixed(2)}</span></p>
     </div>
   )
 }
@@ -272,7 +273,7 @@ export function ChannelAnalysisPage() {
 
   /* ── render helpers ── */
   const renderSortIcon = (key: SortKey) => {
-    if (sortMetric !== key) return <ArrowUpDown className="w-3 h-3 text-slate-600 ml-1" />
+    if (sortMetric !== key) return <ArrowUpDown className="w-3 h-3 text-[var(--text-primary)] ml-1" />
     return sortOrder === 'desc'
       ? <ChevronDown className="w-3 h-3 text-orbit-accent ml-1" />
       : <ChevronUp className="w-3 h-3 text-orbit-accent ml-1" />
@@ -284,7 +285,7 @@ export function ChannelAnalysisPage() {
       <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px]">
         <div className="flex items-center justify-center h-64">
           <div className="w-6 h-6 border-2 border-orbit-primary border-t-transparent rounded-full animate-spin" />
-          <span className="ml-3 text-slate-400 text-sm">加载中...</span>
+          <span className="ml-3 text-[var(--text-muted)] text-sm">加载中...</span>
         </div>
       </div>
     )
@@ -301,8 +302,8 @@ export function ChannelAnalysisPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">渠道流量分析</h1>
-            <p className="text-slate-500 text-sm mt-1">各渠道流量来源与效果对比</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">渠道流量分析</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">各渠道流量来源与效果对比</p>
           </div>
         </div>
       </motion.div>
@@ -318,7 +319,7 @@ export function ChannelAnalysisPage() {
             title="筛选条件"
             subtitle="渠道、日期范围、排序指标"
             actions={
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                 <Activity className="w-3.5 h-3.5" />
                 <span>共 {processedData.length} 个渠道</span>
               </div>
@@ -328,26 +329,26 @@ export function ChannelAnalysisPage() {
             <div className="flex flex-wrap items-end gap-4">
               {/* 日期 */}
               <div className="flex flex-col gap-1.5 min-w-0">
-                <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                <label className="text-xs text-[var(--text-muted)] font-medium flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" /> 日期
                 </label>
                 <input
                   type="date"
                   value={dateRange}
                   onChange={e => setDateRange(e.target.value)}
-                  className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors"
+                  className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors"
                 />
               </div>
 
               {/* 渠道类型 */}
               <div className="flex flex-col gap-1.5 min-w-0">
-                <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                <label className="text-xs text-[var(--text-muted)] font-medium flex items-center gap-1">
                   <Filter className="w-3.5 h-3.5" /> 渠道类型
                 </label>
                 <select
                   value={channelCategory}
                   onChange={e => setChannelCategory(e.target.value)}
-                  className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 pr-8 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors appearance-none cursor-pointer"
+                  className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 pr-8 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors appearance-none cursor-pointer"
                   style={{ backgroundImage: 'none' }}
                 >
                   {CHANNEL_CATEGORIES.map(c => (
@@ -358,14 +359,14 @@ export function ChannelAnalysisPage() {
 
               {/* 排序指标 */}
               <div className="flex flex-col gap-1.5 min-w-0">
-                <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                <label className="text-xs text-[var(--text-muted)] font-medium flex items-center gap-1">
                   <ArrowUpDown className="w-3.5 h-3.5" /> 排序指标
                 </label>
                 <div className="flex gap-1">
                   <select
                     value={sortMetric}
                     onChange={e => setSortMetric(e.target.value as SortKey)}
-                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 pr-8 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors appearance-none cursor-pointer"
+                    className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 pr-8 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors appearance-none cursor-pointer"
                     style={{ backgroundImage: 'none' }}
                   >
                     <option value="gmv">GMV</option>
@@ -375,7 +376,7 @@ export function ChannelAnalysisPage() {
                   </select>
                   <button
                     onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}
-                    className="h-9 w-9 flex items-center justify-center rounded-lg border border-orbit-border bg-orbit-surface2 text-slate-400 hover:text-slate-200 transition-colors"
+                    className="h-9 w-9 flex items-center justify-center rounded-lg border border-orbit-border bg-orbit-surface2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title={sortOrder === 'desc' ? '降序' : '升序'}
                   >
                     {sortOrder === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -385,13 +386,13 @@ export function ChannelAnalysisPage() {
 
               {/* 对比周期 */}
               <div className="flex flex-col gap-1.5 min-w-0">
-                <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                <label className="text-xs text-[var(--text-muted)] font-medium flex items-center gap-1">
                   <TrendingUp className="w-3.5 h-3.5" /> 对比周期
                 </label>
                 <select
                   value={comparePeriod}
                   onChange={e => setComparePeriod(e.target.value)}
-                  className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 pr-8 text-sm text-slate-200 outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors appearance-none cursor-pointer"
+                  className="h-9 rounded-lg border border-orbit-border bg-orbit-surface2 px-3 pr-8 text-sm text-[var(--text-secondary)] outline-none focus:border-orbit-primary focus:ring-1 focus:ring-orbit-primary/30 transition-colors appearance-none cursor-pointer"
                   style={{ backgroundImage: 'none' }}
                 >
                   {COMPARE_PERIODS.map(c => (
@@ -417,12 +418,12 @@ export function ChannelAnalysisPage() {
             actions={
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-violet-500/60" />
-                  <span className="text-slate-400">曝光</span>
+                  <span className="w-2.5 h-2.5 rounded-sm bg-orbit-primary/60" />
+                  <span className="text-[var(--text-muted)]">曝光</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-sm bg-cyan-500/60" />
-                  <span className="text-slate-400">观看</span>
+                  <span className="text-[var(--text-muted)]">观看</span>
                 </span>
               </div>
             }
@@ -430,7 +431,7 @@ export function ChannelAnalysisPage() {
           <CardBody>
             {processedData.length === 0 ? (
               <div className="h-72 flex items-center justify-center border border-dashed border-orbit-border rounded-lg">
-                <p className="text-slate-500 text-sm">暂无数据</p>
+                <p className="text-[var(--text-muted)] text-sm">暂无数据</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={Math.max(72, processedData.length * 56)}>
@@ -452,23 +453,23 @@ export function ChannelAnalysisPage() {
                     dataKey="channel"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                    tick={{ fill: CHART_AXIS, fontSize: 12 }}
                     width={90}
                   />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148,148,143,0.10)' }} />
                   <Legend
-                    wrapperStyle={{ fontSize: 11, color: '#94a3b8' }}
+                    wrapperStyle={{ fontSize: 11, color: CHART_AXIS }}
                     formatter={(value) => value === 'impressions' ? '曝光' : '观看'}
                   />
                   <Bar
                     dataKey="impressions"
                     name="impressions"
-                    fill="#7C3AED"
+                    fill={CHART_SERIES[0]}
                     fillOpacity={0.6}
                     radius={[0, 3, 3, 0]}
                     label={{
                       position: 'right',
-                      fill: '#94a3b8',
+                      fill: CHART_AXIS,
                       fontSize: 11,
                       formatter: (v: number) => formatNumber(v),
                     }}
@@ -476,12 +477,12 @@ export function ChannelAnalysisPage() {
                   <Bar
                     dataKey="views"
                     name="views"
-                    fill="#06B6D4"
+                    fill={CHART_SERIES[3]}
                     fillOpacity={0.6}
                     radius={[0, 3, 3, 0]}
                     label={{
                       position: 'right',
-                      fill: '#94a3b8',
+                      fill: CHART_AXIS,
                       fontSize: 11,
                       formatter: (v: number) => formatNumber(v),
                     }}
@@ -504,7 +505,7 @@ export function ChannelAnalysisPage() {
             title="效率矩阵"
             subtitle="GPM vs 曝光-观看率，气泡大小=GMV"
             actions={
-              <div className="text-xs text-slate-500 flex items-center gap-2">
+              <div className="text-xs text-[var(--text-muted)] flex items-center gap-2">
                 <span>中位线 GPM: {formatCurrency(medianGPM)}</span>
                 <span>|</span>
                 <span>中位线 曝光-观看率: {formatPercent(medianEVR)}</span>
@@ -514,7 +515,7 @@ export function ChannelAnalysisPage() {
           <CardBody>
             {processedData.length === 0 ? (
               <div className="h-72 flex items-center justify-center border border-dashed border-orbit-border rounded-lg">
-                <p className="text-slate-500 text-sm">暂无数据</p>
+                <p className="text-[var(--text-muted)] text-sm">暂无数据</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={380}>
@@ -542,13 +543,13 @@ export function ChannelAnalysisPage() {
                   {/* quadrant lines */}
                   <ReferenceLine
                     x={medianGPM}
-                    stroke="#475569"
+                    stroke={CHART_AXIS}
                     strokeDasharray="6 3"
                     strokeWidth={1}
                   />
                   <ReferenceLine
                     y={medianEVR}
-                    stroke="#475569"
+                    stroke={CHART_AXIS}
                     strokeDasharray="6 3"
                     strokeWidth={1}
                   />
@@ -579,7 +580,7 @@ export function ChannelAnalysisPage() {
             title="渠道明细"
             subtitle="点击行查看渠道详情"
             actions={
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                 <Search className="w-3.5 h-3.5" />
                 <span>{processedData.length} 个渠道</span>
               </div>
@@ -588,7 +589,7 @@ export function ChannelAnalysisPage() {
           <CardBody className="px-0 pb-0">
             {processedData.length === 0 ? (
               <div className="h-32 flex items-center justify-center border border-dashed border-orbit-border rounded-lg mx-5 mb-4">
-                <p className="text-slate-500 text-sm">暂无数据</p>
+                <p className="text-[var(--text-muted)] text-sm">暂无数据</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -601,7 +602,7 @@ export function ChannelAnalysisPage() {
                         <th
                           key={group.key}
                           colSpan={group.columns.length}
-                          className="text-left text-xs font-semibold text-slate-500 bg-orbit-surface2/20 px-3 py-2 border-r border-orbit-border last:border-r-0 whitespace-nowrap"
+                          className="text-left text-xs font-semibold text-[var(--text-muted)] bg-orbit-surface2/20 px-3 py-2 border-r border-orbit-border last:border-r-0 whitespace-nowrap"
                         >
                           {group.label}
                         </th>
@@ -614,8 +615,8 @@ export function ChannelAnalysisPage() {
                           <th
                             key={col.key}
                             className={cn(
-                              'text-slate-500 font-medium px-3 py-2.5 whitespace-nowrap',
-                              'hover:text-slate-300 cursor-pointer select-none transition-colors',
+                              'text-[var(--text-muted)] font-medium px-3 py-2.5 whitespace-nowrap',
+                              'hover:text-[var(--text-primary)] cursor-pointer select-none transition-colors',
                               col.align === 'left' ? 'text-left' : col.align === 'center' ? 'text-center' : 'text-right',
                               ci === 0 && 'pl-6',
                               col.width,
@@ -666,8 +667,8 @@ export function ChannelAnalysisPage() {
                                   'px-3 py-3 whitespace-nowrap text-sm',
                                   col.align === 'left' ? 'text-left' : col.align === 'center' ? 'text-center' : 'text-right',
                                   col.key === 'channel'
-                                    ? 'text-slate-200 font-medium pl-6'
-                                    : 'text-slate-300',
+                                    ? 'text-[var(--text-secondary)] font-medium pl-6'
+                                    : 'text-[var(--text-secondary)]',
                                   gi === 0 && ci === 0 && 'text-left',
                                 )}
                               >
@@ -729,13 +730,13 @@ export function ChannelAnalysisPage() {
                     }}
                   />
                   <div>
-                    <h2 className="text-base font-semibold text-slate-100">{selectedChannel.channel}</h2>
-                    <p className="text-xs text-slate-500">{getChannelCategory(selectedChannel.channel)}</p>
+                    <h2 className="text-base font-semibold text-[var(--text-primary)]">{selectedChannel.channel}</h2>
+                    <p className="text-xs text-[var(--text-muted)]">{getChannelCategory(selectedChannel.channel)}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedChannel(null)}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
                 >
                   <X className="w-4.5 h-4.5" />
                 </button>
@@ -744,14 +745,14 @@ export function ChannelAnalysisPage() {
               <div className="p-6 space-y-6">
                 {/* core KPIs */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">核心指标</h3>
+                  <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">核心指标</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: '曝光', value: formatNumber(selectedChannel.impressions), icon: Eye, color: 'text-violet-400' },
+                      { label: '曝光', value: formatNumber(selectedChannel.impressions), icon: Eye, color: 'text-orbit-primary' },
                       { label: '观看', value: formatNumber(selectedChannel.views), icon: Eye, color: 'text-cyan-400' },
                       { label: 'GMV', value: formatCurrency(selectedChannel.gmv), icon: DollarSign, color: 'text-emerald-400' },
                       { label: 'GPM', value: formatCurrency(selectedChannel.gpm), icon: TrendingUp, color: 'text-amber-400' },
-                      { label: '订单数', value: formatNumber(selectedChannel.orders), icon: ShoppingBag, color: 'text-blue-400' },
+                      { label: '订单数', value: formatNumber(selectedChannel.orders), icon: ShoppingBag, color: 'text-orbit-info' },
                       { label: '客单价', value: formatCurrency(selectedChannel.avg_order_value), icon: Gem, color: 'text-pink-400' },
                       { label: 'ROI', value: roiFromData(selectedChannel).toFixed(2), icon: Activity, color: 'text-orange-400' },
                       { label: '广告花费', value: formatCurrency(selectedChannel.ad_spend), icon: DollarSign, color: 'text-red-400' },
@@ -762,8 +763,8 @@ export function ChannelAnalysisPage() {
                       >
                         <kpi.icon className={cn('w-4 h-4 flex-shrink-0', kpi.color)} />
                         <div className="min-w-0">
-                          <p className="text-[11px] text-slate-500">{kpi.label}</p>
-                          <p className="text-sm font-semibold text-slate-200 truncate">{kpi.value}</p>
+                          <p className="text-[11px] text-[var(--text-muted)]">{kpi.label}</p>
+                          <p className="text-sm font-semibold text-[var(--text-secondary)] truncate">{kpi.value}</p>
                         </div>
                       </div>
                     ))}
@@ -772,7 +773,7 @@ export function ChannelAnalysisPage() {
 
                 {/* conversion funnel mini chart */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">转化漏斗</h3>
+                  <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">转化漏斗</h3>
                   <div className="rounded-lg border border-orbit-border bg-orbit-surface2/30 p-4 space-y-3">
                     {funnelStages.map((stage, si) => {
                       const val = selectedChannel[stage.key as keyof ChannelData] as number
@@ -786,9 +787,9 @@ export function ChannelAnalysisPage() {
                       return (
                         <div key={stage.key} className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-400 w-16">{stage.label}</span>
-                            <span className="text-slate-200 font-medium">{formatNumber(val)}</span>
-                            <span className="text-slate-500 w-20 text-right">
+                            <span className="text-[var(--text-muted)] w-16">{stage.label}</span>
+                            <span className="text-[var(--text-secondary)] font-medium">{formatNumber(val)}</span>
+                            <span className="text-[var(--text-muted)] w-20 text-right">
                               {si === 0 ? '100%' : conversion.toFixed(1) + '%'}
                             </span>
                           </div>
@@ -809,17 +810,17 @@ export function ChannelAnalysisPage() {
 
                 {/* period comparison placeholder */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
                     周期对比
                     <Badge variant="neutral" className="ml-2 text-[10px]">{comparePeriod}</Badge>
                   </h3>
                   {comparePeriod === '无对比' ? (
                     <div className="h-20 flex items-center justify-center border border-dashed border-orbit-border rounded-lg">
-                      <p className="text-slate-600 text-xs">请选择对比周期</p>
+                      <p className="text-[var(--text-primary)] text-xs">请选择对比周期</p>
                     </div>
                   ) : (
                     <div className="rounded-lg border border-orbit-border bg-orbit-surface2/30 p-4">
-                      <p className="text-xs text-slate-500 text-center">周期对比数据将在后续版本中提供</p>
+                      <p className="text-xs text-[var(--text-muted)] text-center">周期对比数据将在后续版本中提供</p>
                     </div>
                   )}
                 </div>

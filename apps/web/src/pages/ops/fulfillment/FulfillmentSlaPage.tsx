@@ -204,9 +204,9 @@ export function FulfillmentSlaPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <Badge variant="info">{w.platform_name}</Badge>
-              <span className="font-mono font-medium text-slate-100">{w.order_no}</span>
+              <span className="font-mono font-medium text-[var(--text-primary)]">{w.order_no}</span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               {w.shop_name} {w.product_name ? `· ${w.product_name}` : ''}
             </p>
           </div>
@@ -217,11 +217,11 @@ export function FulfillmentSlaPage() {
         header: '物流单号',
         render: (_, w) =>
           w.waybill_no ? (
-            <span className="font-mono text-xs text-slate-300">
+            <span className="font-mono text-xs text-[var(--text-secondary)]">
               {w.carrier_code}: {w.waybill_no}
             </span>
           ) : (
-            <span className="text-xs text-slate-500">未上传运单</span>
+            <span className="text-xs text-[var(--text-muted)]">未上传运单</span>
           ),
       },
       {
@@ -230,7 +230,7 @@ export function FulfillmentSlaPage() {
         align: 'right',
         sortable: true,
         render: (_, w) => (
-          <span className="font-mono tabular-nums text-slate-200">
+          <span className="font-mono tabular-nums text-[var(--text-secondary)]">
             ¥{Number(w.order_amount).toFixed(2)}
           </span>
         ),
@@ -266,7 +266,7 @@ export function FulfillmentSlaPage() {
                       ? 'text-red-400 font-semibold'
                       : marginH < 12
                       ? 'text-amber-400'
-                      : 'text-slate-300'
+                      : 'text-[var(--text-secondary)]'
                   }
                 >
                   发货{marginH >= 0 ? `剩 ${marginH}h` : `超 ${Math.abs(marginH)}h`}
@@ -277,7 +277,7 @@ export function FulfillmentSlaPage() {
                   className={
                     pickupWait > 24 && !w.pickup_at
                       ? 'text-red-400 font-semibold'
-                      : 'text-slate-400'
+                      : 'text-[var(--text-muted)]'
                   }
                 >
                   揽收等 {pickupWait}h
@@ -295,7 +295,7 @@ export function FulfillmentSlaPage() {
         render: (_, w) => (
           <span
             className={`font-semibold tabular-nums ${
-              Number(w.estimated_penalty_amount) > 0 ? 'text-red-400' : 'text-slate-400'
+              Number(w.estimated_penalty_amount) > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'
             }`}
           >
             ¥{Number(w.estimated_penalty_amount).toFixed(2)}
@@ -346,13 +346,13 @@ export function FulfillmentSlaPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">在管履约运单</p>
-              <p className="mt-1 text-2xl font-bold text-slate-100">{overview.totalWaybills}</p>
+              <p className="text-xs text-[var(--text-muted)]">在管履约运单</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{overview.totalWaybills}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">待发货 / 无揽收</p>
+              <p className="text-xs text-[var(--text-muted)]">待发货 / 无揽收</p>
               <p className="mt-1 text-2xl font-bold text-amber-400">
                 {overview.pendingShipCount} / {overview.noPickupCount}
               </p>
@@ -360,7 +360,7 @@ export function FulfillmentSlaPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">延迟发货违约</p>
+              <p className="text-xs text-[var(--text-muted)]">延迟发货违约</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
                   overview.delayedCount > 0 ? 'text-red-400' : 'text-emerald-400'
@@ -372,7 +372,7 @@ export function FulfillmentSlaPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">虚假发货风控 (24h无揽收)</p>
+              <p className="text-xs text-[var(--text-muted)]">虚假发货风控 (24h无揽收)</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
                   overview.fakeShipRiskCount > 0 ? 'text-red-400' : 'text-emerald-400'
@@ -384,7 +384,7 @@ export function FulfillmentSlaPage() {
           </Card>
           <Card>
             <CardBody className="p-4">
-              <p className="text-xs text-slate-400">预估赔付敞口</p>
+              <p className="text-xs text-[var(--text-muted)]">预估赔付敞口</p>
               <p className="mt-1 text-2xl font-bold text-red-400">
                 ¥{overview.totalEstimatedPenalty.toFixed(2)}
               </p>
@@ -430,7 +430,7 @@ export function FulfillmentSlaPage() {
             <select
               value={table.filters.platformCode}
               onChange={(e) => table.setFilter('platformCode', e.target.value)}
-              className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-slate-200"
+              className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-xs text-[var(--text-secondary)]"
             >
               <option value="">全部平台</option>
               <option value="douyin">抖音</option>
@@ -455,7 +455,7 @@ export function FulfillmentSlaPage() {
           <Card>
             <CardHeader className="flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-amber-400" />
-              <span className="font-semibold text-slate-100">
+              <span className="font-semibold text-[var(--text-primary)]">
                 平台官方法定履约规则配置基准（platform_sla_config）
               </span>
             </CardHeader>
@@ -469,12 +469,12 @@ export function FulfillmentSlaPage() {
                   >
                     <div className="flex items-center justify-between">
                       <Badge variant="info">{r.platform_name}</Badge>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-[var(--text-muted)]">
                         发货 {r.threshold_hours}h · 揽收 {r.pickup_threshold_hours}h
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-slate-100">{r.sla_name}</p>
-                    <p className="text-xs text-slate-400">{r.penalty_note}</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{r.sla_name}</p>
+                    <p className="text-xs text-[var(--text-muted)]">{r.penalty_note}</p>
                   </div>
                 ))}
             </CardBody>
@@ -485,7 +485,7 @@ export function FulfillmentSlaPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-orbit-border bg-orbit-surface p-5 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-100">录入订单履约监控</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">录入订单履约监控</h3>
             <form onSubmit={handleCreateWaybill} className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <select
@@ -498,7 +498,7 @@ export function FulfillmentSlaPage() {
                       shopId: getDefaultShopId(nextPlatform),
                     })
                   }}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 >
                   <option value="douyin">抖音</option>
                   <option value="kuaishou">快手</option>
@@ -511,7 +511,7 @@ export function FulfillmentSlaPage() {
                   required
                   value={form.shopId}
                   onChange={(e) => setForm({ ...form, shopId: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 >
                   {getShopsByPlatform(form.platformCode).map((s) => (
                     <option key={s.id} value={s.id}>
@@ -528,7 +528,7 @@ export function FulfillmentSlaPage() {
                 placeholder="订单号"
                 value={form.orderNo}
                 onChange={(e) => setForm({ ...form, orderNo: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               />
               <div className="grid grid-cols-2 gap-3">
                 <input
@@ -538,23 +538,23 @@ export function FulfillmentSlaPage() {
                   placeholder="订单实付金额"
                   value={form.orderAmount}
                   onChange={(e) => setForm({ ...form, orderAmount: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
                 <input
                   placeholder="承运商 (如 SF/YTO)"
                   value={form.carrierCode}
                   onChange={(e) => setForm({ ...form, carrierCode: e.target.value })}
-                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                  className="h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
               <input
                 placeholder="快递单号（选填，留空则进入待发货倒计时）"
                 value={form.waybillNo}
                 onChange={(e) => setForm({ ...form, waybillNo: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-slate-100"
+                className="w-full h-9 px-3 rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
               />
               {form.platformCode === 'pdd' && (
-                <label className="flex items-center gap-2 text-xs text-slate-300">
+                <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                   <input
                     type="checkbox"
                     checked={form.isCustomPresale}

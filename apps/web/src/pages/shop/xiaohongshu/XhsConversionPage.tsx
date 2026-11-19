@@ -80,16 +80,16 @@ export function XhsConversionPage() {
       <motion.div {...fadeIn}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-100">种草转化链路</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">种草转化链路</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               曝光 → 阅读 → 商品点击 → 成交 · 含搜索分析与站内外拆分
             </p>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-700 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -97,13 +97,13 @@ export function XhsConversionPage() {
       </motion.div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">加载中…</div>
+        <div className="py-20 text-center text-sm text-[var(--text-muted)]">加载中…</div>
       ) : !hasData ? (
         <Card><CardBody>
           <div className="py-14 text-center">
-            <Filter className="mx-auto h-10 w-10 text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400">暂无笔记数据</p>
-            <p className="mt-1 text-xs text-slate-600">需从千帆导出笔记数据后导入</p>
+            <Filter className="mx-auto h-10 w-10 text-[var(--text-primary)]" />
+            <p className="mt-3 text-sm text-[var(--text-muted)]">暂无笔记数据</p>
+            <p className="mt-1 text-xs text-[var(--text-primary)]">需从千帆导出笔记数据后导入</p>
           </div>
         </CardBody></Card>
       ) : (
@@ -122,7 +122,7 @@ export function XhsConversionPage() {
                     rate={null}
                     max={funnel!.stages.impressions.count}
                     note={funnel!.stages.impressions.note}
-                    color="bg-slate-600"
+                    color="bg-[var(--text-subtle)]"
                   />
                   <FunnelStage
                     label={funnel!.stages.reads.label}
@@ -138,7 +138,7 @@ export function XhsConversionPage() {
                     rate={funnel!.stages.productClicks.rate}
                     max={funnel!.stages.impressions.count}
                     note={funnel!.stages.productClicks.note}
-                    color="bg-violet-600"
+                    color="bg-orbit-primary"
                   />
                   <FunnelStage
                     label={funnel!.stages.conversions.label}
@@ -171,22 +171,22 @@ export function XhsConversionPage() {
                       占比 {fmtPct(funnel!.gmv.onsite > 0 ? (100 - (funnel!.gmv.offsiteShare ?? 0)) : null)}
                     </div>
                   </div>
-                  <div className="rounded-lg border border-violet-600/40 bg-violet-500/5 p-3">
-                    <div className="text-xs text-violet-400">站外成交</div>
-                    <div className="mt-1.5 text-xl font-semibold text-violet-300">
+                  <div className="rounded-lg border border-orbit-primary/40 bg-orbit-primary/5 p-3">
+                    <div className="text-xs text-orbit-primary">站外成交</div>
+                    <div className="mt-1.5 text-xl font-semibold text-orbit-primary">
                       {funnel!.gmv.offsite > 0 ? fmtMoney(funnel!.gmv.offsite) : '—'}
                     </div>
-                    <div className="mt-1 text-[11px] text-violet-500/70">
+                    <div className="mt-1 text-[11px] text-orbit-primary/70">
                       {funnel!.gmv.offsite > 0 ? `占比 ${fmtPct(funnel!.gmv.offsiteShare)}` : '未接入小红星回传数据'}
                     </div>
                   </div>
-                  <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
-                    <div className="text-xs text-slate-400">总成交</div>
-                    <div className="mt-1.5 text-xl font-semibold text-slate-100">{fmtMoney(funnel!.gmv.total)}</div>
-                    <div className="mt-1 text-[11px] text-slate-500">站内 + 站外</div>
+                  <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
+                    <div className="text-xs text-[var(--text-muted)]">总成交</div>
+                    <div className="mt-1.5 text-xl font-semibold text-[var(--text-primary)]">{fmtMoney(funnel!.gmv.total)}</div>
+                    <div className="mt-1 text-[11px] text-[var(--text-muted)]">站内 + 站外</div>
                   </div>
                 </div>
-                <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+                <p className="mt-3 text-[11px] leading-relaxed text-[var(--text-muted)]">
                   小红书的 GMV 天然有两个口径：站内成交（店铺/直播内完成）与站外成交（通过红猫/红京/红美等广告挂链跳转外部平台完成，
                   依赖小红星/小红盟回传）。若站外数据为 0，说明尚未接入对应回传渠道。
                 </p>
@@ -211,16 +211,16 @@ export function XhsConversionPage() {
                       <div className="mt-1.5 text-xl font-semibold text-emerald-300">{fmt(search.search.impressions)}</div>
                       <div className="mt-1 text-[11px] text-emerald-500/70">占比 {fmtPct(search.search.searchShare)}</div>
                     </div>
-                    <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
-                      <div className="text-xs text-slate-400">推荐曝光</div>
-                      <div className="mt-1.5 text-xl font-semibold text-slate-100">{fmt(search.recommend.impressions)}</div>
-                      <div className="mt-1 text-[11px] text-slate-500">占比 {fmtPct(search.recommend.share)}</div>
+                    <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
+                      <div className="text-xs text-[var(--text-muted)]">推荐曝光</div>
+                      <div className="mt-1.5 text-xl font-semibold text-[var(--text-primary)]">{fmt(search.recommend.impressions)}</div>
+                      <div className="mt-1 text-[11px] text-[var(--text-muted)]">占比 {fmtPct(search.recommend.share)}</div>
                     </div>
-                    <div className="flex items-center rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
-                      <p className="text-xs text-slate-300">{search.assessment}</p>
+                    <div className="flex items-center rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
+                      <p className="text-xs text-[var(--text-secondary)]">{search.assessment}</p>
                     </div>
                   </div>
-                  <p className="mt-3 text-[11px] leading-relaxed text-slate-500">{search.search.note}</p>
+                  <p className="mt-3 text-[11px] leading-relaxed text-[var(--text-muted)]">{search.search.note}</p>
                 </CardBody>
               </Card>
             </motion.div>
@@ -239,21 +239,21 @@ export function XhsConversionPage() {
                 <CardBody>
                   <div className="grid gap-2 sm:grid-cols-4">
                     {aips.stages.map((s, i) => (
-                      <div key={s.code} className="relative rounded-lg border border-slate-700/60 bg-slate-800/40 p-3">
+                      <div key={s.code} className="relative rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
                         <div className="flex items-center gap-1.5">
                           <span className="flex h-5 w-5 items-center justify-center rounded bg-cyan-500/20 text-[10px] font-bold text-cyan-300">
                             {s.code}
                           </span>
-                          <span className="text-xs font-medium text-slate-200">{s.name}</span>
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">{s.name}</span>
                         </div>
-                        <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">{s.description}</p>
+                        <p className="mt-1.5 text-[11px] leading-relaxed text-[var(--text-muted)]">{s.description}</p>
                         {i < aips.stages.length - 1 && (
-                          <ArrowRight className="absolute -right-2 top-1/2 hidden h-3 w-3 -translate-y-1/2 text-slate-700 sm:block" />
+                          <ArrowRight className="absolute -right-2 top-1/2 hidden h-3 w-3 -translate-y-1/2 text-[var(--text-primary)] sm:block" />
                         )}
                       </div>
                     ))}
                   </div>
-                  <p className="mt-3 text-[11px] leading-relaxed text-slate-500">{aips.note}</p>
+                  <p className="mt-3 text-[11px] leading-relaxed text-[var(--text-muted)]">{aips.note}</p>
                 </CardBody>
               </Card>
             </motion.div>
@@ -277,16 +277,16 @@ function FunnelStage({ label, count, rate, max, note, color, unit }: {
   return (
     <div>
       <div className="flex items-baseline justify-between text-xs">
-        <span className="text-slate-300">{label}</span>
+        <span className="text-[var(--text-secondary)]">{label}</span>
         <span className="flex items-center gap-2">
-          <span className="font-mono text-slate-200">{fmt(count)}{unit || ''}</span>
+          <span className="font-mono text-[var(--text-secondary)]">{fmt(count)}{unit || ''}</span>
           {rate !== null && <Badge variant="info">{fmtPct(rate)}</Badge>}
         </span>
       </div>
-      <div className="mt-1 h-6 overflow-hidden rounded bg-slate-800">
+      <div className="mt-1 h-6 overflow-hidden rounded bg-orbit-ink">
         <div className={`h-full ${color} transition-all`} style={{ width: `${width}%` }} />
       </div>
-      <p className="mt-0.5 text-[10px] text-slate-600">{note}</p>
+      <p className="mt-0.5 text-[10px] text-[var(--text-primary)]">{note}</p>
     </div>
   )
 }

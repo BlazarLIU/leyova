@@ -34,7 +34,7 @@ const statusConfig: Record<string, { variant: 'success' | 'warning' | 'danger'; 
 const dimensionConfig = [
   { key: 'interactionScore' as const, label: '互动分', icon: MessageCircle, color: 'bg-cyan-500/15 text-cyan-400' },
   { key: 'conversionScore' as const, label: '转化分', icon: TrendingUp, color: 'bg-emerald-500/15 text-emerald-400' },
-  { key: 'contentScore' as const, label: '内容分', icon: Film, color: 'bg-violet-500/15 text-violet-400' },
+  { key: 'contentScore' as const, label: '内容分', icon: Film, color: 'bg-orbit-primary/15 text-orbit-primary' },
   { key: 'trafficScore' as const, label: '流量分', icon: Radio, color: 'bg-orange-500/15 text-orange-400' },
 ]
 
@@ -65,8 +65,8 @@ export function RoomHealthPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">直播间健康度</h1>
-            <p className="text-slate-500 text-sm mt-1">直播间健康评估</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">直播间健康度</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">直播间健康评估</p>
           </div>
           <Badge variant="info" dot>实时监测中</Badge>
         </div>
@@ -86,8 +86,8 @@ export function RoomHealthPage() {
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-medium">健康直播间</p>
-                <p className="text-lg font-bold text-slate-100">
+                <p className="text-xs text-[var(--text-muted)] font-medium">健康直播间</p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">
                   {rooms.filter((r) => r.status === 'healthy').length} 个
                 </p>
               </div>
@@ -101,8 +101,8 @@ export function RoomHealthPage() {
                 <AlertTriangle className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-medium">亚健康直播间</p>
-                <p className="text-lg font-bold text-slate-100">
+                <p className="text-xs text-[var(--text-muted)] font-medium">亚健康直播间</p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">
                   {rooms.filter((r) => r.status === 'warning').length} 个
                 </p>
               </div>
@@ -116,8 +116,8 @@ export function RoomHealthPage() {
                 <ShieldAlert className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-medium">危险直播间</p>
-                <p className="text-lg font-bold text-slate-100">
+                <p className="text-xs text-[var(--text-muted)] font-medium">危险直播间</p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">
                   {rooms.filter((r) => r.status === 'danger').length} 个
                 </p>
               </div>
@@ -155,7 +155,7 @@ export function RoomHealthPage() {
                         <Radio className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold text-slate-200">{room.name}</h3>
+                        <h3 className="text-sm font-semibold text-[var(--text-secondary)]">{room.name}</h3>
                         <Badge variant={status.variant} dot>{status.label}</Badge>
                       </div>
                     </div>
@@ -193,7 +193,7 @@ export function RoomHealthPage() {
                         {room.healthScore}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500">健康分</p>
+                    <p className="text-xs text-[var(--text-muted)]">健康分</p>
                   </div>
 
                   {/* Dimension scores */}
@@ -207,7 +207,7 @@ export function RoomHealthPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
-                              <span className="text-[10px] text-slate-500">{dim.label}</span>
+                              <span className="text-[10px] text-[var(--text-muted)]">{dim.label}</span>
                               <span className={cn('text-[10px] font-medium', getHealthTextColor(score))}>
                                 {score}
                               </span>

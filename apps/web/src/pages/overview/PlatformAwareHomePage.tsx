@@ -237,7 +237,7 @@ function buildQuickEntries(platformCode: string): QuickEntry[] {
   if (platformCode === 'kuaishou') {
     base.push(
       { label: '公私域分析', desc: '关注页 vs 发现页成交', icon: Users, href: '/shop/kuaishou/traffic-split', color: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/30', textColor: 'text-emerald-300' },
-      { label: '间接成交', desc: '广告触达后的二次转化', icon: Megaphone, href: '/shop/kuaishou/indirect-gmv', color: 'from-violet-500/20 to-violet-600/10', border: 'border-violet-500/30', textColor: 'text-violet-300' },
+      { label: '间接成交', desc: '广告触达后的二次转化', icon: Megaphone, href: '/shop/kuaishou/indirect-gmv', color: 'from-orbit-primary/20 to-orbit-primary-dark/10', border: 'border-orbit-primary/30', textColor: 'text-orbit-primary' },
       { label: '粉丝团运营', desc: '入团率与亲密度', icon: Users, href: '/shop/kuaishou/fans-team', color: 'from-pink-500/20 to-pink-600/10', border: 'border-pink-500/30', textColor: 'text-pink-300' },
     )
   } else if (platformCode === 'pdd') {
@@ -264,8 +264,8 @@ function buildQuickEntries(platformCode: string): QuickEntry[] {
 
   // 通用入口
   base.push(
-    { label: '经营分析工作台', desc: 'AI 四阶分析', icon: Sparkles, href: '/ai/workbench', color: 'from-purple-500/20 to-purple-600/10', border: 'border-purple-500/30', textColor: 'text-purple-300' },
-    { label: '全渠道大盘', desc: '跨平台对比', icon: TrendingUp, href: '/omnichannel/dashboard', color: 'from-slate-500/20 to-slate-600/10', border: 'border-slate-500/30', textColor: 'text-slate-300' },
+    { label: '经营分析工作台', desc: 'AI 四阶分析', icon: Sparkles, href: '/ai/workbench', color: 'from-orbit-primary/20 to-orbit-primary-dark/10', border: 'border-orbit-primary/30', textColor: 'text-orbit-primary' },
+    { label: '全渠道大盘', desc: '跨平台对比', icon: TrendingUp, href: '/omnichannel/dashboard', color: 'from-[var(--surface3)] to-[var(--surface2)]', border: 'border-orbit-border', textColor: 'text-[var(--text-secondary)]' },
   )
 
   return base.slice(0, 8)

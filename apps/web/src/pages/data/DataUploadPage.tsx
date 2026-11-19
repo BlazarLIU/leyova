@@ -268,8 +268,8 @@ export function DataUploadPage() {
       <motion.div {...fadeIn}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">数据上传</h1>
-            <p className="text-slate-500 text-sm mt-1">数据文件上传与导入</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">数据上传</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-1">数据文件上传与导入</p>
           </div>
         </div>
       </motion.div>
@@ -284,11 +284,11 @@ export function DataUploadPage() {
           <CardBody>
             {/* Data type selector */}
             <div className="mb-4 flex items-center gap-3">
-              <label className="text-xs text-slate-500">数据类型：</label>
+              <label className="text-xs text-[var(--text-muted)]">数据类型：</label>
               <select
                 value={dataType}
                 onChange={e => setDataType(e.target.value)}
-                className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-slate-300 outline-none"
+                className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
               >
                 {dataTypeOptions.map(opt => (
                   <option key={opt.value} value={opt.value} className="bg-orbit-surface">{opt.label}</option>
@@ -325,13 +325,13 @@ export function DataUploadPage() {
                   )}>
                     <Upload className={cn(
                       'w-10 h-10 transition-colors',
-                      isDragOver ? 'text-orbit-primary-light' : 'text-slate-500'
+                      isDragOver ? 'text-orbit-primary-light' : 'text-[var(--text-muted)]'
                     )} />
                   </div>
-                  <p className="text-sm text-slate-300 mb-2">
+                  <p className="text-sm text-[var(--text-secondary)] mb-2">
                     {isDragOver ? '释放文件以上传' : '拖拽文件到此处，或点击上传'}
                   </p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-[var(--text-primary)]">
                     支持 CSV、Excel (.xlsx/.xls) 格式
                   </p>
                 </>
@@ -340,8 +340,8 @@ export function DataUploadPage() {
                   <div className="p-3 rounded-2xl bg-orbit-accent/15 mb-4">
                     <FileText className="w-8 h-8 text-orbit-accent-light" />
                   </div>
-                  <p className="text-sm font-medium text-slate-200 mb-1">{uploadedFile.name}</p>
-                  <p className="text-xs text-slate-500 mb-4">
+                  <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">{uploadedFile.name}</p>
+                  <p className="text-xs text-[var(--text-muted)] mb-4">
                     {(uploadedFile.size / (1024 * 1024)).toFixed(1)} MB
                   </p>
                   <div className="flex items-center gap-3">
@@ -369,8 +369,8 @@ export function DataUploadPage() {
             </div>
 
             {/* File format hints */}
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-600">
-              <span className="font-medium text-slate-500">支持格式：</span>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[var(--text-primary)]">
+              <span className="font-medium text-[var(--text-muted)]">支持格式：</span>
               {allowedFormats.map(fmt => (
                 <span key={fmt} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orbit-surface3">
                   <FileText className="w-3 h-3" />
@@ -400,9 +400,9 @@ export function DataUploadPage() {
             <CardBody>
               {/* Validation summary */}
               <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
-                <div className="flex items-center gap-1.5 text-slate-400">
+                <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
                   <FileText className="w-4 h-4" />
-                  <span>共 <strong className="text-slate-200">{preview.totalRows}</strong> 行</span>
+                  <span>共 <strong className="text-[var(--text-secondary)]">{preview.totalRows}</strong> 行</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-emerald-400">
                   <CheckCircle className="w-4 h-4" />
@@ -425,7 +425,7 @@ export function DataUploadPage() {
               {/* Validation issues */}
               {preview.issues.length > 0 && (
                 <div className="mb-4 p-3 rounded-lg bg-orbit-surface2 border border-orbit-border">
-                  <p className="text-xs font-medium text-slate-400 mb-2">校验问题：</p>
+                  <p className="text-xs font-medium text-[var(--text-muted)] mb-2">校验问题：</p>
                   <ul className="space-y-1">
                     {preview.issues.slice(0, 10).map((issue, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs">
@@ -433,8 +433,8 @@ export function DataUploadPage() {
                           'shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full',
                           issue.severity === 'error' ? 'bg-red-400' : 'bg-amber-400'
                         )} />
-                        <span className="text-slate-400">
-                          第 {issue.row} 行 · <strong className="text-slate-500">{issue.field}</strong> — {issue.message}
+                        <span className="text-[var(--text-muted)]">
+                          第 {issue.row} 行 · <strong className="text-[var(--text-muted)]">{issue.field}</strong> — {issue.message}
                         </span>
                       </li>
                     ))}
@@ -445,15 +445,15 @@ export function DataUploadPage() {
               {/* Channel analysis: date + session selector */}
               {preview.detectedType === 'channel_analysis' && (
                 <div className="mb-4 p-4 rounded-lg bg-orbit-surface2 border border-orbit-border">
-                  <p className="text-xs font-medium text-slate-400 mb-3">渠道分析导入设置：</p>
+                  <p className="text-xs font-medium text-[var(--text-muted)] mb-3">渠道分析导入设置：</p>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <label className="text-xs text-slate-500 w-24">业务日期：</label>
+                      <label className="text-xs text-[var(--text-muted)] w-24">业务日期：</label>
                       <input
                         type="date"
                         value={uploadBusinessDate || preview.businessDate || ''}
                         onChange={e => setUploadBusinessDate(e.target.value)}
-                        className="text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-slate-300 outline-none"
+                        className="text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                       />
                       {!preview.businessDate && (
                         <span className="text-xs text-amber-400">未能从文件名识别日期，请手动选择</span>
@@ -461,11 +461,11 @@ export function DataUploadPage() {
                     </div>
                     {preview.sessionsForDate && preview.sessionsForDate.length > 0 && (
                       <div className="flex items-center gap-3">
-                        <label className="text-xs text-slate-500 w-24">关联场次（可选）：</label>
+                        <label className="text-xs text-[var(--text-muted)] w-24">关联场次（可选）：</label>
                         <select
                           value={sessionId ?? ''}
                           onChange={e => setSessionId(e.target.value ? Number(e.target.value) : null)}
-                          className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-slate-300 outline-none"
+                          className="text-xs bg-orbit-surface2 border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                         >
                           <option value="" className="bg-orbit-surface">不关联（仅渠道分析）</option>
                           {preview.sessionsForDate.map(s => (
@@ -483,15 +483,15 @@ export function DataUploadPage() {
               {/* Room assignment for anchors without rooms */}
               {preview.anchorsMissingRooms && preview.anchorsMissingRooms.length > 0 && preview.availableRooms && preview.availableRooms.length > 0 && (
                 <div className="mb-4 p-4 rounded-lg bg-orbit-surface2 border border-orbit-border">
-                  <p className="text-xs font-medium text-slate-400 mb-3">以下主播缺少关联直播间，请选择直播间：</p>
+                  <p className="text-xs font-medium text-[var(--text-muted)] mb-3">以下主播缺少关联直播间，请选择直播间：</p>
                   <div className="space-y-2">
                     {preview.anchorsMissingRooms.map(name => (
                       <div key={name} className="flex items-center gap-3">
-                        <span className="text-xs text-slate-300 w-20 shrink-0">{name}</span>
+                        <span className="text-xs text-[var(--text-secondary)] w-20 shrink-0">{name}</span>
                         <select
                           value={roomAssignments[name] ?? ''}
                           onChange={e => setRoomAssignments(prev => ({ ...prev, [name]: Number(e.target.value) }))}
-                          className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-slate-300 outline-none"
+                          className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                         >
                           <option value="" className="bg-orbit-surface">请选择直播间</option>
                           {preview.availableRooms?.map(room => (
@@ -515,7 +515,7 @@ export function DataUploadPage() {
                   <div className="space-y-3">
                     {preview.unmatchedAnchors.map(name => (
                       <div key={name} className="flex items-center gap-3">
-                        <span className="text-xs text-slate-300 w-20 shrink-0 font-medium">{name}</span>
+                        <span className="text-xs text-[var(--text-secondary)] w-20 shrink-0 font-medium">{name}</span>
                         <select
                           value={anchorMappings[name] === 'create' ? 'create' : String(anchorMappings[name])}
                           onChange={e => {
@@ -525,7 +525,7 @@ export function DataUploadPage() {
                               [name]: val === 'create' ? 'create' : Number(val),
                             }))
                           }}
-                          className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-slate-300 outline-none"
+                          className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                         >
                           <option value="create" className="bg-orbit-surface">✨ 创建新主播</option>
                           {preview.allAnchors?.map(a => (
@@ -543,23 +543,23 @@ export function DataUploadPage() {
               {/* Full Session: Date + Room selection */}
               {preview.isFullSession && (
                 <div className="mb-4 p-4 rounded-lg bg-orbit-surface2 border border-orbit-border">
-                  <p className="text-xs font-medium text-slate-400 mb-3">整场数据导入设置：</p>
+                  <p className="text-xs font-medium text-[var(--text-muted)] mb-3">整场数据导入设置：</p>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <label className="text-xs text-slate-500 w-24">业务日期：</label>
+                      <label className="text-xs text-[var(--text-muted)] w-24">业务日期：</label>
                       <input
                         type="date"
                         value={uploadBusinessDate}
                         onChange={e => setUploadBusinessDate(e.target.value)}
-                        className="text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-slate-300 outline-none"
+                        className="text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                       />
                     </div>
                     <div className="flex items-center gap-3">
-                      <label className="text-xs text-slate-500 w-24">选择直播间：</label>
+                      <label className="text-xs text-[var(--text-muted)] w-24">选择直播间：</label>
                       <select
                         value={selectedRoomId ?? ''}
                         onChange={e => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}
-                        className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-slate-300 outline-none"
+                        className="flex-1 text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                       >
                         <option value="" className="bg-orbit-surface">请选择直播间</option>
                         {preview.availableRooms?.map(room => (
@@ -571,10 +571,10 @@ export function DataUploadPage() {
                     </div>
                     {preview.sheetNames && preview.sheetNames.length > 0 && (
                       <div className="flex items-center gap-3">
-                        <label className="text-xs text-slate-500 w-24">识别到工作表：</label>
+                        <label className="text-xs text-[var(--text-muted)] w-24">识别到工作表：</label>
                         <div className="flex flex-wrap gap-1.5">
                           {preview.sheetNames.map(name => (
-                            <span key={name} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-orbit-surface3 text-slate-400 border border-orbit-border">
+                            <span key={name} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-orbit-surface3 text-[var(--text-muted)] border border-orbit-border">
                               {name}
                             </span>
                           ))}
@@ -591,7 +591,7 @@ export function DataUploadPage() {
                   <thead>
                     <tr className="bg-orbit-surface2 border-b border-orbit-border">
                       {preview.previewRows.length > 0 && Object.keys(preview.previewRows[0]).map((key) => (
-                        <th key={key} className="text-left px-3 py-2 text-slate-500 font-medium whitespace-nowrap">
+                        <th key={key} className="text-left px-3 py-2 text-[var(--text-muted)] font-medium whitespace-nowrap">
                           {key}
                         </th>
                       ))}
@@ -601,7 +601,7 @@ export function DataUploadPage() {
                     {preview.previewRows.map((row, ri) => (
                       <tr key={ri} className="border-b border-orbit-border/50 hover:bg-white/5">
                         {Object.values(row).map((val, ci) => (
-                          <td key={ci} className="px-3 py-2 text-slate-300 truncate max-w-48" title={String(val)}>
+                          <td key={ci} className="px-3 py-2 text-[var(--text-secondary)] truncate max-w-48" title={String(val)}>
                             {String(val ?? '')}
                           </td>
                         ))}
@@ -611,7 +611,7 @@ export function DataUploadPage() {
                 </table>
               </div>
               {preview.totalRows > preview.previewRows.length && (
-                <p className="text-xs text-slate-600 mt-2">
+                <p className="text-xs text-[var(--text-primary)] mt-2">
                   仅显示前 {preview.previewRows.length} 行，共 {preview.totalRows} 行
                 </p>
               )}
@@ -653,12 +653,12 @@ export function DataUploadPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-orbit-border">
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">文件名</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">大小</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">类型</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">上传时间</th>
-                    <th className="text-left text-xs text-slate-500 font-medium px-5 py-3">状态</th>
-                    <th className="text-right text-xs text-slate-500 font-medium px-5 py-3">操作</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">文件名</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">大小</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">类型</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">上传时间</th>
+                    <th className="text-left text-xs text-[var(--text-muted)] font-medium px-5 py-3">状态</th>
+                    <th className="text-right text-xs text-[var(--text-muted)] font-medium px-5 py-3">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -674,15 +674,15 @@ export function DataUploadPage() {
                       >
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-slate-600 flex-shrink-0" />
-                            <span className="text-slate-200 font-medium truncate max-w-64">
+                            <FileText className="w-4 h-4 text-[var(--text-primary)] flex-shrink-0" />
+                            <span className="text-[var(--text-secondary)] font-medium truncate max-w-64">
                               {record.fileName}
                             </span>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-slate-400">{record.fileSize}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-muted)]">{record.fileSize}</td>
                         <td className="px-5 py-3.5">{record.fileType}</td>
-                        <td className="px-5 py-3.5 text-slate-400 text-xs">{record.uploadTime}</td>
+                        <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{record.uploadTime}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex flex-col gap-1">
                             <Badge variant={statusInfo.variant} dot>
@@ -699,10 +699,10 @@ export function DataUploadPage() {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => handleDownload(record)} className="p-1.5 text-slate-600 hover:text-cyan-400 transition-colors rounded-lg hover:bg-white/5">
+                            <button onClick={() => handleDownload(record)} className="p-1.5 text-[var(--text-primary)] hover:text-cyan-400 transition-colors rounded-lg hover:bg-white/5">
                               <Download className="w-4 h-4" />
                             </button>
-                            <button onClick={() => setDeletingRecord(record)} className="p-1.5 text-slate-600 hover:text-orbit-danger transition-colors rounded-lg hover:bg-white/5">
+                            <button onClick={() => setDeletingRecord(record)} className="p-1.5 text-[var(--text-primary)] hover:text-orbit-danger transition-colors rounded-lg hover:bg-white/5">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -716,8 +716,8 @@ export function DataUploadPage() {
 
             {uploadHistory.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Upload className="w-12 h-12 text-slate-700 mb-3" />
-                <p className="text-sm text-slate-500">暂无上传记录</p>
+                <Upload className="w-12 h-12 text-[var(--text-primary)] mb-3" />
+                <p className="text-sm text-[var(--text-muted)]">暂无上传记录</p>
               </div>
             )}
           </CardBody>
@@ -727,8 +727,8 @@ export function DataUploadPage() {
       {deletingRecord !== null && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setDeletingRecord(null)}>
           <div className="bg-orbit-surface border border-orbit-border rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-200 mb-2">确认删除</h3>
-            <p className="text-sm text-slate-400 mb-6">确定要删除上传记录「{deletingRecord.fileName}」吗？此操作不可撤销。</p>
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mb-2">确认删除</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6">确定要删除上传记录「{deletingRecord.fileName}」吗？此操作不可撤销。</p>
             <div className="flex items-center justify-end gap-3">
               <Button variant="ghost" onClick={() => setDeletingRecord(null)}>取消</Button>
               <Button variant="destructive" onClick={handleDeleteUploadConfirm}>确认删除</Button>
