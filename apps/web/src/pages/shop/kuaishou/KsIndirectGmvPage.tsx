@@ -89,7 +89,7 @@ export function KsIndirectGmvPage() {
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -97,13 +97,13 @@ export function KsIndirectGmvPage() {
       </motion.div>
 
       {/* 概念说明 */}
-      <div className="flex items-start gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/5 p-3 text-xs text-cyan-300/90">
+      <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-ai/90">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div>
           <span className="font-medium">什么是「间接成交」？</span>
-          <p className="mt-1 text-cyan-400/70">
-            用户点击广告后<strong className="text-cyan-300">没有直接下单</strong>，
-            但在<strong className="text-cyan-300">当天内</strong>通过关注页、搜索、购物车、个人主页或橱窗再次触达店铺并成交。
+          <p className="mt-1 text-status-ai/70">
+            用户点击广告后<strong className="text-status-ai">没有直接下单</strong>，
+            但在<strong className="text-status-ai">当天内</strong>通过关注页、搜索、购物车、个人主页或橱窗再次触达店铺并成交。
             快手把它列为官方一级指标，因为它体现了私域承接能力——<em>广告不只是即时转化，更在养鱼塘</em>。
           </p>
         </div>
@@ -128,7 +128,7 @@ export function KsIndirectGmvPage() {
               <CardBody>
                 <div className="mb-4 flex h-10 overflow-hidden rounded-lg">
                   <div
-                    className="flex items-center justify-center bg-cyan-600/70 text-xs font-medium text-white"
+                    className="flex items-center justify-center bg-orbit-success/70 text-xs font-medium text-white"
                     style={{ width: `${100 - ratio}%` }}
                   >
                     {(100 - ratio) >= 15 && `直接 ${(100 - ratio).toFixed(1)}%`}
@@ -142,13 +142,13 @@ export function KsIndirectGmvPage() {
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-lg border border-cyan-600/40 bg-cyan-500/5 p-3">
-                    <div className="text-xs text-cyan-400">直接成交</div>
+                  <div className="rounded-lg border border-orbit-success/40 bg-orbit-success/5 p-3">
+                    <div className="text-xs text-status-ai">直接成交</div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                      <span className="text-xl font-semibold text-cyan-300">{fmt(indirect!.direct.gmv)}</span>
-                      <span className="text-xs text-cyan-500/70">{fmtPct(indirect!.direct.share)}</span>
+                      <span className="text-xl font-semibold text-status-ai">{fmt(indirect!.direct.gmv)}</span>
+                      <span className="text-xs text-status-ai/70">{fmtPct(indirect!.direct.share)}</span>
                     </div>
-                    <p className="mt-1.5 text-[11px] text-cyan-500/60">{indirect!.direct.note}</p>
+                    <p className="mt-1.5 text-[11px] text-status-ai/60">{indirect!.direct.note}</p>
                   </div>
                   <div className="rounded-lg border border-orbit-primary/40 bg-orbit-primary/5 p-3">
                     <div className="text-xs text-orbit-primary">间接成交（快手特色）</div>
@@ -197,9 +197,9 @@ export function KsIndirectGmvPage() {
 
                   {/* 双源对账 */}
                   {adRoi.comparison.merchantGmv > 0 && (
-                    <div className="mt-3 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3">
+                    <div className="mt-3 rounded-lg border border-orbit-warning/25 bg-orbit-warning/5 p-3">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="text-amber-400">双源对比</span>
+                        <span className="text-status-warning">双源对比</span>
                         <span className="text-[var(--text-muted)]">金牛口径:</span>
                         <span className="font-mono text-[var(--text-secondary)]">{fmt(adRoi.comparison.adPlatformGmv)}</span>
                         <span className="text-[var(--text-muted)]">生意通口径:</span>
@@ -210,7 +210,7 @@ export function KsIndirectGmvPage() {
                           </Badge>
                         )}
                       </div>
-                      <p className="mt-1.5 text-[11px] leading-relaxed text-amber-400/70">
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-status-warning/70">
                         {adRoi.comparison.warning}
                       </p>
                     </div>
@@ -230,11 +230,11 @@ function RoiCard({ label, value, note, highlight }: {
 }) {
   return (
     <div className={`rounded-lg border p-3 ${
-      highlight ? 'border-cyan-600/40 bg-cyan-500/5' : 'border-[var(--border)] bg-orbit-ink/40'
+      highlight ? 'border-orbit-success/40 bg-orbit-success/5' : 'border-[var(--border)] bg-orbit-ink/40'
     }`}>
-      <div className={`text-xs ${highlight ? 'text-cyan-400' : 'text-[var(--text-muted)]'}`}>{label}</div>
+      <div className={`text-xs ${highlight ? 'text-status-ai' : 'text-[var(--text-muted)]'}`}>{label}</div>
       <div className={`mt-1.5 text-xl font-semibold ${
-        value === null ? 'text-[var(--text-primary)]' : highlight ? 'text-cyan-300' : 'text-[var(--text-primary)]'
+        value === null ? 'text-[var(--text-primary)]' : highlight ? 'text-status-ai' : 'text-[var(--text-primary)]'
       }`}>
         {value === null ? '—' : value.toFixed(2)}
       </div>

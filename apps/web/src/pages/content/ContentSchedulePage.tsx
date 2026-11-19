@@ -165,7 +165,7 @@ export function ContentSchedulePage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-cyan-400" />
+            <CalendarDays className="w-5 h-5 text-status-ai" />
             内容排产工作流、广审校验与多端归因台账
           </h1>
           <p className="text-xs text-[var(--text-muted)] mt-1">
@@ -187,13 +187,13 @@ export function ContentSchedulePage() {
       </div>
 
       {notice && (
-        <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-300">
+        <div className="rounded-xl border border-orbit-success/40 bg-orbit-success/10 px-4 py-2.5 text-xs text-status-success">
           {notice}
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs text-rose-300 flex items-center justify-between">
+        <div className="rounded-xl border border-orbit-danger/40 bg-orbit-danger/10 px-4 py-3 text-xs text-status-danger flex items-center justify-between">
           <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</span>
           <Button size="sm" variant="secondary" onClick={load}>重试</Button>
         </div>
@@ -277,7 +277,7 @@ export function ContentSchedulePage() {
                 {schedules.map((row) => {
                   const stageObj = STAGES.find((s) => s.code === row.stage)
                   return (
-                    <tr key={row.id} className="border-b border-orbit-border/60 hover:bg-white/5">
+                    <tr key={row.id} className="border-b border-orbit-border/60 hover:bg-[var(--hover-bg)]">
                       <td className="px-4 py-3 text-[var(--text-secondary)]">
                         <div className="font-medium">{row.title}</div>
                         <div className="text-[11px] text-[var(--text-muted)] mt-0.5">{row.topic_category} · {row.script_summary}</div>
@@ -297,11 +297,11 @@ export function ContentSchedulePage() {
                       </td>
                       <td className="px-4 py-3">
                         {row.compliance_checked ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-400">
+                          <span className="inline-flex items-center gap-1 text-status-success">
                             <CheckCircle2 className="w-3.5 h-3.5" />已核验
                           </span>
                         ) : (
-                          <span className="text-amber-400">待广审确认</span>
+                          <span className="text-status-warning">待广审确认</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -359,7 +359,7 @@ export function ContentSchedulePage() {
                 </thead>
                 <tbody>
                   {attribution.items.map((it) => (
-                    <tr key={it.id} className="border-b border-orbit-border/60 hover:bg-white/5">
+                    <tr key={it.id} className="border-b border-orbit-border/60 hover:bg-[var(--hover-bg)]">
                       <td className="px-4 py-2.5 text-[var(--text-secondary)]">
                         <div className="font-mono text-[11px]">{it.content_id}</div>
                         <div className="text-[var(--text-muted)]">{it.schedule_title || '-'}</div>
@@ -370,9 +370,9 @@ export function ContentSchedulePage() {
                         <span className="ml-1.5 text-[var(--text-muted)]">{it.attribution_window_hours}h</span>
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{Number(it.views).toLocaleString()}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-cyan-300">{it.search_back_count.toLocaleString()}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-status-ai">{it.search_back_count.toLocaleString()}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{it.attributed_orders}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-status-success">
                         ¥{Number(it.attributed_gmv).toLocaleString()} <span className="text-[var(--text-muted)]">(净 ¥{Number(it.settled_gmv).toLocaleString()})</span>
                       </td>
                     </tr>

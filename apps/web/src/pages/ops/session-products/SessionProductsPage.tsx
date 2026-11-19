@@ -195,7 +195,7 @@ export function SessionProductsPage() {
                     onClick={() => handleDelete(plan.id)}
                     disabled={deleting === plan.id}
                     className={cn(
-                      'p-1.5 rounded-lg text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-500/10 transition-all',
+                      'p-1.5 rounded-lg text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:text-status-danger hover:bg-orbit-danger/10 transition-all',
                       deleting === plan.id && 'opacity-50 pointer-events-none'
                     )}
                   >

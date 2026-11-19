@@ -69,7 +69,7 @@ export function XhsNoteToLivePage() {
         </div>
       </motion.div>
 
-      {err && <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{err}</div>}
+      {err && <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{err}</div>}
 
       {/* 转化链 */}
       <Card>
@@ -95,7 +95,7 @@ export function XhsNoteToLivePage() {
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">笔记数</div>
           <div className="text-lg font-semibold text-[var(--text-primary)] mt-0.5 tabular-nums">{s?.noteCount ?? 0}</div></CardBody></Card>
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">站外成交占比</div>
-          <div className="text-lg font-semibold text-amber-400 mt-0.5 tabular-nums">{s?.offsiteRatio ?? 0}%</div></CardBody></Card>
+          <div className="text-lg font-semibold text-status-warning mt-0.5 tabular-nums">{s?.offsiteRatio ?? 0}%</div></CardBody></Card>
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">搜索曝光占比</div>
           <div className="text-lg font-semibold text-[var(--text-primary)] mt-0.5 tabular-nums">{s?.searchImpressionShare ?? 0}%</div></CardBody></Card>
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">买手直播场次</div>
@@ -132,7 +132,7 @@ export function XhsNoteToLivePage() {
                     <td className="px-3 py-1.5 text-right text-[var(--text-muted)]">{fmt(n.likes)}/{fmt(n.collects)}</td>
                     <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(n.productClicks)}</td>
                     <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">¥{fmt(n.onsiteGmv)}</td>
-                    <td className="px-4 py-1.5 text-right text-amber-400">¥{fmt(n.offsiteGmv)}</td>
+                    <td className="px-4 py-1.5 text-right text-status-warning">¥{fmt(n.offsiteGmv)}</td>
                   </tr>
                 ))}
                 {(data?.notes || []).length === 0 && <tr><td colSpan={8} className="px-4 py-6 text-center text-[var(--text-muted)]">暂无笔记数据</td></tr>}
@@ -151,9 +151,9 @@ const fmt = (n: number | null | undefined) => (n == null ? '—' : Number(n).toL
 
 function ChainNode({ label, value, sub, accent, highlight }: { label: string; value: React.ReactNode; sub?: string; accent?: boolean; highlight?: boolean }) {
   return (
-    <div className={`rounded-lg border px-3 py-2 ${highlight ? 'border-orbit-primary/40 bg-orbit-primary/5' : accent ? 'border-amber-500/30 bg-amber-500/5' : 'border-orbit-border/60 bg-white/[0.02]'}`}>
+    <div className={`rounded-lg border px-3 py-2 ${highlight ? 'border-orbit-primary/40 bg-orbit-primary/5' : accent ? 'border-orbit-warning/30 bg-orbit-warning/5' : 'border-orbit-border/60 bg-white/[0.02]'}`}>
       <div className="text-[10px] text-[var(--text-muted)]">{label}</div>
-      <div className={`text-sm font-semibold tabular-nums ${highlight ? 'text-orbit-primary' : accent ? 'text-amber-300' : 'text-[var(--text-primary)]'}`}>{value}</div>
+      <div className={`text-sm font-semibold tabular-nums ${highlight ? 'text-orbit-primary' : accent ? 'text-status-warning' : 'text-[var(--text-primary)]'}`}>{value}</div>
       {sub && <div className="text-[10px] text-[var(--text-muted)]">{sub}</div>}
     </div>
   )

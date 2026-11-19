@@ -6,12 +6,12 @@ import { computeRefundRatePct } from '../services/metrics-caliber.js'
 import { queryMetric, comparePeriods } from '../query/primitives.js'
 
 const REASON_LABELS: Record<string, { label: string; barColor: string; dotColor: string }> = {
-  size_mismatch: { label: '尺码不合适', barColor: 'from-violet-500 to-violet-400', dotColor: 'bg-violet-400' },
-  quality_defect: { label: '商品质量/瑕疵', barColor: 'from-rose-500 to-rose-400', dotColor: 'bg-rose-400' },
-  logistics_slow: { label: '物流超时/揽收慢', barColor: 'from-amber-500 to-amber-400', dotColor: 'bg-amber-400' },
-  not_as_described: { label: '描述不符', barColor: 'from-cyan-500 to-cyan-400', dotColor: 'bg-cyan-400' },
-  buyer_remorse: { label: '7天无理由退货', barColor: 'from-blue-500 to-blue-400', dotColor: 'bg-blue-400' },
-  other: { label: '其他原因', barColor: 'from-slate-500 to-slate-400', dotColor: 'bg-slate-400' },
+  size_mismatch: { label: '尺码不合适', barColor: 'from-orbit-primary to-orbit-primary', dotColor: 'bg-orbit-primary' },
+  quality_defect: { label: '商品质量/瑕疵', barColor: 'from-orbit-danger to-orbit-danger', dotColor: 'bg-orbit-danger' },
+  logistics_slow: { label: '物流超时/揽收慢', barColor: 'from-orbit-warning to-orbit-warning', dotColor: 'bg-orbit-warning' },
+  not_as_described: { label: '描述不符', barColor: 'from-orbit-success to-orbit-accent', dotColor: 'bg-orbit-success' },
+  buyer_remorse: { label: '7天无理由退货', barColor: 'from-orbit-info to-orbit-accent', dotColor: 'bg-orbit-info' },
+  other: { label: '其他原因', barColor: 'from-orbit-surface to-orbit-surface2', dotColor: 'bg-orbit-border2' },
 }
 
 const TICKET_STATUS_LABELS: Record<string, string> = {

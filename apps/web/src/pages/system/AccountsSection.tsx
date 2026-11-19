@@ -208,13 +208,13 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
                 {users.length === 0 ? (
                   <tr><td colSpan={6} className="px-5 py-8 text-center text-[var(--text-muted)]">暂无账号数据</td></tr>
                 ) : users.map((u) => (
-                  <tr key={u.id} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                  <tr key={u.id} className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors">
                     <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{u.username}</td>
                     <td className="px-5 py-3.5 text-[var(--text-secondary)]">{u.realName}</td>
                     <td className="px-5 py-3.5"><Badge variant={roleBadgeVariant(u.role)}>{roleLabels[u.role] || u.role}</Badge></td>
                     <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${u.status === 1 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[var(--surface3)] text-[var(--text-muted)]'}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${u.status === 1 ? 'bg-emerald-400' : 'bg-[var(--text-subtle)]'}`} />
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${u.status === 1 ? 'bg-orbit-success/10 text-status-success' : 'bg-[var(--surface3)] text-[var(--text-muted)]'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${u.status === 1 ? 'bg-orbit-success' : 'bg-[var(--text-subtle)]'}`} />
                         {u.status === 1 ? '启用' : '禁用'}
                       </span>
                     </td>
@@ -289,7 +289,7 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
                 </label>
                 <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-orbit-surface2 border border-orbit-border">
                   {allModules.map((mod) => (
-                    <label key={mod.code} className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${form.modules.includes(mod.code) ? 'bg-orbit-primary/10 text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:bg-white/5'}`}>
+                    <label key={mod.code} className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${form.modules.includes(mod.code) ? 'bg-orbit-primary/10 text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'}`}>
                       <input type="checkbox" checked={form.modules.includes(mod.code)} onChange={() => toggleModule(mod.code)}
                         className="w-3.5 h-3.5 rounded border-orbit-border bg-orbit-surface3 accent-orbit-primary" />
                       <span className="text-xs">{moduleNameMap[mod.code] || mod.name}</span>
@@ -359,8 +359,8 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
             {roleMatrixMsg && (
               <div className={`text-xs px-3 py-2 rounded-lg border ${
                 roleMatrixMsg.includes('失败') || roleMatrixMsg.includes('仅超级管理员')
-                  ? 'bg-red-500/10 border-red-500/30 text-red-300'
-                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                  ? 'bg-orbit-danger/10 border-orbit-danger/30 text-status-danger'
+                  : 'bg-orbit-success/10 border-orbit-success/30 text-status-success'
               }`}>
                 {roleMatrixMsg}
               </div>
@@ -371,7 +371,7 @@ export function AccountsSection({ users, roles, allModules, onUsersChange, onRol
                 <label
                   key={mod.code}
                   className={`flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${
-                    roleDraftModules.includes(mod.code) ? 'bg-orbit-primary/10 text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:bg-white/5'
+                    roleDraftModules.includes(mod.code) ? 'bg-orbit-primary/10 text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'
                   }`}
                 >
                   <input

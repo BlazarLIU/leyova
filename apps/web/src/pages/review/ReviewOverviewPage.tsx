@@ -183,7 +183,7 @@ function SessionInfoCard({ sessionInfo }: { sessionInfo: any }) {
             {overview.refund_amount > 0 && (
               <div>
                 <span className="text-xs text-[var(--text-muted)]">退款金额</span>
-                <p className="text-lg font-semibold text-red-400">
+                <p className="text-lg font-semibold text-status-danger">
                   ¥{overview.refund_amount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </p>
               </div>
@@ -191,7 +191,7 @@ function SessionInfoCard({ sessionInfo }: { sessionInfo: any }) {
             {overview.refund_orders > 0 && (
               <div>
                 <span className="text-xs text-[var(--text-muted)]">退款订单数</span>
-                <p className="text-lg font-semibold text-red-400">
+                <p className="text-lg font-semibold text-status-danger">
                   {overview.refund_orders}
                 </p>
               </div>
@@ -308,12 +308,12 @@ function MetricCard({
           </div>
           {change !== null && (
             <div className="flex items-center gap-1 mt-1.5">
-              {isUp && <TrendingUp className="w-3.5 h-3.5 text-green-400" />}
-              {isDown && <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
+              {isUp && <TrendingUp className="w-3.5 h-3.5 text-status-success" />}
+              {isDown && <TrendingDown className="w-3.5 h-3.5 text-status-danger" />}
               <span className={cn(
                 'text-xs font-medium',
-                isUp && 'text-green-400',
-                isDown && 'text-red-400',
+                isUp && 'text-status-success',
+                isDown && 'text-status-danger',
                 !isUp && !isDown && 'text-[var(--text-muted)]',
               )}>
                 {change > 0 ? '+' : ''}{change.toFixed(1)}%
@@ -467,12 +467,12 @@ function FunnelSection({ funnelData }: { funnelData: FunnelStep[] }) {
                     <td className="py-2.5 px-4 text-right tabular-nums">
                       <span className={cn(
                         'font-medium',
-                        i === 0 ? 'text-[var(--text-muted)]' : 'text-emerald-400',
+                        i === 0 ? 'text-[var(--text-muted)]' : 'text-status-success',
                       )}>
                         {step.rate?.toFixed(1)}%
                       </span>
                     </td>
-                    <td className="py-2.5 pl-4 text-right text-red-400 tabular-nums">
+                    <td className="py-2.5 pl-4 text-right text-status-danger tabular-nums">
                       {step.drop_off}
                     </td>
                   </tr>
@@ -515,9 +515,9 @@ function Top3Section({ data }: { data: OverviewData }) {
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold',
-                          i === 0 && 'bg-yellow-500/20 text-yellow-400',
+                          i === 0 && 'bg-orbit-warning/20 text-status-warning',
                           i === 1 && 'bg-[var(--border2)] text-[var(--text-muted)]',
-                          i === 2 && 'bg-amber-700/20 text-amber-600',
+                          i === 2 && 'bg-orbit-warning/20 text-status-warning',
                         )}>
                           {i + 1}
                         </span>
@@ -563,9 +563,9 @@ function Top3Section({ data }: { data: OverviewData }) {
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold',
-                          i === 0 && 'bg-yellow-500/20 text-yellow-400',
+                          i === 0 && 'bg-orbit-warning/20 text-status-warning',
                           i === 1 && 'bg-[var(--border2)] text-[var(--text-muted)]',
-                          i === 2 && 'bg-amber-700/20 text-amber-600',
+                          i === 2 && 'bg-orbit-warning/20 text-status-warning',
                         )}>
                           {i + 1}
                         </span>
@@ -609,7 +609,7 @@ function Top3Section({ data }: { data: OverviewData }) {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-xs font-bold">
+                        <span className="w-5 h-5 rounded-full bg-orbit-danger/20 text-status-danger flex items-center justify-center text-xs font-bold">
                           {i + 1}
                         </span>
                         <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
@@ -617,8 +617,8 @@ function Top3Section({ data }: { data: OverviewData }) {
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-                        <span className="text-sm font-medium text-red-400 tabular-nums">
+                        <TrendingDown className="w-3.5 h-3.5 text-status-danger" />
+                        <span className="text-sm font-medium text-status-danger tabular-nums">
                           {anomaly.change_pct.toFixed(1)}%
                         </span>
                       </div>
@@ -702,8 +702,8 @@ function AiSummaryCard() {
                     <span className={cn(
                       'mt-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0',
                       i === 0 && 'bg-orbit-primary/20 text-orbit-primary',
-                      i === 1 && 'bg-cyan-500/20 text-cyan-400',
-                      i === 2 && 'bg-emerald-500/20 text-emerald-400',
+                      i === 1 && 'bg-orbit-success/20 text-status-ai',
+                      i === 2 && 'bg-orbit-success/20 text-status-success',
                     )}>
                       {i + 1}
                     </span>

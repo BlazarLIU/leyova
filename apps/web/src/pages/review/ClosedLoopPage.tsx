@@ -538,21 +538,21 @@ function EffectValidationSection({
                       <span className="text-[var(--text-muted)]">{metric.format(data.before)}</span>
                       <ArrowRight className={cn(
                         'w-3.5 h-3.5 flex-shrink-0',
-                        isUp && 'text-green-400',
-                        isDown && 'text-red-400',
+                        isUp && 'text-status-success',
+                        isDown && 'text-status-danger',
                         isNeutral && 'text-[var(--text-muted)]',
                       )} />
                       <span className="text-[var(--text-primary)] font-semibold">{metric.format(data.after)}</span>
                     </div>
                     <div className="flex items-center gap-1 mt-1.5">
-                      {isUp && <TrendingUp className="w-3.5 h-3.5 text-green-400" />}
-                      {isDown && <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
+                      {isUp && <TrendingUp className="w-3.5 h-3.5 text-status-success" />}
+                      {isDown && <TrendingDown className="w-3.5 h-3.5 text-status-danger" />}
                       {isNeutral && <span className="w-3.5 h-3.5" />}
                       <span
                         className={cn(
                           'text-xs font-medium tabular-nums',
-                          isUp && 'text-green-400',
-                          isDown && 'text-red-400',
+                          isUp && 'text-status-success',
+                          isDown && 'text-status-danger',
                           isNeutral && 'text-[var(--text-muted)]',
                         )}
                       >

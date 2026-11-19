@@ -122,7 +122,7 @@ export function ChangeDetailPage() {
   if (error || !change) {
     return (
       <div className="p-8 max-w-4xl mx-auto text-center space-y-4">
-        <div className="text-red-400 font-bold">{error || '未找到该变更记录'}</div>
+        <div className="text-status-danger font-bold">{error || '未找到该变更记录'}</div>
         <Button variant="outline" onClick={() => navigate('/compliance/rules')}>
           返回规则雷达
         </Button>
@@ -144,7 +144,7 @@ export function ChangeDetailPage() {
 
         <div className="flex items-center gap-3">
           {change.is_read ? (
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+            <div className="flex items-center gap-1.5 text-xs text-status-success bg-orbit-success/10 px-3 py-1.5 rounded-lg border border-orbit-success/20">
               <CheckCircle2 className="w-4 h-4" />
               <span>已于 {new Date(change.read_at!).toLocaleString('zh-CN')} 确认知晓</span>
             </div>
@@ -153,7 +153,7 @@ export function ChangeDetailPage() {
               variant="primary"
               onClick={handleAck}
               disabled={acking}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-2 shadow-lg shadow-emerald-600/20"
+              className="bg-orbit-success hover:bg-orbit-success text-white flex items-center gap-2 shadow-lg shadow-emerald-600/20"
             >
               <CheckCircle2 className="w-4 h-4" />
               {acking ? '提交中...' : '确认已读并同步排班/选品团队'}
@@ -244,10 +244,10 @@ export function ChangeDetailPage() {
                 {/* Risk Summary */}
                 <div className="space-y-1.5">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-status-warning" />
                     核心风险摘要
                   </h4>
-                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm font-medium">
+                  <div className="p-3.5 rounded-xl bg-orbit-warning/10 border border-orbit-warning/20 text-status-warning text-sm font-medium">
                     {assessment.risk_summary}
                   </div>
                 </div>
@@ -266,7 +266,7 @@ export function ChangeDetailPage() {
                 {/* Recommended Actions */}
                 <div className="space-y-2">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-status-success" />
                     建议应对闭环措施 (Checklist)
                   </h4>
                   <div className="space-y-2">
@@ -275,7 +275,7 @@ export function ChangeDetailPage() {
                         key={idx}
                         className="p-3 rounded-lg bg-orbit-surface2/60 border border-orbit-border/50 text-xs text-[var(--text-secondary)] flex items-start gap-2.5"
                       >
-                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] mt-0.5">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-orbit-success/20 text-status-success flex items-center justify-center font-bold text-[10px] mt-0.5">
                           {idx + 1}
                         </span>
                         <span>{act}</span>

@@ -66,9 +66,9 @@ export const MyPerformancePage: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* 顶部个人身份与勋章 Header */}
       {anchor && (
-        <div className="bg-white rounded-2xl border border-orbit-border shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="bg-orbit-surface rounded-2xl border border-orbit-border shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center font-extrabold text-xl shadow-md shadow-amber-500/20">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orbit-warning to-orbit-warning text-white flex items-center justify-center font-extrabold text-xl shadow-md shadow-amber-500/20">
               {anchor.name.slice(0, 1)}
             </div>
             <div>
@@ -89,14 +89,14 @@ export const MyPerformancePage: React.FC = () => {
 
           {/* 团队排名荣誉勋章 */}
           {kpis && (
-            <div className="flex items-center gap-4 bg-amber-50/60 border border-amber-200/80 px-5 py-3.5 rounded-xl">
-              <div className="p-2 rounded-lg bg-amber-500 text-white">
+            <div className="flex items-center gap-4 bg-orbit-warning/10 border border-orbit-warning/80 px-5 py-3.5 rounded-xl">
+              <div className="p-2 rounded-lg bg-orbit-warning text-white">
                 <Trophy className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[11px] text-amber-700 font-medium">全团队主播业绩排行榜</div>
-                <div className="text-lg font-black text-amber-900 mt-0.5">
-                  第 {kpis.teamRank} 名 <span className="text-xs font-normal text-amber-600">/ 保持领先</span>
+                <div className="text-[11px] text-status-warning font-medium">全团队主播业绩排行榜</div>
+                <div className="text-lg font-black text-status-warning mt-0.5">
+                  第 {kpis.teamRank} 名 <span className="text-xs font-normal text-status-warning">/ 保持领先</span>
                 </div>
               </div>
             </div>
@@ -107,7 +107,7 @@ export const MyPerformancePage: React.FC = () => {
       {/* 4 大核心 KPI 指标卡 */}
       {kpis && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-xl border border-orbit-border shadow-xs">
+          <div className="bg-orbit-surface p-5 rounded-xl border border-orbit-border shadow-xs">
             <div className="flex items-center justify-between text-[var(--text-muted)] text-xs">
               <span>本月个人累计成交 (GMV)</span>
               <TrendingUp className="w-4 h-4 text-orbit-primary" />
@@ -126,21 +126,21 @@ export const MyPerformancePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-orbit-border shadow-xs">
+          <div className="bg-orbit-surface p-5 rounded-xl border border-orbit-border shadow-xs">
             <div className="flex items-center justify-between text-[var(--text-muted)] text-xs">
               <span>开播总场次</span>
-              <Calendar className="w-4 h-4 text-emerald-600" />
+              <Calendar className="w-4 h-4 text-status-success" />
             </div>
             <div className="text-2xl font-bold text-[var(--text-primary)] mt-2 tabular-nums">
               {kpis.monthlySessions} <span className="text-xs font-normal text-[var(--text-muted)]">场</span>
             </div>
-            <div className="text-[11px] text-emerald-600 mt-1">出勤履约率 100%</div>
+            <div className="text-[11px] text-status-success mt-1">出勤履约率 100%</div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-orbit-border shadow-xs">
+          <div className="bg-orbit-surface p-5 rounded-xl border border-orbit-border shadow-xs">
             <div className="flex items-center justify-between text-[var(--text-muted)] text-xs">
               <span>支付订单数</span>
-              <ShoppingBag className="w-4 h-4 text-amber-600" />
+              <ShoppingBag className="w-4 h-4 text-status-warning" />
             </div>
             <div className="text-2xl font-bold text-[var(--text-primary)] mt-2 tabular-nums">
               {kpis.monthlyOrders.toLocaleString('zh-CN')} <span className="text-xs font-normal text-[var(--text-muted)]">单</span>
@@ -148,7 +148,7 @@ export const MyPerformancePage: React.FC = () => {
             <div className="text-[11px] text-[var(--text-muted)] mt-1">有效买家支付成交</div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-orbit-border shadow-xs">
+          <div className="bg-orbit-surface p-5 rounded-xl border border-orbit-border shadow-xs">
             <div className="flex items-center justify-between text-[var(--text-muted)] text-xs">
               <span>平均单场直播时长</span>
               <Clock className="w-4 h-4 text-orbit-info" />
@@ -165,9 +165,9 @@ export const MyPerformancePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 左侧：主播能力五维评分 */}
         {anchor && (
-          <div className="bg-white rounded-xl border border-orbit-border shadow-xs p-5 space-y-4">
+          <div className="bg-orbit-surface rounded-xl border border-orbit-border shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2 pb-3 border-b border-orbit-border">
-              <Star className="w-4 h-4 text-amber-500" />
+              <Star className="w-4 h-4 text-status-warning" />
               <h3 className="text-sm font-bold text-[var(--text-primary)]">主播五维能力量化</h3>
             </div>
 
@@ -185,7 +185,7 @@ export const MyPerformancePage: React.FC = () => {
               <div>
                 <div className="flex justify-between text-[var(--text-primary)] mb-1">
                   <span>公屏互动与停留拉长</span>
-                  <span className="font-bold text-emerald-600 tabular-nums">{anchor.radar.interaction} 分</span>
+                  <span className="font-bold text-status-success tabular-nums">{anchor.radar.interaction} 分</span>
                 </div>
                 <div className="w-full bg-[var(--surface2)] h-1.5 rounded-full overflow-hidden">
                   <div className="bg-orbit-success h-1.5 rounded-full" style={{ width: `${anchor.radar.interaction}%` }} />
@@ -195,10 +195,10 @@ export const MyPerformancePage: React.FC = () => {
               <div>
                 <div className="flex justify-between text-[var(--text-primary)] mb-1">
                   <span>高潮逼单与转化爆发力</span>
-                  <span className="font-bold text-amber-600 tabular-nums">{anchor.radar.conversion} 分</span>
+                  <span className="font-bold text-status-warning tabular-nums">{anchor.radar.conversion} 分</span>
                 </div>
                 <div className="w-full bg-[var(--surface2)] h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-amber-600 h-1.5 rounded-full" style={{ width: `${anchor.radar.conversion}%` }} />
+                  <div className="bg-orbit-warning h-1.5 rounded-full" style={{ width: `${anchor.radar.conversion}%` }} />
                 </div>
               </div>
 
@@ -220,7 +220,7 @@ export const MyPerformancePage: React.FC = () => {
         )}
 
         {/* 右侧：个人近期待播/已播场次列表 */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-orbit-border shadow-xs p-5 space-y-4">
+        <div className="lg:col-span-2 bg-orbit-surface rounded-xl border border-orbit-border shadow-xs p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-orbit-border">
             <h3 className="text-sm font-bold text-[var(--text-primary)]">个人近期场次战报</h3>
             <span className="text-xs text-[var(--text-muted)]">已播出 {sessions.length} 场</span>
@@ -256,7 +256,7 @@ export const MyPerformancePage: React.FC = () => {
                       </td>
                       <td className="py-2.5 px-3 text-right text-[var(--text-primary)] tabular-nums">{s.orders}</td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-orbit-success/10 text-status-success border border-orbit-success">
                           已完成
                         </span>
                       </td>

@@ -12,12 +12,12 @@ export function AiOpsCasesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               内核治理 · 统一决策对象
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">Decision Case 状态机</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             Decision Case 统一决策对象流
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -33,12 +33,12 @@ export function AiOpsCasesPage() {
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orbit-ink text-orbit-snow/80">{c.id}</span>
                 <span className="text-sm font-bold text-white">{c.subject}</span>
-                <span className="text-xs text-cyan-400 font-mono">[{c.domain}]</span>
-                <span className="text-xs text-amber-400 font-mono">风险: {c.risk}</span>
+                <span className="text-xs text-status-ai font-mono">[{c.domain}]</span>
+                <span className="text-xs text-status-warning font-mono">风险: {c.risk}</span>
               </div>
               <p className="text-xs text-[var(--text-muted)]">状态：<strong className="text-[var(--text-secondary)] font-mono">{c.state}</strong> · 结果：{c.outcome}</p>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orbit-success/10 text-status-ai border border-orbit-success/30">
               证据链完整
             </span>
           </div>

@@ -88,7 +88,7 @@ export function BrandPortalPage() {
       </motion.div>
 
       {err && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" /> {err}
         </div>
       )}
@@ -150,7 +150,7 @@ const fmt = (n: number | null | undefined) => (n == null ? '—' : Number(n).toL
 function KpiCard({ label, value, icon: Icon, accent }: {
   label: string; value: React.ReactNode; icon?: any; accent?: 'primary' | 'warn'
 }) {
-  const cls = accent === 'primary' ? 'text-orbit-primary' : accent === 'warn' ? 'text-amber-400' : 'text-[var(--text-primary)]'
+  const cls = accent === 'primary' ? 'text-orbit-primary' : accent === 'warn' ? 'text-status-warning' : 'text-[var(--text-primary)]'
   return (
     <Card><CardBody>
       <div className="flex items-center gap-1 text-[11px] text-[var(--text-muted)]">

@@ -348,8 +348,8 @@ export function IngestWizardPage() {
                 <div
                   className={cn(
                     'flex items-center gap-2 rounded-lg px-3 py-2 text-xs whitespace-nowrap transition',
-                    active && 'bg-cyan-500/15 text-cyan-300 ring-1 ring-cyan-500/40',
-                    done && 'bg-emerald-500/10 text-emerald-400',
+                    active && 'bg-orbit-success/15 text-status-ai ring-1 ring-orbit-success/40',
+                    done && 'bg-orbit-success/10 text-status-success',
                     !active && !done && 'text-[var(--text-muted)]',
                   )}
                 >
@@ -364,7 +364,7 @@ export function IngestWizardPage() {
       </motion.div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+        <div className="flex items-start gap-2 rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 p-3 text-sm text-status-danger">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -383,7 +383,7 @@ export function IngestWizardPage() {
                 className={cn(
                   'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 transition',
                   isDragOver
-                    ? 'border-cyan-500/60 bg-cyan-500/5'
+                    ? 'border-orbit-success/60 bg-orbit-success/5'
                     : 'border-[var(--border)] hover:border-[var(--border)] hover:bg-orbit-ink/30',
                 )}
               >
@@ -493,7 +493,7 @@ export function IngestWizardPage() {
                     <div key={f.field} className="grid grid-cols-2 items-center gap-3 rounded-lg bg-orbit-ink/40 px-3 py-2">
                       <div className="text-sm text-[var(--text-secondary)]">
                         {FIELD_LABELS[f.field] || f.field}
-                        {f.required && <span className="ml-1 text-rose-400">*</span>}
+                        {f.required && <span className="ml-1 text-status-danger">*</span>}
                       </div>
                       <select
                         value={mapping[f.field] || ''}
@@ -573,7 +573,7 @@ export function IngestWizardPage() {
         <motion.div {...fadeIn} className="space-y-4">
           {/* 模板识别结果 */}
           {detectedTemplate && (
-            <div className="flex items-start gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 text-xs text-emerald-300/90">
+            <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-success/90">
               <CheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -581,16 +581,16 @@ export function IngestWizardPage() {
                   <Badge variant={detectedTemplate.confidence >= 0.6 ? 'success' : 'warning'}>
                     置信度 {detectedTemplate.confidence}
                   </Badge>
-                  <span className="text-emerald-500/70">{detectedTemplate.platformName}</span>
+                  <span className="text-status-success/70">{detectedTemplate.platformName}</span>
                 </div>
                 {templateNote && (
-                  <p className="mt-1 text-[11px] leading-relaxed text-emerald-400/70">{templateNote}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-status-success/70">{templateNote}</p>
                 )}
               </div>
             </div>
           )}
           {!detectedTemplate && (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3 text-xs text-amber-300/90">
+            <div className="flex items-start gap-2 rounded-lg border border-orbit-warning/25 bg-orbit-warning/5 p-3 text-xs text-status-warning/90">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <div>
                 未能识别出匹配的平台报表模板，已使用通用字段映射。请在「字段映射」步骤手动确认。
@@ -640,7 +640,7 @@ export function IngestWizardPage() {
               <CardHeader>被拒绝的行（无法识别业务日期）</CardHeader>
               <CardBody className="space-y-1">
                 {preview.rejectedSample.map((r, i) => (
-                  <div key={i} className="rounded bg-amber-500/10 px-3 py-1.5 text-xs text-amber-300">
+                  <div key={i} className="rounded bg-orbit-warning/10 px-3 py-1.5 text-xs text-status-warning">
                     第 {r.rowIndex + 1} 行：{r.reason}
                   </div>
                 ))}
@@ -666,7 +666,7 @@ export function IngestWizardPage() {
                         <pre className="overflow-x-auto rounded bg-orbit-ink/60 p-1.5 text-[10px] text-orbit-snow/70">
                           {JSON.stringify(d.original).slice(0, 200)}
                         </pre>
-                        <pre className="overflow-x-auto rounded bg-orbit-ink/60 p-1.5 text-[10px] text-emerald-400/80">
+                        <pre className="overflow-x-auto rounded bg-orbit-ink/60 p-1.5 text-[10px] text-status-success/80">
                           {JSON.stringify(d.cleaned).slice(0, 200)}
                         </pre>
                       </div>
@@ -684,7 +684,7 @@ export function IngestWizardPage() {
         <motion.div {...fadeIn}>
           <Card>
             <CardBody className="space-y-3 text-center py-10">
-              <CheckCircle className="mx-auto h-12 w-12 text-emerald-400" />
+              <CheckCircle className="mx-auto h-12 w-12 text-status-success" />
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">导入完成</h2>
               <div className="mx-auto grid max-w-md grid-cols-3 gap-3 text-sm">
                 <StatCard label="输入行数" value={result.inputRows} />
@@ -732,7 +732,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
       <div
         className={cn(
           'text-xl font-semibold',
-          tone === 'ok' ? 'text-emerald-400' : tone === 'warn' ? 'text-amber-400' : 'text-[var(--text-secondary)]',
+          tone === 'ok' ? 'text-status-success' : tone === 'warn' ? 'text-status-warning' : 'text-[var(--text-secondary)]',
         )}
       >
         {value}

@@ -354,27 +354,27 @@ export function RuleRadarPage() {
         <Card className="p-5 bg-orbit-surface/80 border-orbit-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[var(--text-secondary)]">未读合规变更</span>
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <AlertTriangle className="w-4 h-4 text-status-warning" />
           </div>
-          <div className="text-2xl font-bold text-amber-400 mt-2">{unreadCount}</div>
+          <div className="text-2xl font-bold text-status-warning mt-2">{unreadCount}</div>
           <div className="text-xs text-[var(--text-muted)] mt-1">包含新发与修订差量事件</div>
         </Card>
 
         <Card className="p-5 bg-orbit-surface/80 border-orbit-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[var(--text-secondary)]">高危/阻断级预警</span>
-            <Shield className="w-4 h-4 text-red-400" />
+            <Shield className="w-4 h-4 text-status-danger" />
           </div>
-          <div className="text-2xl font-bold text-red-400 mt-2">{criticalUnreadCount}</div>
+          <div className="text-2xl font-bold text-status-danger mt-2">{criticalUnreadCount}</div>
           <div className="text-xs text-[var(--text-muted)] mt-1">涉及违禁词/限流/清退红线</div>
         </Card>
 
         <Card className="p-5 bg-orbit-surface/80 border-orbit-border">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[var(--text-secondary)]">临近大促报名</span>
-            <Calendar className="w-4 h-4 text-emerald-400" />
+            <Calendar className="w-4 h-4 text-status-success" />
           </div>
-          <div className="text-2xl font-bold text-emerald-400 mt-2">{reminders.length}</div>
+          <div className="text-2xl font-bold text-status-success mt-2">{reminders.length}</div>
           <div className="text-xs text-[var(--text-muted)] mt-1">待申报活动与规则节点</div>
         </Card>
       </div>
@@ -512,7 +512,7 @@ export function RuleRadarPage() {
                           {new Date(item.created_at).toLocaleString('zh-CN')}
                         </span>
                         {!item.is_read && (
-                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="未读变更" />
+                          <span className="w-2 h-2 rounded-full bg-orbit-danger animate-pulse" title="未读变更" />
                         )}
                       </div>
 
@@ -522,7 +522,7 @@ export function RuleRadarPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleAckChange(item.id)}
-                            className="text-xs text-[var(--text-muted)] hover:text-emerald-400"
+                            className="text-xs text-[var(--text-muted)] hover:text-status-success"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                             标记已读
@@ -634,7 +634,7 @@ export function RuleRadarPage() {
                         <span className="px-2 py-0.5 rounded text-xs font-semibold bg-orbit-primary/15 text-orbit-primary">
                           {rem.platform_name || rem.platform_code}
                         </span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">
+                        <span className="text-xs px-2 py-0.5 rounded bg-orbit-success/15 text-status-success">
                           {rem.activity_type}
                         </span>
                         <h4 className="text-sm font-bold text-orbit-text">{rem.activity_name}</h4>
@@ -645,7 +645,7 @@ export function RuleRadarPage() {
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div className="text-xs text-[var(--text-muted)]">报名截止倒计时</div>
-                        <div className={`text-base font-bold ${daysDiff <= 3 ? 'text-red-400' : 'text-emerald-400'}`}>
+                        <div className={`text-base font-bold ${daysDiff <= 3 ? 'text-status-danger' : 'text-status-success'}`}>
                           {daysDiff > 0 ? `剩余 ${daysDiff} 天` : '已截止'}
                         </div>
                       </div>
@@ -685,7 +685,7 @@ export function RuleRadarPage() {
                   <select
                     value={manualForm.platformCode}
                     onChange={(e) => setManualForm({ ...manualForm, platformCode: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                   >
                     <option value="pdd">拼多多 (PDD 登录墙规则人工录入)</option>
                     <option value="douyin">抖音电商</option>
@@ -702,7 +702,7 @@ export function RuleRadarPage() {
                   <select
                     value={manualForm.severity}
                     onChange={(e) => setManualForm({ ...manualForm, severity: e.target.value as any })}
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                   >
                     <option value="critical">极高危 (阻断/扣分/封店)</option>
                     <option value="high">高危 (限流/下架/罚金)</option>
@@ -720,7 +720,7 @@ export function RuleRadarPage() {
                   placeholder="例如：关于拼多多大促商品极速退款服务考核规范更新通知"
                   value={manualForm.title}
                   onChange={(e) => setManualForm({ ...manualForm, title: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
 
@@ -732,7 +732,7 @@ export function RuleRadarPage() {
                     placeholder="PDD-NOTICE-2026-X"
                     value={manualForm.externalId}
                     onChange={(e) => setManualForm({ ...manualForm, externalId: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                   />
                 </div>
                 <div>
@@ -741,7 +741,7 @@ export function RuleRadarPage() {
                     type="date"
                     value={manualForm.effectiveAt}
                     onChange={(e) => setManualForm({ ...manualForm, effectiveAt: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                   />
                 </div>
               </div>
@@ -753,7 +753,7 @@ export function RuleRadarPage() {
                   placeholder="https://mms.pinduoduo.com/..."
                   value={manualForm.sourceUrl}
                   onChange={(e) => setManualForm({ ...manualForm, sourceUrl: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
 
@@ -765,7 +765,7 @@ export function RuleRadarPage() {
                   placeholder="粘贴平台公告全文或关键条款，系统将自动计算 SHA-256 内容哈希防重..."
                   value={manualForm.contentText}
                   onChange={(e) => setManualForm({ ...manualForm, contentText: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
 
@@ -776,7 +776,7 @@ export function RuleRadarPage() {
                   placeholder="对排班、选品价格管控或客服响应的指引..."
                   value={manualForm.operationalImpact}
                   onChange={(e) => setManualForm({ ...manualForm, operationalImpact: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-orbit-surface2 border border-orbit-border text-[var(--text-primary)]"
                 />
               </div>
 

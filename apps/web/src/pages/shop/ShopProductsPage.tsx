@@ -152,7 +152,7 @@ export function ShopProductsPage() {
                 key={d}
                 onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 近 {d} 天
@@ -162,7 +162,7 @@ export function ShopProductsPage() {
         </div>
       </motion.div>
 
-      <div className="flex items-start gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/5 p-3 text-xs text-cyan-300/90">
+      <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-ai/90">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div>
           已打通 <code>canonical_order_items</code>（SKU 级子订单明细销量/实付/优惠分摊）与
@@ -191,7 +191,7 @@ export function ShopProductsPage() {
                 <CardHeader>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <ShoppingBag className="h-4 w-4 text-emerald-400" /> 商品 SKU 销量与盈利排行（来自交易明细）
+                      <ShoppingBag className="h-4 w-4 text-status-success" /> 商品 SKU 销量与盈利排行（来自交易明细）
                     </div>
                     {skuSales.costMasked && (
                       <Badge variant="neutral">
@@ -223,19 +223,19 @@ export function ShopProductsPage() {
                               <div className="font-mono text-[11px] text-[var(--text-muted)]">{item.spuCode || '—'} · {item.category}</div>
                             </td>
                             <td className="py-2.5 pr-3 font-mono text-xs">
-                              <div className="text-cyan-300">{item.skuCode}</div>
+                              <div className="text-status-ai">{item.skuCode}</div>
                               <div className="text-[11px] text-[var(--text-muted)]">{item.platformSkuId || '—'}</div>
                             </td>
                             <td className="py-2.5 pr-3 text-right font-mono">{item.soldQty.toFixed(0)}</td>
                             <td className="py-2.5 pr-3 text-right font-mono">{item.orderCount}</td>
                             <td className="py-2.5 pr-3 text-right font-mono text-[var(--text-primary)]">¥{item.paidAmount.toFixed(2)}</td>
-                            <td className="py-2.5 pr-3 text-right font-mono text-amber-300">¥{item.discountAllocated.toFixed(2)}</td>
+                            <td className="py-2.5 pr-3 text-right font-mono text-status-warning">¥{item.discountAllocated.toFixed(2)}</td>
                             <td className="py-2.5 pr-3 text-right font-mono">¥{item.avgUnitPrice.toFixed(2)}</td>
                             <td className="py-2.5 text-right font-mono">
                               {skuSales.costMasked || item.estimatedProfit === null ? (
                                 <span className="text-xs text-[var(--text-muted)]">已脱敏</span>
                               ) : (
-                                <span className={item.estimatedProfit >= 0 ? 'text-emerald-300' : 'text-rose-400'}>
+                                <span className={item.estimatedProfit >= 0 ? 'text-status-success' : 'text-status-danger'}>
                                   ¥{item.estimatedProfit.toFixed(2)} ({item.marginRatePct?.toFixed(1)}%)
                                 </span>
                               )}
@@ -256,7 +256,7 @@ export function ShopProductsPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Boxes className="h-4 w-4 text-cyan-400" /> 平台主商品与 SKU 映射库存
+                      <Boxes className="h-4 w-4 text-status-ai" /> 平台主商品与 SKU 映射库存
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => navigate('/ops/inventory')}>
                       前往商品库存中心 <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -288,11 +288,11 @@ export function ShopProductsPage() {
                                 <div className="font-medium text-[var(--text-primary)]">{p.productName}</div>
                                 <div className="font-mono text-[11px] text-[var(--text-muted)]">{p.spuCode}</div>
                               </td>
-                              <td className="py-2.5 pr-3 font-mono text-xs text-cyan-300">{p.skuCode}</td>
+                              <td className="py-2.5 pr-3 font-mono text-xs text-status-ai">{p.skuCode}</td>
                               <td className="py-2.5 pr-3 text-xs text-[var(--text-muted)]">{p.category}</td>
                               <td className="py-2.5 pr-3 text-right font-mono">¥{p.retailPrice.toFixed(2)}</td>
                               <td className="py-2.5 pr-3 text-right font-mono">
-                                <span className={p.isLowStock ? 'text-rose-400 font-semibold' : 'text-[var(--text-secondary)]'}>
+                                <span className={p.isLowStock ? 'text-status-danger font-semibold' : 'text-[var(--text-secondary)]'}>
                                   {p.availableQty}
                                 </span>
                                 <span className="text-[var(--text-muted)]"> / {p.safetyStock}</span>
@@ -356,7 +356,7 @@ export function ShopProductsPage() {
                                   <td className="py-2 pr-3 text-[var(--text-secondary)]">{c.channel_name}</td>
                                   <td className="py-2 pr-3 text-right font-mono">{c.gmv.toFixed(2)}</td>
                                   <td className="py-2 pr-3 text-right font-mono">{c.orders}</td>
-                                  <td className="py-2 pr-3 text-right text-cyan-400">
+                                  <td className="py-2 pr-3 text-right text-status-ai">
                                     {((c.gmv / total) * 100).toFixed(2)}%
                                   </td>
                                   <td className="py-2 text-right font-mono">

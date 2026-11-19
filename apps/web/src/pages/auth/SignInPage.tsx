@@ -80,7 +80,7 @@ export function SignInPage() {
           </p>
 
           {/* Capability ledger */}
-          <div className="mt-10 grid max-w-lg grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-white/25 bg-white/25">
+          <div className="mt-10 grid max-w-lg grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-white/25 bg-[var(--hover-bg3)]5">
             {CAPABILITIES.map(c => (
               <div key={c.code} className="bg-orbit-primary p-4">
                 <div className="flex items-baseline gap-2">

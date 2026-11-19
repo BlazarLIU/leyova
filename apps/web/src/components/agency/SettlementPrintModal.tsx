@@ -144,7 +144,7 @@ export const SettlementPrintModal: React.FC<SettlementPrintModalProps> = ({
                   <td className="border border-black/15 py-3 font-semibold text-orbit-info">
                     {bill.status === 'confirmed' ? '双方已确认生效' : bill.status === 'paid' ? '款项已结清' : '已发送待确认'}
                   </td>
-                  <td className="border border-black/15 py-3 text-emerald-700 font-mono text-[11px]">
+                  <td className="border border-black/15 py-3 text-status-success font-mono text-[11px]">
                     HASH: 7a8f9c...b02 (已锁定)
                   </td>
                 </tr>
@@ -187,9 +187,9 @@ export const SettlementPrintModal: React.FC<SettlementPrintModalProps> = ({
                 </tr>
                 {bill.deductionTotal ? (
                   <tr>
-                    <td className="border border-black/15 py-2.5 px-3 font-medium text-red-600">4. 扣除项 (退款违约/考核扣减)</td>
+                    <td className="border border-black/15 py-2.5 px-3 font-medium text-status-danger">4. 扣除项 (退款违约/考核扣减)</td>
                     <td className="border border-black/15 py-2.5 px-3 text-[var(--text-primary)]">按履约 SLA 条款核减项</td>
-                    <td className="border border-black/15 py-2.5 px-3 text-right font-mono text-red-600">
+                    <td className="border border-black/15 py-2.5 px-3 text-right font-mono text-status-danger">
                       -¥{bill.deductionTotal.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -238,10 +238,10 @@ export const SettlementPrintModal: React.FC<SettlementPrintModalProps> = ({
                   <div>出具确认日期：{new Date().toLocaleDateString('zh-CN')}</div>
                 </div>
                 {/* 电子印章样式效果 */}
-                <div className="absolute right-6 top-2 w-28 h-28 border-2 border-red-600 rounded-full flex flex-col items-center justify-center rotate-[-12deg] opacity-75 pointer-events-none select-none">
-                  <span className="text-[10px] text-red-600 font-bold">Leyova 代播运营</span>
-                  <span className="text-[9px] text-red-600">★ 财务结算专用章 ★</span>
-                  <span className="text-[8px] text-red-600 font-mono mt-0.5">{bill.periodMonth}</span>
+                <div className="absolute right-6 top-2 w-28 h-28 border-2 border-orbit-danger rounded-full flex flex-col items-center justify-center rotate-[-12deg] opacity-75 pointer-events-none select-none">
+                  <span className="text-[10px] text-status-danger font-bold">Leyova 代播运营</span>
+                  <span className="text-[9px] text-status-danger">★ 财务结算专用章 ★</span>
+                  <span className="text-[8px] text-status-danger font-mono mt-0.5">{bill.periodMonth}</span>
                 </div>
               </div>
             </div>

@@ -79,8 +79,8 @@ export function ModuleManagementPage() {
         <div
           className={`rounded-lg px-4 py-2 text-sm border ${
             msg.type === 'ok'
-              ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-              : 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+              ? 'bg-orbit-success/10 text-status-success border-orbit-success/30'
+              : 'bg-orbit-danger/10 text-status-danger border-orbit-danger/30'
           }`}
         >
           {msg.text}
@@ -88,7 +88,7 @@ export function ModuleManagementPage() {
       )}
 
       {!isSuperAdmin && (
-        <div className="rounded-lg px-4 py-2 text-sm bg-amber-500/10 text-amber-300 border border-amber-500/30">
+        <div className="rounded-lg px-4 py-2 text-sm bg-orbit-warning/10 text-status-warning border border-orbit-warning/30">
           当前账号不是超级管理员，只能查看、不能开关模块。
         </div>
       )}
@@ -127,13 +127,13 @@ function ModuleSection({
       </h2>
       <div className="space-y-1">
         {rows.map((m) => (
-          <div key={m.code} className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-white/5">
+          <div key={m.code} className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-[var(--hover-bg)]">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-[var(--text-secondary)] truncate">{m.name}</span>
                 <code className="text-[11px] text-[var(--text-muted)]">{m.code}</code>
                 {m.is_core && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-warning/15 text-status-warning border border-orbit-warning/30">
                     核心
                   </span>
                 )}
@@ -148,8 +148,8 @@ function ModuleSection({
                 core || m.is_core
                   ? 'text-[var(--text-primary)] cursor-not-allowed'
                   : m.is_enabled
-                    ? 'text-emerald-300 hover:bg-emerald-500/10'
-                    : 'text-[var(--text-muted)] hover:bg-white/10'
+                    ? 'text-status-success hover:bg-orbit-success/10'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'
               }`}
             >
               {core || m.is_core ? (

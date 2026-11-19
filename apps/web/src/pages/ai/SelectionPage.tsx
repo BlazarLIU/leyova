@@ -182,7 +182,7 @@ export const SelectionPage: React.FC = () => {
       </div>
 
       {/* 选品条件筛选栏 */}
-      <div className="bg-white dark:bg-orbit-ink rounded-xl p-5 border border-orbit-border dark:border-[var(--border)] shadow-sm space-y-4">
+      <div className="bg-orbit-surface rounded-xl p-5 border border-orbit-border dark:border-[var(--border)] shadow-sm space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 类目选择 */}
           <div>
@@ -256,9 +256,9 @@ export const SelectionPage: React.FC = () => {
             <span
               className={`font-semibold px-2 py-0.5 rounded ${
                 curCat?.weather_sensitivity === 'high'
-                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
+                  ? 'bg-orbit-danger/10 text-status-danger dark:bg-orbit-danger/15 dark:text-status-danger'
                   : curCat?.weather_sensitivity === 'medium'
-                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                  ? 'bg-orbit-warning/10 text-status-warning dark:bg-orbit-warning/15 dark:text-status-warning'
                   : 'bg-orbit-info text-orbit-info dark:bg-orbit-info dark:text-orbit-info'
               }`}
             >
@@ -292,7 +292,7 @@ export const SelectionPage: React.FC = () => {
                 <span className="text-xs uppercase font-semibold tracking-wider text-orbit-info flex items-center gap-1.5">
                   <CloudSun className="w-4 h-4" /> 真实气象源 ({result.weather.source || 'Open-Meteo'})
                 </span>
-                <span className="text-xs px-2 py-0.5 bg-white/20 rounded-full">{result.city}</span>
+                <span className="text-xs px-2 py-0.5 bg-[var(--hover-bg3)]0 rounded-full">{result.city}</span>
               </div>
               <div className="my-4">
                 <div className="text-4xl font-extrabold flex items-baseline gap-2">
@@ -314,7 +314,7 @@ export const SelectionPage: React.FC = () => {
             </div>
 
             {/* 5 因子权重权重图谱 */}
-            <div className="bg-white dark:bg-orbit-ink rounded-xl p-5 border border-orbit-border dark:border-[var(--border)] shadow-sm lg:col-span-2 flex flex-col justify-between">
+            <div className="bg-orbit-surface rounded-xl p-5 border border-orbit-border dark:border-[var(--border)] shadow-sm lg:col-span-2 flex flex-col justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-[var(--text-primary)] dark:text-white flex items-center gap-2">
                   <Layers className="w-4 h-4 text-orbit-primary" />
@@ -337,7 +337,7 @@ export const SelectionPage: React.FC = () => {
 
                 <div className="p-3 bg-[var(--surface2)] dark:bg-orbit-ink rounded-lg border border-orbit-border dark:border-[var(--border)]">
                   <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] mb-1">
-                    <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> 销售趋势
+                    <TrendingUp className="w-3.5 h-3.5 text-status-success" /> 销售趋势
                   </div>
                   <div className="text-lg font-bold text-[var(--text-primary)] dark:text-white">
                     {Math.round((result.signalsSnapshot?.weights?.sales_trend || 0.35) * 100)}%
@@ -346,7 +346,7 @@ export const SelectionPage: React.FC = () => {
 
                 <div className="p-3 bg-[var(--surface2)] dark:bg-orbit-ink rounded-lg border border-orbit-border dark:border-[var(--border)]">
                   <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] mb-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-amber-500" /> 低退款率
+                    <ShieldCheck className="w-3.5 h-3.5 text-status-warning" /> 低退款率
                   </div>
                   <div className="text-lg font-bold text-[var(--text-primary)] dark:text-white">
                     {Math.round((result.signalsSnapshot?.weights?.refund_rate_inverse || 0.15) * 100)}%
@@ -392,11 +392,11 @@ export const SelectionPage: React.FC = () => {
                   disabled={adopted || !result.id}
                   className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition ${
                     adopted
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      ? 'bg-orbit-success/10 text-status-success dark:bg-orbit-success/15 dark:text-status-success'
                       : 'border border-orbit-border dark:border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface2)] dark:hover:bg-orbit-ink'
                   }`}
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <CheckCircle2 className="w-4 h-4 text-status-success" />
                   {adopted ? '已采纳此方案' : '采纳选品结果'}
                 </button>
 
@@ -414,7 +414,7 @@ export const SelectionPage: React.FC = () => {
               {result.items.map((item) => (
                 <div
                   key={item.rankNo}
-                  className="bg-white dark:bg-orbit-ink rounded-xl p-5 border border-orbit-border dark:border-[var(--border)] shadow-sm flex flex-col justify-between hover:shadow-md transition"
+                  className="bg-orbit-surface rounded-xl p-5 border border-orbit-border dark:border-[var(--border)] shadow-sm flex flex-col justify-between hover:shadow-md transition"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3">
@@ -426,7 +426,7 @@ export const SelectionPage: React.FC = () => {
                           {item.suggestedName}
                         </h4>
                       </div>
-                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 text-xs font-semibold">
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-orbit-success/10 text-status-success dark:bg-orbit-success/15 dark:text-status-success text-xs font-semibold">
                         {item.matchScore}分
                       </div>
                     </div>
@@ -445,7 +445,7 @@ export const SelectionPage: React.FC = () => {
                   <div className="mt-4 pt-3 border-t border-orbit-border dark:border-[var(--border)] flex items-center justify-between">
                     <div>
                       <span className="text-xs text-[var(--text-muted)]">建议售价: </span>
-                      <span className="text-base font-bold text-rose-600 dark:text-rose-400">
+                      <span className="text-base font-bold text-status-danger dark:text-status-danger">
                         ¥{item.suggestedPrice.toFixed(2)}
                       </span>
                     </div>

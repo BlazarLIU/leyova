@@ -64,12 +64,12 @@ export function AiOpsInboxPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 1 · 待办中心
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">整合 Artifact 审批 + SOP 人工任务 + 预警确认</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             统一待办审批收件箱 (/inbox)
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -88,18 +88,18 @@ export function AiOpsInboxPage() {
                 <span className="text-xs text-[var(--text-muted)] font-medium">({t.source})</span>
               </div>
               <p className="text-xs text-[var(--text-muted)]">
-                涉及影响金额：<strong className="text-cyan-400 font-mono">{t.impactGmv}</strong> · 审批角色：{t.approver} · 截止：{t.deadline}
+                涉及影响金额：<strong className="text-status-ai font-mono">{t.impactGmv}</strong> · 审批角色：{t.approver} · 截止：{t.deadline}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               {t.status === 'approved' ? (
-                <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1">
+                <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-status-success bg-orbit-success/10 border border-orbit-success/20 flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>已批准通过</span>
                 </span>
               ) : t.status === 'rejected' ? (
-                <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 flex items-center gap-1">
+                <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-status-danger bg-orbit-danger/10 border border-orbit-danger/20 flex items-center gap-1">
                   <XCircle className="w-3.5 h-3.5" />
                   <span>已驳回</span>
                 </span>
@@ -113,7 +113,7 @@ export function AiOpsInboxPage() {
                   </button>
                   <button
                     onClick={() => handleDecision(t.id, t.toolLogId, 'approve')}
-                    className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md shadow-cyan-900/30 transition-all"
+                    className="px-4 py-1.5 rounded-lg bg-orbit-success hover:bg-orbit-success text-white text-xs font-bold shadow-md shadow-cyan-900/30 transition-all"
                   >
                     一键审批通过
                   </button>

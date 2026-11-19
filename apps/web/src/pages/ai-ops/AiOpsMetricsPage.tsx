@@ -55,14 +55,14 @@ export function AiOpsMetricsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               内核治理 · 指标注册表
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">
               法定注册指标字典 (metric_definition)
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             指标注册表与口径版本字典
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -72,7 +72,7 @@ export function AiOpsMetricsPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center p-16 text-cyan-400">
+        <div className="flex flex-col items-center justify-center p-16 text-status-ai">
           <Loader2 className="w-8 h-8 animate-spin mb-3" />
           <p className="text-xs font-mono text-[var(--text-muted)]">正在调取系统全局法定口径版本注册表...</p>
         </div>
@@ -91,7 +91,7 @@ export function AiOpsMetricsPage() {
             >
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-cyan-400 font-bold text-sm">{m.code}</span>
+                  <span className="font-mono text-status-ai font-bold text-sm">{m.code}</span>
                   <span className="text-white font-medium text-sm">({m.name})</span>
                   <span className="text-xs px-2 py-0.5 rounded bg-orbit-ink text-orbit-snow/60 font-mono">
                     {m.unit}
@@ -102,7 +102,7 @@ export function AiOpsMetricsPage() {
 
               <div className="flex items-center gap-4 text-xs font-mono">
                 <span className="text-[var(--text-muted)]">口径：{m.caliber}</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                <span className="px-2.5 py-0.5 rounded-full bg-orbit-success/10 text-status-ai border border-orbit-success/20">
                   {m.maturity}
                 </span>
               </div>

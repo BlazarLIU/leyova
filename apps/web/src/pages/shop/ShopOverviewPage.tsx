@@ -91,7 +91,7 @@ export function ShopOverviewPage() {
                   onClick={() => setDays(d)}
                   className={cn(
                     'rounded px-3 py-1.5 text-xs transition',
-                    days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+                    days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                   )}
                 >
                   近 {d} 天
@@ -103,7 +103,7 @@ export function ShopOverviewPage() {
       </motion.div>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</div>
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 p-3 text-sm text-status-danger">{error}</div>
       )}
 
       {!currentShop?.id ? (
@@ -149,7 +149,7 @@ export function ShopOverviewPage() {
                       return (
                         <div key={d.biz_date} className="group relative flex-1">
                           <div
-                            className="rounded-t bg-gradient-to-t from-cyan-600/60 to-cyan-400/80 transition-all hover:from-cyan-500 hover:to-cyan-300"
+                            className="rounded-t bg-gradient-to-t from-orbit-success/60 to-orbit-success/80 transition-all hover:from-orbit-success hover:to-orbit-success"
                             style={{ height: `${Math.max((d.gmv / max) * 140, 2)}px` }}
                           />
                           <div className="pointer-events-none absolute -top-9 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-orbit-ink px-2 py-1 text-[10px] text-orbit-snow/80 ring-1 ring-[var(--border)] group-hover:block">
@@ -187,7 +187,7 @@ export function ShopOverviewPage() {
                             </div>
                             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-orbit-ink">
                               <div
-                                className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400"
+                                className="h-full rounded-full bg-gradient-to-r from-orbit-success to-orbit-success"
                                 style={{ width: `${Math.max((c.gmv / max) * 100, 1)}%` }}
                               />
                             </div>
@@ -205,7 +205,7 @@ export function ShopOverviewPage() {
         <Card>
           <CardBody>
             <div className="py-14 text-center">
-              <AlertTriangle className="mx-auto h-10 w-10 text-amber-500/60" />
+              <AlertTriangle className="mx-auto h-10 w-10 text-status-warning/60" />
               <p className="mt-3 text-sm text-[var(--text-muted)]">该店铺在选定周期内暂无经营数据</p>
               <p className="mt-1 text-xs text-[var(--text-primary)]">近 {days} 天��没有导入记录</p>
               <Button className="mt-4" onClick={() => navigate('/data/ingest')}>
@@ -229,7 +229,7 @@ function MetricCard({
         {label}
       </div>
       <div className="mt-1.5 flex items-baseline gap-1">
-        <span className={cn('text-lg font-semibold', warn ? 'text-rose-400' : 'text-[var(--text-primary)]')}>{value}</span>
+        <span className={cn('text-lg font-semibold', warn ? 'text-status-danger' : 'text-[var(--text-primary)]')}>{value}</span>
         {unit && <span className="text-[11px] text-[var(--text-muted)]">{unit}</span>}
         {warn && <Badge variant="danger">偏高</Badge>}
       </div>

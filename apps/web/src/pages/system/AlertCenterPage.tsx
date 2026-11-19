@@ -285,7 +285,7 @@ export function AlertCenterPage() {
         render: (_, item) => (
           <span
             className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-              item.status === 'resolved' ? 'text-emerald-400' : 'text-amber-400'
+              item.status === 'resolved' ? 'text-status-success' : 'text-status-warning'
             }`}
           >
             {item.status === 'resolved' ? (
@@ -341,7 +341,7 @@ export function AlertCenterPage() {
         key: 'threshold',
         header: '触发条件与阈值',
         render: (_, rule) => (
-          <span className="font-mono text-xs text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+          <span className="font-mono text-xs text-status-danger bg-orbit-danger/10 px-2 py-0.5 rounded border border-orbit-danger/20">
             {rule.condition === 'gt' ? '大于' : '小于'} {rule.threshold}
           </span>
         ),
@@ -366,7 +366,7 @@ export function AlertCenterPage() {
           }
           return (
             <span className="inline-flex items-center gap-1.5 text-[var(--text-secondary)] text-xs">
-              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <Radio className="w-3.5 h-3.5 text-status-success animate-pulse" />
               {channel.type === 'feishu'
                 ? '飞书群机器人'
                 : channel.type === 'dingtalk'
@@ -385,7 +385,7 @@ export function AlertCenterPage() {
             onClick={() => handleToggleRuleStatus(rule)}
             className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
               rule.isActive
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-orbit-success/20 text-status-success border border-orbit-success/30'
                 : 'bg-orbit-ink text-orbit-snow/70 border border-[var(--border)]'
             }`}
           >
@@ -407,7 +407,7 @@ export function AlertCenterPage() {
                   onClick={() => handleTestWebhook(rule)}
                   disabled={testingId === rule.id}
                   title="向 Webhook 发送一条模拟告警"
-                  className="text-xs text-sky-400 hover:text-sky-300 inline-flex items-center gap-1 disabled:opacity-50"
+                  className="text-xs text-status-info hover:text-status-info inline-flex items-center gap-1 disabled:opacity-50"
                 >
                   <Send className="w-3 h-3" />
                   {testingId === rule.id ? '推送中...' : '测试通知'}
@@ -416,7 +416,7 @@ export function AlertCenterPage() {
               <button
                 onClick={() => handleDeleteRule(rule.id)}
                 title="删除规则"
-                className="text-xs text-rose-400 hover:text-rose-300 inline-flex items-center gap-0.5 ml-1"
+                className="text-xs text-status-danger hover:text-status-danger inline-flex items-center gap-0.5 ml-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -434,7 +434,7 @@ export function AlertCenterPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ShieldAlert className="w-7 h-7 text-rose-400" />
+            <ShieldAlert className="w-7 h-7 text-status-danger" />
             指标预警与通知中心
           </h1>
           <p className="text-xs text-[var(--text-muted)] mt-1">
@@ -447,14 +447,14 @@ export function AlertCenterPage() {
             onClick={() => setActiveTab('events')}
             className={`flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               activeTab === 'events'
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
+                ? 'bg-orbit-danger/20 text-status-danger border border-orbit-danger/40 shadow-sm'
                 : 'text-orbit-snow/60 hover:text-orbit-snow'
             }`}
           >
             <Bell className="w-3.5 h-3.5" />
             告警事件动态
             {eventsTable.total > 0 && (
-              <span className="px-1.5 py-0.2 bg-rose-500/30 text-rose-300 rounded-full text-[10px]">
+              <span className="px-1.5 py-0.2 bg-orbit-danger/30 text-status-danger rounded-full text-[10px]">
                 {eventsTable.total}
               </span>
             )}
@@ -463,7 +463,7 @@ export function AlertCenterPage() {
             onClick={() => setActiveTab('rules')}
             className={`flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               activeTab === 'rules'
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
+                ? 'bg-orbit-danger/20 text-status-danger border border-orbit-danger/40 shadow-sm'
                 : 'text-orbit-snow/60 hover:text-orbit-snow'
             }`}
           >
@@ -493,7 +493,7 @@ export function AlertCenterPage() {
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[var(--text-muted)]">告警事件总数</span>
-                  <Activity className="w-4 h-4 text-rose-400" />
+                  <Activity className="w-4 h-4 text-status-danger" />
                 </div>
                 <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{eventsStats.total}</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">当前监控周期捕获的异常记录</p>
@@ -503,9 +503,9 @@ export function AlertCenterPage() {
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[var(--text-muted)]">严重级别告警</span>
-                  <AlertCircle className="w-4 h-4 text-rose-500" />
+                  <AlertCircle className="w-4 h-4 text-status-danger" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-rose-400">{eventsStats.critical}</p>
+                <p className="mt-1 text-2xl font-bold text-status-danger">{eventsStats.critical}</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">需立即介入的高风险指标突破</p>
               </CardBody>
             </Card>
@@ -513,9 +513,9 @@ export function AlertCenterPage() {
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[var(--text-muted)]">待运营处置</span>
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <AlertTriangle className="w-4 h-4 text-status-warning" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-amber-400">{eventsStats.pending}</p>
+                <p className="mt-1 text-2xl font-bold text-status-warning">{eventsStats.pending}</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">排队处置中的异常工单</p>
               </CardBody>
             </Card>
@@ -523,9 +523,9 @@ export function AlertCenterPage() {
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[var(--text-muted)]">已处置解决</span>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-status-success" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-emerald-400">{eventsStats.resolved}</p>
+                <p className="mt-1 text-2xl font-bold text-status-success">{eventsStats.resolved}</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已完成自愈或运营闭环</p>
               </CardBody>
             </Card>
@@ -535,7 +535,7 @@ export function AlertCenterPage() {
             title="告警事件动态流水"
             subtitle="实时捕获退款率暴跌、ROI离群与直播间流量波动异常，支持即时响应与处置追踪"
             badge={
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-rose-400 border border-orbit-border">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-danger border border-orbit-border">
                 DataPage + useTable
               </span>
             }
@@ -564,7 +564,7 @@ export function AlertCenterPage() {
                       onClick={() => eventsTable.setFilter('severity', s)}
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         eventsTable.filters.severity === s
-                          ? 'bg-rose-600 text-white font-medium'
+                          ? 'bg-orbit-danger text-white font-medium'
                           : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
@@ -581,7 +581,7 @@ export function AlertCenterPage() {
                       onClick={() => eventsTable.setFilter('status', st)}
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         eventsTable.filters.status === st
-                          ? 'bg-rose-600 text-white font-medium'
+                          ? 'bg-orbit-danger text-white font-medium'
                           : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
@@ -595,7 +595,7 @@ export function AlertCenterPage() {
                   <select
                     value={eventsTable.filters.period}
                     onChange={(e) => eventsTable.setFilter('period', e.target.value)}
-                    className="h-7 px-2 text-xs rounded border border-[var(--border)] bg-orbit-ink text-orbit-snow/80 focus:outline-none focus:border-rose-500"
+                    className="h-7 px-2 text-xs rounded border border-[var(--border)] bg-orbit-ink text-orbit-snow/80 focus:outline-none focus:border-orbit-danger"
                   >
                     {['全部', '近1小时', '近24小时', '近7天'].map((t) => (
                       <option key={t} value={t}>
@@ -615,7 +615,7 @@ export function AlertCenterPage() {
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[var(--text-muted)]">监控规则总数</span>
-                  <Sliders className="w-4 h-4 text-emerald-400" />
+                  <Sliders className="w-4 h-4 text-status-success" />
                 </div>
                 <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{rulesStats.total}</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已注册的核心指标预警逻辑</p>
@@ -625,9 +625,9 @@ export function AlertCenterPage() {
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[var(--text-muted)]">运行中规则</span>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-status-success" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-emerald-400">{rulesStats.active}</p>
+                <p className="mt-1 text-2xl font-bold text-status-success">{rulesStats.active}</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">实时对齐数据流守护中</p>
               </CardBody>
             </Card>
@@ -645,9 +645,9 @@ export function AlertCenterPage() {
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[var(--text-muted)]">Webhook 机器人通道</span>
-                  <Radio className="w-4 h-4 text-sky-400" />
+                  <Radio className="w-4 h-4 text-status-info" />
                 </div>
-                <p className="mt-1 text-2xl font-bold text-sky-400">{rulesStats.webhooks}</p>
+                <p className="mt-1 text-2xl font-bold text-status-info">{rulesStats.webhooks}</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已挂接飞书/钉钉/企微自动化推送</p>
               </CardBody>
             </Card>
@@ -657,7 +657,7 @@ export function AlertCenterPage() {
             title="自动预警触发规则"
             subtitle="当直播间/货架经营数据突破设定阈值时，自动记录告警事件并向指定群机器人推送通知"
             badge={
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-emerald-400 border border-orbit-border">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-success border border-orbit-border">
                 DataPage + useTable
               </span>
             }
@@ -696,7 +696,7 @@ export function AlertCenterPage() {
                       onClick={() => rulesTable.setFilter('severity', sev)}
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         rulesTable.filters.severity === sev
-                          ? 'bg-rose-600 text-white font-medium'
+                          ? 'bg-orbit-danger text-white font-medium'
                           : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
@@ -717,7 +717,7 @@ export function AlertCenterPage() {
                       onClick={() => rulesTable.setFilter('isActive', st.value)}
                       className={`px-2 py-0.5 rounded text-xs transition-colors ${
                         rulesTable.filters.isActive === st.value
-                          ? 'bg-rose-600 text-white font-medium'
+                          ? 'bg-orbit-danger text-white font-medium'
                           : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                       }`}
                     >
@@ -743,7 +743,7 @@ export function AlertCenterPage() {
             >
               <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-4">
                 <h3 className="text-base font-bold text-orbit-snow flex items-center gap-2">
-                  <Sliders className="w-5 h-5 text-rose-400" />
+                  <Sliders className="w-5 h-5 text-status-danger" />
                   新建指标预警与通知规则
                 </h3>
                 <button
@@ -763,7 +763,7 @@ export function AlertCenterPage() {
                     placeholder="例如：晚高峰直播间退款率飙升告警"
                     value={ruleForm.ruleName}
                     onChange={(e) => setRuleForm({ ...ruleForm, ruleName: e.target.value })}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow placeholder:text-orbit-snow/35 focus:outline-none focus:border-rose-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow placeholder:text-orbit-snow/35 focus:outline-none focus:border-orbit-danger"
                   />
                 </div>
 
@@ -780,7 +780,7 @@ export function AlertCenterPage() {
                         threshold: item?.defaultThreshold || 0,
                       })
                     }}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-orbit-danger"
                   >
                     {METRICS_OPTIONS.map((m) => (
                       <option key={m.code} value={m.code}>
@@ -796,7 +796,7 @@ export function AlertCenterPage() {
                     <select
                       value={ruleForm.condition}
                       onChange={(e) => setRuleForm({ ...ruleForm, condition: e.target.value })}
-                      className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
+                      className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-orbit-danger"
                     >
                       <option value="gt">大于 (&gt;)</option>
                       <option value="lt">小于 (&lt;)</option>
@@ -810,7 +810,7 @@ export function AlertCenterPage() {
                       required
                       value={ruleForm.threshold}
                       onChange={(e) => setRuleForm({ ...ruleForm, threshold: Number(e.target.value) })}
-                      className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
+                      className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-orbit-danger"
                     />
                   </div>
                 </div>
@@ -820,7 +820,7 @@ export function AlertCenterPage() {
                   <select
                     value={ruleForm.severity}
                     onChange={(e) => setRuleForm({ ...ruleForm, severity: e.target.value })}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-rose-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow focus:outline-none focus:border-orbit-danger"
                   >
                     <option value="提示">提示 (普通监控)</option>
                     <option value="警告">警告 (需要关注)</option>
@@ -841,7 +841,7 @@ export function AlertCenterPage() {
                         onClick={() => setRuleForm({ ...ruleForm, channelType: ch })}
                         className={`py-1.5 px-2 rounded-lg text-center font-medium border transition-all ${
                           ruleForm.channelType === ch
-                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
+                            ? 'bg-orbit-danger/20 text-status-danger border-orbit-danger/50'
                             : 'bg-orbit-ink border-[var(--border)] text-orbit-snow/60 hover:text-orbit-snow'
                         }`}
                       >
@@ -854,7 +854,7 @@ export function AlertCenterPage() {
                     placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
                     value={ruleForm.webhookUrl}
                     onChange={(e) => setRuleForm({ ...ruleForm, webhookUrl: e.target.value })}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow placeholder:text-orbit-snow/35 focus:outline-none focus:border-rose-500 text-xs"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-orbit-snow placeholder:text-orbit-snow/35 focus:outline-none focus:border-orbit-danger text-xs"
                   />
                 </div>
 

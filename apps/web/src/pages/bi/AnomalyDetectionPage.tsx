@@ -62,9 +62,9 @@ const severityBadgeMap: Record<string, { variant: 'danger' | 'warning' | 'info';
 
 const dimColorMap: Record<string, string> = {
   GMV: 'text-orbit-primary bg-orbit-primary/10',
-  退款率: 'text-amber-400 bg-amber-400/10',
-  ROI: 'text-cyan-400 bg-cyan-400/10',
-  观看人数: 'text-emerald-400 bg-emerald-400/10',
+  退款率: 'text-status-warning bg-orbit-warning/10',
+  ROI: 'text-status-ai bg-orbit-success/10',
+  观看人数: 'text-status-success bg-orbit-success/10',
 }
 
 export function AnomalyDetectionPage() {
@@ -235,7 +235,7 @@ export function AnomalyDetectionPage() {
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[var(--text-muted)]">异常值</span>
-                      <span className="text-sm font-semibold text-red-400">{event.actualValue}</span>
+                      <span className="text-sm font-semibold text-status-danger">{event.actualValue}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[var(--text-muted)]">正常范围</span>
@@ -244,7 +244,7 @@ export function AnomalyDetectionPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[var(--text-muted)]">偏离幅度</span>
                       <span className={`text-sm font-semibold ${
-                        event.deviation.startsWith('+') ? 'text-red-400' : 'text-amber-400'
+                        event.deviation.startsWith('+') ? 'text-status-danger' : 'text-status-warning'
                       }`}>
                         {event.deviation}
                       </span>
@@ -312,13 +312,13 @@ export function AnomalyDetectionPage() {
                     return (
                       <tr
                         key={row.id}
-                        className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                        className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                       >
                         <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{row.dimension}</td>
-                        <td className="px-5 py-3.5 text-right text-red-400 font-medium tabular-nums">{row.actualValue}</td>
+                        <td className="px-5 py-3.5 text-right text-status-danger font-medium tabular-nums">{row.actualValue}</td>
                         <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{row.normalRange}</td>
                         <td className={`px-5 py-3.5 text-right text-sm font-medium tabular-nums ${
-                          row.deviation.startsWith('+') ? 'text-red-400' : 'text-amber-400'
+                          row.deviation.startsWith('+') ? 'text-status-danger' : 'text-status-warning'
                         }`}>
                           {row.deviation}
                         </td>

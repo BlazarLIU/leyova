@@ -138,7 +138,7 @@ export function DedicatedInsightShell({ title, subtitle, icon: Icon, endpoint, w
       </motion.div>
 
       {err && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" /> {err}
         </div>
       )}
@@ -159,9 +159,9 @@ export function DedicatedInsightShell({ title, subtitle, icon: Icon, endpoint, w
                   <div className="text-[11px] text-[var(--text-muted)]">{k.label}</div>
                   <div className={`text-lg font-semibold mt-0.5 tabular-nums ${
                     k.accent === 'primary' ? 'text-orbit-primary'
-                    : k.accent === 'success' ? 'text-emerald-400'
-                    : k.accent === 'warn' ? 'text-amber-400'
-                    : k.accent === 'danger' ? 'text-rose-400'
+                    : k.accent === 'success' ? 'text-status-success'
+                    : k.accent === 'warn' ? 'text-status-warning'
+                    : k.accent === 'danger' ? 'text-status-danger'
                     : 'text-[var(--text-primary)]'
                   }`}>{k.value}</div>
                   {k.hint && <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{k.hint}</div>}

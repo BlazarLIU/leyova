@@ -195,7 +195,7 @@ export function UnifiedDashboardHub({ defaultView = 'cockpit' }: UnifiedDashboar
                     'relative flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 select-none',
                     isActive
                       ? 'bg-orbit-primary text-white shadow-md shadow-orbit-primary/20'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
                   )}
                 >
                   <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-[var(--text-muted)]')} />
@@ -205,7 +205,7 @@ export function UnifiedDashboardHub({ defaultView = 'cockpit' }: UnifiedDashboar
                       className={cn(
                         'text-[10px] px-1.5 py-0.2 rounded font-normal',
                         isActive
-                          ? 'bg-white/20 text-white'
+                          ? 'bg-[var(--hover-bg3)]0 text-white'
                           : 'bg-orbit-primary/10 text-orbit-primary-light border border-orbit-primary/20'
                       )}
                     >

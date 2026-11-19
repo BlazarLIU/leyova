@@ -182,7 +182,7 @@ export function AfterSalesPage() {
       </div>
 
       {errorMsg && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-4 py-2.5 text-sm text-status-danger">
           {errorMsg}
         </div>
       )}
@@ -198,7 +198,7 @@ export function AfterSalesPage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">6h 临期/超时预警</p>
-              <p className={`mt-1 text-2xl font-bold ${overview.timeoutRiskCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <p className={`mt-1 text-2xl font-bold ${overview.timeoutRiskCount > 0 ? 'text-status-danger' : 'text-status-success'}`}>
                 {overview.timeoutRiskCount}
               </p>
             </CardBody>
@@ -206,19 +206,19 @@ export function AfterSalesPage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">经验分仅退款自治保护</p>
-              <p className="mt-1 text-2xl font-bold text-emerald-400">{overview.autonomyProtectedCount}</p>
+              <p className="mt-1 text-2xl font-bold text-status-success">{overview.autonomyProtectedCount}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">工单累计退款额</p>
-              <p className="mt-1 text-2xl font-bold text-amber-400">¥{overview.totalRefundAmount.toLocaleString()}</p>
+              <p className="mt-1 text-2xl font-bold text-status-warning">¥{overview.totalRefundAmount.toLocaleString()}</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">标准退款分区事件数</p>
-              <p className="mt-1 text-2xl font-bold text-cyan-400">{overview.canonicalRefundRows}</p>
+              <p className="mt-1 text-2xl font-bold text-status-ai">{overview.canonicalRefundRows}</p>
             </CardBody>
           </Card>
         </div>
@@ -227,7 +227,7 @@ export function AfterSalesPage() {
       {overview && overview.reasonAttribution.length > 0 && (
         <Card>
           <CardHeader className="flex items-center gap-2">
-            <Undo2 className="w-4 h-4 text-amber-400" />
+            <Undo2 className="w-4 h-4 text-status-warning" />
             <span className="font-semibold text-[var(--text-primary)]">退款原因归因占比分布</span>
           </CardHeader>
           <CardBody className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -296,7 +296,7 @@ export function AfterSalesPage() {
                       <span className="ml-2 text-xs text-[var(--text-secondary)]">{REASON_LABELS[t.reason_category] || t.reason_category}</span>
                       {t.reason_detail && <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.reason_detail}</p>}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold tabular-nums text-amber-400">
+                    <td className="px-4 py-3 text-right font-semibold tabular-nums text-status-warning">
                       ¥{Number(t.refund_amount).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-xs">
@@ -307,7 +307,7 @@ export function AfterSalesPage() {
                     </td>
                     <td className="px-4 py-3 text-right text-xs tabular-nums">
                       {rem !== null && ['pending_audit', 'waiting_return'].includes(t.ticket_status) ? (
-                        <span className={rem <= 6 ? 'text-red-400 font-semibold' : 'text-[var(--text-secondary)]'}>
+                        <span className={rem <= 6 ? 'text-status-danger font-semibold' : 'text-[var(--text-secondary)]'}>
                           {rem >= 0 ? `余 ${rem}h` : `超时 ${Math.abs(rem)}h`}
                         </span>
                       ) : <span className="text-[var(--text-muted)]">—</span>}

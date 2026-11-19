@@ -25,10 +25,10 @@ export function PlatformMismatchNotice({
         transition={{ duration: 0.3 }}
         className="max-w-xl w-full"
       >
-        <Card className="border-amber-500/30 bg-orbit-surface/90 shadow-2xl overflow-hidden relative">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-rose-500 to-orbit-primary-dark" />
+        <Card className="border-orbit-warning/30 bg-orbit-surface/90 shadow-2xl overflow-hidden relative">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orbit-warning via-orbit-danger to-orbit-primary-dark" />
           <CardBody className="p-8 text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
+            <div className="w-16 h-16 rounded-2xl bg-orbit-warning/10 border border-orbit-warning/20 text-status-warning flex items-center justify-center mx-auto shadow-inner">
               <AlertCircle className="w-8 h-8" />
             </div>
 

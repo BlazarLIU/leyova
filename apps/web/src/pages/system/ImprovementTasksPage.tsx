@@ -168,7 +168,7 @@ export function ImprovementTasksPage() {
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
                             task.progress === 100
-                              ? 'bg-emerald-500'
+                              ? 'bg-orbit-success'
                               : task.progress > 0
                                 ? 'bg-gradient-to-r from-orbit-primary to-orbit-accent'
                                 : ''
@@ -192,7 +192,7 @@ export function ImprovementTasksPage() {
                       {task.status === 'in_progress' && (
                         <button
                           onClick={() => handleUpdateStatus(task.id, 'completed')}
-                          className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20"
+                          className="flex items-center gap-1 text-xs text-status-success hover:text-status-success transition-colors px-3 py-1.5 rounded-lg bg-orbit-success/10 hover:bg-orbit-success/20"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           标记完成

@@ -180,7 +180,7 @@ export function NetRoiPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-cyan-400" />
+            <TrendingUp className="w-5 h-5 text-status-ai" />
             全域投流与 T+7 净成交 ROI 双时间线
           </h1>
           <p className="text-xs text-[var(--text-muted)] mt-1">
@@ -215,7 +215,7 @@ export function NetRoiPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs text-rose-300 flex items-center justify-between">
+        <div className="rounded-xl border border-orbit-danger/40 bg-orbit-danger/10 px-4 py-3 text-xs text-status-danger flex items-center justify-between">
           <span className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
             {error}
@@ -337,17 +337,17 @@ export function NetRoiPage() {
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">T+0 归因支付 GMV</div>
-              <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">¥{overview.summary.total_attributed_gross_gmv.toLocaleString()}</div>
+              <div className="text-xl font-bold text-status-ai mt-1 tabular-nums">¥{overview.summary.total_attributed_gross_gmv.toLocaleString()}</div>
               <div className="text-[11px] text-[var(--text-muted)] mt-0.5">支付 ROI {overview.summary.pay_roi}x</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">T+N 结算净 GMV</div>
-              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">¥{overview.summary.total_attributed_settled_gmv.toLocaleString()}</div>
-              <div className="text-[11px] text-emerald-400 mt-0.5">净成交 ROI {overview.summary.net_roi}x</div>
+              <div className="text-xl font-bold text-status-success mt-1 tabular-nums">¥{overview.summary.total_attributed_settled_gmv.toLocaleString()}</div>
+              <div className="text-[11px] text-status-success mt-0.5">净成交 ROI {overview.summary.net_roi}x</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">退款/预留核减</div>
-              <div className="text-xl font-bold text-amber-400 mt-1 tabular-nums">¥{overview.summary.total_refund_reserve.toLocaleString()}</div>
+              <div className="text-xl font-bold text-status-warning mt-1 tabular-nums">¥{overview.summary.total_refund_reserve.toLocaleString()}</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">平均点击成本 (CPC)</div>
@@ -378,20 +378,20 @@ export function NetRoiPage() {
                   </thead>
                   <tbody>
                     {overview.dualTimeline.map((row) => (
-                      <tr key={row.id} className="border-b border-orbit-border/60 hover:bg-white/5">
+                      <tr key={row.id} className="border-b border-orbit-border/60 hover:bg-[var(--hover-bg)]">
                         <td className="px-4 py-2.5 text-[var(--text-secondary)]">{row.platform_name} · {row.shop_name}</td>
                         <td className="px-4 py-2.5 font-mono text-[var(--text-secondary)]">{String(row.order_date).slice(0, 10)}</td>
-                        <td className="px-4 py-2.5 font-mono text-cyan-300">
+                        <td className="px-4 py-2.5 font-mono text-status-ai">
                           {String(row.settle_date).slice(0, 10)} <span className="text-[var(--text-muted)]">(T+{row.settlement_cycle_days})</span>
                         </td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">¥{Number(row.gross_gmv).toLocaleString()}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-amber-400">-¥{Number(row.refund_deducted).toLocaleString()}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400">¥{Number(row.settled_gmv).toLocaleString()}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-status-warning">-¥{Number(row.refund_deducted).toLocaleString()}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-status-success">¥{Number(row.settled_gmv).toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">¥{Number(row.ad_spend).toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">
                           <span className="text-[var(--text-muted)]">{row.pay_roi}x</span>
                           <span className="mx-1 text-[var(--text-primary)]">→</span>
-                          <span className="font-semibold text-emerald-400">{row.net_roi}x</span>
+                          <span className="font-semibold text-status-success">{row.net_roi}x</span>
                         </td>
                         <td className="px-4 py-2.5">
                           <Badge variant={statusVariant[row.settlement_status] || 'neutral'}>{row.settlement_status}</Badge>
@@ -427,10 +427,10 @@ export function NetRoiPage() {
               </thead>
               <tbody>
                 {tools.map((t) => (
-                  <tr key={t.code} className="border-b border-orbit-border/60 hover:bg-white/5">
+                  <tr key={t.code} className="border-b border-orbit-border/60 hover:bg-[var(--hover-bg)]">
                     <td className="px-4 py-2.5 text-[var(--text-secondary)]">{t.platform_name || t.platform_code}</td>
                     <td className="px-4 py-2.5 text-[var(--text-primary)] font-medium">{t.name} <span className="text-[var(--text-muted)] font-mono">({t.code})</span></td>
-                    <td className="px-4 py-2.5 text-right text-cyan-300 tabular-nums">
+                    <td className="px-4 py-2.5 text-right text-status-ai tabular-nums">
                       {t.default_attribution_hours ? `${t.default_attribution_hours}h` : '自定义'}
                     </td>
                     <td className="px-4 py-2.5 text-right text-[var(--text-secondary)] tabular-nums">{t.impression_window_hours}h</td>

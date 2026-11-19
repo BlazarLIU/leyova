@@ -58,8 +58,8 @@ export function LiveMonitorPage() {
               value: (data.summary.total_online ?? 0).toLocaleString(),
               change: '—',
               icon: Eye,
-              color: 'text-cyan-400',
-              bg: 'bg-cyan-500/10',
+              color: 'text-status-ai',
+              bg: 'bg-orbit-success/10',
             },
             {
               id: 'total-views',
@@ -76,8 +76,8 @@ export function LiveMonitorPage() {
               value: `¥${((data.summary.real_time_gmv ?? 0) / 10000).toFixed(1)}万`,
               change: '—',
               icon: DollarSign,
-              color: 'text-emerald-400',
-              bg: 'bg-emerald-500/10',
+              color: 'text-status-success',
+              bg: 'bg-orbit-success/10',
             },
             {
               id: 'orders',
@@ -85,8 +85,8 @@ export function LiveMonitorPage() {
               value: (data.summary.orders ?? 0).toLocaleString(),
               change: '—',
               icon: ShoppingCart,
-              color: 'text-amber-400',
-              bg: 'bg-amber-500/10',
+              color: 'text-status-warning',
+              bg: 'bg-orbit-warning/10',
             },
           ])
         }
@@ -146,7 +146,7 @@ export function LiveMonitorPage() {
                   <div className={`p-2 rounded-lg ${metric.bg}`}>
                     <Icon className={`w-4 h-4 ${metric.color}`} />
                   </div>
-                  <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
+                  <span className="text-xs font-medium text-status-success bg-orbit-success/10 px-2 py-1 rounded-full">
                     {metric.change}
                   </span>
                 </div>
@@ -202,11 +202,11 @@ export function LiveMonitorPage() {
                     rooms.map((room) => (
                       <tr
                         key={room.id}
-                        className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                        className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                       >
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <Radio className={`w-4 h-4 ${room.status === 'live' ? 'text-emerald-400 animate-pulse' : 'text-[var(--text-primary)]'}`} />
+                            <Radio className={`w-4 h-4 ${room.status === 'live' ? 'text-status-success animate-pulse' : 'text-[var(--text-primary)]'}`} />
                             <span className="text-[var(--text-secondary)] font-medium">{room.name}</span>
                           </div>
                         </td>
@@ -214,7 +214,7 @@ export function LiveMonitorPage() {
                         <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-medium tabular-nums">
                           {room.online.toLocaleString()}
                         </td>
-                        <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{room.gmv}</td>
+                        <td className="px-5 py-3.5 text-right text-status-success font-medium">{room.gmv}</td>
                         <td className="px-5 py-3.5 text-center">
                           {room.status === 'live' ? (
                             <Badge variant="success" dot>直播中</Badge>

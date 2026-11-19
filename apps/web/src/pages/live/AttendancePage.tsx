@@ -150,7 +150,7 @@ export function AttendancePage() {
       </motion.div>
 
       {error && (
-        <div className="flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+        <div className="flex items-center justify-between rounded-xl border border-orbit-danger/30 bg-orbit-danger/10 px-4 py-3 text-sm text-status-danger">
           <span className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
@@ -158,7 +158,7 @@ export function AttendancePage() {
           <button
             onClick={loadAttendance}
             disabled={loading}
-            className="flex items-center gap-1.5 rounded-lg border border-rose-400/30 bg-rose-500/15 px-3 py-1 text-xs font-medium text-rose-200 hover:bg-rose-500/25 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-orbit-danger/30 bg-orbit-danger/15 px-3 py-1 text-xs font-medium text-status-danger hover:bg-orbit-danger/25 disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             重试
@@ -189,7 +189,7 @@ export function AttendancePage() {
                       <th
                         key={d.date}
                         className={`text-center text-[11px] px-1 py-2 font-medium ${
-                          d.isWeekend ? 'text-amber-400 bg-amber-500/5' : 'text-[var(--text-muted)]'
+                          d.isWeekend ? 'text-status-warning bg-orbit-warning/5' : 'text-[var(--text-muted)]'
                         }`}
                         style={{ width: 40, minWidth: 40 }}
                       >
@@ -226,7 +226,7 @@ export function AttendancePage() {
                     let nightShifts = 0
 
                     return (
-                      <tr key={`anchor_${anchor.id}`} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                      <tr key={`anchor_${anchor.id}`} className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors">
                         <td className="px-3 py-2 text-[var(--text-secondary)] font-medium sticky left-0 bg-orbit-surface">
                           <div className="flex items-center gap-1.5">
                             <User className="w-3.5 h-3.5 text-[var(--text-primary)]" />
@@ -246,7 +246,7 @@ export function AttendancePage() {
                               <td
                                 key={d.date}
                                 className={`text-center px-1 py-2 ${
-                                  d.isWeekend ? 'bg-amber-500/5' : 'bg-emerald-500/5'
+                                  d.isWeekend ? 'bg-orbit-warning/5' : 'bg-orbit-success/5'
                                 }`}
                               >
                                 <div className="text-xs">✅</div>
@@ -261,7 +261,7 @@ export function AttendancePage() {
                             <td
                               key={d.date}
                               className={`text-center px-1 py-2 ${
-                                d.isWeekend ? 'bg-amber-500/5' : 'bg-red-500/5'
+                                d.isWeekend ? 'bg-orbit-warning/5' : 'bg-orbit-danger/5'
                               }`}
                             >
                               <div className="text-xs">❌</div>
@@ -291,7 +291,7 @@ export function AttendancePage() {
                     let nightShifts = 0
 
                     return (
-                      <tr key={`operator_${op.id}`} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                      <tr key={`operator_${op.id}`} className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors">
                         <td className="px-3 py-2 text-[var(--text-secondary)] font-medium sticky left-0 bg-orbit-surface">
                           <div className="flex items-center gap-1.5">
                             <User className="w-3.5 h-3.5 text-[var(--text-primary)]" />
@@ -310,7 +310,7 @@ export function AttendancePage() {
                               <td
                                 key={d.date}
                                 className={`text-center px-1 py-2 ${
-                                  d.isWeekend ? 'bg-amber-500/5' : 'bg-emerald-500/5'
+                                  d.isWeekend ? 'bg-orbit-warning/5' : 'bg-orbit-success/5'
                                 }`}
                               >
                                 <div className="text-xs">✅</div>
@@ -324,7 +324,7 @@ export function AttendancePage() {
                             <td
                               key={d.date}
                               className={`text-center px-1 py-2 ${
-                                d.isWeekend ? 'bg-amber-500/5' : 'bg-red-500/5'
+                                d.isWeekend ? 'bg-orbit-warning/5' : 'bg-orbit-danger/5'
                               }`}
                             >
                               <div className="text-xs">❌</div>
@@ -370,13 +370,13 @@ export function AttendancePage() {
                   </thead>
                   <tbody>
                     {data.anchorStats.map((stat) => (
-                      <tr key={stat.id} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                      <tr key={stat.id} className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors">
                         <td className="px-4 py-2.5 text-[var(--text-secondary)]">{stat.name}</td>
                         <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{(stat.totalDuration / 60).toFixed(1)}</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGmv.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGsv.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-right text-status-success">{stat.totalGmv.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-right text-status-success">{stat.totalGsv.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{stat.avgGsv.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-right text-red-400">{stat.totalReturn.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-right text-status-danger">{stat.totalReturn.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-center text-[var(--text-secondary)]">{stat.nightShiftCount}</td>
                       </tr>
                     ))}
@@ -415,11 +415,11 @@ export function AttendancePage() {
                   </thead>
                   <tbody>
                     {data.operatorStats.map((stat) => (
-                      <tr key={stat.id} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                      <tr key={stat.id} className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors">
                         <td className="px-4 py-2.5 text-[var(--text-secondary)]">{stat.name}</td>
                         <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{stat.streamCount}</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGmv.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-400">{stat.totalGsv.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-right text-status-success">{stat.totalGmv.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-right text-status-success">{stat.totalGsv.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">{stat.avgGsv.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-center text-[var(--text-secondary)]">{stat.nightShiftCount}</td>
                       </tr>

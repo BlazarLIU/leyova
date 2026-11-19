@@ -236,29 +236,29 @@ function buildQuickEntries(platformCode: string): QuickEntry[] {
   // 各平台专属
   if (platformCode === 'kuaishou') {
     base.push(
-      { label: '公私域分析', desc: '关注页 vs 发现页成交', icon: Users, href: '/shop/kuaishou/traffic-split', color: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/30', textColor: 'text-emerald-300' },
+      { label: '公私域分析', desc: '关注页 vs 发现页成交', icon: Users, href: '/shop/kuaishou/traffic-split', color: 'from-orbit-success/20 to-orbit-success/10', border: 'border-orbit-success/30', textColor: 'text-status-success' },
       { label: '间接成交', desc: '广告触达后的二次转化', icon: Megaphone, href: '/shop/kuaishou/indirect-gmv', color: 'from-orbit-primary/20 to-orbit-primary-dark/10', border: 'border-orbit-primary/30', textColor: 'text-orbit-primary' },
-      { label: '粉丝团运营', desc: '入团率与亲密度', icon: Users, href: '/shop/kuaishou/fans-team', color: 'from-pink-500/20 to-pink-600/10', border: 'border-pink-500/30', textColor: 'text-pink-300' },
+      { label: '粉丝团运营', desc: '入团率与亲密度', icon: Users, href: '/shop/kuaishou/fans-team', color: 'from-orbit-danger/20 to-orbit-danger/10', border: 'border-orbit-danger/30', textColor: 'text-status-danger' },
     )
   } else if (platformCode === 'pdd') {
     base.push(
-      { label: '成团转化', desc: '支付→待成团→已成团', icon: Users, href: '/shop/pdd/group-funnel', color: 'from-amber-500/20 to-amber-600/10', border: 'border-amber-500/30', textColor: 'text-amber-300' },
-      { label: '三口径对账', desc: '交易额/结算/净成交', icon: Package, href: '/shop/pdd/caliber-compare', color: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-500/30', textColor: 'text-cyan-300' },
+      { label: '成团转化', desc: '支付→待成团→已成团', icon: Users, href: '/shop/pdd/group-funnel', color: 'from-orbit-warning/20 to-orbit-warning/10', border: 'border-orbit-warning/30', textColor: 'text-status-warning' },
+      { label: '三口径对账', desc: '交易额/结算/净成交', icon: Package, href: '/shop/pdd/caliber-compare', color: 'from-orbit-success/20 to-orbit-success/10', border: 'border-orbit-success/30', textColor: 'text-status-ai' },
     )
   } else if (platformCode === 'jd') {
     base.push(
-      { label: '自营/POP 看板', desc: '两种模式分开核算', icon: Store, href: '/shop/jd/board', color: 'from-rose-500/20 to-rose-600/10', border: 'border-rose-500/30', textColor: 'text-rose-300' },
-      { label: '履约时效', desc: '24h售后/48h发货', icon: AlertTriangle, href: '/shop/jd/fulfillment', color: 'from-amber-500/20 to-amber-600/10', border: 'border-amber-500/30', textColor: 'text-amber-300' },
+      { label: '自营/POP 看板', desc: '两种模式分开核算', icon: Store, href: '/shop/jd/board', color: 'from-orbit-danger/20 to-orbit-danger/10', border: 'border-orbit-danger/30', textColor: 'text-status-danger' },
+      { label: '履约时效', desc: '24h售后/48h发货', icon: AlertTriangle, href: '/shop/jd/fulfillment', color: 'from-orbit-warning/20 to-orbit-warning/10', border: 'border-orbit-warning/30', textColor: 'text-status-warning' },
     )
   } else if (platformCode === 'taobao' || platformCode === 'tmall') {
     base.push(
-      { label: '淘系经营看板', desc: '父子订单与支付转化', icon: Store, href: '/shop/taobao/board', color: 'from-orange-500/20 to-orange-600/10', border: 'border-orange-500/30', textColor: 'text-orange-300' },
-      { label: '万相台对账', desc: '广告vs经营双源', icon: Megaphone, href: '/shop/taobao/ad-reconciliation', color: 'from-cyan-500/20 to-cyan-600/10', border: 'border-cyan-500/30', textColor: 'text-cyan-300' },
+      { label: '淘系经营看板', desc: '父子订单与支付转化', icon: Store, href: '/shop/taobao/board', color: 'from-orbit-warning/20 to-orbit-warning/10', border: 'border-orbit-warning/30', textColor: 'text-status-warning' },
+      { label: '万相台对账', desc: '广告vs经营双源', icon: Megaphone, href: '/shop/taobao/ad-reconciliation', color: 'from-orbit-success/20 to-orbit-success/10', border: 'border-orbit-success/30', textColor: 'text-status-ai' },
     )
   } else if (platformCode === 'xiaohongshu') {
     base.push(
-      { label: '笔记经营', desc: '曝光阅读互动', icon: FileText, href: '/shop/xiaohongshu/notes', color: 'from-pink-500/20 to-pink-600/10', border: 'border-pink-500/30', textColor: 'text-pink-300' },
-      { label: '种草转化', desc: '搜索与站内外成交', icon: TrendingUp, href: '/shop/xiaohongshu/conversion', color: 'from-rose-500/20 to-rose-600/10', border: 'border-rose-500/30', textColor: 'text-rose-300' },
+      { label: '笔记经营', desc: '曝光阅读互动', icon: FileText, href: '/shop/xiaohongshu/notes', color: 'from-orbit-danger/20 to-orbit-danger/10', border: 'border-orbit-danger/30', textColor: 'text-status-danger' },
+      { label: '种草转化', desc: '搜索与站内外成交', icon: TrendingUp, href: '/shop/xiaohongshu/conversion', color: 'from-orbit-danger/20 to-orbit-danger/10', border: 'border-orbit-danger/30', textColor: 'text-status-danger' },
     )
   }
 

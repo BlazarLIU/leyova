@@ -101,7 +101,7 @@ export const PerformanceLeaderboard: React.FC<PerformanceLeaderboardProps> = ({ 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-orbit-border">
         <div>
           <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-500" />
+            <Trophy className="w-5 h-5 text-status-warning" />
             <h3 className="text-base font-semibold text-[var(--text-primary)]">业绩排行榜</h3>
           </div>
           <p className="text-xs text-[var(--text-muted)] mt-1">

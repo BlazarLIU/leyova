@@ -115,7 +115,7 @@ export function CompliancePage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-amber-400" />
+            <ShieldAlert className="w-5 h-5 text-status-warning" />
             2026 平台合规与风控台账
           </h1>
           <p className="text-xs text-[var(--text-muted)] mt-1">
@@ -150,7 +150,7 @@ export function CompliancePage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs text-rose-300 flex items-center justify-between">
+        <div className="rounded-xl border border-orbit-danger/40 bg-orbit-danger/10 px-4 py-3 text-xs text-status-danger flex items-center justify-between">
           <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</span>
           <Button size="sm" variant="secondary" onClick={load}>重试</Button>
         </div>
@@ -212,11 +212,11 @@ export function CompliancePage() {
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">待处置合规事项</div>
-              <div className="text-xl font-bold text-amber-400 mt-1 tabular-nums">{data.summary.open_count}</div>
+              <div className="text-xl font-bold text-status-warning mt-1 tabular-nums">{data.summary.open_count}</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">严重告警 (Critical)</div>
-              <div className="text-xl font-bold text-rose-400 mt-1 tabular-nums">{data.summary.critical_count}</div>
+              <div className="text-xl font-bold text-status-danger mt-1 tabular-nums">{data.summary.critical_count}</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">累计信用扣分</div>
@@ -224,11 +224,11 @@ export function CompliancePage() {
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">自动跟价风险单</div>
-              <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">{data.summary.auto_price_follow_risk_count}</div>
+              <div className="text-xl font-bold text-status-ai mt-1 tabular-nums">{data.summary.auto_price_follow_risk_count}</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">主体不一致异常</div>
-              <div className="text-xl font-bold text-rose-300 mt-1 tabular-nums">{data.summary.entity_inconsistent_count}</div>
+              <div className="text-xl font-bold text-status-danger mt-1 tabular-nums">{data.summary.entity_inconsistent_count}</div>
             </CardBody></Card>
           </div>
 
@@ -249,10 +249,10 @@ export function CompliancePage() {
                   </thead>
                   <tbody>
                     {data.events.map((e) => (
-                      <tr key={e.id} className="border-b border-orbit-border/60 hover:bg-white/5">
+                      <tr key={e.id} className="border-b border-orbit-border/60 hover:bg-[var(--hover-bg)]">
                         <td className="px-4 py-3 text-[var(--text-secondary)]">{e.platform_name} {e.shop_name ? `· ${e.shop_name}` : ''}</td>
                         <td className="px-4 py-3">
-                          <div className="font-mono text-cyan-300">{e.regulation_code}</div>
+                          <div className="font-mono text-status-ai">{e.regulation_code}</div>
                           <div className="text-[var(--text-muted)]">{e.event_type}</div>
                         </td>
                         <td className="px-4 py-3">

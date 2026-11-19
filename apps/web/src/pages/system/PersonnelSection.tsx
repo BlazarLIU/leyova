@@ -273,7 +273,7 @@ export function PersonnelSection({
         )
       case 'A':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-orbit-success/15 text-status-success border border-orbit-success/30">
             A 级核心
           </span>
         )
@@ -285,7 +285,7 @@ export function PersonnelSection({
         )
       case 'C':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-normal bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-normal bg-orbit-warning/15 text-status-warning border border-orbit-warning/30">
             C 级成长
           </span>
         )
@@ -307,14 +307,14 @@ export function PersonnelSection({
       <span
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
           isActive
-            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            ? 'bg-orbit-success/10 text-status-success border border-orbit-success/20'
             : 'bg-[var(--surface3)] text-[var(--text-muted)] border border-orbit-border/20'
         }`}
       >
         <span
           className={`w-1.5 h-1.5 rounded-full ${
             isActive
-              ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]'
+              ? 'bg-orbit-success shadow-[0_0_6px_rgba(52,211,153,0.6)]'
               : 'bg-[var(--text-subtle)]'
           }`}
         />
@@ -343,7 +343,7 @@ export function PersonnelSection({
           header: '主播姓名',
           render: (_, p) => (
             <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
-              <Award className="w-3.5 h-3.5 text-amber-400" />
+              <Award className="w-3.5 h-3.5 text-status-warning" />
               {p.name}
             </span>
           ),
@@ -361,7 +361,7 @@ export function PersonnelSection({
           header: '中控姓名',
           render: (_, p) => (
             <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
-              <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+              <UserCheck className="w-3.5 h-3.5 text-status-ai" />
               {p.name}
             </span>
           ),
@@ -432,7 +432,7 @@ export function PersonnelSection({
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 px-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+              className="h-7 px-2 text-xs text-status-danger hover:text-status-danger hover:bg-orbit-danger/10"
               onClick={() => setDeletingId(p.id)}
             >
               <Trash2 className="w-3 h-3 mr-1" />
@@ -508,9 +508,9 @@ export function PersonnelSection({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-[var(--text-muted)]">当前在职生效</p>
-                <p className="text-2xl font-bold text-emerald-400 mt-1">{stats.activeCount} 人</p>
+                <p className="text-2xl font-bold text-status-success mt-1">{stats.activeCount} 人</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <div className="p-2.5 rounded-xl bg-orbit-success/10 border border-orbit-success/20 text-status-success">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
             </div>
@@ -535,7 +535,7 @@ export function PersonnelSection({
                     ? '工号分配覆盖'
                     : '管理席位配置'}
                 </p>
-                <p className="text-2xl font-bold text-amber-400 mt-1">
+                <p className="text-2xl font-bold text-status-warning mt-1">
                   {activeTab === 'anchor'
                     ? `${stats.saCount} 位`
                     : activeTab === 'operator'
@@ -543,7 +543,7 @@ export function PersonnelSection({
                     : `${managers.length} 席`}
                 </p>
               </div>
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <div className="p-2.5 rounded-xl bg-orbit-warning/10 border border-orbit-warning/20 text-status-warning">
                 <Sparkles className="w-5 h-5" />
               </div>
             </div>
@@ -711,7 +711,7 @@ export function PersonnelSection({
                   <>
                     <div>
                       <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
-                        主播姓名 <span className="text-rose-400">*</span>
+                        主播姓名 <span className="text-status-danger">*</span>
                       </label>
                       <input
                         value={form.name}
@@ -744,7 +744,7 @@ export function PersonnelSection({
                   <>
                     <div>
                       <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
-                        中控姓名 <span className="text-rose-400">*</span>
+                        中控姓名 <span className="text-status-danger">*</span>
                       </label>
                       <input
                         value={form.name}
@@ -772,7 +772,7 @@ export function PersonnelSection({
                   <>
                     <div>
                       <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5">
-                        登录用户名 <span className="text-rose-400">*</span>
+                        登录用户名 <span className="text-status-danger">*</span>
                       </label>
                       <input
                         value={form.username}

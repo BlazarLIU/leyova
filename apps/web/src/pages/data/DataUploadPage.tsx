@@ -404,18 +404,18 @@ export function DataUploadPage() {
                   <FileText className="w-4 h-4" />
                   <span>共 <strong className="text-[var(--text-secondary)]">{preview.totalRows}</strong> 行</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-emerald-400">
+                <div className="flex items-center gap-1.5 text-status-success">
                   <CheckCircle className="w-4 h-4" />
                   <span>有效 <strong>{preview.validRows}</strong> 行</span>
                 </div>
                 {preview.issues.filter(i => i.severity === 'error').length > 0 && (
-                  <div className="flex items-center gap-1.5 text-red-400">
+                  <div className="flex items-center gap-1.5 text-status-danger">
                     <AlertTriangle className="w-4 h-4" />
                     <span>错误 <strong>{preview.issues.filter(i => i.severity === 'error').length}</strong> 项</span>
                   </div>
                 )}
                 {preview.issues.filter(i => i.severity === 'warning').length > 0 && (
-                  <div className="flex items-center gap-1.5 text-amber-400">
+                  <div className="flex items-center gap-1.5 text-status-warning">
                     <AlertTriangle className="w-4 h-4" />
                     <span>警告 <strong>{preview.issues.filter(i => i.severity === 'warning').length}</strong> 项</span>
                   </div>
@@ -431,7 +431,7 @@ export function DataUploadPage() {
                       <li key={i} className="flex items-start gap-2 text-xs">
                         <span className={cn(
                           'shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full',
-                          issue.severity === 'error' ? 'bg-red-400' : 'bg-amber-400'
+                          issue.severity === 'error' ? 'bg-orbit-danger' : 'bg-orbit-warning'
                         )} />
                         <span className="text-[var(--text-muted)]">
                           第 {issue.row} 行 · <strong className="text-[var(--text-muted)]">{issue.field}</strong> — {issue.message}
@@ -456,7 +456,7 @@ export function DataUploadPage() {
                         className="text-xs bg-orbit-surface border border-orbit-border rounded-lg px-3 py-1.5 text-[var(--text-secondary)] outline-none"
                       />
                       {!preview.businessDate && (
-                        <span className="text-xs text-amber-400">未能从文件名识别日期，请手动选择</span>
+                        <span className="text-xs text-status-warning">未能从文件名识别日期，请手动选择</span>
                       )}
                     </div>
                     {preview.sessionsForDate && preview.sessionsForDate.length > 0 && (
@@ -508,8 +508,8 @@ export function DataUploadPage() {
 
               {/* Unmatched anchors: let user create or map */}
               {preview.unmatchedAnchors && preview.unmatchedAnchors.length > 0 && (
-                <div className="mb-4 p-4 rounded-lg bg-orbit-surface2 border border-amber-500/30">
-                  <p className="text-xs font-medium text-amber-400 mb-3">
+                <div className="mb-4 p-4 rounded-lg bg-orbit-surface2 border border-orbit-warning/30">
+                  <p className="text-xs font-medium text-status-warning mb-3">
                     ⚠️ 以下主播在系统中未找到，请选择「创建新主播」或匹配到已有主播：
                   </p>
                   <div className="space-y-3">
@@ -599,7 +599,7 @@ export function DataUploadPage() {
                   </thead>
                   <tbody>
                     {preview.previewRows.map((row, ri) => (
-                      <tr key={ri} className="border-b border-orbit-border/50 hover:bg-white/5">
+                      <tr key={ri} className="border-b border-orbit-border/50 hover:bg-[var(--hover-bg)]">
                         {Object.values(row).map((val, ci) => (
                           <td key={ci} className="px-3 py-2 text-[var(--text-secondary)] truncate max-w-48" title={String(val)}>
                             {String(val ?? '')}
@@ -670,7 +670,7 @@ export function DataUploadPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.35, delay: i * 0.03 }}
-                        className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                        className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                       >
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
@@ -689,7 +689,7 @@ export function DataUploadPage() {
                               {statusInfo.label}
                             </Badge>
                             {record.status === 'failed' && record.errorMessage && (
-                              <span className="text-[11px] text-red-400/80 max-w-48 leading-tight" title={record.errorMessage}>
+                              <span className="text-[11px] text-status-danger/80 max-w-48 leading-tight" title={record.errorMessage}>
                                 {record.errorMessage.length > 40
                                   ? record.errorMessage.slice(0, 40) + '…'
                                   : record.errorMessage}
@@ -699,10 +699,10 @@ export function DataUploadPage() {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => handleDownload(record)} className="p-1.5 text-[var(--text-primary)] hover:text-cyan-400 transition-colors rounded-lg hover:bg-white/5">
+                            <button onClick={() => handleDownload(record)} className="p-1.5 text-[var(--text-primary)] hover:text-status-ai transition-colors rounded-lg hover:bg-[var(--hover-bg)]">
                               <Download className="w-4 h-4" />
                             </button>
-                            <button onClick={() => setDeletingRecord(record)} className="p-1.5 text-[var(--text-primary)] hover:text-orbit-danger transition-colors rounded-lg hover:bg-white/5">
+                            <button onClick={() => setDeletingRecord(record)} className="p-1.5 text-[var(--text-primary)] hover:text-orbit-danger transition-colors rounded-lg hover:bg-[var(--hover-bg)]">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>

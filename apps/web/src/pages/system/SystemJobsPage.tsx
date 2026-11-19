@@ -190,9 +190,9 @@ export function SystemJobsPage() {
             return <span className="text-[var(--text-muted)] text-xs">-</span>
           }
           if (job.durationMs < 1000) {
-            return <span className="font-mono text-xs text-emerald-400">{job.durationMs}ms</span>
+            return <span className="font-mono text-xs text-status-success">{job.durationMs}ms</span>
           }
-          return <span className="font-mono text-xs text-cyan-400">{(job.durationMs / 1000).toFixed(2)}s</span>
+          return <span className="font-mono text-xs text-status-ai">{(job.durationMs / 1000).toFixed(2)}s</span>
         },
       },
       {
@@ -211,7 +211,7 @@ export function SystemJobsPage() {
         render: (_, job) => {
           if (job.errorMessage) {
             return (
-              <span className="text-xs text-red-400 line-clamp-1 max-w-xs" title={job.errorMessage}>
+              <span className="text-xs text-status-danger line-clamp-1 max-w-xs" title={job.errorMessage}>
                 {job.errorMessage}
               </span>
             )
@@ -260,7 +260,7 @@ export function SystemJobsPage() {
   return (
     <div className="space-y-6">
       {errorMsg && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-4 py-2.5 text-sm text-status-danger">
           {errorMsg}
         </div>
       )}
@@ -280,10 +280,10 @@ export function SystemJobsPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">队列待办 / 运行中</span>
-              <Clock className="w-4 h-4 text-amber-400" />
+              <Clock className="w-4 h-4 text-status-warning" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-amber-400">
-              {stats.pending} / <span className="text-sky-400">{stats.running}</span>
+            <p className="mt-1 text-2xl font-bold text-status-warning">
+              {stats.pending} / <span className="text-status-info">{stats.running}</span>
             </p>
           </CardBody>
         </Card>
@@ -291,20 +291,20 @@ export function SystemJobsPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">成功完成</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-status-success" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.completed}</p>
+            <p className="mt-1 text-2xl font-bold text-status-success">{stats.completed}</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">执行失败</span>
-              <XCircle className="w-4 h-4 text-red-400" />
+              <XCircle className="w-4 h-4 text-status-danger" />
             </div>
             <p
               className={`mt-1 text-2xl font-bold ${
-                stats.failed > 0 ? 'text-red-400' : 'text-[var(--text-primary)]'
+                stats.failed > 0 ? 'text-status-danger' : 'text-[var(--text-primary)]'
               }`}
             >
               {stats.failed}
@@ -315,9 +315,9 @@ export function SystemJobsPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">当前页平均耗时</span>
-              <Terminal className="w-4 h-4 text-cyan-400" />
+              <Terminal className="w-4 h-4 text-status-ai" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-cyan-400">{stats.avgDuration}ms</p>
+            <p className="mt-1 text-2xl font-bold text-status-ai">{stats.avgDuration}ms</p>
           </CardBody>
         </Card>
       </div>
@@ -326,7 +326,7 @@ export function SystemJobsPage() {
         title="后台异步任务与运维队列中心"
         subtitle="基于 PostgreSQL Advisory Lock + SKIP LOCKED 解耦架构，统一调度执行日汇总计算、合规巡检与数据治理"
         badge={
-          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-emerald-400 border border-orbit-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-success border border-orbit-border">
             Worker 守护进程驱动
           </span>
         }
@@ -409,7 +409,7 @@ export function SystemJobsPage() {
                 </div>
                 <div>
                   <span className="text-[var(--text-muted)] block">耗时</span>
-                  <span className="font-mono text-cyan-400">
+                  <span className="font-mono text-status-ai">
                     {selectedJob.durationMs !== null ? `${selectedJob.durationMs}ms` : '-'}
                   </span>
                 </div>
@@ -429,8 +429,8 @@ export function SystemJobsPage() {
 
               {selectedJob.errorMessage && (
                 <div>
-                  <span className="font-semibold text-red-400 block mb-1">执行异常日志:</span>
-                  <pre className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 font-mono text-[11px] whitespace-pre-wrap overflow-x-auto">
+                  <span className="font-semibold text-status-danger block mb-1">执行异常日志:</span>
+                  <pre className="p-3 rounded-lg bg-orbit-danger/10 border border-orbit-danger/30 text-status-danger font-mono text-[11px] whitespace-pre-wrap overflow-x-auto">
                     {selectedJob.errorMessage}
                   </pre>
                 </div>

@@ -224,9 +224,9 @@ export function PlatformManagementPage() {
       </motion.div>
 
       {msg && (
-        <div className="flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-sm text-cyan-300">
+        <div className="flex items-center justify-between rounded-lg border border-orbit-success/30 bg-orbit-success/10 p-3 text-sm text-status-ai">
           <span>{msg}</span>
-          <button onClick={() => setMsg(null)} className="text-xs text-cyan-500 hover:text-cyan-300">关闭</button>
+          <button onClick={() => setMsg(null)} className="text-xs text-status-ai hover:text-status-ai">关闭</button>
         </div>
       )}
 
@@ -261,14 +261,14 @@ export function PlatformManagementPage() {
                           {p.capabilities.supportsLive && <span className="rounded bg-[var(--surface3)] px-1.5 py-0.5">直播</span>}
                           {p.capabilities.supportsShelf && <span className="rounded bg-[var(--surface3)] px-1.5 py-0.5">货架</span>}
                           {p.capabilities.supportsContent && <span className="rounded bg-[var(--surface3)] px-1.5 py-0.5">内容</span>}
-                          {p.capabilities.supportsAutoSync && <span className="rounded bg-emerald-900/40 px-1.5 py-0.5 text-emerald-400">API</span>}
+                          {p.capabilities.supportsAutoSync && <span className="rounded bg-orbit-success/15 px-1.5 py-0.5 text-status-success">API</span>}
                         </span>
                       )}
 
                       <span className="text-xs text-[var(--text-muted)]">{p.shops.length} 个店铺</span>
 
                       <div className="ml-auto flex items-center gap-2">
-                        <span className={cn('flex items-center gap-1 text-xs', p.is_enabled ? 'text-emerald-400' : 'text-[var(--text-muted)]')}>
+                        <span className={cn('flex items-center gap-1 text-xs', p.is_enabled ? 'text-status-success' : 'text-[var(--text-muted)]')}>
                           {p.is_enabled ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                           {p.is_enabled ? '已启用' : '已停用'}
                         </span>
@@ -277,7 +277,7 @@ export function PlatformManagementPage() {
                           disabled={saving === p.platform_code}
                           className={cn(
                             'relative h-5 w-9 rounded-full transition',
-                            p.is_enabled ? 'bg-emerald-600' : 'bg-[var(--border2)]',
+                            p.is_enabled ? 'bg-orbit-success' : 'bg-[var(--border2)]',
                             saving === p.platform_code && 'opacity-50',
                           )}
                         >
@@ -334,7 +334,7 @@ export function PlatformManagementPage() {
                             </td>
                             <td className="py-2.5 pr-3 font-mono text-xs text-[var(--text-muted)]">
                               {s.hasCredentials ? (
-                                <span className="inline-flex items-center gap-1 text-emerald-400">
+                                <span className="inline-flex items-center gap-1 text-status-success">
                                   <Lock className="h-3 w-3" /> {s.appKeyMasked || '已加密'}
                                 </span>
                               ) : (
@@ -345,7 +345,7 @@ export function PlatformManagementPage() {
                               <div className="inline-flex items-center gap-2">
                                 <button
                                   onClick={() => openCredentialModal(p.platform_code, p.platform_name, s)}
-                                  className="inline-flex items-center gap-1 rounded border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-300 hover:bg-cyan-500/20"
+                                  className="inline-flex items-center gap-1 rounded border border-orbit-success/30 bg-orbit-success/10 px-2.5 py-1 text-xs text-status-ai hover:bg-orbit-success/20"
                                 >
                                   <KeyRound className="h-3 w-3" /> 配置 OAuth / 凭证
                                 </button>
@@ -453,7 +453,7 @@ export function PlatformManagementPage() {
                 onClick={() => { setModalTab('oauth'); setModalErr(null) }}
                 className={cn(
                   'rounded-md px-3 py-1.5 text-xs font-medium',
-                  modalTab === 'oauth' ? 'bg-cyan-500/20 text-cyan-300' : 'text-orbit-snow/60 hover:text-orbit-snow',
+                  modalTab === 'oauth' ? 'bg-orbit-success/20 text-status-ai' : 'text-orbit-snow/60 hover:text-orbit-snow',
                 )}
               >
                 官方 OAuth 授权码换 Token
@@ -462,7 +462,7 @@ export function PlatformManagementPage() {
                 onClick={() => { setModalTab('direct'); setModalErr(null) }}
                 className={cn(
                   'rounded-md px-3 py-1.5 text-xs font-medium',
-                  modalTab === 'direct' ? 'bg-cyan-500/20 text-cyan-300' : 'text-orbit-snow/60 hover:text-orbit-snow',
+                  modalTab === 'direct' ? 'bg-orbit-success/20 text-status-ai' : 'text-orbit-snow/60 hover:text-orbit-snow',
                 )}
               >
                 直接绑定凭证 / 模式切换
@@ -470,7 +470,7 @@ export function PlatformManagementPage() {
             </div>
 
             {modalErr && (
-              <div className="mb-3 rounded border border-rose-500/40 bg-rose-500/10 p-2.5 text-xs text-rose-300">
+              <div className="mb-3 rounded border border-orbit-danger/40 bg-orbit-danger/10 p-2.5 text-xs text-status-danger">
                 {modalErr}
               </div>
             )}
@@ -483,7 +483,7 @@ export function PlatformManagementPage() {
                     value={appKey}
                     onChange={(e) => setAppKey(e.target.value)}
                     placeholder="填写开放平台真实 AppKey"
-                    className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
+                    className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-orbit-success"
                   />
                 </label>
                 <label className="space-y-1">
@@ -493,7 +493,7 @@ export function PlatformManagementPage() {
                     value={appSecret}
                     onChange={(e) => setAppSecret(e.target.value)}
                     placeholder="将使用 AES-256-GCM 加密存储"
-                    className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
+                    className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-orbit-success"
                   />
                 </label>
               </div>
@@ -505,7 +505,7 @@ export function PlatformManagementPage() {
                     <input
                       value={redirectUri}
                       onChange={(e) => setRedirectUri(e.target.value)}
-                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
+                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-orbit-success"
                     />
                   </label>
                   <div className="flex items-center gap-2">
@@ -521,7 +521,7 @@ export function PlatformManagementPage() {
                         href={oauthUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-cyan-400 hover:underline"
+                        className="inline-flex items-center gap-1 text-status-ai hover:underline"
                       >
                         前往平台授权 <ExternalLink className="h-3 w-3" />
                       </a>
@@ -538,7 +538,7 @@ export function PlatformManagementPage() {
                       value={oauthCode}
                       onChange={(e) => setOauthCode(e.target.value)}
                       placeholder="粘贴回跳 URL 中的 ?code=..."
-                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
+                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-orbit-success"
                     />
                   </label>
                   <div className="flex justify-end gap-2 pt-2">
@@ -548,7 +548,7 @@ export function PlatformManagementPage() {
                     <button
                       onClick={handleOAuthExchange}
                       disabled={submittingCreds || !oauthCode.trim()}
-                      className="rounded bg-cyan-600 px-3.5 py-1.5 font-medium text-white hover:bg-cyan-500 disabled:opacity-50"
+                      className="rounded bg-orbit-success px-3.5 py-1.5 font-medium text-white hover:bg-orbit-success disabled:opacity-50"
                     >
                       {submittingCreds ? '提交中…' : '换取 Token 并绑定'}
                     </button>
@@ -561,7 +561,7 @@ export function PlatformManagementPage() {
                     <select
                       value={authStatus}
                       onChange={(e) => setAuthStatus(e.target.value as any)}
-                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
+                      className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-orbit-success"
                     >
                       <option value="authorized">authorized（启用 API 自动同步）</option>
                       <option value="manual_only">manual_only（清空凭证，仅手动上传）</option>
@@ -577,7 +577,7 @@ export function PlatformManagementPage() {
                           value={accessToken}
                           onChange={(e) => setAccessToken(e.target.value)}
                           placeholder="真实商户 AccessToken"
-                          className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
+                          className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-orbit-success"
                         />
                       </label>
                       <label className="space-y-1">
@@ -587,7 +587,7 @@ export function PlatformManagementPage() {
                           value={refreshToken}
                           onChange={(e) => setRefreshToken(e.target.value)}
                           placeholder="用于后续刷新续期"
-                          className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-cyan-500"
+                          className="w-full rounded border border-[var(--border)] bg-orbit-ink/80 px-2.5 py-1.5 text-orbit-snow outline-none focus:border-orbit-success"
                         />
                       </label>
                     </div>
@@ -599,7 +599,7 @@ export function PlatformManagementPage() {
                     <button
                       onClick={handleSaveDirectCredentials}
                       disabled={submittingCreds}
-                      className="rounded bg-cyan-600 px-3.5 py-1.5 font-medium text-white hover:bg-cyan-500 disabled:opacity-50"
+                      className="rounded bg-orbit-success px-3.5 py-1.5 font-medium text-white hover:bg-orbit-success disabled:opacity-50"
                     >
                       {submittingCreds ? '保存中…' : 'AES-256-GCM 加密保存'}
                     </button>

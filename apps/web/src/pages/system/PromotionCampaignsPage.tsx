@@ -305,9 +305,9 @@ export function PromotionCampaignsPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">进行中大促</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-status-success" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.active}</p>
+            <p className="mt-1 text-2xl font-bold text-status-success">{stats.active}</p>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">当前周期线上正生效活动</p>
           </CardBody>
         </Card>
@@ -315,9 +315,9 @@ export function PromotionCampaignsPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">筹备预热 / 已结束</span>
-              <Clock className="w-4 h-4 text-amber-400" />
+              <Clock className="w-4 h-4 text-status-warning" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-amber-400">
+            <p className="mt-1 text-2xl font-bold text-status-warning">
               {stats.preparing} / <span className="text-[var(--text-muted)]">{stats.ended}</span>
             </p>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">锁定排班备选中及历史沉淀</p>
@@ -327,9 +327,9 @@ export function PromotionCampaignsPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">覆盖主播 / 直播间</span>
-              <Sparkles className="w-4 h-4 text-sky-400" />
+              <Sparkles className="w-4 h-4 text-status-info" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-sky-400">
+            <p className="mt-1 text-2xl font-bold text-status-info">
               {stats.anchorCount} 位 / {stats.roomCount} 间
             </p>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">当前筛选口径下受影响主体</p>

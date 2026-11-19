@@ -70,7 +70,7 @@ export function KsTrafficSplitPage() {
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -78,13 +78,13 @@ export function KsTrafficSplitPage() {
       </motion.div>
 
       {/* 概念说明 */}
-      <div className="flex items-start gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/5 p-3 text-xs text-cyan-300/90">
+      <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-ai/90">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div>
           <span className="font-medium">快手与抖音的根本差异</span>
-          <p className="mt-1 text-cyan-400/70">
-            快手是「<strong className="text-cyan-300">先关注后成交</strong>」：发现页（公域）拉新 → 沉淀粉丝 → 关注页（私域）复购。
-            抖音是「<strong className="text-cyan-300">先成交再沉淀</strong>」：推荐算法把货推给可能感兴趣的人。
+          <p className="mt-1 text-status-ai/70">
+            快手是「<strong className="text-status-ai">先关注后成交</strong>」：发现页（公域）拉新 → 沉淀粉丝 → 关注页（私域）复购。
+            抖音是「<strong className="text-status-ai">先成交再沉淀</strong>」：推荐算法把货推给可能感兴趣的人。
             一句话：<em>快手算「一个粉丝三年值多少钱」，抖音算「一次曝光值多少 GMV」</em>。
           </p>
         </div>
@@ -115,7 +115,7 @@ export function KsTrafficSplitPage() {
                 <div className="mb-4 flex h-10 overflow-hidden rounded-lg">
                   {data!.privateTraffic.gmv > 0 && (
                     <div
-                      className="flex items-center justify-center bg-emerald-600/70 text-xs font-medium text-white"
+                      className="flex items-center justify-center bg-orbit-success/70 text-xs font-medium text-white"
                       style={{ width: `${privatePct}%` }}
                     >
                       {privatePct >= 12 && `私域 ${privatePct.toFixed(1)}%`}
@@ -123,7 +123,7 @@ export function KsTrafficSplitPage() {
                   )}
                   {(data!.publicTraffic.share ?? 0) > 0 && (
                     <div
-                      className="flex items-center justify-center bg-cyan-600/70 text-xs font-medium text-white"
+                      className="flex items-center justify-center bg-orbit-success/70 text-xs font-medium text-white"
                       style={{ width: `${data!.publicTraffic.share}%` }}
                     >
                       {(data!.publicTraffic.share ?? 0) >= 12 && `公域 ${data!.publicTraffic.share}%`}
@@ -141,27 +141,27 @@ export function KsTrafficSplitPage() {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   {/* 私域 */}
-                  <div className="rounded-lg border border-emerald-600/40 bg-emerald-500/5 p-3">
-                    <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                  <div className="rounded-lg border border-orbit-success/40 bg-orbit-success/5 p-3">
+                    <div className="flex items-center gap-1.5 text-xs text-status-success">
                       <Home className="h-3.5 w-3.5" /> 关注页（私域）
                     </div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                      <span className="text-xl font-semibold text-emerald-300">{fmt(data!.privateTraffic.gmv)}</span>
-                      <span className="text-xs text-emerald-500/70">{fmtPct(data!.privateTraffic.share)}</span>
+                      <span className="text-xl font-semibold text-status-success">{fmt(data!.privateTraffic.gmv)}</span>
+                      <span className="text-xs text-status-success/70">{fmtPct(data!.privateTraffic.share)}</span>
                     </div>
-                    <p className="mt-1.5 text-[11px] leading-relaxed text-emerald-500/60">{data!.privateTraffic.note}</p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-status-success/60">{data!.privateTraffic.note}</p>
                   </div>
 
                   {/* 公域 */}
-                  <div className="rounded-lg border border-cyan-600/40 bg-cyan-500/5 p-3">
-                    <div className="flex items-center gap-1.5 text-xs text-cyan-400">
+                  <div className="rounded-lg border border-orbit-success/40 bg-orbit-success/5 p-3">
+                    <div className="flex items-center gap-1.5 text-xs text-status-ai">
                       <Compass className="h-3.5 w-3.5" /> 发现页 + 搜索（公域）
                     </div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                      <span className="text-xl font-semibold text-cyan-300">{fmt(data!.publicTraffic.gmv)}</span>
-                      <span className="text-xs text-cyan-500/70">{fmtPct(data!.publicTraffic.share)}</span>
+                      <span className="text-xl font-semibold text-status-ai">{fmt(data!.publicTraffic.gmv)}</span>
+                      <span className="text-xs text-status-ai/70">{fmtPct(data!.publicTraffic.share)}</span>
                     </div>
-                    <p className="mt-1.5 text-[11px] leading-relaxed text-cyan-500/60">{data!.publicTraffic.note}</p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-status-ai/60">{data!.publicTraffic.note}</p>
                   </div>
                 </div>
 
@@ -180,9 +180,9 @@ export function KsTrafficSplitPage() {
               <CardBody>
                 <div className="flex items-start gap-3">
                   <div className={`shrink-0 rounded-lg px-3 py-2 text-center ${
-                    privatePct >= 50 ? 'bg-emerald-500/15 text-emerald-400'
-                    : privatePct >= 30 ? 'bg-amber-500/15 text-amber-400'
-                    : 'bg-rose-500/15 text-rose-400'
+                    privatePct >= 50 ? 'bg-orbit-success/15 text-status-success'
+                    : privatePct >= 30 ? 'bg-orbit-warning/15 text-status-warning'
+                    : 'bg-orbit-danger/15 text-status-danger'
                   }`}>
                     <div className="text-2xl font-semibold">{privatePct.toFixed(1)}%</div>
                     <div className="text-[10px]">私域占比</div>

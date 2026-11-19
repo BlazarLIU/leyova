@@ -259,8 +259,8 @@ export const ScheduleManagementPage: React.FC = () => {
       {messageNotice && (
         <div
           className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${messageNotice.type === 'success'
-            ? 'bg-emerald-950/40 border-emerald-700/50 text-emerald-300'
-            : 'bg-rose-950/40 border-rose-700/50 text-rose-300'
+            ? 'bg-orbit-success/15 border-orbit-success/50 text-status-success'
+            : 'bg-orbit-danger/15 border-orbit-danger/50 text-status-danger'
             }`}
         >
           <span>{messageNotice.text}</span>
@@ -421,7 +421,7 @@ export const ScheduleManagementPage: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteSession(session.id)}
-                              className="text-[var(--text-muted)] hover:text-rose-400 text-[10px] flex items-center gap-0.5"
+                              className="text-[var(--text-muted)] hover:text-status-danger text-[10px] flex items-center gap-0.5"
                             >
                               <Trash2 className="w-2.5 h-2.5" /> 删除
                             </button>
@@ -508,7 +508,7 @@ export const ScheduleManagementPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleDeleteSession(s.id)}
-                            className="text-xs text-rose-400 hover:text-rose-300"
+                            className="text-xs text-status-danger hover:text-status-danger"
                           >
                             删除
                           </button>
@@ -599,7 +599,7 @@ export const ScheduleManagementPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[var(--text-primary)] mb-1 font-medium text-xs">
-                      开播直播间 <span className="text-red-400">*</span>
+                      开播直播间 <span className="text-status-danger">*</span>
                     </label>
                     <SearchableSelect
                       options={meta.rooms.map((r) => ({
@@ -614,7 +614,7 @@ export const ScheduleManagementPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-[var(--text-primary)] mb-1 font-medium text-xs">
-                      出镜带货主播 <span className="text-red-400">*</span>
+                      出镜带货主播 <span className="text-status-danger">*</span>
                     </label>
                     <SearchableSelect
                       options={meta.anchors.map((a) => ({

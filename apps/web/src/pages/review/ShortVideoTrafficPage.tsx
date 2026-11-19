@@ -166,16 +166,16 @@ function SummaryCards({
       value: data.totalImpressions,
       icon: Eye,
       format: formatNumber,
-      color: 'text-cyan-400',
-      bg: 'bg-cyan-500/15',
+      color: 'text-status-ai',
+      bg: 'bg-orbit-success/15',
     },
     {
       label: '引流进房',
       value: data.totalTrafficToLive,
       icon: TrendingUp,
       format: formatNumber,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/15',
+      color: 'text-status-success',
+      bg: 'bg-orbit-success/15',
     },
   ]
 
@@ -331,7 +331,7 @@ function VideoTable({ items }: { items: ShortVideoItem[] }) {
                       {Number(item.traffic_to_live ?? 0).toLocaleString()}
                     </td>
                     <td className="py-3 pl-4 pr-5 text-right">
-                      <span className="inline-flex items-center gap-1 text-emerald-400 font-medium tabular-nums">
+                      <span className="inline-flex items-center gap-1 text-status-success font-medium tabular-nums">
                         <MousePointerClick className="w-3.5 h-3.5" />
                         {Number(item.entry_click_rate ?? 0).toFixed(2)}%
                       </span>
@@ -590,8 +590,8 @@ export function ShortVideoTrafficPage() {
               <div className="h-9 w-48 bg-[var(--surface3)] rounded animate-pulse" />
             ) : error ? (
               <div className="flex items-center gap-2 text-sm">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-red-400">加载场次列表失败</span>
+                <AlertTriangle className="w-4 h-4 text-status-danger" />
+                <span className="text-status-danger">加载场次列表失败</span>
               </div>
             ) : sessions.length === 0 ? (
               <p className="text-sm text-[var(--text-muted)]">暂无可用场次</p>

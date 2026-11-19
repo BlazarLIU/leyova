@@ -115,21 +115,21 @@ const CAP_DIMENSIONS = [
 ] as const
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return 'text-emerald-400'
-  if (score >= 65) return 'text-amber-400'
-  return 'text-red-400'
+  if (score >= 80) return 'text-status-success'
+  if (score >= 65) return 'text-status-warning'
+  return 'text-status-danger'
 }
 
 function getScoreBg(score: number): string {
-  if (score >= 80) return 'bg-emerald-500/20'
-  if (score >= 65) return 'bg-amber-500/20'
-  return 'bg-red-500/20'
+  if (score >= 80) return 'bg-orbit-success/20'
+  if (score >= 65) return 'bg-orbit-warning/20'
+  return 'bg-orbit-danger/20'
 }
 
 function getScoreBar(score: number): string {
-  if (score >= 80) return 'bg-emerald-500'
-  if (score >= 65) return 'bg-amber-500'
-  return 'bg-red-500'
+  if (score >= 80) return 'bg-orbit-success'
+  if (score >= 65) return 'bg-orbit-warning'
+  return 'bg-orbit-danger'
 }
 
 function getWeaknessLabel(scores: CapabilityScores): string {
@@ -367,7 +367,7 @@ export function AnchorProfilePage() {
                   </div>
                   <div className="flex items-center gap-2.5">
                     <div className="p-2 rounded-lg bg-orbit-success/15">
-                      <Mail className="w-4 h-4 text-emerald-400" />
+                      <Mail className="w-4 h-4 text-status-success" />
                     </div>
                     <div>
                       <p className="text-xs text-[var(--text-muted)]">邮箱</p>
@@ -376,7 +376,7 @@ export function AnchorProfilePage() {
                   </div>
                   <div className="flex items-center gap-2.5">
                     <div className="p-2 rounded-lg bg-orbit-warning/15">
-                      <Phone className="w-4 h-4 text-amber-400" />
+                      <Phone className="w-4 h-4 text-status-warning" />
                     </div>
                     <div>
                       <p className="text-xs text-[var(--text-muted)]">联系方式</p>
@@ -567,11 +567,11 @@ export function AnchorProfilePage() {
                   {monthlyPerformance.map((row) => (
                     <tr
                       key={row.month}
-                      className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium whitespace-nowrap">{row.month}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.totalDurationMin / 60).toFixed(1)}h</td>
-                      <td className="px-5 py-3.5 text-right text-emerald-400 font-medium tabular-nums">¥{row.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                      <td className="px-5 py-3.5 text-right text-status-success font-medium tabular-nums">¥{row.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">¥{row.avgGmvPerHour.toFixed(2)}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.maxOnlinePeak.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.avgAvgOnline.toLocaleString()}</td>
@@ -579,10 +579,10 @@ export function AnchorProfilePage() {
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgExposureViewRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgRetentionRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgInteractionRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{row.totalNewFans.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-status-info tabular-nums">{row.totalNewFans.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(row.avgViewFollowRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{row.totalNewGroupMembers.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-amber-400 font-medium tabular-nums">¥{row.avgUvValue.toFixed(2)}</td>
+                      <td className="px-5 py-3.5 text-right text-status-info tabular-nums">{row.totalNewGroupMembers.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-status-warning font-medium tabular-nums">¥{row.avgUvValue.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -634,11 +634,11 @@ export function AnchorProfilePage() {
                   {sessions.map((session) => (
                     <tr
                       key={session.id}
-                      className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5 text-[var(--text-muted)] whitespace-nowrap">{session.date}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.durationMin / 60).toFixed(1)}h</td>
-                      <td className="px-5 py-3.5 text-right text-emerald-400 font-medium tabular-nums">¥{session.gmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                      <td className="px-5 py-3.5 text-right text-status-success font-medium tabular-nums">¥{session.gmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">¥{session.gmvPerHour.toFixed(2)}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{session.onlinePeak.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{session.avgOnline.toLocaleString()}</td>
@@ -646,10 +646,10 @@ export function AnchorProfilePage() {
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.exposureViewRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.retentionRate * 100).toFixed(1)}%</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.interactionRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{session.newFans.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-status-info tabular-nums">{session.newFans.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{(session.viewFollowRate * 100).toFixed(1)}%</td>
-                      <td className="px-5 py-3.5 text-right text-sky-400 tabular-nums">{session.newGroupMembers.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-amber-400 font-medium tabular-nums">¥{session.uvValue.toFixed(2)}</td>
+                      <td className="px-5 py-3.5 text-right text-status-info tabular-nums">{session.newGroupMembers.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-right text-status-warning font-medium tabular-nums">¥{session.uvValue.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>

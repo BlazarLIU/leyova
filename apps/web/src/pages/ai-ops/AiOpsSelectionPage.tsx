@@ -11,11 +11,11 @@ export function AiOpsSelectionPage() {
     <div className="flex-1 flex flex-col bg-orbit-bg min-h-screen">
       <div className="px-6 py-3 border-b border-[var(--border)] bg-orbit-ink/60 backdrop-blur-md flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
             工作面 3 · 货与内容
           </span>
           <span className="text-sm text-[var(--text-secondary)] font-bold flex items-center gap-1.5">
-            <ShoppingBag className="w-4 h-4 text-cyan-400" />
+            <ShoppingBag className="w-4 h-4 text-status-ai" />
             <span>AI 全品类选品与智能提案</span>
           </span>
         </div>
@@ -26,7 +26,7 @@ export function AiOpsSelectionPage() {
             className={cn(
               "px-3 py-1 rounded-lg text-xs font-semibold transition-all",
               subTab === 'selection'
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                ? "bg-orbit-success/20 text-status-ai border border-orbit-success/40"
                 : "text-[var(--text-muted)] hover:text-white"
             )}
           >
@@ -37,7 +37,7 @@ export function AiOpsSelectionPage() {
             className={cn(
               "px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1",
               subTab === 'history'
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                ? "bg-orbit-success/20 text-status-ai border border-orbit-success/40"
                 : "text-[var(--text-muted)] hover:text-white"
             )}
           >

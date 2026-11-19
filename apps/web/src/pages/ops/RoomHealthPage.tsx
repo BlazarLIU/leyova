@@ -32,10 +32,10 @@ const statusConfig: Record<string, { variant: 'success' | 'warning' | 'danger'; 
 }
 
 const dimensionConfig = [
-  { key: 'interactionScore' as const, label: '互动分', icon: MessageCircle, color: 'bg-cyan-500/15 text-cyan-400' },
-  { key: 'conversionScore' as const, label: '转化分', icon: TrendingUp, color: 'bg-emerald-500/15 text-emerald-400' },
+  { key: 'interactionScore' as const, label: '互动分', icon: MessageCircle, color: 'bg-orbit-success/15 text-status-ai' },
+  { key: 'conversionScore' as const, label: '转化分', icon: TrendingUp, color: 'bg-orbit-success/15 text-status-success' },
   { key: 'contentScore' as const, label: '内容分', icon: Film, color: 'bg-orbit-primary/15 text-orbit-primary' },
-  { key: 'trafficScore' as const, label: '流量分', icon: Radio, color: 'bg-orange-500/15 text-orange-400' },
+  { key: 'trafficScore' as const, label: '流量分', icon: Radio, color: 'bg-orbit-warning/15 text-status-warning' },
 ]
 
 function getHealthColor(score: number): string {
@@ -45,9 +45,9 @@ function getHealthColor(score: number): string {
 }
 
 function getHealthTextColor(score: number): string {
-  if (score >= 80) return 'text-emerald-400'
-  if (score >= 60) return 'text-amber-400'
-  return 'text-red-400'
+  if (score >= 80) return 'text-status-success'
+  if (score >= 60) return 'text-status-warning'
+  return 'text-status-danger'
 }
 
 export function RoomHealthPage() {
@@ -82,7 +82,7 @@ export function RoomHealthPage() {
         <Card>
           <CardBody>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orbit-success/15 text-emerald-400">
+              <div className="p-2 rounded-lg bg-orbit-success/15 text-status-success">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
@@ -97,7 +97,7 @@ export function RoomHealthPage() {
         <Card>
           <CardBody>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orbit-warning/15 text-amber-400">
+              <div className="p-2 rounded-lg bg-orbit-warning/15 text-status-warning">
                 <AlertTriangle className="w-4 h-4" />
               </div>
               <div>
@@ -112,7 +112,7 @@ export function RoomHealthPage() {
         <Card>
           <CardBody>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orbit-danger/15 text-red-400">
+              <div className="p-2 rounded-lg bg-orbit-danger/15 text-status-danger">
                 <ShieldAlert className="w-4 h-4" />
               </div>
               <div>
@@ -148,9 +148,9 @@ export function RoomHealthPage() {
                     <div className="flex items-center gap-2.5">
                       <div className={cn(
                         'p-2 rounded-lg',
-                        room.status === 'healthy' ? 'bg-orbit-success/15 text-emerald-400' :
-                        room.status === 'warning' ? 'bg-orbit-warning/15 text-amber-400' :
-                        'bg-orbit-danger/15 text-red-400'
+                        room.status === 'healthy' ? 'bg-orbit-success/15 text-status-success' :
+                        room.status === 'warning' ? 'bg-orbit-warning/15 text-status-warning' :
+                        'bg-orbit-danger/15 text-status-danger'
                       )}>
                         <Radio className="w-4 h-4" />
                       </div>

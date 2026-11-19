@@ -123,7 +123,7 @@ export function SessionsPage() {
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 filterStatus === f.value
                   ? 'bg-orbit-primary/15 text-orbit-primary-light border border-orbit-primary/30'
-                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)] hover:bg-white/5'
+                  : 'text-[var(--text-muted)] bg-orbit-surface2 border border-orbit-border hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
               }`}
             >
               {f.label}
@@ -176,7 +176,7 @@ export function SessionsPage() {
                       return (
                         <tr
                           key={session.id}
-                          className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                          className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                         >
                           <td className="px-5 py-3.5">
                             <span className="text-[var(--text-muted)] font-mono text-xs">{session.id}</span>
@@ -199,7 +199,7 @@ export function SessionsPage() {
                                   <span
                                     key={i}
                                     title={`${st.roleName}：${st.staffName}`}
-                                    className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-[var(--text-muted)]"
+                                    className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--hover-bg3)] border border-orbit-border/60 text-[var(--text-muted)]"
                                   >
                                     {st.roleName} {st.staffName}
                                   </span>
@@ -209,7 +209,7 @@ export function SessionsPage() {
                           </td>
                           <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{session.startTime}</td>
                           <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{session.endTime}</td>
-                          <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">
+                          <td className="px-5 py-3.5 text-right text-status-success font-medium">
                             {session.gmv}
                           </td>
                           <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">

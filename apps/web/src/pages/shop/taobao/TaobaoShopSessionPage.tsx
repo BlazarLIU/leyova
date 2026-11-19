@@ -66,7 +66,7 @@ export function TaobaoShopSessionPage() {
         </div>
       </motion.div>
 
-      {err && <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{err}</div>}
+      {err && <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{err}</div>}
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">开播店铺 / 总店铺</div>
@@ -78,7 +78,7 @@ export function TaobaoShopSessionPage() {
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">父单 / 子单</div>
           <div className="text-lg font-semibold text-[var(--text-primary)] mt-0.5 tabular-nums">{fmt(data?.summary.parentOrders)} / {fmt(data?.summary.subOrders)}</div></CardBody></Card>
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">连带率（子单/父单）</div>
-          <div className="text-lg font-semibold text-emerald-400 mt-0.5 tabular-nums">{data?.summary.skuPerOrder ?? 0}</div></CardBody></Card>
+          <div className="text-lg font-semibold text-status-success mt-0.5 tabular-nums">{data?.summary.skuPerOrder ?? 0}</div></CardBody></Card>
       </div>
 
       <Card>
@@ -98,9 +98,9 @@ export function TaobaoShopSessionPage() {
               </thead>
               <tbody>
                 {(data?.shops || []).map(s => (
-                  <tr key={s.shopId} className={`border-b border-orbit-border/40 ${!s.hasLive ? 'bg-amber-500/5' : ''}`}>
+                  <tr key={s.shopId} className={`border-b border-orbit-border/40 ${!s.hasLive ? 'bg-orbit-warning/5' : ''}`}>
                     <td className="px-4 py-1.5 text-[var(--text-secondary)]">{s.shopName}</td>
-                    <td className="px-3 py-1.5 text-center">{s.hasLive ? <span className="text-emerald-400">是</span> : <span className="text-amber-400">否</span>}</td>
+                    <td className="px-3 py-1.5 text-center">{s.hasLive ? <span className="text-status-success">是</span> : <span className="text-status-warning">否</span>}</td>
                     <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{s.sessions}</td>
                     <td className="px-3 py-1.5 text-right text-[var(--text-muted)]">{fmt(s.totalMinutes)}</td>
                     <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(s.sessionOrders)}</td>
@@ -135,7 +135,7 @@ export function TaobaoShopSessionPage() {
                     <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(o.parentOrders)}</td>
                     <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmt(o.subOrders)}</td>
                     <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">¥{fmt(o.payAmount)}</td>
-                    <td className="px-4 py-1.5 text-right text-amber-400">¥{fmt(o.refundAmount)}</td>
+                    <td className="px-4 py-1.5 text-right text-status-warning">¥{fmt(o.refundAmount)}</td>
                   </tr>
                 ))}
                 {(data?.orderTrend || []).length === 0 && <tr><td colSpan={5} className="px-4 py-6 text-center text-[var(--text-muted)]">暂无订单层级数据</td></tr>}

@@ -239,7 +239,7 @@ export function RolesPage() {
             角色与模块权限
           </h1>
           <p className="text-[var(--text-muted)] text-xs mt-1">
-            勾选角色可见模块；带 <Ban className="inline w-3 h-3 text-rose-400" /> 的为显式禁止。
+            勾选角色可见模块；带 <Ban className="inline w-3 h-3 text-status-danger" /> 的为显式禁止。
             右侧「按平台」可预览某平台下实际生效的模块。
           </p>
         </div>
@@ -256,8 +256,8 @@ export function RolesPage() {
       {msg && (
         <div className={`rounded-lg border px-3 py-2 text-xs ${
           msg.type === 'ok'
-            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-            : 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+            ? 'border-orbit-success/30 bg-orbit-success/10 text-status-success'
+            : 'border-orbit-danger/30 bg-orbit-danger/10 text-status-danger'
         }`}>
           {msg.text}
         </div>
@@ -285,7 +285,7 @@ export function RolesPage() {
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs transition ${
                       selectedRole === r.code
                         ? 'bg-orbit-primary/15 text-orbit-primary border border-orbit-primary/30'
-                        : 'text-[var(--text-secondary)] hover:bg-white/5 border border-transparent'
+                        : 'text-[var(--text-secondary)] hover:bg-[var(--hover-bg)] border border-transparent'
                     }`}
                   >
                     <div className="font-medium pr-6">{ROLE_LABEL[r.code] || r.name}</div>
@@ -300,7 +300,7 @@ export function RolesPage() {
                       }}
                       disabled={deleting === r.code}
                       title="删除自定义角色"
-                      className="absolute top-1.5 right-1.5 p-1 rounded text-[var(--text-primary)] hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition disabled:opacity-50"
+                      className="absolute top-1.5 right-1.5 p-1 rounded text-[var(--text-primary)] hover:text-status-danger hover:bg-orbit-danger/10 opacity-0 group-hover:opacity-100 transition disabled:opacity-50"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -344,9 +344,9 @@ export function RolesPage() {
                     key={m.code}
                     className={`flex items-center justify-between px-2.5 py-1.5 rounded border text-xs ${
                       isDeny
-                        ? 'border-rose-500/40 bg-rose-500/10'
+                        ? 'border-orbit-danger/40 bg-orbit-danger/10'
                         : isAllow
-                        ? 'border-emerald-500/30 bg-emerald-500/8'
+                        ? 'border-orbit-success/30 bg-orbit-success/8'
                         : 'border-orbit-border/60 bg-white/[0.02]'
                     }`}
                   >
@@ -358,14 +358,14 @@ export function RolesPage() {
                       <button
                         title="允许"
                         onClick={() => toggleAllow(m.code)}
-                        className={`p-1 rounded transition ${isAllow ? 'bg-emerald-500/20 text-emerald-300' : 'text-[var(--text-primary)] hover:text-[var(--text-primary)]'}`}
+                        className={`p-1 rounded transition ${isAllow ? 'bg-orbit-success/20 text-status-success' : 'text-[var(--text-primary)] hover:text-[var(--text-primary)]'}`}
                       >
                         <Check className="w-3.5 h-3.5" />
                       </button>
                       <button
                         title="禁止"
                         onClick={() => toggleDeny(m.code)}
-                        className={`p-1 rounded transition ${isDeny ? 'bg-rose-500/20 text-rose-300' : 'text-[var(--text-primary)] hover:text-[var(--text-primary)]'}`}
+                        className={`p-1 rounded transition ${isDeny ? 'bg-orbit-danger/20 text-status-danger' : 'text-[var(--text-primary)] hover:text-[var(--text-primary)]'}`}
                       >
                         <Ban className="w-3.5 h-3.5" />
                       </button>
@@ -405,7 +405,7 @@ export function RolesPage() {
             <div className="space-y-3">
               <div>
                 <label className="block text-[11px] text-[var(--text-muted)] mb-1">
-                  角色编码 <span className="text-rose-400">*</span>
+                  角色编码 <span className="text-status-danger">*</span>
                   <span className="text-[var(--text-primary)] ml-1">（3-32 位小写字母/数字/下划线，建后不可修改）</span>
                 </label>
                 <input
@@ -417,7 +417,7 @@ export function RolesPage() {
               </div>
               <div>
                 <label className="block text-[11px] text-[var(--text-muted)] mb-1">
-                  角色名称 <span className="text-rose-400">*</span>
+                  角色名称 <span className="text-status-danger">*</span>
                 </label>
                 <input
                   value={newRole.name}
@@ -449,7 +449,7 @@ export function RolesPage() {
                       className={`flex items-center gap-1.5 px-2 py-1 rounded text-[11px] cursor-pointer transition ${
                         newRole.modules.includes(m.code)
                           ? 'bg-orbit-primary/15 text-orbit-primary'
-                          : 'text-[var(--text-muted)] hover:bg-white/5'
+                          : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'
                       }`}
                     >
                       <input

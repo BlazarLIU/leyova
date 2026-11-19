@@ -208,7 +208,7 @@ export function LiveRegistrationPage() {
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm"
+          className="px-4 py-3 rounded-lg bg-orbit-success/10 border border-orbit-success/30 text-status-success text-sm"
         >
           {successMsg}
         </motion.div>
@@ -216,7 +216,7 @@ export function LiveRegistrationPage() {
 
       {/* General error */}
       {errors.general && (
-        <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+        <div className="px-4 py-3 rounded-lg bg-orbit-danger/10 border border-orbit-danger/30 text-status-danger text-sm">
           {errors.general}
         </div>
       )}
@@ -234,29 +234,29 @@ export function LiveRegistrationPage() {
               {/* Date */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  直播日期 <span className="text-red-400">*</span>
+                  直播日期 <span className="text-status-danger">*</span>
                 </label>
                 <input
                   type="date"
                   value={form.date}
                   onChange={(e) => updateField('date', e.target.value)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.date ? 'border-red-500' : 'border-orbit-border'
+                    errors.date ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] placeholder:text-[var(--text-subtle)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 />
-                {errors.date && <p className="text-red-400 text-[11px] mt-0.5">{errors.date}</p>}
+                {errors.date && <p className="text-status-danger text-[11px] mt-0.5">{errors.date}</p>}
               </div>
 
               {/* Anchor */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  主播 <span className="text-red-400">*</span>
+                  主播 <span className="text-status-danger">*</span>
                 </label>
                 <select
                   value={form.anchorId}
                   onChange={(e) => updateField('anchorId', Number(e.target.value))}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.anchorId ? 'border-red-500' : 'border-orbit-border'
+                    errors.anchorId ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 >
                   <option value={0}>请选择主播</option>
@@ -264,19 +264,19 @@ export function LiveRegistrationPage() {
                     <option key={a.id} value={a.id}>{a.name}</option>
                   ))}
                 </select>
-                {errors.anchorId && <p className="text-red-400 text-[11px] mt-0.5">{errors.anchorId}</p>}
+                {errors.anchorId && <p className="text-status-danger text-[11px] mt-0.5">{errors.anchorId}</p>}
               </div>
 
               {/* Room */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  直播间 <span className="text-red-400">*</span>
+                  直播间 <span className="text-status-danger">*</span>
                 </label>
                 <select
                   value={form.roomId}
                   onChange={(e) => updateField('roomId', Number(e.target.value))}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.roomId ? 'border-red-500' : 'border-orbit-border'
+                    errors.roomId ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 >
                   <option value={0}>请选择直播间</option>
@@ -284,19 +284,19 @@ export function LiveRegistrationPage() {
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
                 </select>
-                {errors.roomId && <p className="text-red-400 text-[11px] mt-0.5">{errors.roomId}</p>}
+                {errors.roomId && <p className="text-status-danger text-[11px] mt-0.5">{errors.roomId}</p>}
               </div>
 
               {/* Operator */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  中控 <span className="text-red-400">*</span>
+                  中控 <span className="text-status-danger">*</span>
                 </label>
                 <select
                   value={form.operatorId}
                   onChange={(e) => updateField('operatorId', Number(e.target.value))}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.operatorId ? 'border-red-500' : 'border-orbit-border'
+                    errors.operatorId ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 >
                   <option value={0}>请选择中控</option>
@@ -304,39 +304,39 @@ export function LiveRegistrationPage() {
                     <option key={o.id} value={o.id}>{o.name}</option>
                   ))}
                 </select>
-                {errors.operatorId && <p className="text-red-400 text-[11px] mt-0.5">{errors.operatorId}</p>}
+                {errors.operatorId && <p className="text-status-danger text-[11px] mt-0.5">{errors.operatorId}</p>}
               </div>
 
               {/* Start time */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  开始时间 <span className="text-red-400">*</span>
+                  开始时间 <span className="text-status-danger">*</span>
                 </label>
                 <input
                   type="time"
                   value={form.startTime}
                   onChange={(e) => updateField('startTime', e.target.value)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.startTime ? 'border-red-500' : 'border-orbit-border'
+                    errors.startTime ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 />
-                {errors.startTime && <p className="text-red-400 text-[11px] mt-0.5">{errors.startTime}</p>}
+                {errors.startTime && <p className="text-status-danger text-[11px] mt-0.5">{errors.startTime}</p>}
               </div>
 
               {/* End time */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  结束时间 <span className="text-red-400">*</span>
+                  结束时间 <span className="text-status-danger">*</span>
                 </label>
                 <input
                   type="time"
                   value={form.endTime}
                   onChange={(e) => updateField('endTime', e.target.value)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.endTime ? 'border-red-500' : 'border-orbit-border'
+                    errors.endTime ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                 />
-                {errors.endTime && <p className="text-red-400 text-[11px] mt-0.5">{errors.endTime}</p>}
+                {errors.endTime && <p className="text-status-danger text-[11px] mt-0.5">{errors.endTime}</p>}
               </div>
 
               {/* Duration (auto) */}
@@ -353,7 +353,7 @@ export function LiveRegistrationPage() {
               {/* GMV */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  现场GMV <span className="text-red-400">*</span>
+                  现场GMV <span className="text-status-danger">*</span>
                 </label>
                 <input
                   type="number"
@@ -361,17 +361,17 @@ export function LiveRegistrationPage() {
                   value={form.gmv}
                   onChange={(e) => updateField('gmv', parseFloat(e.target.value) || 0)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.gmv ? 'border-red-500' : 'border-orbit-border'
+                    errors.gmv ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                   placeholder="0.00"
                 />
-                {errors.gmv && <p className="text-red-400 text-[11px] mt-0.5">{errors.gmv}</p>}
+                {errors.gmv && <p className="text-status-danger text-[11px] mt-0.5">{errors.gmv}</p>}
               </div>
 
               {/* Return amount */}
               <div>
                 <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  现场退货 <span className="text-red-400">*</span>
+                  现场退货 <span className="text-status-danger">*</span>
                 </label>
                 <input
                   type="number"
@@ -379,11 +379,11 @@ export function LiveRegistrationPage() {
                   value={form.returnAmount}
                   onChange={(e) => updateField('returnAmount', parseFloat(e.target.value) || 0)}
                   className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                    errors.returnAmount ? 'border-red-500' : 'border-orbit-border'
+                    errors.returnAmount ? 'border-orbit-danger' : 'border-orbit-border'
                   } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                   placeholder="0.00"
                 />
-                {errors.returnAmount && <p className="text-red-400 text-[11px] mt-0.5">{errors.returnAmount}</p>}
+                {errors.returnAmount && <p className="text-status-danger text-[11px] mt-0.5">{errors.returnAmount}</p>}
               </div>
 
               {/* GSV (auto) */}
@@ -394,7 +394,7 @@ export function LiveRegistrationPage() {
                   step="0.01"
                   value={form.gsv.toFixed(2)}
                   readOnly
-                  className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface3/50 text-emerald-400 outline-none cursor-not-allowed"
+                  className="w-full h-9 px-3 text-sm rounded-lg border border-orbit-border bg-orbit-surface3/50 text-status-success outline-none cursor-not-allowed"
                 />
               </div>
 
@@ -458,11 +458,11 @@ export function LiveRegistrationPage() {
                     value={form.adCost}
                     onChange={(e) => updateField('adCost', parseFloat(e.target.value) || 0)}
                     className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                      errors.adCost ? 'border-red-500' : 'border-orbit-border'
+                      errors.adCost ? 'border-orbit-danger' : 'border-orbit-border'
                     } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                     placeholder="0.00"
                   />
-                  {errors.adCost && <p className="text-red-400 text-[11px] mt-0.5">{errors.adCost}</p>}
+                  {errors.adCost && <p className="text-status-danger text-[11px] mt-0.5">{errors.adCost}</p>}
                 </div>
 
                 {/* Ad GSV */}
@@ -474,11 +474,11 @@ export function LiveRegistrationPage() {
                     value={form.adGsv}
                     onChange={(e) => updateField('adGsv', parseFloat(e.target.value) || 0)}
                     className={`w-full h-9 px-3 text-sm rounded-lg border ${
-                      errors.adGsv ? 'border-red-500' : 'border-orbit-border'
+                      errors.adGsv ? 'border-orbit-danger' : 'border-orbit-border'
                     } bg-orbit-surface2 text-[var(--text-secondary)] outline-none focus:border-orbit-primary/50 transition-colors`}
                     placeholder="0.00"
                   />
-                  {errors.adGsv && <p className="text-red-400 text-[11px] mt-0.5">{errors.adGsv}</p>}
+                  {errors.adGsv && <p className="text-status-danger text-[11px] mt-0.5">{errors.adGsv}</p>}
                 </div>
 
                 {/* Ad status */}

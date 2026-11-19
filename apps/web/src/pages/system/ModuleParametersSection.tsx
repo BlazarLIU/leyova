@@ -465,7 +465,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
               <Icon className="w-4 h-4" />
               <span>{tab.name}</span>
               {tab.badge && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-accent/15 text-cyan-400 font-bold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-accent/15 text-status-ai font-bold">
                   {tab.badge}
                 </span>
               )}
@@ -498,8 +498,8 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${toastMsg.type === 'success'
-              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-              : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+              ? 'bg-orbit-success/15 text-status-success border-orbit-success/30'
+              : 'bg-orbit-danger/15 text-status-danger border-orbit-danger/30'
               }`}
           >
             {toastMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
@@ -532,7 +532,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                 {/* 操盘手 */}
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
                   <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-emerald-400" /> 操盘运营分红比例
+                    <Award className="w-3.5 h-3.5 text-status-success" /> 操盘运营分红比例
                   </div>
                   <div>
                     <label className="text-[11px] text-[var(--text-muted)] block mb-1">净利润分红比例 (%)</label>
@@ -551,7 +551,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                 {/* 千川投手 */}
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
                   <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-amber-400" /> 千川投手激励基准
+                    <TrendingUp className="w-3.5 h-3.5 text-status-warning" /> 千川投手激励基准
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -583,7 +583,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                 {/* 中控场控 */}
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
                   <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-sky-400" /> 中控/场控出勤津贴
+                    <Clock className="w-3.5 h-3.5 text-status-info" /> 中控/场控出勤津贴
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -615,7 +615,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                 {/* 人效红线 */}
                 <div className="space-y-2">
                   <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
-                    <ShieldAlert className="w-3.5 h-3.5 text-rose-400" /> 经营人效罗盘警戒线
+                    <ShieldAlert className="w-3.5 h-3.5 text-status-danger" /> 经营人效罗盘警戒线
                   </div>
                   <div>
                     <label className="text-[11px] text-[var(--text-muted)] block mb-1">全员薪效比红线 (%)</label>
@@ -625,7 +625,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                       disabled={isReadOnly}
                       value={laborAlert}
                       onChange={(e) => setLaborAlert(Number(e.target.value))}
-                      className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2.5 py-1.5 font-mono font-bold text-rose-400"
+                      className="w-full text-xs bg-orbit-surface border border-orbit-border rounded-lg px-2.5 py-1.5 font-mono font-bold text-status-danger"
                     />
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)]">团队总薪酬占净成交比例超过此值在罗盘标红</p>
@@ -721,7 +721,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                 setAnchorTiers((prev) => prev.filter((_, i) => i !== tIdx))
                               }
                             }}
-                            className="text-xs text-[var(--text-muted)] hover:text-rose-400 transition-colors p-1"
+                            className="text-xs text-[var(--text-muted)] hover:text-status-danger transition-colors p-1"
                             title="删除该等级"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -771,7 +771,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                       )
                                     )
                                   }}
-                                  className="text-[var(--text-muted)] hover:text-rose-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                  className="text-[var(--text-muted)] hover:text-status-danger text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                   ×
                                 </button>
@@ -905,7 +905,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                   prev.map((c, i) => (i === idx ? { ...c, max_return_rate: v } : c))
                                 )
                               }}
-                              className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-rose-400"
+                              className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-status-danger"
                             />
                             <span className="text-xs text-[var(--text-muted)]">%</span>
                           </div>
@@ -923,7 +923,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                   prev.map((c, i) => (i === idx ? { ...c, target_margin: v } : c))
                                 )
                               }}
-                              className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-emerald-400"
+                              className="w-20 text-xs bg-orbit-surface border border-orbit-border rounded px-2 py-1 font-mono font-bold text-status-success"
                             />
                             <span className="text-xs text-[var(--text-muted)]">%</span>
                           </div>
@@ -949,7 +949,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                                   setCategoryBenchmarks((prev) => prev.filter((_, i) => i !== idx))
                                 }
                               }}
-                              className="text-xs text-[var(--text-muted)] hover:text-rose-400 p-1 transition-colors"
+                              className="text-xs text-[var(--text-muted)] hover:text-status-danger p-1 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -1040,7 +1040,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                             </td>
                             <td className="px-5 py-3.5 text-xs text-[var(--text-muted)] max-w-xs truncate">{val.note || '-'}</td>
                             <td className="px-5 py-3.5">
-                              <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                              <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-orbit-success/10 text-status-success border border-orbit-success/20 font-semibold">
                                 <CheckCircle2 className="w-3 h-3" /> L3 覆盖生效中
                               </span>
                             </td>
@@ -1048,7 +1048,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               <td className="px-5 py-3.5 text-right">
                                 <button
                                   onClick={() => handleDeleteOverride(ov.id, val.target_name || ov.param_name)}
-                                  className="text-xs text-[var(--text-muted)] hover:text-rose-400 transition-colors flex items-center gap-1 ml-auto"
+                                  className="text-xs text-[var(--text-muted)] hover:text-status-danger transition-colors flex items-center gap-1 ml-auto"
                                   title="移除专属覆盖，恢复继承通用等级标准"
                                 >
                                   <RotateCcw className="w-3.5 h-3.5" /> 恢复继承
@@ -1125,7 +1125,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                       <span className="text-xs font-bold text-[var(--text-secondary)]">第二步：引擎解析与激励分润产出</span>
                       <span
                         className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${simulationResult.isOverride
-                          ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                          ? 'bg-orbit-warning/15 text-status-warning border-orbit-warning/30'
                           : 'bg-orbit-primary/15 text-orbit-primary-light border-orbit-primary/30'
                           }`}
                       >
@@ -1146,7 +1146,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                       </div>
                       <div>
                         <span className="text-[10px] text-[var(--text-muted)] block">预计全月总薪酬</span>
-                        <span className="text-sm font-mono font-bold text-emerald-400">
+                        <span className="text-sm font-mono font-bold text-status-success">
                           ¥{Math.round(simulationResult.totalPay).toLocaleString()}
                         </span>
                       </div>
@@ -1160,7 +1160,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                       <div className="flex justify-between text-[var(--text-muted)]">
                         <span>测算薪效比:</span>
                         <span
-                          className={`font-mono font-bold ${simulationResult.costRatio > laborAlert ? 'text-rose-400' : 'text-emerald-400'
+                          className={`font-mono font-bold ${simulationResult.costRatio > laborAlert ? 'text-status-danger' : 'text-status-success'
                             }`}
                         >
                           {simulationResult.costRatio.toFixed(2)}% {simulationResult.costRatio > laborAlert && '(超过红线!)'}
@@ -1432,7 +1432,7 @@ export function ModuleParametersSection({ userRole, anchors = [], rooms = [] }: 
                               tiers: prev.tiers.filter((_, i) => i !== idx),
                             }))
                           }
-                          className="text-[var(--text-muted)] hover:text-rose-400 text-xs ml-auto"
+                          className="text-[var(--text-muted)] hover:text-status-danger text-xs ml-auto"
                         >
                           ×
                         </button>

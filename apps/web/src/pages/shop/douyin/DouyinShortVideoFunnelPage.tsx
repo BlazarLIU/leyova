@@ -155,7 +155,7 @@ function Spinner() {
   return <div className="flex-1 flex items-center justify-center p-8"><div className="w-5 h-5 border-2 border-orbit-primary border-t-transparent rounded-full animate-spin" /></div>
 }
 function ErrBar({ text }: { text: string }) {
-  return <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{text}</div>
+  return <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{text}</div>
 }
 function Empty({ colSpan }: { colSpan: number }) {
   return <tr><td colSpan={colSpan} className="px-4 py-6 text-center text-[var(--text-muted)]">暂无数据</td></tr>

@@ -263,9 +263,9 @@ export function FulfillmentSlaPage() {
                 <span
                   className={
                     marginH < 0
-                      ? 'text-red-400 font-semibold'
+                      ? 'text-status-danger font-semibold'
                       : marginH < 12
-                      ? 'text-amber-400'
+                      ? 'text-status-warning'
                       : 'text-[var(--text-secondary)]'
                   }
                 >
@@ -276,7 +276,7 @@ export function FulfillmentSlaPage() {
                 <p
                   className={
                     pickupWait > 24 && !w.pickup_at
-                      ? 'text-red-400 font-semibold'
+                      ? 'text-status-danger font-semibold'
                       : 'text-[var(--text-muted)]'
                   }
                 >
@@ -295,7 +295,7 @@ export function FulfillmentSlaPage() {
         render: (_, w) => (
           <span
             className={`font-semibold tabular-nums ${
-              Number(w.estimated_penalty_amount) > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'
+              Number(w.estimated_penalty_amount) > 0 ? 'text-status-danger' : 'text-[var(--text-muted)]'
             }`}
           >
             ¥{Number(w.estimated_penalty_amount).toFixed(2)}
@@ -308,7 +308,7 @@ export function FulfillmentSlaPage() {
         render: (_, w) => (
           <div className="space-y-1">
             {w.sla_risk_reason && (
-              <p className="text-xs text-amber-300">{w.sla_risk_reason}</p>
+              <p className="text-xs text-status-warning">{w.sla_risk_reason}</p>
             )}
             <div className="flex flex-wrap gap-1.5">
               {!w.shipped_at && (
@@ -337,7 +337,7 @@ export function FulfillmentSlaPage() {
   return (
     <div className="space-y-6">
       {errorMsg && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-4 py-2.5 text-sm text-status-danger">
           {errorMsg}
         </div>
       )}
@@ -353,7 +353,7 @@ export function FulfillmentSlaPage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">待发货 / 无揽收</p>
-              <p className="mt-1 text-2xl font-bold text-amber-400">
+              <p className="mt-1 text-2xl font-bold text-status-warning">
                 {overview.pendingShipCount} / {overview.noPickupCount}
               </p>
             </CardBody>
@@ -363,7 +363,7 @@ export function FulfillmentSlaPage() {
               <p className="text-xs text-[var(--text-muted)]">延迟发货违约</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
-                  overview.delayedCount > 0 ? 'text-red-400' : 'text-emerald-400'
+                  overview.delayedCount > 0 ? 'text-status-danger' : 'text-status-success'
                 }`}
               >
                 {overview.delayedCount}
@@ -375,7 +375,7 @@ export function FulfillmentSlaPage() {
               <p className="text-xs text-[var(--text-muted)]">虚假发货风控 (24h无揽收)</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
-                  overview.fakeShipRiskCount > 0 ? 'text-red-400' : 'text-emerald-400'
+                  overview.fakeShipRiskCount > 0 ? 'text-status-danger' : 'text-status-success'
                 }`}
               >
                 {overview.fakeShipRiskCount}
@@ -385,7 +385,7 @@ export function FulfillmentSlaPage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">预估赔付敞口</p>
-              <p className="mt-1 text-2xl font-bold text-red-400">
+              <p className="mt-1 text-2xl font-bold text-status-danger">
                 ¥{overview.totalEstimatedPenalty.toFixed(2)}
               </p>
             </CardBody>
@@ -397,7 +397,7 @@ export function FulfillmentSlaPage() {
         title="多平台 48h 履约 SLA 与赔付风控中心"
         subtitle="对齐拼多多 48h/120h + ¥3 延迟券、快手 24h 无揽收 1% 赔付（¥3–¥30 封顶）、抖音 24h 首条轨迹规则"
         badge={
-          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-emerald-400 border border-orbit-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-success border border-orbit-border">
             DataPage + useTable
           </span>
         }
@@ -454,7 +454,7 @@ export function FulfillmentSlaPage() {
         <div className="mt-6">
           <Card>
             <CardHeader className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400" />
+              <ShieldAlert className="w-4 h-4 text-status-warning" />
               <span className="font-semibold text-[var(--text-primary)]">
                 平台官方法定履约规则配置基准（platform_sla_config）
               </span>

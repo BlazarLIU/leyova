@@ -210,11 +210,11 @@ export function RefundAnalysisPage() {
                     return (
                       <tr
                         key={row.orderId}
-                        className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                        className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                       >
                         <td className="px-5 py-3.5 text-[var(--text-secondary)] font-mono text-xs">{row.orderId}</td>
                         <td className="px-5 py-3.5 text-[var(--text-secondary)]">{row.product}</td>
-                        <td className="px-5 py-3.5 text-right text-red-400 font-medium tabular-nums">¥{row.amount}</td>
+                        <td className="px-5 py-3.5 text-right text-status-danger font-medium tabular-nums">¥{row.amount}</td>
                         <td className="px-5 py-3.5 text-[var(--text-secondary)]">{row.reason}</td>
                         <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">{row.applyTime}</td>
                         <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.duration}</td>

@@ -67,12 +67,12 @@ export function RequireAccess({
     const homePath = getDefaultHomePath(user, allowedModules)
     return (
       <div className="flex-1 overflow-y-auto flex items-center justify-center p-6">
-        <div className="max-w-md w-full rounded-2xl border border-rose-500/30 bg-orbit-surface/90 p-7 text-center shadow-2xl space-y-4">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+        <div className="max-w-md w-full rounded-2xl border border-orbit-danger/30 bg-orbit-surface/90 p-7 text-center shadow-2xl space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-orbit-danger/15 border border-orbit-danger/30 flex items-center justify-center text-status-danger">
             <ShieldAlert className="w-6 h-6" />
           </div>
           <div className="space-y-1.5">
-            <p className="text-xs font-mono uppercase tracking-widest text-rose-400">403 · Forbidden</p>
+            <p className="text-xs font-mono uppercase tracking-widest text-status-danger">403 · Forbidden</p>
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">无权访问此页面</h2>
             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
               当前账号 <span className="text-[var(--text-secondary)] font-medium">{user.realName || user.username}</span>（角色：<span className="font-mono text-xs text-[var(--text-secondary)]">{user.role}</span>）未获授该功能访问权限。
@@ -81,7 +81,7 @@ export function RequireAccess({
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-orbit-border text-sm text-[var(--text-secondary)] hover:bg-white/5 transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-orbit-border text-sm text-[var(--text-secondary)] hover:bg-[var(--hover-bg)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>返回上一页</span>

@@ -211,7 +211,7 @@ export function TrainingPage() {
                     <span className="text-[var(--text-muted)]">训练进度</span>
                     <span className={cn(
                       'font-medium tabular-nums',
-                      plan.progress === 100 ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
+                      plan.progress === 100 ? 'text-status-success' : 'text-[var(--text-secondary)]'
                     )}>
                       {plan.progress}%
                     </span>
@@ -221,7 +221,7 @@ export function TrainingPage() {
                       className={cn(
                         'h-full rounded-full transition-all duration-700',
                         plan.progress === 100
-                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                          ? 'bg-gradient-to-r from-orbit-success to-orbit-success'
                           : 'bg-gradient-to-r from-orbit-primary to-orbit-primary-dark'
                       )}
                       style={{ width: `${plan.progress}%` }}
@@ -268,7 +268,7 @@ export function TrainingPage() {
                   {records.map((record) => (
                     <tr
                       key={record.id}
-                      className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5 text-[var(--text-muted)]">{record.date}</td>
                       <td className="px-5 py-3.5">
@@ -293,13 +293,13 @@ export function TrainingPage() {
                           <div className="inline-flex items-center gap-1">
                             <span className={cn(
                               'font-semibold tabular-nums',
-                              record.score >= 90 ? 'text-emerald-400' : record.score >= 80 ? 'text-[var(--text-secondary)]' : 'text-amber-400'
+                              record.score >= 90 ? 'text-status-success' : record.score >= 80 ? 'text-[var(--text-secondary)]' : 'text-status-warning'
                             )}>
                               {record.score}
                             </span>
                             <Star className={cn(
                               'w-3 h-3',
-                              record.score >= 90 ? 'fill-emerald-400/30 text-emerald-400' : 'text-[var(--text-primary)]'
+                              record.score >= 90 ? 'fill-orbit-success/30 text-status-success' : 'text-[var(--text-primary)]'
                             )} />
                           </div>
                         )}

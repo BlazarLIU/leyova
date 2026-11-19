@@ -134,9 +134,9 @@ export function ContentCenterConfigPage() {
       </motion.div>
 
       {msg && (
-        <div className="flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-sm text-cyan-300">
+        <div className="flex items-center justify-between rounded-lg border border-orbit-success/30 bg-orbit-success/10 p-3 text-sm text-status-ai">
           <span>{msg}</span>
-          <button onClick={() => setMsg(null)} className="text-xs text-cyan-500 hover:text-cyan-300">关闭</button>
+          <button onClick={() => setMsg(null)} className="text-xs text-status-ai hover:text-status-ai">关闭</button>
         </div>
       )}
 
@@ -192,7 +192,7 @@ export function ContentCenterConfigPage() {
                       <span className="font-mono text-xs text-[var(--text-muted)]">{p.base_url}</span>
                       <div className="ml-auto flex items-center gap-2">
                         {tr && (
-                          <span className={cn('flex items-center gap-1 text-xs', tr.ok ? 'text-emerald-400' : 'text-rose-400')}>
+                          <span className={cn('flex items-center gap-1 text-xs', tr.ok ? 'text-status-success' : 'text-status-danger')}>
                             {tr.ok ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                             {tr.message}
                           </span>
@@ -227,7 +227,7 @@ export function ContentCenterConfigPage() {
             <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3 text-xs text-orbit-snow/60">
               本系统<strong className="text-[var(--text-secondary)]">不内置、不部署</strong>知识库引擎。
               如需 AI 助手引用运营规则、大促复盘、爆款卖点等资料，
-              请自行部署 <span className="text-cyan-400">RAGFlow</span> 或 <span className="text-cyan-400">MaxKB</span>，
+              请自行部署 <span className="text-status-ai">RAGFlow</span> 或 <span className="text-status-ai">MaxKB</span>，
               然后在下方填入地址与 API Key 即可接入。
               <br />
               未配置时，AI 助手仅使用当前对话上下文，核心功能不受影响。
@@ -288,7 +288,7 @@ export function ContentCenterConfigPage() {
                 {kbTesting ? '测试中…' : '测试连接'}
               </Button>
               {kbTestResult && (
-                <span className={cn('flex items-center gap-1 text-xs', kbTestResult.ok ? 'text-emerald-400' : 'text-rose-400')}>
+                <span className={cn('flex items-center gap-1 text-xs', kbTestResult.ok ? 'text-status-success' : 'text-status-danger')}>
                   {kbTestResult.ok ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                   {kbTestResult.message}
                 </span>

@@ -100,12 +100,12 @@ export const MySchedulePage: React.FC = () => {
         <div className="bg-orbit-surface border border-orbit-border rounded-2xl p-5 flex items-center justify-between shadow-sm">
           <div>
             <span className="text-xs text-[var(--text-secondary)]">已完结直播场次</span>
-            <div className="text-2xl font-bold text-emerald-400 mt-1 font-mono">
+            <div className="text-2xl font-bold text-status-success mt-1 font-mono">
               {completedSessions.length}
             </div>
             <span className="text-[11px] text-[var(--text-secondary)] mt-0.5 block">本周期实播记录</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="w-12 h-12 rounded-xl bg-orbit-success/10 border border-orbit-success/20 flex items-center justify-center text-status-success">
             <CheckCircle2 className="w-6 h-6" />
           </div>
         </div>
@@ -178,7 +178,7 @@ export const MySchedulePage: React.FC = () => {
                       <div>
                         <span className="text-[var(--text-secondary)] block text-[11px]">直播间演播室</span>
                         <span className="font-medium flex items-center gap-1 text-[var(--text-primary)] mt-0.5">
-                          <MapPin className="w-3 h-3 text-rose-400" />
+                          <MapPin className="w-3 h-3 text-status-danger" />
                           {s.roomName || '演播厅1号'}
                         </span>
                       </div>
@@ -216,7 +216,7 @@ export const MySchedulePage: React.FC = () => {
           <Card>
             <CardHeader>
               <h3 className="text-sm font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4 text-amber-400" />
+                <AlertCircle className="w-4 h-4 text-status-warning" />
                 开播前 30 分钟检查清单
               </h3>
             </CardHeader>

@@ -13,12 +13,12 @@ export function AiOpsClipsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 3 · 内容与切片
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">内容 Agent 驱动</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             切片队列与授权分发
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -36,17 +36,17 @@ export function AiOpsClipsPage() {
                 <span className="text-sm font-bold text-white">{clip.hook}</span>
                 <span className="text-xs text-[var(--text-muted)] font-mono">来源：{clip.sourceRun} ({clip.start}~{clip.end})</span>
               </div>
-              <p className="text-xs text-[var(--text-muted)]">历史高光点击率预估：<strong className="text-emerald-400 font-mono">{clip.ctr}</strong></p>
+              <p className="text-xs text-[var(--text-muted)]">历史高光点击率预估：<strong className="text-status-success font-mono">{clip.ctr}</strong></p>
             </div>
 
             <div className="flex items-center gap-3">
               {clip.authorized ? (
-                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-orbit-success/10 text-status-success border border-orbit-success/20 flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>授权有效</span>
                 </span>
               ) : (
-                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1">
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-orbit-danger/10 text-status-danger border border-orbit-danger/20 flex items-center gap-1">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>无授权阻断</span>
                 </span>

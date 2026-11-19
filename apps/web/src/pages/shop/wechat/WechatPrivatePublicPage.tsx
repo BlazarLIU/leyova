@@ -76,7 +76,7 @@ export function WechatPrivatePublicPage() {
         </div>
       </motion.div>
 
-      {err && <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{err}</div>}
+      {err && <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{err}</div>}
 
       {/* 三桶 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -86,11 +86,11 @@ export function WechatPrivatePublicPage() {
           const gmvPct = k === 'public' ? s?.publicGmvPct : k === 'private' ? s?.privateGmvPct : s?.socialGmvPct
           const viewPct = k === 'public' ? s?.publicViewPct : k === 'private' ? s?.privateViewPct : s?.socialViewPct
           const Icon = meta.icon
-          const colorCls = meta.color === 'sky' ? 'border-sky-500/30 bg-sky-500/5'
-            : meta.color === 'emerald' ? 'border-emerald-500/30 bg-emerald-500/5'
+          const colorCls = meta.color === 'sky' ? 'border-orbit-info/30 bg-orbit-info/5'
+            : meta.color === 'emerald' ? 'border-orbit-success/30 bg-orbit-success/5'
             : 'border-orbit-primary/30 bg-orbit-primary/5'
-          const textCls = meta.color === 'sky' ? 'text-sky-300'
-            : meta.color === 'emerald' ? 'text-emerald-300' : 'text-orbit-primary'
+          const textCls = meta.color === 'sky' ? 'text-status-info'
+            : meta.color === 'emerald' ? 'text-status-success' : 'text-orbit-primary'
           return (
             <Card key={k}>
               <CardBody className={`border ${colorCls} rounded-lg`}>
@@ -112,7 +112,7 @@ export function WechatPrivatePublicPage() {
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {(b?.channels || []).slice(0, 4).map(c => (
-                    <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 border border-orbit-border/60 text-[var(--text-muted)]">{c}</span>
+                    <span key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--hover-bg3)] border border-orbit-border/60 text-[var(--text-muted)]">{c}</span>
                   ))}
                 </div>
               </CardBody>
@@ -127,7 +127,7 @@ export function WechatPrivatePublicPage() {
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">总观看</div>
           <div className="text-lg font-semibold text-[var(--text-primary)] mt-0.5 tabular-nums">{fmt(s?.totalViews)}</div></CardBody></Card>
         <Card><CardBody><div className="text-[11px] text-[var(--text-muted)]">私域+社交 GMV 占比</div>
-          <div className="text-lg font-semibold text-emerald-400 mt-0.5 tabular-nums">
+          <div className="text-lg font-semibold text-status-success mt-0.5 tabular-nums">
             {Number((s?.privateGmvPct ?? 0) + (s?.socialGmvPct ?? 0)).toFixed(2)}%
           </div></CardBody></Card>
       </div>
@@ -153,7 +153,7 @@ export function WechatPrivatePublicPage() {
               <tbody>
                 {(data?.channels || []).map((c, i) => {
                   const meta = BUCKET_META[c.bucket]
-                  const cls = c.bucket === 'public' ? 'text-sky-300' : c.bucket === 'private' ? 'text-emerald-300' : 'text-orbit-primary'
+                  const cls = c.bucket === 'public' ? 'text-status-info' : c.bucket === 'private' ? 'text-status-success' : 'text-orbit-primary'
                   return (
                     <tr key={`${c.channel}-${i}`} className="border-b border-orbit-border/40">
                       <td className="px-4 py-1.5 text-[var(--text-secondary)]">{c.channel || '(未命名)'}</td>

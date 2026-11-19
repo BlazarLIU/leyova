@@ -171,7 +171,7 @@ export function UploadedDataPage() {
         <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setDetailRow(r)}
-            className="p-1 text-[var(--text-muted)] hover:text-cyan-400 transition-colors rounded"
+            className="p-1 text-[var(--text-muted)] hover:text-status-ai transition-colors rounded"
             title="查看详情"
           >
             <Eye className="w-3.5 h-3.5" />
@@ -208,7 +208,7 @@ export function UploadedDataPage() {
         <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setDetailRow(r)}
-            className="p-1 text-[var(--text-muted)] hover:text-cyan-400 transition-colors rounded"
+            className="p-1 text-[var(--text-muted)] hover:text-status-ai transition-colors rounded"
             title="查看详情"
           >
             <Eye className="w-3.5 h-3.5" />
@@ -282,7 +282,7 @@ export function UploadedDataPage() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'anchor'
                 ? 'bg-orbit-primary text-white shadow-sm'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
             }`}
           >
             <Database className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export function UploadedDataPage() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'channel'
                 ? 'bg-orbit-primary text-white shadow-sm'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
             }`}
           >
             <Database className="w-3.5 h-3.5" />

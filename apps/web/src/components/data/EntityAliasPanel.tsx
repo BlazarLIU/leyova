@@ -128,9 +128,9 @@ export function EntityAliasPanel() {
                     <td className="px-3 py-2"><Badge variant="info">{a.entity_type}</Badge></td>
                     <td className="px-3 py-2 text-[var(--text-secondary)]">{a.platform_name || a.source_platform}</td>
                     <td className="px-3 py-2 font-mono text-[var(--text-secondary)]">{a.external_id} {a.external_name ? `(${a.external_name})` : ''}</td>
-                    <td className="px-3 py-2 font-mono text-cyan-300">#{a.internal_id} {a.internal_code}</td>
+                    <td className="px-3 py-2 font-mono text-status-ai">#{a.internal_id} {a.internal_code}</td>
                     <td className="px-3 py-2 text-right">
-                      <button onClick={() => removeAlias(a.id)} className="text-[var(--text-muted)] hover:text-rose-400">
+                      <button onClick={() => removeAlias(a.id)} className="text-[var(--text-muted)] hover:text-status-danger">
                         <Trash2 className="w-3.5 h-3.5 inline" />
                       </button>
                     </td>
@@ -162,10 +162,10 @@ export function EntityAliasPanel() {
               <tbody>
                 {mappings.map((m) => (
                   <tr key={m.id} className="border-b border-orbit-border/60">
-                    <td className="px-4 py-2 font-mono text-[var(--text-secondary)]"><Link2 className="w-3 h-3 inline mr-1 text-cyan-400" />{m.mapping_code} v{m.version}</td>
+                    <td className="px-4 py-2 font-mono text-[var(--text-secondary)]"><Link2 className="w-3 h-3 inline mr-1 text-status-ai" />{m.mapping_code} v{m.version}</td>
                     <td className="px-4 py-2 text-[var(--text-secondary)]">{m.source_platform} · {m.dataset_type}</td>
                     <td className="px-4 py-2 font-mono text-[var(--text-secondary)]">{m.source_field}</td>
-                    <td className="px-4 py-2 font-mono text-emerald-400">{m.canonical_field}</td>
+                    <td className="px-4 py-2 font-mono text-status-success">{m.canonical_field}</td>
                     <td className="px-4 py-2"><Badge variant={m.approval_status === 'approved' ? 'success' : 'warning'}>{m.approval_status}</Badge></td>
                   </tr>
                 ))}

@@ -89,7 +89,7 @@ export function XhsConversionPage() {
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -130,7 +130,7 @@ export function XhsConversionPage() {
                     rate={funnel!.stages.reads.rate}
                     max={funnel!.stages.impressions.count}
                     note={funnel!.stages.reads.note}
-                    color="bg-cyan-600"
+                    color="bg-orbit-success"
                   />
                   <FunnelStage
                     label={funnel!.stages.productClicks.label}
@@ -146,7 +146,7 @@ export function XhsConversionPage() {
                     rate={funnel!.stages.conversions.rate}
                     max={funnel!.stages.impressions.count}
                     note={funnel!.stages.conversions.note}
-                    color="bg-emerald-600"
+                    color="bg-orbit-success"
                     unit="篇"
                   />
                 </div>
@@ -164,10 +164,10 @@ export function XhsConversionPage() {
               </CardHeader>
               <CardBody>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-lg border border-cyan-600/40 bg-cyan-500/5 p-3">
-                    <div className="text-xs text-cyan-400">站内成交</div>
-                    <div className="mt-1.5 text-xl font-semibold text-cyan-300">{fmtMoney(funnel!.gmv.onsite)}</div>
-                    <div className="mt-1 text-[11px] text-cyan-500/70">
+                  <div className="rounded-lg border border-orbit-success/40 bg-orbit-success/5 p-3">
+                    <div className="text-xs text-status-ai">站内成交</div>
+                    <div className="mt-1.5 text-xl font-semibold text-status-ai">{fmtMoney(funnel!.gmv.onsite)}</div>
+                    <div className="mt-1 text-[11px] text-status-ai/70">
                       占比 {fmtPct(funnel!.gmv.onsite > 0 ? (100 - (funnel!.gmv.offsiteShare ?? 0)) : null)}
                     </div>
                   </div>
@@ -206,10 +206,10 @@ export function XhsConversionPage() {
                 </CardHeader>
                 <CardBody>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-lg border border-emerald-600/40 bg-emerald-500/5 p-3">
-                      <div className="text-xs text-emerald-400">搜索曝光</div>
-                      <div className="mt-1.5 text-xl font-semibold text-emerald-300">{fmt(search.search.impressions)}</div>
-                      <div className="mt-1 text-[11px] text-emerald-500/70">占比 {fmtPct(search.search.searchShare)}</div>
+                    <div className="rounded-lg border border-orbit-success/40 bg-orbit-success/5 p-3">
+                      <div className="text-xs text-status-success">搜索曝光</div>
+                      <div className="mt-1.5 text-xl font-semibold text-status-success">{fmt(search.search.impressions)}</div>
+                      <div className="mt-1 text-[11px] text-status-success/70">占比 {fmtPct(search.search.searchShare)}</div>
                     </div>
                     <div className="rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
                       <div className="text-xs text-[var(--text-muted)]">推荐曝光</div>
@@ -241,7 +241,7 @@ export function XhsConversionPage() {
                     {aips.stages.map((s, i) => (
                       <div key={s.code} className="relative rounded-lg border border-[var(--border)] bg-orbit-ink/40 p-3">
                         <div className="flex items-center gap-1.5">
-                          <span className="flex h-5 w-5 items-center justify-center rounded bg-cyan-500/20 text-[10px] font-bold text-cyan-300">
+                          <span className="flex h-5 w-5 items-center justify-center rounded bg-orbit-success/20 text-[10px] font-bold text-status-ai">
                             {s.code}
                           </span>
                           <span className="text-xs font-medium text-[var(--text-secondary)]">{s.name}</span>

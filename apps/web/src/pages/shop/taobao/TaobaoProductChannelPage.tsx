@@ -85,7 +85,7 @@ export function TaobaoProductChannelPage() {
           <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
-                className={`rounded px-3 py-1.5 text-xs transition ${days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                className={`rounded px-3 py-1.5 text-xs transition ${days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                   }`}>近 {d} 天</button>
             ))}
           </div>
@@ -129,7 +129,7 @@ export function TaobaoProductChannelPage() {
                           <tr key={p.skuCode} className="border-b border-[var(--border)] text-[var(--text-secondary)] hover:bg-orbit-ink/30">
                             <td className="py-2 pr-3 font-mono text-xs text-[var(--text-secondary)]">{p.skuCode}</td>
                             <td className="py-2 pr-3 text-right font-mono">{fmtMoney(p.payAmount)}</td>
-                            <td className="py-2 pr-3 text-right font-mono text-rose-400">
+                            <td className="py-2 pr-3 text-right font-mono text-status-danger">
                               {p.refundAmount > 0 ? fmtMoney(p.refundAmount) : '-'}
                             </td>
                             <td className="py-2 pr-3 text-right font-mono">{p.quantity}</td>
@@ -168,11 +168,11 @@ export function TaobaoProductChannelPage() {
                         <div className="min-w-0 flex-1">
                           <div className="mb-1 flex items-baseline justify-between">
                             <span className="font-mono text-xs text-[var(--text-muted)]">{fmtMoney(c.gmv)} 元</span>
-                            <span className="text-xs text-cyan-400">{c.share}%</span>
+                            <span className="text-xs text-status-ai">{c.share}%</span>
                           </div>
                           <div className="h-1.5 overflow-hidden rounded-full bg-orbit-ink">
                             <div
-                              className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400"
+                              className="h-full rounded-full bg-gradient-to-r from-orbit-success to-orbit-success"
                               style={{ width: `${Math.max(c.share, 1)}%` }}
                             />
                           </div>

@@ -83,8 +83,8 @@ export function AiOpsLiveWatchPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-danger/20 text-status-danger border border-orbit-danger/30 flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-orbit-danger animate-pulse" />
               <span>LIVE 实时盯盘</span>
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">

@@ -188,13 +188,13 @@ export function PromotionLayerSimulator() {
                   <td className="px-3 py-2"><Badge variant="info">{LAYER_LABELS[r.rule_layer] || `L${r.rule_layer}`}</Badge></td>
                   <td className="px-3 py-2 text-[var(--text-secondary)]">{r.rule_name}</td>
                   <td className="px-3 py-2 font-mono text-[var(--text-muted)]">{r.discount_mode}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-cyan-300">
+                  <td className="px-3 py-2 text-right tabular-nums text-status-ai">
                     {Number(r.discount_value) < 1 ? `${(Number(r.discount_value) * 10).toFixed(1)} 折` : `-¥${Number(r.discount_value)}`}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums text-[var(--text-secondary)]">{(Number(r.merchant_cost_ratio) * 100).toFixed(0)}%</td>
                   <td className="px-3 py-2">{r.is_exclusive ? <Badge variant="warning">独占互斥</Badge> : <span className="text-[var(--text-muted)]">可叠加</span>}</td>
                   <td className="px-3 py-2 text-right">
-                    <button onClick={() => removeRule(r.id)} className="text-[var(--text-muted)] hover:text-rose-400"><Trash2 className="w-3.5 h-3.5 inline" /></button>
+                    <button onClick={() => removeRule(r.id)} className="text-[var(--text-muted)] hover:text-status-danger"><Trash2 className="w-3.5 h-3.5 inline" /></button>
                   </td>
                 </tr>
               ))}
@@ -204,7 +204,7 @@ export function PromotionLayerSimulator() {
 
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-orbit-border text-xs">
           <div className="flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-cyan-400" />
+            <Layers className="w-4 h-4 text-status-ai" />
             <span className="text-[var(--text-muted)]">吊牌/日常价:</span>
             <input type="number" value={retailPrice} onChange={(e) => setRetailPrice(e.target.value)} className="w-24 h-8 rounded border border-orbit-border bg-orbit-surface2 px-2 text-[var(--text-secondary)]" />
           </div>
@@ -220,14 +220,14 @@ export function PromotionLayerSimulator() {
         {simResult && (
           <div className="rounded-xl border border-orbit-border bg-orbit-surface2 p-3 text-xs space-y-2">
             <div className="flex flex-wrap gap-4">
-              <span>消费者到手价: <strong className="text-cyan-400">¥{simResult.finalConsumerPrice}</strong></span>
-              <span>商家让利: <strong className="text-amber-400">¥{simResult.totalMerchantSubsidy}</strong></span>
-              <span>平台补贴: <strong className="text-emerald-400">¥{simResult.totalPlatformSubsidy}</strong></span>
+              <span>消费者到手价: <strong className="text-status-ai">¥{simResult.finalConsumerPrice}</strong></span>
+              <span>商家让利: <strong className="text-status-warning">¥{simResult.totalMerchantSubsidy}</strong></span>
+              <span>平台补贴: <strong className="text-status-success">¥{simResult.totalPlatformSubsidy}</strong></span>
               <span>商家实收(扣扣点前): <strong className="text-[var(--text-primary)]">¥{simResult.merchantReceipts}</strong></span>
-              <span>预估单件净毛利: <strong className="text-emerald-400">{simResult.costMasked || simResult.netMargin === null ? '*** (无成本权限)' : `¥${simResult.netMargin}`}</strong></span>
+              <span>预估单件净毛利: <strong className="text-status-success">{simResult.costMasked || simResult.netMargin === null ? '*** (无成本权限)' : `¥${simResult.netMargin}`}</strong></span>
             </div>
             {simResult.exclusiveConflicts.length > 0 && (
-              <div className="text-amber-300">{simResult.exclusiveConflicts.join('；')}</div>
+              <div className="text-status-warning">{simResult.exclusiveConflicts.join('；')}</div>
             )}
           </div>
         )}

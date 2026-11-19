@@ -229,7 +229,7 @@ export function AnalysisWorkbenchPage() {
                   key={ex}
                   onClick={() => run(ex)}
                   disabled={loading}
-                  className="rounded-full border border-[var(--border)] px-2.5 py-1 text-[11px] text-[var(--text-muted)] transition hover:border-cyan-600 hover:text-cyan-300"
+                  className="rounded-full border border-[var(--border)] px-2.5 py-1 text-[11px] text-[var(--text-muted)] transition hover:border-orbit-success hover:text-status-ai"
                 >
                   {ex}
                 </button>
@@ -240,13 +240,13 @@ export function AnalysisWorkbenchPage() {
       </motion.div>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</div>
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 p-3 text-sm text-status-danger">{error}</div>
       )}
 
       {toast && (
-        <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+        <div className="flex items-center justify-between rounded-lg border border-orbit-success/30 bg-orbit-success/10 p-3 text-sm text-status-success">
           <span>{toast}</span>
-          <button onClick={() => setToast(null)} className="text-xs text-emerald-500 hover:text-emerald-300">关闭</button>
+          <button onClick={() => setToast(null)} className="text-xs text-status-success hover:text-status-success">关闭</button>
         </div>
       )}
 
@@ -257,7 +257,7 @@ export function AnalysisWorkbenchPage() {
             <Card>
               <CardHeader>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-cyan-400" />
+                  <Sparkles className="h-4 w-4 text-status-ai" />
                   <span>分析结论</span>
                   <Badge variant="info">{MODE_LABEL[result.mode] || result.mode}</Badge>
                   <Badge variant={result.verification.passed ? 'success' : 'danger'}>
@@ -281,7 +281,7 @@ export function AnalysisWorkbenchPage() {
                   <ul className="space-y-1">
                     {result.conclusion.findings.map((f, i) => (
                       <li key={i} className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                        <span className="text-cyan-500">·</span>
+                        <span className="text-status-ai">·</span>
                         <span>{f}</span>
                       </li>
                     ))}
@@ -290,12 +290,12 @@ export function AnalysisWorkbenchPage() {
 
                 {result.conclusion.risks.length > 0 && (
                   <div>
-                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-400">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-status-warning">
                       <AlertTriangle className="h-3.5 w-3.5" /> 风险提示
                     </div>
                     <ul className="space-y-1">
                       {result.conclusion.risks.map((r, i) => (
-                        <li key={i} className="rounded bg-amber-500/10 px-2 py-1 text-sm text-amber-300">{r}</li>
+                        <li key={i} className="rounded bg-orbit-warning/10 px-2 py-1 text-sm text-status-warning">{r}</li>
                       ))}
                     </ul>
                   </div>
@@ -303,13 +303,13 @@ export function AnalysisWorkbenchPage() {
 
                 {result.conclusion.actions.length > 0 && (
                   <div>
-                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-status-success">
                       <Lightbulb className="h-3.5 w-3.5" /> 行动建议
                     </div>
                     <ul className="space-y-1">
                       {result.conclusion.actions.map((a, i) => (
                         <li key={i} className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                          <span className="text-emerald-500">{i + 1}.</span>
+                          <span className="text-status-success">{i + 1}.</span>
                           <span>{a}</span>
                         </li>
                       ))}
@@ -318,12 +318,12 @@ export function AnalysisWorkbenchPage() {
                 )}
 
                 {!result.verification.passed && (
-                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-2">
-                    <div className="mb-1 flex items-center gap-1 text-xs text-rose-400">
+                  <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/5 p-2">
+                    <div className="mb-1 flex items-center gap-1 text-xs text-status-danger">
                       <AlertTriangle className="h-3 w-3" /> 以下数字未能在取数结果中命中，请谨慎采信
                     </div>
                     {result.verification.unmatched.slice(0, 5).map((u, i) => (
-                      <div key={i} className="text-[11px] text-rose-300/80">
+                      <div key={i} className="text-[11px] text-status-danger/80">
                         {u.number} — {u.context}
                       </div>
                     ))}
@@ -395,12 +395,12 @@ export function AnalysisWorkbenchPage() {
                           <span className="text-[var(--text-primary)]">{s.rowCount} 行</span>
                           <span className="ml-auto text-[var(--text-primary)]">{s.durationMs}ms</span>
                           {s.status === 'ok'
-                            ? <CheckCircle className="h-3 w-3 text-emerald-500" />
-                            : <AlertTriangle className="h-3 w-3 text-rose-500" />}
+                            ? <CheckCircle className="h-3 w-3 text-status-success" />
+                            : <AlertTriangle className="h-3 w-3 text-status-danger" />}
                         </button>
                         {open && (
                           <div className="border-t border-[var(--border)] px-3 py-2">
-                            {s.error && <div className="mb-1 text-[11px] text-rose-400">{s.error}</div>}
+                            {s.error && <div className="mb-1 text-[11px] text-status-danger">{s.error}</div>}
                             <div className="grid gap-2 sm:grid-cols-2">
                               <div>
                                 <div className="mb-0.5 text-[10px] uppercase text-[var(--text-primary)]">输入</div>
@@ -410,7 +410,7 @@ export function AnalysisWorkbenchPage() {
                               </div>
                               <div>
                                 <div className="mb-0.5 text-[10px] uppercase text-[var(--text-primary)]">输出</div>
-                                <pre className="max-h-40 overflow-auto rounded bg-orbit-ink/70 p-2 text-[10px] text-emerald-400/70">
+                                <pre className="max-h-40 overflow-auto rounded bg-orbit-ink/70 p-2 text-[10px] text-status-success/70">
 {JSON.stringify(s.outputRef, null, 2).slice(0, 3000)}
                                 </pre>
                               </div>
@@ -456,7 +456,7 @@ export function AnalysisWorkbenchPage() {
                       <tbody>
                         {result.evidence.map((e) => (
                           <tr key={e.id} className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                            <td className="py-1 pr-2 font-mono text-cyan-500">{e.id}</td>
+                            <td className="py-1 pr-2 font-mono text-status-ai">{e.id}</td>
                             <td className="py-1 pr-2">{e.label}</td>
                             <td className="py-1 pr-2 text-right font-mono">{e.value}</td>
                             <td className="py-1 pr-2 text-[var(--text-muted)]">{e.unit}</td>

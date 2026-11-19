@@ -62,7 +62,7 @@ function Growth({ value }: { value: number | null | undefined }) {
   }
   const up = value >= 0
   return (
-    <span className={cn('flex items-center gap-0.5 text-xs font-medium', up ? 'text-emerald-400' : 'text-rose-400')}>
+    <span className={cn('flex items-center gap-0.5 text-xs font-medium', up ? 'text-status-success' : 'text-status-danger')}>
       {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
       {up ? '+' : ''}{value.toFixed(2)}%
     </span>
@@ -134,7 +134,7 @@ export function OmniDashboardPage() {
                 onClick={() => setDays(d)}
                 className={cn(
                   'rounded px-3 py-1.5 text-xs transition',
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                 )}
               >
                 近 {d} 天
@@ -145,22 +145,22 @@ export function OmniDashboardPage() {
       </motion.div>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</div>
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 p-3 text-sm text-status-danger">{error}</div>
       )}
 
       {/* 口径可比性警告：跨平台 GMV 加总在口径不同时是错的 */}
       {caliber && !caliber.comparable && (
-        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
+        <div className="flex items-start gap-2 rounded-lg border border-orbit-warning/30 bg-orbit-warning/10 p-3 text-xs text-status-warning">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div className="min-w-0">
             <span className="font-medium">各平台口径不一致，上方「总 GMV」仅供参考，不可直接对外引用</span>
-            <p className="mt-1 text-amber-400/80">{caliber.reason}</p>
+            <p className="mt-1 text-status-warning/80">{caliber.reason}</p>
             {caliber.suggestion && (
-              <p className="mt-1 text-amber-400/70">调整建议：{caliber.suggestion}</p>
+              <p className="mt-1 text-status-warning/70">调整建议：{caliber.suggestion}</p>
             )}
             <div className="mt-2 flex flex-wrap gap-1.5">
               {caliber.platforms.map((p) => (
-                <span key={p.platformCode} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px]">
+                <span key={p.platformCode} className="rounded bg-orbit-warning/15 px-1.5 py-0.5 text-[10px]">
                   {p.platformCode}: {p.amountTypeName}
                 </span>
               ))}
@@ -209,7 +209,7 @@ export function OmniDashboardPage() {
                     {trend.map((t) => (
                       <div key={t.biz_date} className="group relative flex-1">
                         <div
-                          className="rounded-t bg-gradient-to-t from-cyan-600/60 to-cyan-400/80 transition-all hover:from-cyan-500 hover:to-cyan-300"
+                          className="rounded-t bg-gradient-to-t from-orbit-success/60 to-orbit-success/80 transition-all hover:from-orbit-success hover:to-orbit-success"
                           style={{ height: `${Math.max((t.gmv / maxTrend) * 140, 2)}px` }}
                         />
                         <div className="pointer-events-none absolute -top-8 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-orbit-ink px-2 py-1 text-[10px] text-orbit-snow/80 ring-1 ring-[var(--border)] group-hover:block">
@@ -257,11 +257,11 @@ export function OmniDashboardPage() {
                             </td>
                             <td className="py-2 pr-3 text-right font-mono">{fmtMoney(p.gmv)}</td>
                             <td className="py-2 pr-3 text-right">
-                              <span className="text-cyan-400">{p.gmv_share.toFixed(1)}%</span>
+                              <span className="text-status-ai">{p.gmv_share.toFixed(1)}%</span>
                             </td>
                             <td className="py-2 pr-3 text-right font-mono">{p.paid_order_count}</td>
                             <td className="py-2 pr-3 text-right font-mono">{p.paid_buyer_count}</td>
-                            <td className={cn('py-2 pr-3 text-right font-mono', p.refund_rate > 10 ? 'text-rose-400' : 'text-[var(--text-secondary)]')}>
+                            <td className={cn('py-2 pr-3 text-right font-mono', p.refund_rate > 10 ? 'text-status-danger' : 'text-[var(--text-secondary)]')}>
                               {p.refund_rate}%
                             </td>
                             <td className="py-2 pr-3 text-right font-mono">{fmtMoney(p.avg_order_value)}</td>
@@ -297,7 +297,7 @@ export function OmniDashboardPage() {
                             </div>
                             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-orbit-ink">
                               <div
-                                className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400"
+                                className="h-full rounded-full bg-gradient-to-r from-orbit-success to-orbit-success"
                                 style={{ width: `${Math.max((s.gmv / max) * 100, 1)}%` }}
                               />
                             </div>

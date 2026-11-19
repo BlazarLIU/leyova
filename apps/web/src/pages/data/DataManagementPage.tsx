@@ -40,11 +40,11 @@ const statusConfig: Record<string, { variant: 'success' | 'danger' | 'neutral'; 
 }
 
 const typeColorMap: Record<string, string> = {
-  VARCHAR: 'text-emerald-400',
-  DECIMAL: 'text-cyan-400',
+  VARCHAR: 'text-status-success',
+  DECIMAL: 'text-status-ai',
   INT: 'text-orbit-primary',
   BIGINT: 'text-orbit-primary',
-  DATETIME: 'text-amber-400',
+  DATETIME: 'text-status-warning',
   CHAR: 'text-[var(--text-muted)]',
   TEXT: 'text-[var(--text-secondary)]',
   BOOLEAN: 'text-orbit-info',
@@ -266,7 +266,7 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
           actions={
             <button
               onClick={onClose}
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 rounded-lg hover:bg-[var(--hover-bg)] transition-colors"
             >
               收起
             </button>
@@ -289,7 +289,7 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
                   {table.columnDetails.map((col) => (
                     <tr
                       key={col.name}
-                      className="border-b border-orbit-border last:border-0 hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border last:border-0 hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{col.name}</td>
                       <td className="px-5 py-3.5">
@@ -325,7 +325,7 @@ function AnimateDetailPanel({ table, onClose }: { table: DataTable | null; onClo
                   {table.sampleData.map((row, i) => (
                     <tr
                       key={i}
-                      className="border-b border-orbit-border last:border-0 hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border last:border-0 hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       {Object.entries(row).slice(0, 6).map(([key, value]) => (
                         <td key={key} className="px-5 py-3.5 text-[var(--text-secondary)] text-xs whitespace-nowrap">

@@ -11,12 +11,12 @@ export function AiOpsAssortmentStructurePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 3 · 货与内容
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">周循环视图 · 货盘健康度</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             货盘结构分析（主推 / 清库 / 测新配比）
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -28,7 +28,7 @@ export function AiOpsAssortmentStructurePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {structure.map((s) => (
           <div key={s.type} className="p-5 rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl space-y-2">
-            <span className="text-xs font-bold text-cyan-300">{s.type}</span>
+            <span className="text-xs font-bold text-status-ai">{s.type}</span>
             <div className="flex items-baseline justify-between">
               <span className="text-2xl font-black font-mono text-white">{s.ratio}</span>
               <span className="text-xs font-mono text-[var(--text-muted)]">GMV 贡献: {s.gmvShare}</span>

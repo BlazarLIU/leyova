@@ -79,7 +79,7 @@ export function MembersPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <Users className="w-5 h-5 text-cyan-400" />
+            <Users className="w-5 h-5 text-status-ai" />
             会员与私域复购监测
           </h1>
           <p className="text-xs text-[var(--text-muted)] mt-1">
@@ -108,7 +108,7 @@ export function MembersPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs text-rose-300 flex items-center justify-between">
+        <div className="rounded-xl border border-orbit-danger/40 bg-orbit-danger/10 px-4 py-3 text-xs text-status-danger flex items-center justify-between">
           <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</span>
           <Button size="sm" variant="secondary" onClick={load}>重试</Button>
         </div>
@@ -123,11 +123,11 @@ export function MembersPage() {
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">周期新增会员</div>
-              <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">+{data.summary.new_members.toLocaleString()}</div>
+              <div className="text-xl font-bold text-status-ai mt-1 tabular-nums">+{data.summary.new_members.toLocaleString()}</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">复购订单数</div>
-              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">{data.summary.repurchase_orders.toLocaleString()}</div>
+              <div className="text-xl font-bold text-status-success mt-1 tabular-nums">{data.summary.repurchase_orders.toLocaleString()}</div>
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">平均会员复购率</div>
@@ -135,7 +135,7 @@ export function MembersPage() {
             </CardBody></Card>
             <Card><CardBody>
               <div className="text-xs text-[var(--text-muted)]">粉丝成交贡献比</div>
-              <div className="text-xl font-bold text-amber-400 mt-1 tabular-nums">{data.summary.avg_followers_gmv_share}%</div>
+              <div className="text-xl font-bold text-status-warning mt-1 tabular-nums">{data.summary.avg_followers_gmv_share}%</div>
             </CardBody></Card>
           </div>
 
@@ -158,15 +158,15 @@ export function MembersPage() {
                   </thead>
                   <tbody>
                     {data.items.map((r) => (
-                      <tr key={r.id} className="border-b border-orbit-border/60 hover:bg-white/5">
+                      <tr key={r.id} className="border-b border-orbit-border/60 hover:bg-[var(--hover-bg)]">
                         <td className="px-4 py-2.5 text-[var(--text-secondary)]">{r.platform_name} · {r.shop_name}</td>
                         <td className="px-4 py-2.5"><Badge variant="info">{r.member_tier}</Badge></td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-primary)]">{r.total_members.toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">+{r.new_members} / {r.active_buyers}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-emerald-400">{r.repurchase_orders}</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-status-success">{r.repurchase_orders}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{Number(r.repurchase_rate).toFixed(1)}%</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-amber-300">{Number(r.followers_gmv_share).toFixed(1)}%</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-cyan-300">{Number(r.private_domain_cvr).toFixed(1)}%</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-status-warning">{Number(r.followers_gmv_share).toFixed(1)}%</td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-status-ai">{Number(r.private_domain_cvr).toFixed(1)}%</td>
                       </tr>
                     ))}
                   </tbody>

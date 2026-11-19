@@ -375,7 +375,7 @@ export function DataQualityPage() {
           <Eye className="w-4 h-4" />
           人工审核工作台 (四屏同显)
           {selectedBatch?.open_p0_count > 0 && (
-            <span className="px-1.5 py-0.5 text-xs bg-rose-500/20 text-rose-300 rounded-full font-bold">
+            <span className="px-1.5 py-0.5 text-xs bg-orbit-danger/20 text-status-danger rounded-full font-bold">
               {selectedBatch.open_p0_count} P0
             </span>
           )}
@@ -440,7 +440,7 @@ export function DataQualityPage() {
             </Card>
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
               <p className="text-xs text-[var(--text-muted)]">不可变原始行总数 (Raw)</p>
-              <p className="text-2xl font-bold text-sky-400 mt-1">
+              <p className="text-2xl font-bold text-status-info mt-1">
                 {batches.reduce((s, b) => s + (b.total_raw_rows || 0), 0).toLocaleString()}
               </p>
             </Card>
@@ -452,13 +452,13 @@ export function DataQualityPage() {
             </Card>
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
               <p className="text-xs text-[var(--text-muted)]">正式入库发布总数 (Final)</p>
-              <p className="text-2xl font-bold text-emerald-400 mt-1">
+              <p className="text-2xl font-bold text-status-success mt-1">
                 {batches.reduce((s, b) => s + (b.published_rows || 0), 0).toLocaleString()}
               </p>
             </Card>
             <Card className="bg-orbit-surface p-4 border border-orbit-border">
               <p className="text-xs text-[var(--text-muted)]">待处理 P0/P1 异常阻断</p>
-              <p className="text-2xl font-bold text-rose-400 mt-1">
+              <p className="text-2xl font-bold text-status-danger mt-1">
                 {batches.reduce((s, b) => s + (Number(b.open_p0_count) || 0), 0)} 个
               </p>
             </Card>
@@ -505,21 +505,21 @@ export function DataQualityPage() {
                         </td>
                         <td className="py-3.5 px-4">
                           {b.source_channel === 'api' ? (
-                            <span className="text-sky-400 font-mono">OpenAPI 增量</span>
+                            <span className="text-status-info font-mono">OpenAPI 增量</span>
                           ) : (
-                            <span className="text-amber-400 font-mono">报表手动上传</span>
+                            <span className="text-status-warning font-mono">报表手动上传</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-[var(--text-secondary)]">{b.total_raw_rows}</td>
                         <td className="py-3.5 px-4 text-[var(--text-secondary)]">{b.clean_candidate_rows}</td>
-                        <td className="py-3.5 px-4 font-bold text-emerald-400">{b.published_rows}</td>
+                        <td className="py-3.5 px-4 font-bold text-status-success">{b.published_rows}</td>
                         <td className="py-3.5 px-4">
                           {b.open_p0_count > 0 ? (
-                            <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">
+                            <span className="px-2 py-0.5 rounded bg-orbit-danger/20 text-status-danger font-bold">
                               {b.open_p0_count} 致命 P0
                             </span>
                           ) : b.open_p1_count > 0 ? (
-                            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-medium">
+                            <span className="px-2 py-0.5 rounded bg-orbit-warning/20 text-status-warning font-medium">
                               {b.open_p1_count} 待审 P1
                             </span>
                           ) : (
@@ -593,7 +593,7 @@ export function DataQualityPage() {
                 ))}
               </select>
               <span className="text-xs text-[var(--text-muted)]">
-                检出 <span className="font-bold text-rose-400">{issues.length}</span> 个待审核异常
+                检出 <span className="font-bold text-status-danger">{issues.length}</span> 个待审核异常
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -621,9 +621,9 @@ export function DataQualityPage() {
           </div>
 
           {jobNotice && (
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between">
+            <div className="p-3 bg-orbit-success/10 border border-orbit-success/30 rounded-xl text-xs text-status-success flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-status-success shrink-0" />
                 <span>{jobNotice}</span>
               </div>
               <button
@@ -639,7 +639,7 @@ export function DataQualityPage() {
             <Card className="border border-orbit-border bg-orbit-surface/90">
               <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b border-orbit-border pb-3">
                 <div className="flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <ShieldCheck className="w-5 h-5 text-status-success" />
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-[var(--text-primary)]">
@@ -672,10 +672,10 @@ export function DataQualityPage() {
                       className={cn(
                         'p-3 rounded-lg border text-xs space-y-1.5 transition-colors',
                         r.passed
-                          ? 'bg-emerald-500/5 border-emerald-500/20'
+                          ? 'bg-orbit-success/5 border-orbit-success/20'
                           : r.severity === 'fatal'
-                          ? 'bg-rose-500/10 border-rose-500/30'
-                          : 'bg-amber-500/10 border-amber-500/30'
+                          ? 'bg-orbit-danger/10 border-orbit-danger/30'
+                          : 'bg-orbit-warning/10 border-orbit-warning/30'
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -689,7 +689,7 @@ export function DataQualityPage() {
                         )}
                       </div>
                       <p className="font-mono text-[11px] text-[var(--text-muted)]">{r.ruleCode}</p>
-                      <p className={cn('text-xs font-medium', r.passed ? 'text-[var(--text-secondary)]' : 'text-rose-300')}>
+                      <p className={cn('text-xs font-medium', r.passed ? 'text-[var(--text-secondary)]' : 'text-status-danger')}>
                         {r.message}
                       </p>
                       {r.tolerance && (
@@ -753,7 +753,7 @@ export function DataQualityPage() {
                       <CardHeader title="1. 原始文件/报文值 (Raw)" subtitle={`第 ${selectedIssue.comparison?.raw?.rowNo || 1} 行`} />
                       <CardBody className="p-4 bg-orbit-surface2/40 rounded-b-xl space-y-2 font-mono text-xs">
                         <div className="text-[var(--text-muted)]">原始字段值:</div>
-                        <div className="p-2.5 bg-orbit-surface rounded border border-orbit-border text-amber-300 break-all">
+                        <div className="p-2.5 bg-orbit-surface rounded border border-orbit-border text-status-warning break-all">
                           {selectedIssue.comparison?.raw?.fieldValue || '空值 (NULL)'}
                         </div>
                         <div className="text-[var(--text-muted)] mt-2">完整原始行 JSON:</div>
@@ -768,11 +768,11 @@ export function DataQualityPage() {
                       <CardHeader title="2. 清洗标准化候选 (Clean)" subtitle={selectedIssue.comparison?.cleaned?.status} />
                       <CardBody className="p-4 bg-orbit-surface2/40 rounded-b-xl space-y-2 font-mono text-xs">
                         <div className="text-[var(--text-muted)]">清洗输出值:</div>
-                        <div className="p-2.5 bg-orbit-surface rounded border border-orbit-border text-sky-300 break-all">
+                        <div className="p-2.5 bg-orbit-surface rounded border border-orbit-border text-status-info break-all">
                           {selectedIssue.comparison?.cleaned?.fieldValue ?? '隔离'}
                         </div>
                         <div className="text-[var(--text-muted)] mt-2">隔离原因:</div>
-                        <div className="p-2 bg-rose-500/10 rounded border border-rose-500/20 text-rose-300 text-[11px]">
+                        <div className="p-2 bg-orbit-danger/10 rounded border border-orbit-danger/20 text-status-danger text-[11px]">
                           {selectedIssue.comparison?.cleaned?.quarantineReason || '触发独立校验规则阻断'}
                         </div>
                       </CardBody>
@@ -790,7 +790,7 @@ export function DataQualityPage() {
                         </div>
                         <div className="flex justify-between py-1 border-b border-orbit-border/50">
                           <span className="text-[var(--text-muted)]">内部系统关联主键:</span>
-                          <span className="font-mono text-emerald-400">
+                          <span className="font-mono text-status-success">
                             {selectedIssue.comparison?.cleaned?.payload?._internal_sku_id || '未关联 (需人工映射)'}
                           </span>
                         </div>
@@ -808,7 +808,7 @@ export function DataQualityPage() {
                           <SeverityBadge severity={selectedIssue.severity} />
                           <span className="font-mono font-bold text-[var(--text-secondary)]">{selectedIssue.ruleId}</span>
                         </div>
-                        <div className="p-2.5 bg-rose-500/10 rounded border border-rose-500/20 text-rose-300 text-xs font-medium">
+                        <div className="p-2.5 bg-orbit-danger/10 rounded border border-orbit-danger/20 text-status-danger text-xs font-medium">
                           {selectedIssue.issueMessage}
                         </div>
                         <div className="text-[var(--text-muted)] text-[11px]">
@@ -949,9 +949,9 @@ export function DataQualityPage() {
                         <tr key={i} className="hover:bg-orbit-surface2/30">
                           <td className="py-3 px-4 uppercase">{r.reconcileLevel}</td>
                           <td className="py-3 px-4 font-bold text-[var(--text-secondary)]">{r.metricCode}</td>
-                          <td className="py-3 px-4 text-sky-400">{r.sourceControlValue}</td>
+                          <td className="py-3 px-4 text-status-info">{r.sourceControlValue}</td>
                           <td className="py-3 px-4 text-[var(--text-secondary)]">{r.systemCalculatedValue}</td>
-                          <td className="py-3 px-4 text-amber-400">{r.difference}</td>
+                          <td className="py-3 px-4 text-status-warning">{r.difference}</td>
                           <td className="py-3 px-4">
                             {r.status === 'MATCHED' ? (
                               <Badge variant="success">MATCHED 完全匹配</Badge>
@@ -983,7 +983,7 @@ export function DataQualityPage() {
                   <p className="text-xs text-[var(--text-muted)] mt-1">
                     当前批次成熟度: <MaturityBadge status={selectedBatch?.status || 'PROCESSING'} />
                     {selectedBatch?.open_p0_count > 0 && (
-                      <span className="text-rose-400 ml-2 font-bold">
+                      <span className="text-status-danger ml-2 font-bold">
                         (⚠️ 存在 {selectedBatch.open_p0_count} 个未解决的 P0 致命错误，发布闸门将拒绝放行！)
                       </span>
                     )}
@@ -1005,8 +1005,8 @@ export function DataQualityPage() {
                   className={cn(
                     'p-3.5 rounded-lg text-xs font-mono',
                     publishMessage.startsWith('✅')
-                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
-                      : 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
+                      ? 'bg-orbit-success/10 border border-orbit-success/20 text-status-success'
+                      : 'bg-orbit-danger/10 border border-orbit-danger/20 text-status-danger'
                   )}
                 >
                   {publishMessage}
@@ -1039,7 +1039,7 @@ export function DataQualityPage() {
 
                     <div className="space-y-1.5 text-xs font-mono">
                       <div className="text-[var(--text-muted)]">官方 API 网关:</div>
-                      <div className="p-2 bg-orbit-surface rounded border border-orbit-border text-sky-400 break-all">
+                      <div className="p-2 bg-orbit-surface rounded border border-orbit-border text-status-info break-all">
                         {spec.gatewayUrl}
                       </div>
                     </div>
@@ -1054,7 +1054,7 @@ export function DataQualityPage() {
                         官方开发文档
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
-                      <span className="text-emerald-400 font-semibold">适配器已就绪</span>
+                      <span className="text-status-success font-semibold">适配器已就绪</span>
                     </div>
                   </div>
                 ))}
@@ -1155,10 +1155,10 @@ export function DataQualityPage() {
               className={cn(
                 'p-4 rounded-xl text-xs font-mono',
                 uploadStatusMsg.startsWith('✅')
-                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
+                  ? 'bg-orbit-success/10 border border-orbit-success/20 text-status-success'
                   : uploadStatusMsg.startsWith('⏳')
-                  ? 'bg-sky-500/10 border border-sky-500/20 text-sky-300'
-                  : 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
+                  ? 'bg-orbit-info/10 border border-orbit-info/20 text-status-info'
+                  : 'bg-orbit-danger/10 border border-orbit-danger/20 text-status-danger'
               )}
             >
               {uploadStatusMsg}

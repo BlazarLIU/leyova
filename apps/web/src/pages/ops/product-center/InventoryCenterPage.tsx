@@ -407,11 +407,11 @@ export function InventoryCenterPage() {
           <span className="tabular-nums">
             <span className="text-[var(--text-secondary)]">{item.onHandQty}</span>
             <span className="text-[var(--text-muted)] mx-1">/</span>
-            <span className="text-amber-400">{item.lockedQty}</span>
+            <span className="text-status-warning">{item.lockedQty}</span>
             <span className="text-[var(--text-muted)] mx-1">/</span>
             <span
               className={`font-semibold ${
-                item.isLowStock ? 'text-red-400' : 'text-emerald-400'
+                item.isLowStock ? 'text-status-danger' : 'text-status-success'
               }`}
             >
               {item.availableQty}
@@ -515,7 +515,7 @@ export function InventoryCenterPage() {
         sortable: true,
         render: (_, item) => (
           <div className="text-xs tabular-nums text-right">
-            <span className="text-emerald-400 font-semibold">
+            <span className="text-status-success font-semibold">
               ¥{item.channelPrice.toFixed(2)}
             </span>
             <span className="text-[var(--text-primary)] mx-1">/</span>
@@ -532,13 +532,13 @@ export function InventoryCenterPage() {
           <span className="tabular-nums">
             <span className="text-[var(--text-secondary)]">{item.allocatedStock}</span>
             <span className="text-[var(--text-muted)] mx-1">/</span>
-            <span className="text-amber-400">{item.reservedStock}</span>
+            <span className="text-status-warning">{item.reservedStock}</span>
             <span className="text-[var(--text-muted)] mx-1">/</span>
             <span
               className={`font-semibold ${
                 item.availableChannelStock <= item.safetyStock
-                  ? 'text-red-400'
-                  : 'text-emerald-400'
+                  ? 'text-status-danger'
+                  : 'text-status-success'
               }`}
             >
               {item.availableChannelStock}
@@ -625,7 +625,7 @@ export function InventoryCenterPage() {
         align: 'right',
         sortable: true,
         render: (_, item) => (
-          <span className="font-mono font-bold text-amber-400">{item.reservedQty} 件</span>
+          <span className="font-mono font-bold text-status-warning">{item.reservedQty} 件</span>
         ),
       },
       {
@@ -644,7 +644,7 @@ export function InventoryCenterPage() {
           <div className="text-xs text-[var(--text-muted)]">
             <div>到期: {new Date(item.expiresAt).toLocaleTimeString('zh-CN')}</div>
             {item.releaseReason && (
-              <span className="text-red-400 block mt-0.5">原因: {item.releaseReason}</span>
+              <span className="text-status-danger block mt-0.5">原因: {item.releaseReason}</span>
             )}
           </div>
         ),
@@ -722,7 +722,7 @@ export function InventoryCenterPage() {
         render: (_, row) => (
           <span
             className={`font-mono font-semibold tabular-nums ${
-              row.delta_qty >= 0 ? 'text-emerald-400' : 'text-red-400'
+              row.delta_qty >= 0 ? 'text-status-success' : 'text-status-danger'
             }`}
           >
             {row.delta_qty >= 0 ? `+${row.delta_qty}` : row.delta_qty}
@@ -782,7 +782,7 @@ export function InventoryCenterPage() {
       </div>
 
       {errorMsg && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-4 py-2.5 text-sm text-status-danger">
           {errorMsg}
         </div>
       )}
@@ -802,14 +802,14 @@ export function InventoryCenterPage() {
               <p className="text-xs text-[var(--text-muted)]">物理在库 / 锁定</p>
               <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
                 {overview.totalOnHand} /{' '}
-                <span className="text-amber-400">{overview.totalLocked}</span>
+                <span className="text-status-warning">{overview.totalLocked}</span>
               </p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">可用可售库存</p>
-              <p className="mt-1 text-2xl font-bold text-emerald-400">
+              <p className="mt-1 text-2xl font-bold text-status-success">
                 {overview.totalAvailable}
               </p>
             </CardBody>
@@ -819,7 +819,7 @@ export function InventoryCenterPage() {
               <p className="text-xs text-[var(--text-muted)]">缺货预警 SKU</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
-                  overview.lowStockCount > 0 ? 'text-red-400' : 'text-[var(--text-primary)]'
+                  overview.lowStockCount > 0 ? 'text-status-danger' : 'text-[var(--text-primary)]'
                 }`}
               >
                 {overview.lowStockCount}
@@ -829,7 +829,7 @@ export function InventoryCenterPage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">库存总货值</p>
-              <p className="mt-1 text-2xl font-bold text-cyan-400">
+              <p className="mt-1 text-2xl font-bold text-status-ai">
                 ¥{overview.totalStockValue.toLocaleString()}
               </p>
             </CardBody>
@@ -890,7 +890,7 @@ export function InventoryCenterPage() {
           title="商品主档与总仓可用库存"
           subtitle="统一维护主档规格、跨平台映射以及仓库实物与安全线"
           badge={
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-emerald-400 border border-orbit-border">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-success border border-orbit-border">
               DataPage + useTable
             </span>
           }
@@ -929,7 +929,7 @@ export function InventoryCenterPage() {
           title="渠道专属定价与独立配额管控"
           subtitle="支持同一 SKU 在抖音、快手、天猫、视频号独立制定平台专享售价与独占安全库存配额"
           badge={
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-cyan-400 border border-orbit-border">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-ai border border-orbit-border">
               渠道配额引擎
             </span>
           }
@@ -956,7 +956,7 @@ export function InventoryCenterPage() {
           title="大促防超卖预留单 (原子锁库与超时释放)"
           subtitle="下单强一致性行锁锁定，支持 15/30 分钟超时释放与支付完成核销物理出库"
           badge={
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-amber-400 border border-orbit-border">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-warning border border-orbit-border">
               防超卖锁库
             </span>
           }

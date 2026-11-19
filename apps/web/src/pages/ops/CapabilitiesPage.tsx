@@ -52,9 +52,9 @@ const getScoreRating = (score: number): { label: string; variant: 'success' | 'p
 
 const colorConfig: Record<string, { bar: string; glow: string; text: string }> = {
   primary: { bar: 'bg-orbit-primary', glow: 'shadow-orbit-primary/20', text: 'text-orbit-primary' },
-  accent: { bar: 'bg-orbit-accent', glow: 'shadow-orbit-accent/20', text: 'text-cyan-400' },
-  success: { bar: 'bg-orbit-success', glow: 'shadow-orbit-success/20', text: 'text-emerald-400' },
-  warning: { bar: 'bg-orbit-warning', glow: 'shadow-orbit-warning/20', text: 'text-amber-400' },
+  accent: { bar: 'bg-orbit-accent', glow: 'shadow-orbit-accent/20', text: 'text-status-ai' },
+  success: { bar: 'bg-orbit-success', glow: 'shadow-orbit-success/20', text: 'text-status-success' },
+  warning: { bar: 'bg-orbit-warning', glow: 'shadow-orbit-warning/20', text: 'text-status-warning' },
 }
 
 export function CapabilitiesPage() {
@@ -156,10 +156,10 @@ export function CapabilitiesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <Card className="border-amber-500/20 bg-orbit-surface/80">
+          <Card className="border-orbit-warning/20 bg-orbit-surface/80">
             <CardBody>
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-orbit-warning/10 text-status-warning flex items-center justify-center mb-4">
                   <AlertCircle className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-semibold text-[var(--text-secondary)]">
@@ -178,7 +178,7 @@ export function CapabilitiesPage() {
                   </button>
                   <button
                     onClick={() => setPlatformCode('douyin')}
-                    className="px-4 py-2 rounded-lg bg-white/5 border border-orbit-border text-[var(--text-secondary)] text-xs font-medium hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-lg bg-[var(--hover-bg3)] border border-orbit-border text-[var(--text-secondary)] text-xs font-medium hover:bg-[var(--hover-bg)] transition"
                   >
                     切换至抖音电商
                   </button>
@@ -221,7 +221,7 @@ export function CapabilitiesPage() {
               <Card className="hover:border-orbit-border2 transition-colors">
                 <CardBody>
                   <div className="flex items-center justify-between mb-4">
-                    <div className={cn('p-2 rounded-lg bg-white/5', colors.text)}>
+                    <div className={cn('p-2 rounded-lg bg-[var(--hover-bg3)]', colors.text)}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <Badge variant={rating.variant}>{rating.label}</Badge>
@@ -296,7 +296,7 @@ export function CapabilitiesPage() {
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orbit-primary to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orbit-primary to-orbit-success flex items-center justify-center text-white text-[10px] font-bold">
                             {(anchor.name || '主').slice(0, 1)}
                           </div>
                           <span className="text-sm font-medium text-[var(--text-secondary)]">{anchor.name || '未知主播'}</span>
@@ -346,7 +346,7 @@ function ScoreBar({ value }: { value: number }) {
       </div>
       <span className={cn(
         'text-xs font-medium',
-        score >= 85 ? 'text-emerald-400' : score >= 75 ? 'text-orbit-primary' : score >= 60 ? 'text-amber-400' : 'text-red-400'
+        score >= 85 ? 'text-status-success' : score >= 75 ? 'text-orbit-primary' : score >= 60 ? 'text-status-warning' : 'text-status-danger'
       )}>
         {score}
       </span>

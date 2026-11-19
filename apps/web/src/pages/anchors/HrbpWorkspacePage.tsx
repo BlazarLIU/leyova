@@ -953,13 +953,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orbit-surface border border-orbit-border text-xs">
             <span className="text-[var(--text-muted)]">小时人效:</span>
-            <span className="font-bold text-emerald-700 dark:text-emerald-400">{fmtWan(effSummary?.efficiency.gmvPerHour)}/h</span>
+            <span className="font-bold text-status-success dark:text-status-success">{fmtWan(effSummary?.efficiency.gmvPerHour)}/h</span>
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orbit-surface border border-orbit-border text-xs">
             <span className="text-[var(--text-muted)]">全员薪效比:</span>
             <span className="font-bold text-[var(--text-primary)]">{commissionSim.staffCostRatio.toFixed(1)}%</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">(健康 6%~10%)</span>
+            <span className="text-[10px] text-status-success dark:text-status-success font-medium">(健康 6%~10%)</span>
           </div>
 
           {/* 时间范围筛选与刷新 */}
@@ -981,7 +981,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
       </motion.div>
 
       {err && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger dark:text-status-danger flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" /> {err}
         </div>
       )}
@@ -1013,7 +1013,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </span>
               )}
               {t.key === 'risk_radar' && (effRisk?.riskCount ?? 0) > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-bold">
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-orbit-danger/20 text-status-danger dark:text-status-danger text-[10px] font-bold">
                   {effRisk?.riskCount}
                 </span>
               )}
@@ -1123,7 +1123,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     <div className="h-1.5 rounded-full bg-orbit-surface2 overflow-hidden">
                       <div
                         className={`h-full ${
-                          tier.tier === 'S' ? 'bg-rose-500' : tier.tier === 'A' ? 'bg-amber-500' : tier.tier === 'B' ? 'bg-sky-500' : 'bg-[var(--text-subtle)]'
+                          tier.tier === 'S' ? 'bg-orbit-danger' : tier.tier === 'A' ? 'bg-orbit-warning' : tier.tier === 'B' ? 'bg-orbit-info' : 'bg-[var(--text-subtle)]'
                         }`}
                         style={{ width: `${Math.min(100, Math.max(0, tier.gmvShare || 0))}%` }}
                       />
@@ -1271,7 +1271,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                             <span
                               className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${
                                 isTop3
-                                  ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30'
+                                  ? 'bg-orbit-warning/20 text-status-warning dark:text-status-warning border border-orbit-warning/30'
                                   : 'text-[var(--text-muted)]'
                               }`}
                             >
@@ -1289,7 +1289,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           <td className="px-4 py-2.5 text-right font-mono font-bold text-[var(--text-primary)]">{fmtWan(a.gmv)}</td>
                           <td className="px-4 py-2.5 text-right font-mono font-bold text-orbit-primary">{fmtWan(a.gmvPerHour)}/h</td>
                           <td className="px-3 py-2.5 text-right font-mono">
-                            <span className={hasHighReturn ? 'text-rose-700 dark:text-rose-400 font-bold' : 'text-[var(--text-primary)]'}>
+                            <span className={hasHighReturn ? 'text-status-danger dark:text-status-danger font-bold' : 'text-[var(--text-primary)]'}>
                               {fmtPct(a.returnRate)}
                             </span>
                           </td>
@@ -1320,7 +1320,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center gap-2 mb-2">
-                <Flame className="w-4 h-4 text-rose-500" />
+                <Flame className="w-4 h-4 text-status-danger" />
                 <span className="text-xs font-bold text-[var(--text-primary)]">主力旗舰作战单元（S级班组）</span>
               </div>
               <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
@@ -1330,7 +1330,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-amber-500" />
+                <Zap className="w-4 h-4 text-status-warning" />
                 <span className="text-xs font-bold text-[var(--text-primary)]">分销矩阵作战单元（A/B级轮播）</span>
               </div>
               <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
@@ -1340,7 +1340,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center gap-2 mb-2">
-                <ShieldAlert className="w-4 h-4 text-emerald-500" />
+                <ShieldAlert className="w-4 h-4 text-status-success" />
                 <span className="text-xs font-bold text-[var(--text-primary)]">新人自播孵化班组（B/C级练兵）</span>
               </div>
               <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
@@ -1401,8 +1401,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           <span
                             className={`font-bold ${
                               a.utilization != null && a.utilization < 70
-                                ? 'text-rose-700 dark:text-rose-400'
-                                : 'text-emerald-700 dark:text-emerald-400'
+                                ? 'text-status-danger dark:text-status-danger'
+                                : 'text-status-success dark:text-status-success'
                             }`}
                           >
                             {fmtPct(a.utilization)}
@@ -1433,7 +1433,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-medium flex items-center gap-1">
+                <span className="text-[11px] text-status-success bg-orbit-success/10 px-2 py-0.5 rounded-full border border-orbit-success/20 font-medium flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   已联通系统模块参数
                 </span>
@@ -1491,7 +1491,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
                   <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-500" /> 千川投手激励
+                    <Zap className="w-3.5 h-3.5 text-status-warning" /> 千川投手激励
                   </div>
                   <div>
                     <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">投流消耗提成率 (%)</label>
@@ -1529,7 +1529,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                 <div className="space-y-2 border-r border-orbit-border/40 pr-3">
                   <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-emerald-500" /> 操盘运营分红
+                    <Award className="w-3.5 h-3.5 text-status-success" /> 操盘运营分红
                   </div>
                   <div>
                     <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">净利润分红比例 (%)</label>
@@ -1548,7 +1548,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
                 <div className="space-y-2">
                   <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-sky-500" /> 中控/场控津贴
+                    <Clock className="w-3.5 h-3.5 text-status-info" /> 中控/场控津贴
                   </div>
                   <div>
                     <label className="text-[10px] text-[var(--text-muted)] block mb-0.5">场次津贴 (元/场)</label>
@@ -1613,7 +1613,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-medium">
+                <span className="text-[11px] text-status-success bg-orbit-success/10 px-2.5 py-0.5 rounded-full border border-orbit-success/20 font-medium">
                   三层覆盖引擎已连接
                 </span>
                 <a
@@ -1737,13 +1737,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       </div>
                       <div>
                         <span className="text-[10px] text-[var(--text-muted)] block">预计个人总所得</span>
-                        <span className="text-sm font-mono font-bold text-emerald-400">¥{Math.round(totalIncome).toLocaleString()}</span>
+                        <span className="text-sm font-mono font-bold text-status-success">¥{Math.round(totalIncome).toLocaleString()}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-1">
                       <span>适用提成费率: <strong className="text-[var(--text-secondary)] font-mono">{rateDesc}</strong></span>
-                      <span>个人薪效比: <strong className="font-mono text-emerald-400">{costRatio.toFixed(2)}%</strong></span>
+                      <span>个人薪效比: <strong className="font-mono text-status-success">{costRatio.toFixed(2)}%</strong></span>
                     </div>
                   </div>
                 )
@@ -1785,27 +1785,27 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               </CardHeader>
               <CardBody className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
-                    <div className="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold mb-1">头部主咖（前 1/3）</div>
-                    <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{performance?.gmvBands.top ?? 0} 人</div>
+                  <div className="rounded-lg border border-orbit-success/30 bg-orbit-success/5 p-3">
+                    <div className="text-[11px] text-status-success dark:text-status-success font-semibold mb-1">头部主咖（前 1/3）</div>
+                    <div className="text-xl font-bold text-status-success dark:text-status-success">{performance?.gmvBands.top ?? 0} 人</div>
                     <div className="text-[10px] text-[var(--text-muted)] mt-1">享冲刺高阶分润，锁定黄金时段</div>
                   </div>
 
-                  <div className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-3">
-                    <div className="text-[11px] text-sky-800 dark:text-sky-300 font-semibold mb-1">腰部中坚（中 1/3）</div>
-                    <div className="text-xl font-bold text-sky-700 dark:text-sky-400">{performance?.gmvBands.mid ?? 0} 人</div>
+                  <div className="rounded-lg border border-orbit-info/30 bg-orbit-info/5 p-3">
+                    <div className="text-[11px] text-status-info dark:text-status-info font-semibold mb-1">腰部中坚（中 1/3）</div>
+                    <div className="text-xl font-bold text-status-info dark:text-status-info">{performance?.gmvBands.mid ?? 0} 人</div>
                     <div className="text-[10px] text-[var(--text-muted)] mt-1">稳健轮播承接，重点辅导转化力</div>
                   </div>
 
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-                    <div className="text-[11px] text-amber-800 dark:text-amber-300 font-semibold mb-1">尾部轮播（后 1/3）</div>
-                    <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{performance?.gmvBands.low ?? 0} 人</div>
+                  <div className="rounded-lg border border-orbit-warning/30 bg-orbit-warning/5 p-3">
+                    <div className="text-[11px] text-status-warning dark:text-status-warning font-semibold mb-1">尾部轮播（后 1/3）</div>
+                    <div className="text-xl font-bold text-status-warning dark:text-status-warning">{performance?.gmvBands.low ?? 0} 人</div>
                     <div className="text-[10px] text-[var(--text-muted)] mt-1">晨间/通宵承接，设 15 天观察期</div>
                   </div>
 
-                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-3">
-                    <div className="text-[11px] text-rose-800 dark:text-rose-300 font-semibold mb-1">周期零产出</div>
-                    <div className="text-xl font-bold text-rose-700 dark:text-rose-400">{performance?.gmvBands.none ?? 0} 人</div>
+                  <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/5 p-3">
+                    <div className="text-[11px] text-status-danger dark:text-status-danger font-semibold mb-1">周期零产出</div>
+                    <div className="text-xl font-bold text-status-danger dark:text-status-danger">{performance?.gmvBands.none ?? 0} 人</div>
                     <div className="text-[10px] text-[var(--text-muted)] mt-1">触发 HRBP 谈话与排班淘汰程序</div>
                   </div>
                 </div>
@@ -1820,47 +1820,47 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
         <motion.div {...fadeIn} className="space-y-6">
           {/* 5.1 盘点宏观概览与九宫格指标卡 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-4">
-              <div className="flex items-center justify-between text-xs text-rose-800 dark:text-rose-300 mb-1">
+            <div className="rounded-xl border border-orbit-danger/30 bg-orbit-danger/5 p-4">
+              <div className="flex items-center justify-between text-xs text-status-danger dark:text-status-danger mb-1">
                 <span className="font-bold flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-rose-500" /> 超级明星 (Star)
+                  <Star className="w-4 h-4 text-status-danger" /> 超级明星 (Star)
                 </span>
                 <span className="font-mono font-bold">2 人</span>
               </div>
-              <div className="text-xl font-bold text-rose-700 dark:text-rose-400">15.4%</div>
+              <div className="text-xl font-bold text-status-danger dark:text-status-danger">15.4%</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">高绩效 × 高潜力 · 重点合伙留任</div>
             </div>
 
-            <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
-              <div className="flex items-center justify-between text-xs text-sky-800 dark:text-sky-300 mb-1">
+            <div className="rounded-xl border border-orbit-info/30 bg-orbit-info/5 p-4">
+              <div className="flex items-center justify-between text-xs text-status-info dark:text-status-info mb-1">
                 <span className="font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-sky-500" /> 潜力黑马 (High Potential)
+                  <Sparkles className="w-4 h-4 text-status-info" /> 潜力黑马 (High Potential)
                 </span>
                 <span className="font-mono font-bold">2 人</span>
               </div>
-              <div className="text-xl font-bold text-sky-700 dark:text-sky-400">18.2%</div>
+              <div className="text-xl font-bold text-status-info dark:text-status-info">18.2%</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">中低绩效 × 高潜力 · 金牌教练1v1</div>
             </div>
 
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
-              <div className="flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300 mb-1">
+            <div className="rounded-xl border border-orbit-success/30 bg-orbit-success/5 p-4">
+              <div className="flex items-center justify-between text-xs text-status-success dark:text-status-success mb-1">
                 <span className="font-bold flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-emerald-500" /> 中坚骨干 (Core &amp; Performer)
+                  <Award className="w-4 h-4 text-status-success" /> 中坚骨干 (Core &amp; Performer)
                 </span>
                 <span className="font-mono font-bold">3 人</span>
               </div>
-              <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">54.5%</div>
+              <div className="text-xl font-bold text-status-success dark:text-status-success">54.5%</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">中高绩效 × 中潜力 · 矩阵压舱石</div>
             </div>
 
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-              <div className="flex items-center justify-between text-xs text-amber-800 dark:text-amber-300 mb-1">
+            <div className="rounded-xl border border-orbit-warning/30 bg-orbit-warning/5 p-4">
+              <div className="flex items-center justify-between text-xs text-status-warning dark:text-status-warning mb-1">
                 <span className="font-bold flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" /> 风险与汰换 (Risk &amp; PIP)
+                  <AlertTriangle className="w-4 h-4 text-status-warning" /> 风险与汰换 (Risk &amp; PIP)
                 </span>
                 <span className="font-mono font-bold">2 人</span>
               </div>
-              <div className="text-xl font-bold text-amber-700 dark:text-amber-400">11.9%</div>
+              <div className="text-xl font-bold text-status-warning dark:text-status-warning">11.9%</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">低绩效 × 低中潜 · 15天改进或转岗</div>
             </div>
           </div>
@@ -1883,9 +1883,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               {/* 九宫格容器 */}
               <div className="grid grid-cols-3 gap-3">
                 {/* 第一行：高绩效 (High Performance) */}
-                <div className="rounded-xl border border-sky-500/40 bg-sky-500/5 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-info/40 bg-orbit-info/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-sky-800 dark:text-sky-300">中流砥柱 (High Performer)</span>
+                    <span className="text-xs font-bold text-status-info dark:text-status-info">中流砥柱 (High Performer)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">高绩 · 中潜</span>
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)]">业务极其熟练的腰部骨干，稳定保量</p>
@@ -1898,8 +1898,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           onClick={() => setSelectedPersonaId(p.id)}
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
-                              ? 'bg-sky-500 text-white border-sky-600 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-sky-400'
+                              ? 'bg-orbit-info text-white border-orbit-info shadow-sm'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-orbit-info'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -1908,12 +1908,12 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-rose-500/50 bg-rose-500/10 p-3.5 space-y-2 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-8 h-8 bg-rose-500/10 rounded-bl-full flex items-start justify-end p-1">
-                    <Star className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                <div className="rounded-xl border border-orbit-danger/50 bg-orbit-danger/10 p-3.5 space-y-2 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-8 h-8 bg-orbit-danger/10 rounded-bl-full flex items-start justify-end p-1">
+                    <Star className="w-3.5 h-3.5 text-status-danger fill-orbit-danger" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-rose-800 dark:text-rose-300">🌟 超级明星 (Star)</span>
+                    <span className="text-xs font-bold text-status-danger dark:text-status-danger">🌟 超级明星 (Star)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">高绩 · 高潜</span>
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)]">核心 S 级大咖，战略倾斜资源与顶流 IP 孵化</p>
@@ -1926,8 +1926,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           onClick={() => setSelectedPersonaId(p.id)}
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
-                              ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-rose-400 font-bold'
+                              ? 'bg-orbit-danger text-white border-orbit-danger shadow-sm'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-orbit-danger font-bold'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -1936,9 +1936,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-success/40 bg-orbit-success/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">专业工匠 (Solid Pro)</span>
+                    <span className="text-xs font-bold text-status-success dark:text-status-success">专业工匠 (Solid Pro)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">高绩 · 熟练潜</span>
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)]">稳定打法熟练工，规范控价防违规退货</p>
@@ -1973,9 +1973,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-info/40 bg-orbit-info/10 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-sky-800 dark:text-sky-300">🚀 潜力黑马 (High Potential)</span>
+                    <span className="text-xs font-bold text-status-info dark:text-status-info">🚀 潜力黑马 (High Potential)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">中绩 · 高潜</span>
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)]">高潜能成长新星，重点配教练带教冲刺黄金档</p>
@@ -1988,8 +1988,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           onClick={() => setSelectedPersonaId(p.id)}
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
-                              ? 'bg-sky-600 text-white border-sky-700 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-sky-400'
+                              ? 'bg-orbit-info text-white border-orbit-info shadow-sm'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-orbit-info'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -2010,9 +2010,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </div>
 
                 {/* 第三行：低绩效 (Low Performance) */}
-                <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-warning/40 bg-orbit-warning/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-800 dark:text-amber-300">📉 需要辅导 (Underperformer)</span>
+                    <span className="text-xs font-bold text-status-warning dark:text-status-warning">📉 需要辅导 (Underperformer)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">低绩 · 中潜</span>
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)]">下达 15 天 PIP 改进计划，质检排查话术短板</p>
@@ -2025,8 +2025,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           onClick={() => setSelectedPersonaId(p.id)}
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
-                              ? 'bg-amber-600 text-white border-amber-700 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-amber-400'
+                              ? 'bg-orbit-warning text-white border-orbit-warning shadow-sm'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-orbit-warning'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -2060,9 +2060,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-rose-500/40 bg-rose-500/5 p-3.5 space-y-2">
+                <div className="rounded-xl border border-orbit-danger/40 bg-orbit-danger/5 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-rose-800 dark:text-rose-300">⚠️ 不达标汰换 (Risk)</span>
+                    <span className="text-xs font-bold text-status-danger dark:text-status-danger">⚠️ 不达标汰换 (Risk)</span>
                     <span className="text-[10px] font-mono text-[var(--text-muted)]">低绩 · 低潜</span>
                   </div>
                   <p className="text-[10px] text-[var(--text-muted)]">长期占编零产出，敏捷汰换解约或转岗助播</p>
@@ -2075,8 +2075,8 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           onClick={() => setSelectedPersonaId(p.id)}
                           className={`px-2 py-1 rounded text-xs font-medium border transition-all ${
                             selectedPersonaId === p.id
-                              ? 'bg-rose-600 text-white border-rose-700 shadow-sm'
-                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-rose-400'
+                              ? 'bg-orbit-danger text-white border-orbit-danger shadow-sm'
+                              : 'bg-orbit-surface border-orbit-border text-[var(--text-primary)] hover:border-orbit-danger'
                           }`}
                         >
                           {p.name} ({p.level})
@@ -2366,11 +2366,11 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           <td className="px-4 py-2 text-right text-orbit-primary font-bold">¥ {fmtNum(r.avgGmv)}</td>
                           <td className="px-4 py-2 text-right">
                             {r.nth <= 3 ? (
-                              <span className="text-amber-700 dark:text-amber-300 font-medium">试水期</span>
+                              <span className="text-status-warning dark:text-status-warning font-medium">试水期</span>
                             ) : r.nth <= 7 ? (
-                              <span className="text-sky-700 dark:text-sky-300 font-medium">放量期</span>
+                              <span className="text-status-info dark:text-status-info font-medium">放量期</span>
                             ) : (
-                              <span className="text-emerald-700 dark:text-emerald-400 font-medium">定型期</span>
+                              <span className="text-status-success dark:text-status-success font-medium">定型期</span>
                             )}
                           </td>
                         </tr>
@@ -2448,7 +2448,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
                   <div className="text-[11px] text-[var(--text-muted)] mb-0.5">2. 试镜邀约</div>
                   <div className="text-xl font-bold text-[var(--text-primary)]">{recruitmentFunnel.audition_scheduled} 人</div>
-                  <div className="text-[10px] text-sky-600 dark:text-sky-400 mt-0.5">声画实测</div>
+                  <div className="text-[10px] text-status-info dark:text-status-info mt-0.5">声画实测</div>
                 </div>
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
                   <div className="text-[11px] text-[var(--text-muted)] mb-0.5">3. 15min试播实测</div>
@@ -2457,13 +2457,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                 </div>
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
                   <div className="text-[11px] text-[var(--text-muted)] mb-0.5">4. 发放意向Offer</div>
-                  <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{recruitmentFunnel.offer_extended} 人</div>
-                  <div className="text-[10px] text-amber-600 mt-0.5">待办入职</div>
+                  <div className="text-xl font-bold text-status-warning dark:text-status-warning">{recruitmentFunnel.offer_extended} 人</div>
+                  <div className="text-[10px] text-status-warning mt-0.5">待办入职</div>
                 </div>
-                <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-center">
-                  <div className="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold mb-0.5">5. 办理转正入库</div>
-                  <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">{recruitmentFunnel.onboarded} 人</div>
-                  <div className="text-[10px] text-emerald-600 mt-0.5">正式主播档案</div>
+                <div className="p-3 rounded-lg border border-orbit-success/30 bg-orbit-success/5 text-center">
+                  <div className="text-[11px] text-status-success dark:text-status-success font-semibold mb-0.5">5. 办理转正入库</div>
+                  <div className="text-xl font-bold text-status-success dark:text-status-success">{recruitmentFunnel.onboarded} 人</div>
+                  <div className="text-[10px] text-status-success mt-0.5">正式主播档案</div>
                 </div>
                 <div className="p-3 rounded-lg border border-orbit-border bg-orbit-surface2/40 text-center">
                   <div className="text-[11px] text-[var(--text-muted)] mb-0.5">淘汰止损</div>
@@ -2478,14 +2478,14 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                   <div className="font-bold text-[var(--text-primary)] mt-1">
                     {recruitmentList.filter(c => c.source.includes('BOSS') || c.source.includes('猎头')).length} 人在库 · 转化高
                   </div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">主打成熟带货主咖 · 即插即用</div>
+                  <div className="text-[10px] text-status-success dark:text-status-success mt-0.5">主打成熟带货主咖 · 即插即用</div>
                 </div>
                 <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
                   <div className="text-[var(--text-muted)] font-medium">内部主播/运营转介绍</div>
                   <div className="font-bold text-[var(--text-primary)] mt-1">
                     {recruitmentList.filter(c => c.source.includes('转介')).length} 人在库 · 稳定性高
                   </div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">团队默契度佳 · 离职率低</div>
+                  <div className="text-[10px] text-status-success dark:text-status-success mt-0.5">团队默契度佳 · 离职率低</div>
                 </div>
                 <div className="p-2.5 rounded-lg border border-orbit-border/60 bg-orbit-surface">
                   <div className="text-[var(--text-muted)] font-medium">抖音/快手平台私信挖猎</div>
@@ -2567,7 +2567,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           <td className="px-4 py-3 text-right">
                             {c.trial_gmv ? (
                               <>
-                                <div className="font-mono font-bold text-emerald-700 dark:text-emerald-400">¥ {fmtNum(c.trial_gmv)}</div>
+                                <div className="font-mono font-bold text-status-success dark:text-status-success">¥ {fmtNum(c.trial_gmv)}</div>
                                 <div className="text-[10px] text-[var(--text-muted)]">
                                   转化 {c.trial_orders || 0} 单 · 15min测试
                                 </div>
@@ -2788,7 +2788,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                               {isVideo ? (
                                 <FileVideo className="w-3.5 h-3.5 text-orbit-info shrink-0" />
                               ) : isImage ? (
-                                <ImageIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                <ImageIcon className="w-3.5 h-3.5 text-status-success shrink-0" />
                               ) : (
                                 <Paperclip className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                               )}
@@ -2800,7 +2800,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                                   e.stopPropagation()
                                   setAttachmentFiles(attachmentFiles.filter((_, i) => i !== idx))
                                 }}
-                                className="text-[var(--text-muted)] hover:text-red-400 shrink-0"
+                                className="text-[var(--text-muted)] hover:text-status-danger shrink-0"
                               >
                                 <X className="w-3 h-3" />
                               </button>
@@ -3018,10 +3018,10 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
                 <span>核心主播独家签约率</span>
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <ShieldCheck className="w-4 h-4 text-status-success" />
               </div>
               <div className="text-xl font-bold text-[var(--text-primary)]">100.0%</div>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">全员排他协议已签署生效</div>
+              <div className="text-[10px] text-status-success dark:text-status-success mt-1">全员排他协议已签署生效</div>
             </div>
 
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
@@ -3036,7 +3036,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
                 <span>竞业限制与保密期签署率</span>
-                <Scale className="w-4 h-4 text-sky-500" />
+                <Scale className="w-4 h-4 text-status-info" />
               </div>
               <div className="text-xl font-bold text-[var(--text-primary)]">96.4%</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">离职在册监控 4 人（按月补偿）</div>
@@ -3045,9 +3045,9 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
             <div className="rounded-xl border border-orbit-border p-4 bg-orbit-surface">
               <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
                 <span>直播间违规风控综合分</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <CheckCircle2 className="w-4 h-4 text-status-success" />
               </div>
-              <div className="text-xl font-bold text-emerald-700 dark:text-emerald-400">98.6 分</div>
+              <div className="text-xl font-bold text-status-success dark:text-status-success">98.6 分</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">平台信用绿灯 · 零重大违规封号</div>
             </div>
           </div>
@@ -3098,13 +3098,13 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                           <td className="px-3 py-3 font-mono">
                             <span
                               className={`font-bold ${
-                                isExpiringSoon ? 'text-amber-700 dark:text-amber-400' : 'text-[var(--text-primary)]'
+                                isExpiringSoon ? 'text-status-warning dark:text-status-warning' : 'text-[var(--text-primary)]'
                               }`}
                             >
                               {c.remainingDays} 天
                             </span>
                             {isExpiringSoon && (
-                              <span className="block text-[9px] text-amber-700 dark:text-amber-400 font-medium">
+                              <span className="block text-[9px] text-status-warning dark:text-status-warning font-medium">
                                 临期到期预警
                               </span>
                             )}
@@ -3152,27 +3152,27 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
-              <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 mb-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 私域引流与微信飞单抽检
+            <div className="rounded-xl border border-orbit-success/30 bg-orbit-success/5 p-4">
+              <div className="text-xs font-bold text-status-success dark:text-status-success flex items-center gap-1.5 mb-1.5">
+                <CheckCircle2 className="w-4 h-4 text-status-success" /> 私域引流与微信飞单抽检
               </div>
               <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 本月直播音视频实时质检与弹幕违规词扫描 0 起违规，严禁主播私下引导粉丝添加个人微信或分流第三方成交。
               </p>
             </div>
 
-            <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
-              <div className="text-xs font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1.5 mb-1.5">
-                <FileCheck className="w-4 h-4 text-sky-500" /> 品牌寄样与贵重样品盘点核销
+            <div className="rounded-xl border border-orbit-info/30 bg-orbit-info/5 p-4">
+              <div className="text-xs font-bold text-status-info dark:text-status-info flex items-center gap-1.5 mb-1.5">
+                <FileCheck className="w-4 h-4 text-status-info" /> 品牌寄样与贵重样品盘点核销
               </div>
               <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 在库样品 142 件，主播已退库 140 件，剩余 2 件轻奢样衣已登记待归还，杜绝主播私留样品资产。
               </p>
             </div>
 
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-              <div className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 mb-1.5">
-                <AlertTriangle className="w-4 h-4 text-amber-500" /> 竞业补偿金合规发放闭环
+            <div className="rounded-xl border border-orbit-warning/30 bg-orbit-warning/5 p-4">
+              <div className="text-xs font-bold text-status-warning dark:text-status-warning flex items-center gap-1.5 mb-1.5">
+                <AlertTriangle className="w-4 h-4 text-status-warning" /> 竞业补偿金合规发放闭环
               </div>
               <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 本月离职竞业在册人员（4人）已全额对公发放竞业限制补偿金（按原月薪 30% 约定），保全企业核心商密法律效力。
@@ -3186,12 +3186,12 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
       {tab === 'risk_radar' && (
         <motion.div {...fadeIn} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-4">
+            <div className="rounded-xl border border-orbit-danger/30 bg-orbit-danger/5 p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 text-rose-500" /> 业绩连续下滑 ≥ 20%
+                <span className="text-xs font-bold text-status-danger dark:text-status-danger flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-status-danger" /> 业绩连续下滑 ≥ 20%
                 </span>
-                <span className="text-lg font-bold text-rose-700 dark:text-rose-400">
+                <span className="text-lg font-bold text-status-danger dark:text-status-danger">
                   {(effRisk?.declining || []).length} 人
                 </span>
               </div>
@@ -3200,12 +3200,12 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               </p>
             </div>
 
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+            <div className="rounded-xl border border-orbit-warning/30 bg-orbit-warning/5 p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" /> 周期内零产出/未开播
+                <span className="text-xs font-bold text-status-warning dark:text-status-warning flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-status-warning" /> 周期内零产出/未开播
                 </span>
-                <span className="text-lg font-bold text-amber-700 dark:text-amber-400">
+                <span className="text-lg font-bold text-status-warning dark:text-status-warning">
                   {(effRisk?.zeroOutput || []).length} 人
                 </span>
               </div>
@@ -3214,12 +3214,12 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
               </p>
             </div>
 
-            <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
+            <div className="rounded-xl border border-orbit-info/30 bg-orbit-info/5 p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1.5">
-                  <CalendarClock className="w-4 h-4 text-sky-500" /> 高频异常请假/缺勤 (≥3天)
+                <span className="text-xs font-bold text-status-info dark:text-status-info flex items-center gap-1.5">
+                  <CalendarClock className="w-4 h-4 text-status-info" /> 高频异常请假/缺勤 (≥3天)
                 </span>
-                <span className="text-lg font-bold text-sky-700 dark:text-sky-400">
+                <span className="text-lg font-bold text-status-info dark:text-status-info">
                   {(effRisk?.highAbsence || []).length} 人
                 </span>
               </div>
@@ -3254,7 +3254,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span>{d.name}</span>
                         <LevelBadge level={d.level} />
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-800 dark:text-rose-300 font-medium">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-orbit-danger/10 text-status-danger dark:text-status-danger font-medium">
                           下滑 {fmtPct(d.dropRate)}
                         </span>
                       </div>
@@ -3271,7 +3271,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       >
                         {isHandled ? (
                           <>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 已登记约谈
+                            <CheckCircle2 className="w-3.5 h-3.5 text-status-success" /> 已登记约谈
                           </>
                         ) : (
                           '发起约谈与复盘陪跑'
@@ -3294,7 +3294,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span>{z.name}</span>
                         <LevelBadge level={z.level} />
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-800 dark:text-amber-300 font-medium">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-orbit-warning/10 text-status-warning dark:text-status-warning font-medium">
                           周期零产出
                         </span>
                       </div>
@@ -3311,7 +3311,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       >
                         {isHandled ? (
                           <>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 已下达汰换指令
+                            <CheckCircle2 className="w-3.5 h-3.5 text-status-success" /> 已下达汰换指令
                           </>
                         ) : (
                           '敏捷试用转岗/解约'
@@ -3333,7 +3333,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                     <div>
                       <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span>{h.name}</span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-800 dark:text-sky-300 font-medium">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-orbit-info/10 text-status-info dark:text-status-info font-medium">
                           缺勤/病假 {h.leaveDays} 天
                         </span>
                       </div>
@@ -3350,7 +3350,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
                       >
                         {isHandled ? (
                           <>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 已调配替补
+                            <CheckCircle2 className="w-3.5 h-3.5 text-status-success" /> 已调配替补
                           </>
                         ) : (
                           '协调副播紧急替补'
@@ -3363,7 +3363,7 @@ export function HrbpWorkspacePage({ defaultTab = 'compass' }: { defaultTab?: Tab
 
               {(effRisk?.riskCount ?? 0) === 0 && (
                 <div className="py-8 text-center text-[var(--text-muted)] text-xs flex flex-col items-center gap-2">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                  <CheckCircle2 className="w-8 h-8 text-status-success" />
                   <span>当前周期暂无人效异常或严重风险，组织运转稳健</span>
                 </div>
               )}
@@ -3399,9 +3399,9 @@ function CompassCard({
         <div
           className={`w-6 h-6 rounded-lg flex items-center justify-center ${
             status === 'excellent'
-              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+              ? 'bg-orbit-success/15 text-status-success dark:text-status-success'
               : status === 'warning'
-              ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
+              ? 'bg-orbit-warning/15 text-status-warning dark:text-status-warning'
               : 'bg-orbit-primary/10 text-orbit-primary'
           }`}
         >
@@ -3434,7 +3434,7 @@ function Stat({
     <div
       className={`rounded-lg border p-3 ${
         warn
-          ? 'border-amber-500/40 bg-amber-500/5'
+          ? 'border-orbit-warning/40 bg-orbit-warning/5'
           : highlight
           ? 'border-orbit-primary/40 bg-orbit-primary/5'
           : 'border-orbit-border/60 bg-orbit-surface'
@@ -3443,7 +3443,7 @@ function Stat({
       <div className="text-[11px] text-[var(--text-muted)] font-medium">{label}</div>
       <div
         className={`text-lg font-bold mt-0.5 ${
-          warn ? 'text-amber-700 dark:text-amber-300' : highlight ? 'text-orbit-primary' : 'text-[var(--text-primary)]'
+          warn ? 'text-status-warning dark:text-status-warning' : highlight ? 'text-orbit-primary' : 'text-[var(--text-primary)]'
         }`}
       >
         {value}
@@ -3456,11 +3456,11 @@ function Stat({
 function LevelBadge({ level }: { level: string }) {
   const color =
     level === 'S'
-      ? 'text-rose-700 dark:text-rose-300 border-rose-500/40 bg-rose-500/10'
+      ? 'text-status-danger dark:text-status-danger border-orbit-danger/40 bg-orbit-danger/10'
       : level === 'A'
-      ? 'text-amber-800 dark:text-amber-300 border-amber-500/40 bg-amber-500/10'
+      ? 'text-status-warning dark:text-status-warning border-orbit-warning/40 bg-orbit-warning/10'
       : level === 'B'
-      ? 'text-sky-700 dark:text-sky-300 border-sky-500/40 bg-sky-500/10'
+      ? 'text-status-info dark:text-status-info border-orbit-info/40 bg-orbit-info/10'
       : 'text-[var(--text-primary)] dark:text-[var(--text-muted)] border-orbit-border/60 bg-orbit-surface2'
   return <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold border ${color}`}>{level}</span>
 }

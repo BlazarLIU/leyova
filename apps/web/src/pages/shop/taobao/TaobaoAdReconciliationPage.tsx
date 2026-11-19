@@ -64,7 +64,7 @@ export function TaobaoAdReconciliationPage() {
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -72,13 +72,13 @@ export function TaobaoAdReconciliationPage() {
       </motion.div>
 
       {/* 关键提醒：两个后台天然不一致 */}
-      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
+      <div className="flex items-start gap-2 rounded-lg border border-orbit-warning/30 bg-orbit-warning/10 p-3 text-xs text-status-warning">
         <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div>
           <span className="font-medium">为什么两个数不一样？</span>
-          <p className="mt-1 text-amber-400/80">
+          <p className="mt-1 text-status-warning/80">
             万相台（广告后台）按末次点击归因、不去重跨渠道曝光；生意参谋（经营后台）按实际支付归因、按访客去重。
-            <strong className="text-amber-300">两者天然存在差异，这是行业常态，不应强行对齐。</strong>
+            <strong className="text-status-warning">两者天然存在差异，这是行业常态，不应强行对齐。</strong>
             复盘时必须先声明用哪个后台的数。
           </p>
         </div>
@@ -111,15 +111,15 @@ export function TaobaoAdReconciliationPage() {
                     <div className="mt-1 text-xl font-semibold text-[var(--text-primary)]">{fmt(data!.adPlatform.spend)}</div>
                     <div className="mt-1 text-[11px] text-[var(--text-muted)]">万相台后台</div>
                   </div>
-                  <div className="rounded-lg border border-cyan-600/40 bg-cyan-500/5 p-4">
-                    <div className="text-xs text-cyan-400">万相台口径 GMV</div>
-                    <div className="mt-1 text-xl font-semibold text-cyan-300">{fmt(data!.adPlatform.gmv)}</div>
-                    <div className="mt-1 text-[11px] text-cyan-500/70">ROI {data!.adPlatform.roi}</div>
+                  <div className="rounded-lg border border-orbit-success/40 bg-orbit-success/5 p-4">
+                    <div className="text-xs text-status-ai">万相台口径 GMV</div>
+                    <div className="mt-1 text-xl font-semibold text-status-ai">{fmt(data!.adPlatform.gmv)}</div>
+                    <div className="mt-1 text-[11px] text-status-ai/70">ROI {data!.adPlatform.roi}</div>
                   </div>
-                  <div className="rounded-lg border border-emerald-600/40 bg-emerald-500/5 p-4">
-                    <div className="text-xs text-emerald-400">生意参谋口径 GMV</div>
-                    <div className="mt-1 text-xl font-semibold text-emerald-300">{fmt(data!.merchant.gmv)}</div>
-                    <div className="mt-1 text-[11px] text-emerald-500/70">ROI {data!.merchant.roi}</div>
+                  <div className="rounded-lg border border-orbit-success/40 bg-orbit-success/5 p-4">
+                    <div className="text-xs text-status-success">生意参谋口径 GMV</div>
+                    <div className="mt-1 text-xl font-semibold text-status-success">{fmt(data!.merchant.gmv)}</div>
+                    <div className="mt-1 text-[11px] text-status-success/70">ROI {data!.merchant.roi}</div>
                   </div>
                 </div>
 
@@ -127,7 +127,7 @@ export function TaobaoAdReconciliationPage() {
                   <div className="mt-3 flex items-center gap-2 rounded-lg bg-orbit-ink/40 px-3 py-2 text-xs">
                     <span className="text-[var(--text-muted)]">差异率：</span>
                     <span className={`font-mono font-medium ${
-                      Math.abs(data!.diffPct) > 20 ? 'text-rose-400' : 'text-[var(--text-secondary)]'
+                      Math.abs(data!.diffPct) > 20 ? 'text-status-danger' : 'text-[var(--text-secondary)]'
                     }`}>
                       {data!.diffPct > 0 ? '+' : ''}{data!.diffPct}%
                     </span>
@@ -166,7 +166,7 @@ export function TaobaoAdReconciliationPage() {
                             <td className="py-2 pr-3 text-[var(--text-secondary)]">{t.tool}</td>
                             <td className="py-2 pr-3 text-right font-mono">{fmt(t.spend)}</td>
                             <td className="py-2 pr-3 text-right font-mono">{fmt(t.adGmv)}</td>
-                            <td className="py-2 text-right font-mono text-cyan-400">{t.roi}</td>
+                            <td className="py-2 text-right font-mono text-status-ai">{t.roi}</td>
                           </tr>
                         ))}
                       </tbody>

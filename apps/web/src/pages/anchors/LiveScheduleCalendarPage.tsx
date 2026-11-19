@@ -55,12 +55,12 @@ interface DayStatusEntry { staffName: string; status: string; note: string }
 interface DayStatusData { range: { from: string; to: string }; byDate: Record<string, DayStatusEntry[]> }
 
 const ROLE_COLOR: Record<string, string> = {
-  anchor: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
-  controller: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30',
-  operator: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-  ad_buyer: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30',
+  anchor: 'bg-orbit-danger/15 text-status-danger dark:text-status-danger border-orbit-danger/30',
+  controller: 'bg-orbit-info/15 text-status-info dark:text-status-info border-orbit-info/30',
+  operator: 'bg-orbit-success/15 text-status-success dark:text-status-success border-orbit-success/30',
+  ad_buyer: 'bg-orbit-warning/15 text-status-warning dark:text-status-warning border-orbit-warning/30',
   video_editor: 'bg-orbit-primary/15 text-orbit-primary dark:text-orbit-primary border-orbit-primary/30',
-  director: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30',
+  director: 'bg-orbit-success/15 text-status-ai dark:text-status-ai border-orbit-success/30',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -302,9 +302,9 @@ export function LiveScheduleCalendarPage() {
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={goToday}>今天</Button>
           <div className="flex items-center rounded-lg border border-orbit-border overflow-hidden">
-            <button onClick={goPrev} className="px-2 py-1.5 hover:bg-white/5 text-[var(--text-secondary)]"><ChevronLeft className="w-4 h-4" /></button>
+            <button onClick={goPrev} className="px-2 py-1.5 hover:bg-[var(--hover-bg)] text-[var(--text-secondary)]"><ChevronLeft className="w-4 h-4" /></button>
             <span className="px-3 py-1.5 text-xs text-[var(--text-secondary)] font-medium tabular-nums">{year} 年 {month + 1} 月</span>
-            <button onClick={goNext} className="px-2 py-1.5 hover:bg-white/5 text-[var(--text-secondary)]"><ChevronRight className="w-4 h-4" /></button>
+            <button onClick={goNext} className="px-2 py-1.5 hover:bg-[var(--hover-bg)] text-[var(--text-secondary)]"><ChevronRight className="w-4 h-4" /></button>
           </div>
           <Button variant="secondary" onClick={() => { setRestDate(selectedDate || todayStr); setRestOpen(true) }}>
             <Coffee className="w-4 h-4" /> 排休
@@ -314,12 +314,12 @@ export function LiveScheduleCalendarPage() {
       </motion.div>
 
       {err && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" /> {err}
         </div>
       )}
       {msg && (
-        <div className={`rounded-lg border px-3 py-2 text-xs ${msg.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-rose-500/30 bg-rose-500/10 text-rose-300'}`}>
+        <div className={`rounded-lg border px-3 py-2 text-xs ${msg.type === 'ok' ? 'border-orbit-success/30 bg-orbit-success/10 text-status-success' : 'border-orbit-danger/30 bg-orbit-danger/10 text-status-danger'}`}>
           {msg.text}
         </div>
       )}
@@ -336,13 +336,13 @@ export function LiveScheduleCalendarPage() {
         <div className="flex rounded-lg border border-orbit-border overflow-hidden">
           <button
             onClick={() => setViewMode('sessions')}
-            className={`px-3 py-1.5 text-xs transition ${viewMode === 'sessions' ? 'bg-orbit-primary/15 text-orbit-primary' : 'text-[var(--text-muted)] hover:bg-white/5'}`}
+            className={`px-3 py-1.5 text-xs transition ${viewMode === 'sessions' ? 'bg-orbit-primary/15 text-orbit-primary' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'}`}
           >
             场次视图
           </button>
           <button
             onClick={() => setViewMode('roles')}
-            className={`px-3 py-1.5 text-xs transition ${viewMode === 'roles' ? 'bg-orbit-primary/15 text-orbit-primary' : 'text-[var(--text-muted)] hover:bg-white/5'}`}
+            className={`px-3 py-1.5 text-xs transition ${viewMode === 'roles' ? 'bg-orbit-primary/15 text-orbit-primary' : 'text-[var(--text-muted)] hover:bg-[var(--hover-bg)]'}`}
           >
             按岗位视图
           </button>
@@ -384,7 +384,7 @@ export function LiveScheduleCalendarPage() {
                     return (
                       <tr key={r.code}>
                         <td className="sticky left-0 z-10 bg-orbit-surface px-2 py-1 border-b border-r border-orbit-border">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded border ${ROLE_COLOR[r.code] || 'bg-white/5 text-[var(--text-secondary)] border-orbit-border/60'}`}>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded border ${ROLE_COLOR[r.code] || 'bg-[var(--hover-bg3)] text-[var(--text-secondary)] border-orbit-border/60'}`}>
                             {r.name}
                           </span>
                         </td>
@@ -411,7 +411,7 @@ export function LiveScheduleCalendarPage() {
                   {/* 休息行 */}
                   <tr>
                     <td className="sticky left-0 z-10 bg-orbit-surface px-2 py-1 border-b border-r border-orbit-border">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 text-orange-700 dark:text-orange-300 font-medium">休息</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded border border-orbit-warning/30 text-status-warning dark:text-status-warning font-medium">休息</span>
                     </td>
                     {monthDays.map(d => {
                       const rests = restByDate.get(d) || []
@@ -420,7 +420,7 @@ export function LiveScheduleCalendarPage() {
                           {rests.length === 0 ? <span className="text-[var(--text-muted)] dark:text-[var(--text-primary)] font-bold">·</span> : (
                             <div className="space-y-0.5">
                               {rests.map((n, i) => (
-                                <div key={i} className="text-[10px] text-orange-700 dark:text-orange-300 font-medium truncate" title={n}>{n}</div>
+                                <div key={i} className="text-[10px] text-status-warning dark:text-status-warning font-medium truncate" title={n}>{n}</div>
                               ))}
                             </div>
                           )}
@@ -485,7 +485,7 @@ export function LiveScheduleCalendarPage() {
                       ))}
                       {list.length > 2 && <div className="text-[10px] text-[var(--text-muted)] pl-1">还有 {list.length - 2} 场…</div>}
                       {rests.length > 0 && (
-                        <div className="text-[9px] text-orange-700 dark:text-orange-300 pl-0.5 font-medium truncate" title={rests.map(r => `${r.staffName}(${DAY_STATUS_LABEL[r.status]})`).join('、')}>
+                        <div className="text-[9px] text-status-warning dark:text-status-warning pl-0.5 font-medium truncate" title={rests.map(r => `${r.staffName}(${DAY_STATUS_LABEL[r.status]})`).join('、')}>
                           休 {rests.length} 人
                         </div>
                       )}
@@ -511,11 +511,11 @@ export function LiveScheduleCalendarPage() {
             )}
 
             {selectedRests.length > 0 && (
-              <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-2.5">
-                <div className="text-[11px] text-orange-700 dark:text-orange-300 font-medium mb-1 flex items-center gap-1"><Coffee className="w-3 h-3" /> 当日休息</div>
+              <div className="rounded-lg border border-orbit-warning/30 bg-orbit-warning/5 p-2.5">
+                <div className="text-[11px] text-status-warning dark:text-status-warning font-medium mb-1 flex items-center gap-1"><Coffee className="w-3 h-3" /> 当日休息</div>
                 <div className="flex flex-wrap gap-1">
                   {selectedRests.map((r, i) => (
-                    <span key={`${r.staffName}-${i}`} className="text-[10px] px-1.5 py-0.5 rounded border border-orange-500/30 text-orange-800 dark:text-orange-200 font-medium">
+                    <span key={`${r.staffName}-${i}`} className="text-[10px] px-1.5 py-0.5 rounded border border-orbit-warning/30 text-status-warning dark:text-status-warning font-medium">
                       {r.staffName}：{DAY_STATUS_LABEL[r.status] || r.status}
                     </span>
                   ))}
@@ -529,12 +529,12 @@ export function LiveScheduleCalendarPage() {
                   <span className="text-xs font-medium text-[var(--text-primary)] truncate">{s.roomName || s.title}</span>
                   <div className="flex items-center gap-1 shrink-0">
                     <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${
-                      s.status === 'completed' ? 'border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
-                      : s.status === 'live' ? 'border-rose-500/30 text-rose-700 dark:text-rose-300'
+                      s.status === 'completed' ? 'border-orbit-success/30 text-status-success dark:text-status-success'
+                      : s.status === 'live' ? 'border-orbit-danger/30 text-status-danger dark:text-status-danger'
                       : 'border-orbit-border text-[var(--text-primary)] dark:text-[var(--text-muted)]'}`}>
                       {STATUS_LABEL[s.status] || s.status}
                     </span>
-                    <button onClick={() => openEdit(s)} className="p-1 rounded text-[var(--text-muted)] hover:text-orbit-primary hover:bg-white/5" title="编辑岗位">
+                    <button onClick={() => openEdit(s)} className="p-1 rounded text-[var(--text-muted)] hover:text-orbit-primary hover:bg-[var(--hover-bg)]" title="编辑岗位">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -544,10 +544,10 @@ export function LiveScheduleCalendarPage() {
                   {s.durationMin ? ` · ${s.durationMin} 分钟` : ''}
                 </div>
                 <div className="flex flex-wrap gap-1 pt-0.5">
-                  {s.staff.length === 0 && <span className="text-[11px] text-amber-400">未编排岗位</span>}
+                  {s.staff.length === 0 && <span className="text-[11px] text-status-warning">未编排岗位</span>}
                   {s.staff.map((st, i) => (
                     <span key={`${st.roleCode}-${st.name}-${i}`}
-                      className={`text-[10px] px-1.5 py-0.5 rounded border ${ROLE_COLOR[st.roleCode] || 'bg-white/5 text-[var(--text-secondary)] border-orbit-border/60'}`}>
+                      className={`text-[10px] px-1.5 py-0.5 rounded border ${ROLE_COLOR[st.roleCode] || 'bg-[var(--hover-bg3)] text-[var(--text-secondary)] border-orbit-border/60'}`}>
                       {st.roleName}：{st.name}
                     </span>
                   ))}
@@ -570,13 +570,13 @@ export function LiveScheduleCalendarPage() {
                   {editing.date} · {editing.roomName || editing.title}
                 </div>
               </div>
-              <button onClick={() => setEditing(null)} className="p-1.5 rounded hover:bg-white/5 text-[var(--text-muted)]"><X className="w-4 h-4" /></button>
+              <button onClick={() => setEditing(null)} className="p-1.5 rounded hover:bg-[var(--hover-bg)] text-[var(--text-muted)]"><X className="w-4 h-4" /></button>
             </div>
             <div className="p-4 space-y-3">
               {roles.map(r => (
                 <div key={r.code} className="rounded-lg border border-orbit-border/60 p-2.5">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className={`text-[11px] px-1.5 py-0.5 rounded border ${ROLE_COLOR[r.code] || 'bg-white/5 text-[var(--text-secondary)] border-orbit-border/60'}`}>
+                    <span className={`text-[11px] px-1.5 py-0.5 rounded border ${ROLE_COLOR[r.code] || 'bg-[var(--hover-bg3)] text-[var(--text-secondary)] border-orbit-border/60'}`}>
                       {r.name}
                     </span>
                     <button onClick={() => addStaff(r.code)} className="text-[11px] text-orbit-primary hover:underline flex items-center gap-0.5">
@@ -595,7 +595,7 @@ export function LiveScheduleCalendarPage() {
                           placeholder={`${r.name}姓名`}
                           className="flex-1 text-xs bg-orbit-bg border border-orbit-border rounded px-2 py-1 text-[var(--text-secondary)]"
                         />
-                        <button onClick={() => removeStaff(r.code, idx)} className="p-1 rounded text-rose-400 hover:bg-rose-500/10">
+                        <button onClick={() => removeStaff(r.code, idx)} className="p-1 rounded text-status-danger hover:bg-orbit-danger/10">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -620,7 +620,7 @@ export function LiveScheduleCalendarPage() {
           <div className="bg-orbit-surface border border-orbit-border rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-orbit-border">
               <div className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5"><Coffee className="w-4 h-4" /> 标记排休 / 请假</div>
-              <button onClick={() => setRestOpen(false)} className="p-1.5 rounded hover:bg-white/5 text-[var(--text-muted)]"><X className="w-4 h-4" /></button>
+              <button onClick={() => setRestOpen(false)} className="p-1.5 rounded hover:bg-[var(--hover-bg)] text-[var(--text-muted)]"><X className="w-4 h-4" /></button>
             </div>
             <div className="p-4 space-y-3">
               <div>

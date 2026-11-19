@@ -88,7 +88,7 @@ export function XhsNoteBoardPage() {
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
@@ -96,14 +96,14 @@ export function XhsNoteBoardPage() {
       </motion.div>
 
       {/* 概念说明 */}
-      <div className="flex items-start gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/5 p-3 text-xs text-cyan-300/90">
+      <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-ai/90">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div>
           <span className="font-medium">小红书的经营逻辑：NPL 方法论</span>
-          <p className="mt-1 text-cyan-400/70">
-            <strong className="text-cyan-300">N（笔记）</strong>形成基础认知、激发潜在购买需求 →
-            <strong className="text-cyan-300">P（人/群聊）</strong>把粉丝转化为用户资产 →
-            <strong className="text-cyan-300">L（直播）</strong>锁定高意向用户放大成交。
+          <p className="mt-1 text-status-ai/70">
+            <strong className="text-status-ai">N（笔记）</strong>形成基础认知、激发潜在购买需求 →
+            <strong className="text-status-ai">P（人/群聊）</strong>把粉丝转化为用户资产 →
+            <strong className="text-status-ai">L（直播）</strong>锁定高意向用户放大成交。
             官方核心公式是「LTV × 用户数」，不是「访客×转化率×客单价」。
           </p>
         </div>
@@ -132,13 +132,13 @@ export function XhsNoteBoardPage() {
           {/* 种草笔记提示 */}
           {seedingCount > 0 && (
             <motion.div {...fadeIn}>
-              <div className="flex items-start gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 text-xs text-emerald-300/90">
+              <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-success/90">
                 <Sprout className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <div>
                   <span className="font-medium">{seedingCount} 篇笔记暂无成交，但这是正常的</span>
-                  <p className="mt-1 text-emerald-400/70">
+                  <p className="mt-1 text-status-success/70">
                     小红书的笔记首先承担「种草」职能——形成认知、激发需求，成交可能延后到搜索或站外。
-                    <strong className="text-emerald-300">零成交的笔记不应被过滤，它们是人群资产的基础。</strong>
+                    <strong className="text-status-success">零成交的笔记不应被过滤，它们是人群资产的基础。</strong>
                   </p>
                 </div>
               </div>
@@ -182,7 +182,7 @@ export function XhsNoteBoardPage() {
                           </td>
                           <td className="py-2 pr-3 text-right font-mono text-xs">{fmt(n.impressions)}</td>
                           <td className="py-2 pr-3 text-right font-mono text-xs">{fmt(n.reads)}</td>
-                          <td className="py-2 pr-3 text-right font-mono text-xs text-cyan-400">{fmtPct(n.readRate)}</td>
+                          <td className="py-2 pr-3 text-right font-mono text-xs text-status-ai">{fmtPct(n.readRate)}</td>
                           <td className="py-2 pr-3 text-right font-mono text-xs">{fmt(n.likes)}</td>
                           <td className="py-2 pr-3 text-right font-mono text-xs">{fmt(n.collects)}</td>
                           <td className="py-2 pr-3 text-right font-mono text-xs">{fmtPct(n.engagementRate)}</td>

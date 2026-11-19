@@ -12,12 +12,12 @@ export function AiOpsCampaignsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 3 · 投放协同
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">投流 Agent + 异常熔断</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             投放协同与熔断中心
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -36,9 +36,9 @@ export function AiOpsCampaignsPage() {
               </div>
               <p className="text-xs text-[var(--text-muted)]">
                 日预算: <span className="font-mono text-white">¥{c.budget}</span> ·
-                当前消耗: <span className="font-mono text-cyan-400">¥{c.spend}</span>
+                当前消耗: <span className="font-mono text-status-ai">¥{c.spend}</span>
               </p>
-              <p className="text-xs text-amber-300/90 pt-1">
+              <p className="text-xs text-status-warning/90 pt-1">
                 AI 建议：{c.advice}
               </p>
             </div>
@@ -46,11 +46,11 @@ export function AiOpsCampaignsPage() {
             <div className="flex items-center gap-6 text-sm font-mono">
               <div>
                 <span className="text-[10px] text-[var(--text-muted)] block">支付 ROI (T+0)</span>
-                <span className="text-cyan-400 font-bold">{c.payRoi}</span>
+                <span className="text-status-ai font-bold">{c.payRoi}</span>
               </div>
               <div>
-                <span className="text-[10px] text-amber-500 block">结算 ROI (T+15)</span>
-                <span className="text-amber-400 font-bold">{c.settleRoi}</span>
+                <span className="text-[10px] text-status-warning block">结算 ROI (T+15)</span>
+                <span className="text-status-warning font-bold">{c.settleRoi}</span>
               </div>
             </div>
           </div>

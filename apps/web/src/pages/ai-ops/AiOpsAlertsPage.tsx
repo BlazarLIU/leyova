@@ -23,12 +23,12 @@ export function AiOpsAlertsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 1 · 实时告警流
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">内核统一告警 · 10分钟去重静默</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             异常预警与风险熔断中心
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -38,8 +38,8 @@ export function AiOpsAlertsPage() {
       </div>
 
       {loading ? (
-        <div className="flex-1 flex items-center justify-center p-12 text-cyan-400">
-          <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+        <div className="flex-1 flex items-center justify-center p-12 text-status-ai">
+          <div className="w-8 h-8 border-2 border-orbit-success border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="space-y-4">
@@ -48,7 +48,7 @@ export function AiOpsAlertsPage() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orbit-ink text-orbit-snow/80">{a.id}</span>
-                  <span className="text-xs font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">{a.level}</span>
+                  <span className="text-xs font-bold text-status-danger bg-orbit-danger/10 px-2 py-0.5 rounded border border-orbit-danger/20">{a.level}</span>
                   <span className="text-sm font-bold text-white">{a.title}</span>
                   <span className="text-xs text-[var(--text-muted)]">{a.time}</span>
                 </div>

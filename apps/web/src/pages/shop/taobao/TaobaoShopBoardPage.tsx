@@ -97,7 +97,7 @@ export function TaobaoShopBoardPage() {
                 key={d}
                 onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >近 {d} 天</button>
             ))}
@@ -107,17 +107,17 @@ export function TaobaoShopBoardPage() {
 
       {/* 口径说明 —— 这是淘系最关键的设计 */}
       {data?.caliber && (
-        <div className="flex items-start gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/5 p-3 text-xs text-cyan-300/90">
+        <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-ai/90">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div>
             <span className="font-medium">当前口径：{data.caliber.amountTypeName}（{data.caliber.amountType}）</span>
-            <p className="mt-1 text-cyan-400/70">{data.caliber.displayNote}</p>
+            <p className="mt-1 text-status-ai/70">{data.caliber.displayNote}</p>
           </div>
         </div>
       )}
 
       {error && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">{error}</div>
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 p-3 text-sm text-status-danger">{error}</div>
       )}
 
       {!currentShop?.id ? (
@@ -180,7 +180,7 @@ export function TaobaoShopBoardPage() {
           </motion.div>
 
           {data.payAmount === 0 && (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
+            <div className="flex items-start gap-2 rounded-lg border border-orbit-warning/30 bg-orbit-warning/10 p-3 text-xs text-status-warning">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               该店铺在选定周期内暂无交易数据。淘宝/天猫需从「生意参谋 → 自助取数」导出后，通过「多平台接入」导入。
             </div>
@@ -200,7 +200,7 @@ function Metric({ icon: Icon, label, value, unit, warn }: {
         <Icon className="h-3.5 w-3.5" />{label}
       </div>
       <div className="mt-1.5 flex items-baseline gap-1">
-        <span className={`text-lg font-semibold ${warn ? 'text-rose-400' : 'text-[var(--text-primary)]'}`}>{value}</span>
+        <span className={`text-lg font-semibold ${warn ? 'text-status-danger' : 'text-[var(--text-primary)]'}`}>{value}</span>
         {unit && <span className="text-[11px] text-[var(--text-muted)]">{unit}</span>}
         {warn && <Badge variant="danger">偏高</Badge>}
       </div>

@@ -235,17 +235,17 @@ export function SystemConfigPage() {
           className="flex items-center justify-between p-3.5 bg-orbit-surface/70 hover:bg-orbit-surface2 border border-orbit-border/80 rounded-xl transition-all group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-orbit-success/10 text-status-success flex items-center justify-center">
               <Radio className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-emerald-300 transition-colors">
+              <div className="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-status-success transition-colors">
                 直播间与机位
               </div>
               <div className="text-[11px] text-[var(--text-muted)]">自建与多平台直播间物理档案与绑定状态</div>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-emerald-400 transition-colors" />
+          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-status-success transition-colors" />
         </a>
       </div>
 
@@ -282,15 +282,15 @@ export function SystemConfigPage() {
                   </thead>
                   <tbody>
                     {rules.map((rule) => (
-                      <tr key={rule.name} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                      <tr key={rule.name} className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors">
                         <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{rule.name}</td>
                         <td className="px-5 py-3.5 text-[var(--text-secondary)]">{rule.metric}</td>
                         <td className="px-5 py-3.5 text-[var(--text-secondary)]">{rule.method}</td>
                         <td className="px-5 py-3.5 text-[var(--text-secondary)]">{rule.params}</td>
                         <td className="px-5 py-3.5"><Badge variant={severityColorMap[rule.severity]}>{rule.severity}</Badge></td>
                         <td className="px-5 py-3.5">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${rule.enabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[var(--surface3)] text-[var(--text-muted)]'}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${rule.enabled ? 'bg-emerald-400' : 'bg-[var(--text-subtle)]'}`} />{rule.enabled ? '已启用' : '已禁用'}
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${rule.enabled ? 'bg-orbit-success/10 text-status-success' : 'bg-[var(--surface3)] text-[var(--text-muted)]'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${rule.enabled ? 'bg-orbit-success' : 'bg-[var(--text-subtle)]'}`} />{rule.enabled ? '已启用' : '已禁用'}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
@@ -399,7 +399,7 @@ export function SystemConfigPage() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-semibold text-[var(--text-secondary)]">{tmpl.name}</h4>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-accent/10 text-cyan-400 shrink-0">{PERIOD_LABELS[tmpl.period] || '月度'}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-orbit-accent/10 text-status-ai shrink-0">{PERIOD_LABELS[tmpl.period] || '月度'}</span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button className="text-xs text-orbit-primary-light hover:text-orbit-accent transition-colors"
@@ -521,7 +521,7 @@ export function SystemConfigPage() {
                   </thead>
                   <tbody>
                     {dictItems.map((item) => (
-                      <tr key={item.code} className="border-b border-orbit-border hover:bg-white/5 transition-colors">
+                      <tr key={item.code} className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors">
                         <td className="px-5 py-3.5 text-[var(--text-secondary)] font-mono text-xs">{item.code}</td>
                         <td className="px-5 py-3.5 text-[var(--text-secondary)]">{item.name}</td>
                         <td className="px-5 py-3.5 text-[var(--text-secondary)]">{item.count} 项</td>

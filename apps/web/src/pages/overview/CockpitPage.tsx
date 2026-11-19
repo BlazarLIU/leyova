@@ -44,9 +44,9 @@ interface TopProduct {
 
 const trafficColors = [
   'bg-orbit-primary',
-  'bg-cyan-500',
-  'bg-emerald-500',
-  'bg-amber-500',
+  'bg-orbit-success',
+  'bg-orbit-success',
+  'bg-orbit-warning',
 ]
 
 export function CockpitPage() {
@@ -275,14 +275,14 @@ export function CockpitPage() {
                   {topProducts.map((product, i) => (
                     <tr
                       key={product.rank}
-                      className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5">
                         <span className={`
                           inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
-                          ${i === 0 ? 'bg-amber-500/20 text-amber-400' : ''}
+                          ${i === 0 ? 'bg-orbit-warning/20 text-status-warning' : ''}
                           ${i === 1 ? 'bg-[var(--border2)] text-[var(--text-secondary)]' : ''}
-                          ${i === 2 ? 'bg-orange-500/20 text-orange-400' : ''}
+                          ${i === 2 ? 'bg-orbit-warning/20 text-status-warning' : ''}
                           ${i > 2 ? 'bg-orbit-surface3 text-[var(--text-muted)]' : ''}
                         `}>
                           {product.rank}
@@ -295,7 +295,7 @@ export function CockpitPage() {
                         </div>
                       </td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{product.sales.toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{product.gmv}</td>
+                      <td className="px-5 py-3.5 text-right text-status-success font-medium">{product.gmv}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{product.roi.toFixed(2)}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{product.refundRate}</td>
                     </tr>
@@ -361,7 +361,7 @@ export function CockpitPage() {
             <CardHeader
               title={
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <FileText className="w-4 h-4 text-status-success" />
                   <span>leyova 直播电商经营日报</span>
                 </div>
               }

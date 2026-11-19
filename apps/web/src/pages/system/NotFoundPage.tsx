@@ -37,7 +37,7 @@ export function NotFoundPage() {
           </Link>
           <button
             onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-orbit-border bg-white/5 hover:bg-white/10 text-sm text-[var(--text-secondary)] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-orbit-border bg-[var(--hover-bg3)] hover:bg-[var(--hover-bg)] text-sm text-[var(--text-secondary)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>返回上一页</span>

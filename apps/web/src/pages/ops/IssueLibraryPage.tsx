@@ -47,20 +47,20 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 }
 
 const categoryColors: Record<string, string> = {
-  '商品问题': 'bg-rose-500/15 text-rose-400',
-  '物流问题': 'bg-amber-500/15 text-amber-400',
+  '商品问题': 'bg-orbit-danger/15 text-status-danger',
+  '物流问题': 'bg-orbit-warning/15 text-status-warning',
   '售后问题': 'bg-orbit-info/15 text-orbit-info',
   '话术问题': 'bg-orbit-primary/15 text-orbit-primary',
 }
 
 const severityConfig = {
-  high: { label: '严重', color: 'bg-red-500/15 text-red-400 border-red-500/20', icon: AlertTriangle },
-  medium: { label: '中等', color: 'bg-amber-500/15 text-amber-400 border-amber-500/20', icon: Activity },
+  high: { label: '严重', color: 'bg-orbit-danger/15 text-status-danger border-orbit-danger/20', icon: AlertTriangle },
+  medium: { label: '中等', color: 'bg-orbit-warning/15 text-status-warning border-orbit-warning/20', icon: Activity },
   low: { label: '轻微', color: 'bg-orbit-info/15 text-orbit-info border-orbit-info/20', icon: Activity },
 }
 
 const typeConfig = {
-  anchor: { label: '主播', icon: Users, color: 'text-cyan-400' },
+  anchor: { label: '主播', icon: Users, color: 'text-status-ai' },
   channel: { label: '渠道', icon: Radio, color: 'text-orbit-primary' },
 }
 
@@ -166,7 +166,7 @@ export function IssueLibraryPage() {
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300"
+          className="rounded-lg border border-orbit-success/30 bg-orbit-success/10 px-3 py-2 text-xs text-status-success"
         >
           {toast}
         </motion.div>
@@ -182,7 +182,7 @@ export function IssueLibraryPage() {
           <Card>
             <CardBody>
               <div className="flex items-center gap-2 mb-4">
-                <Activity className="w-4 h-4 text-orange-400" />
+                <Activity className="w-4 h-4 text-status-warning" />
                 <h2 className="text-sm font-semibold text-[var(--text-secondary)]">自动检测数据异常</h2>
                 <span className="text-[10px] text-[var(--text-muted)] bg-orbit-surface2 px-1.5 py-0.5 rounded-full border border-orbit-border">
                   {autoTags.length} 项

@@ -121,7 +121,7 @@ export function UsersPage() {
         width: 160,
         render: (_, a) => (
           <span className="font-mono font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-cyan-400" />
+            <Users className="w-3.5 h-3.5 text-status-ai" />
             {a.username}
           </span>
         ),
@@ -175,7 +175,7 @@ export function UsersPage() {
             variant="ghost"
             onClick={() => handleDelete(a.id, a.username)}
             title="删除账号"
-            className="text-[var(--text-muted)] hover:text-red-400"
+            className="text-[var(--text-muted)] hover:text-status-danger"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
@@ -188,9 +188,9 @@ export function UsersPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1600px] text-[var(--text-primary)]">
       {msg && (
-        <div className="flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs text-cyan-300">
+        <div className="flex items-center justify-between rounded-lg border border-orbit-success/30 bg-orbit-success/10 p-3 text-xs text-status-ai">
           <span>{msg}</span>
-          <button onClick={() => setMsg(null)} className="text-xs text-cyan-400 hover:text-white">
+          <button onClick={() => setMsg(null)} className="text-xs text-status-ai hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -202,7 +202,7 @@ export function UsersPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">系统总账号数</span>
-              <Users className="w-4 h-4 text-cyan-400" />
+              <Users className="w-4 h-4 text-status-ai" />
             </div>
             <p className="mt-1 text-2xl font-bold text-[var(--text-primary)]">{stats.total}</p>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">已分配角色的登录主体</p>
@@ -212,9 +212,9 @@ export function UsersPage() {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">正常生效账号</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-status-success" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.active}</p>
+            <p className="mt-1 text-2xl font-bold text-status-success">{stats.active}</p>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">具备登录与功能鉴权凭证</p>
           </CardBody>
         </Card>
@@ -244,7 +244,7 @@ export function UsersPage() {
         title="账号与系统用户管理"
         subtitle="集中管理企业各业务角色登录账号、实名绑定与二维权限矩阵访问准入"
         badge={
-          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-cyan-400 border border-orbit-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-ai border border-orbit-border">
             DataPage + useTable
           </span>
         }
@@ -281,7 +281,7 @@ export function UsersPage() {
               <select
                 value={table.filters.role}
                 onChange={(e) => table.setFilter('role', e.target.value)}
-                className="h-7 px-2 text-xs rounded border border-[var(--border)] bg-orbit-ink text-orbit-snow/80 focus:outline-none focus:border-cyan-500"
+                className="h-7 px-2 text-xs rounded border border-[var(--border)] bg-orbit-ink text-orbit-snow/80 focus:outline-none focus:border-orbit-success"
               >
                 <option value="all">全部角色</option>
                 {Object.entries(ROLE_LABEL).map(([code, label]) => (
@@ -304,7 +304,7 @@ export function UsersPage() {
                   onClick={() => table.setFilter('status', st.value)}
                   className={`px-2 py-0.5 rounded text-xs transition-colors ${
                     table.filters.status === st.value
-                      ? 'bg-cyan-600 text-white font-medium'
+                      ? 'bg-orbit-success text-white font-medium'
                       : 'bg-orbit-ink hover:bg-orbit-ink/85 text-orbit-snow/70'
                   }`}
                 >
@@ -315,7 +315,7 @@ export function UsersPage() {
           </div>
         }
       >
-        <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400/80">
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-orbit-warning/20 bg-orbit-warning/5 p-3 text-xs text-status-warning/80">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           删除账号前请确认该账号没有正在进行的排班或审批工作流。账号删除将不可撤销。
         </div>
@@ -333,7 +333,7 @@ export function UsersPage() {
             >
               <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-4">
                 <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-cyan-400" />
+                  <Plus className="w-5 h-5 text-status-ai" />
                   新建系统账号
                 </h3>
                 <button
@@ -353,7 +353,7 @@ export function UsersPage() {
                     placeholder="如 operator_zhang"
                     value={form.username}
                     onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-orbit-success"
                   />
                 </div>
 
@@ -364,7 +364,7 @@ export function UsersPage() {
                     placeholder="如 张三"
                     value={form.realName}
                     onChange={(e) => setForm({ ...form, realName: e.target.value })}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-orbit-success"
                   />
                 </div>
 
@@ -376,7 +376,7 @@ export function UsersPage() {
                     placeholder="至少 6 位安全密码"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white placeholder:text-orbit-snow/35 focus:outline-none focus:border-orbit-success"
                   />
                 </div>
 
@@ -385,7 +385,7 @@ export function UsersPage() {
                   <select
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
-                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-orbit-ink/80 border border-[var(--border)] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orbit-success"
                   >
                     {Object.entries(ROLE_LABEL).map(([code, label]) => (
                       <option key={code} value={code}>

@@ -185,7 +185,7 @@ export function AuditLogsPage() {
       <DataPage<AuditLogItem>
         title={
           <span className="flex items-center gap-2.5">
-            <Shield className="w-6 h-6 text-cyan-400" />
+            <Shield className="w-6 h-6 text-status-ai" />
             <span>操作审计日志</span>
           </span>
         }
@@ -258,7 +258,7 @@ export function AuditLogsPage() {
               </div>
               <button
                 onClick={() => setSelectedLog(null)}
-                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"
+                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -286,14 +286,14 @@ export function AuditLogsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <div className="text-xs font-medium text-rose-400">变更前（Before）</div>
-                  <pre className="rounded-xl border border-rose-500/20 bg-orbit-ink/70 p-3.5 text-xs font-mono text-orbit-snow/80 overflow-x-auto max-h-80">
+                  <div className="text-xs font-medium text-status-danger">变更前（Before）</div>
+                  <pre className="rounded-xl border border-orbit-danger/20 bg-orbit-ink/70 p-3.5 text-xs font-mono text-orbit-snow/80 overflow-x-auto max-h-80">
                     {formatJson(selectedLog.beforeData)}
                   </pre>
                 </div>
                 <div className="space-y-1.5">
-                  <div className="text-xs font-medium text-emerald-400">变更后（After）</div>
-                  <pre className="rounded-xl border border-emerald-500/20 bg-orbit-ink/70 p-3.5 text-xs font-mono text-orbit-snow/80 overflow-x-auto max-h-80">
+                  <div className="text-xs font-medium text-status-success">变更后（After）</div>
+                  <pre className="rounded-xl border border-orbit-success/20 bg-orbit-ink/70 p-3.5 text-xs font-mono text-orbit-snow/80 overflow-x-auto max-h-80">
                     {formatJson(selectedLog.afterData)}
                   </pre>
                 </div>

@@ -55,8 +55,8 @@ export function PlatformShopSelector() {
       >
         <span className={cn(
           "w-2 h-2 rounded-full",
-          currentPlatform.category === 'live' ? "bg-rose-500 animate-pulse" :
-          currentPlatform.category === 'shelf' ? "bg-amber-500" : "bg-emerald-500"
+          currentPlatform.category === 'live' ? "bg-orbit-danger animate-pulse" :
+          currentPlatform.category === 'shelf' ? "bg-orbit-warning" : "bg-orbit-success"
         )} />
         <span className="font-semibold text-[var(--text-primary)]">{currentPlatform.platform_name}</span>
         <span className="text-[var(--text-subtle)]">/</span>
@@ -80,7 +80,7 @@ export function PlatformShopSelector() {
                 切换经营渠道与店铺
               </span>
               <span className="flex items-center gap-1 text-[10px] text-[var(--text-subtle)]">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <ShieldCheck className="w-3 h-3 text-status-success" />
                 权限已过滤
               </span>
             </div>
@@ -148,7 +148,7 @@ export function PlatformShopSelector() {
                         <Store className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-subtle)]" />
                         <span className="truncate">{shop.name}</span>
                       </div>
-                      {isCurrent && <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
+                      {isCurrent && <Check className="w-3 h-3 text-status-success flex-shrink-0" />}
                     </button>
                   )
                 })}

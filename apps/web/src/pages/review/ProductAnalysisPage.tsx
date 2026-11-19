@@ -188,8 +188,8 @@ function OverviewCards({ products }: { products: ProductItem[] }) {
       label: '支付金额',
       value: formatCurrency(totals.paymentAmount),
       icon: DollarSign,
-      color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/15',
+      color: 'text-status-success',
+      bgColor: 'bg-orbit-success/15',
     },
     {
       label: '售出件数',
@@ -202,8 +202,8 @@ function OverviewCards({ products }: { products: ProductItem[] }) {
       label: '退款金额',
       value: formatCurrency(totals.refundAmount),
       icon: RotateCcw,
-      color: 'text-red-400',
-      bgColor: 'bg-red-500/15',
+      color: 'text-status-danger',
+      bgColor: 'bg-orbit-danger/15',
       sub: `退款用户 ${formatNumber(totals.refundUsers)}`,
     },
     {
@@ -502,7 +502,7 @@ function ProductTable({
                         </td>
                         <td className="py-3 pl-3 pr-4 text-right">
                           <div className="flex flex-col items-end gap-0.5">
-                            <span className="text-xs text-red-400 tabular-nums">
+                            <span className="text-xs text-status-danger tabular-nums">
                               {formatCurrency(product.refund_amount)}
                             </span>
                             <span className="text-xs text-[var(--text-muted)] tabular-nums">

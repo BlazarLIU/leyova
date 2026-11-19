@@ -143,7 +143,7 @@ export function CompetitorWatchPage() {
                         className={`border-b border-orbit-border transition-colors cursor-pointer ${
                           selectedBrand === competitor.brand
                             ? 'bg-orbit-primary/5'
-                            : 'hover:bg-white/5'
+                            : 'hover:bg-[var(--hover-bg)]'
                         }`}
                         onClick={() => setSelectedBrand(selectedBrand === competitor.brand ? null : competitor.brand)}
                       >
@@ -153,7 +153,7 @@ export function CompetitorWatchPage() {
                         <td className="px-5 py-3.5 text-[var(--text-muted)]">{competitor.industry}</td>
                         <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{competitor.monitoredProducts}</td>
                         <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{competitor.avgPrice}</td>
-                        <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{competitor.estimatedSales}</td>
+                        <td className="px-5 py-3.5 text-right text-status-success font-medium">{competitor.estimatedSales}</td>
                         <td className="px-5 py-3.5">
                           <Badge variant={trend.variant}>
                             <TrendIcon className="w-3 h-3" />
@@ -193,7 +193,7 @@ export function CompetitorWatchPage() {
               actions={
                 <button
                   onClick={() => setSelectedBrand(null)}
-                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors px-2 py-1 rounded hover:bg-white/5"
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors px-2 py-1 rounded hover:bg-[var(--hover-bg)]"
                 >
                   关闭
                 </button>
@@ -227,7 +227,7 @@ export function CompetitorWatchPage() {
                           className="bg-orbit-accent/70 rounded-r-md transition-all duration-500 flex items-center pl-1.5"
                           style={{ width: `${(item.theirs / maxPriceValue) * 50}%` }}
                         >
-                          <span className="text-[10px] text-white font-medium">¥{item.theirs}</span>
+                          <span className="text-[10px] text-orbit-ink font-medium">¥{item.theirs}</span>
                         </div>
                       </div>
                     </div>

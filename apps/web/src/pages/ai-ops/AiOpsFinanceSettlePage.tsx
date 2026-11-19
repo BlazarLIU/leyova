@@ -48,16 +48,16 @@ export function AiOpsFinanceSettlePage() {
 
   return (
     <div className="flex-1 bg-orbit-bg text-[var(--text-primary)] min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-amber-500/20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-orbit-warning/20">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-              <Lock className="w-3 h-3 text-amber-400" />
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-warning/20 text-status-warning border border-orbit-warning/30 flex items-center gap-1">
+              <Lock className="w-3 h-3 text-status-warning" />
               <span>机密财务板块 · 仅限财务与超管访问</span>
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">结算分录级对账</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             全渠道结算对账分录
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -69,7 +69,7 @@ export function AiOpsFinanceSettlePage() {
       <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-amber-400" />
+            <Receipt className="w-4 h-4 text-status-warning" />
             <h3 className="text-sm font-bold text-white">结算批次核销台账</h3>
           </div>
           <span className="text-xs text-[var(--text-muted)] font-mono">差异大于 100 元需财务审批后平账</span>
@@ -97,7 +97,7 @@ export function AiOpsFinanceSettlePage() {
                   <span className="text-[10px] text-[var(--text-muted)] block">对账差异</span>
                   <span className={cn(
                     "text-xs font-mono font-bold",
-                    batch.diff === 0 ? "text-emerald-400" : "text-rose-400"
+                    batch.diff === 0 ? "text-status-success" : "text-status-danger"
                   )}>
                     {batch.diff === 0 ? '¥0.00 (无差异)' : `-¥${Math.abs(batch.diff).toFixed(2)}`}
                   </span>
@@ -107,8 +107,8 @@ export function AiOpsFinanceSettlePage() {
                   <span className={cn(
                     "px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 border",
                     batch.status === 'balanced'
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                      ? "bg-orbit-success/10 text-status-success border-orbit-success/20"
+                      : "bg-orbit-danger/10 text-status-danger border-orbit-danger/20"
                   )}>
                     {batch.status === 'balanced' ? (
                       <>

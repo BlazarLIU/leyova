@@ -68,8 +68,8 @@ export function AiOpsPlanningPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-12 bg-orbit-bg min-h-screen text-cyan-400">
-        <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+      <div className="flex-1 flex items-center justify-center p-12 bg-orbit-bg min-h-screen text-status-ai">
+        <div className="w-8 h-8 border-2 border-orbit-success border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -90,14 +90,14 @@ export function AiOpsPlanningPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 2 · 场次台
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">
               Session #{selectedSessionId} · {currentSession?.title || '直播专场'}
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             货盘排品编辑表
             <span className="text-xs px-2 py-0.5 rounded bg-orbit-info/10 text-orbit-info border border-orbit-info/20 font-normal">
               四层货盘结构 · 6组字段
@@ -110,12 +110,12 @@ export function AiOpsPlanningPage() {
 
         <div className="flex items-center gap-3">
           {hasUnsavedChanges && (
-            <span className="text-xs text-amber-400 flex items-center gap-1 font-medium">
+            <span className="text-xs text-status-warning flex items-center gap-1 font-medium">
               ● 存在待定稿变更
             </span>
           )}
           {publishSuccess && (
-            <span className="text-xs text-emerald-400 flex items-center gap-1 font-medium animate-fade-in">
+            <span className="text-xs text-status-success flex items-center gap-1 font-medium animate-fade-in">
               <CheckCircle2 className="w-4 h-4" />
               已发布并同步至主系统场次提词卡！
             </span>
@@ -123,7 +123,7 @@ export function AiOpsPlanningPage() {
           <button
             onClick={handlePublish}
             disabled={isPublishing}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-orbit-primary hover:from-cyan-500 hover:to-orbit-primary text-white text-xs font-bold shadow-lg shadow-cyan-900/40 transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orbit-success to-orbit-primary hover:from-orbit-success hover:to-orbit-primary text-white text-xs font-bold shadow-lg shadow-cyan-900/40 transition-all disabled:opacity-50"
           >
             {isPublishing ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -141,21 +141,21 @@ export function AiOpsPlanningPage() {
           <p className="text-[11px] text-[var(--text-muted)]">总排品数 / 总时长</p>
           <p className="text-lg font-bold font-mono text-white mt-1">{slots.length} 款 / {totalMinutes} 分钟</p>
         </div>
-        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-rose-500/20">
-          <p className="text-[11px] text-rose-300">① 引流品 (Traffic)</p>
-          <p className="text-lg font-bold font-mono text-rose-400 mt-1">{counts.traffic} 款</p>
+        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-orbit-danger/20">
+          <p className="text-[11px] text-status-danger">① 引流品 (Traffic)</p>
+          <p className="text-lg font-bold font-mono text-status-danger mt-1">{counts.traffic} 款</p>
         </div>
-        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-amber-500/20">
-          <p className="text-[11px] text-amber-300">② 福利品 (Benefit)</p>
-          <p className="text-lg font-bold font-mono text-amber-400 mt-1">{counts.benefit} 款</p>
+        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-orbit-warning/20">
+          <p className="text-[11px] text-status-warning">② 福利品 (Benefit)</p>
+          <p className="text-lg font-bold font-mono text-status-warning mt-1">{counts.benefit} 款</p>
         </div>
-        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-cyan-500/20">
-          <p className="text-[11px] text-cyan-300">③ 爆款主推 (Hero)</p>
-          <p className="text-lg font-bold font-mono text-cyan-400 mt-1">{counts.hero} 款</p>
+        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-orbit-success/20">
+          <p className="text-[11px] text-status-ai">③ 爆款主推 (Hero)</p>
+          <p className="text-lg font-bold font-mono text-status-ai mt-1">{counts.hero} 款</p>
         </div>
-        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-emerald-500/20">
-          <p className="text-[11px] text-emerald-300">④ 利润品 (Profit)</p>
-          <p className="text-lg font-bold font-mono text-emerald-400 mt-1">{counts.profit} 款</p>
+        <div className="p-3.5 rounded-xl bg-orbit-ink/60 border border-orbit-success/20">
+          <p className="text-[11px] text-status-success">④ 利润品 (Profit)</p>
+          <p className="text-lg font-bold font-mono text-status-success mt-1">{counts.profit} 款</p>
         </div>
       </div>
 
@@ -163,7 +163,7 @@ export function AiOpsPlanningPage() {
       <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-cyan-400" />
+            <FileSpreadsheet className="w-4 h-4 text-status-ai" />
             <h3 className="text-sm font-bold text-white">排品顺序明细（拖拽/调整次序实时联动）</h3>
           </div>
           <span className="text-xs text-[var(--text-muted)] font-mono">硬闸门规则：资质过期、负毛利、库存不足 100% 阻断</span>
@@ -172,10 +172,10 @@ export function AiOpsPlanningPage() {
         <div className="divide-y divide-[var(--border)]">
           {slots.map((slot, index) => {
             const roleColor =
-              slot.role === 'traffic' ? 'text-rose-400 bg-rose-500/10 border-rose-500/30' :
-              slot.role === 'benefit' ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' :
-              slot.role === 'hero' ? 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30' :
-              'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+              slot.role === 'traffic' ? 'text-status-danger bg-orbit-danger/10 border-orbit-danger/30' :
+              slot.role === 'benefit' ? 'text-status-warning bg-orbit-warning/10 border-orbit-warning/30' :
+              slot.role === 'hero' ? 'text-status-ai bg-orbit-success/10 border-orbit-success/30' :
+              'text-status-success bg-orbit-success/10 border-orbit-success/30'
 
             return (
               <div
@@ -219,9 +219,9 @@ export function AiOpsPlanningPage() {
                   <p className="text-xs text-[var(--text-muted)] flex items-center gap-2">
                     <span>讲解：<strong className="text-[var(--text-secondary)]">{slot.minutes} 分钟</strong></span>
                     <span>·</span>
-                    <span>直播价：<strong className="text-cyan-400 font-mono">¥{slot.price}</strong></span>
+                    <span>直播价：<strong className="text-status-ai font-mono">¥{slot.price}</strong></span>
                     <span>·</span>
-                    <span>毛利率：<strong className="text-emerald-400 font-mono">{(slot.marginRate * 100).toFixed(0)}%</strong></span>
+                    <span>毛利率：<strong className="text-status-success font-mono">{(slot.marginRate * 100).toFixed(0)}%</strong></span>
                     <span>·</span>
                     <span>可售库存：<strong className="text-[var(--text-secondary)] font-mono">{slot.stock} 件</strong></span>
                   </p>
@@ -232,7 +232,7 @@ export function AiOpsPlanningPage() {
 
                 {/* AI 推荐理由与证据 */}
                 <div className="lg:max-w-xs text-xs p-3 rounded-xl bg-orbit-ink/70 border border-[var(--border)] space-y-1">
-                  <p className="text-cyan-400 font-medium flex items-center gap-1">
+                  <p className="text-status-ai font-medium flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>AI 推荐理由</span>
                   </p>
@@ -242,15 +242,15 @@ export function AiOpsPlanningPage() {
                 {/* 硬闸门检测状态 */}
                 <div className="flex items-center gap-3 lg:self-center flex-shrink-0">
                   <div className="flex flex-col gap-1 text-[11px]">
-                    <span className="inline-flex items-center gap-1 text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-status-success">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>毛利正常</span>
                     </span>
-                    <span className="inline-flex items-center gap-1 text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-status-success">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>库存充足</span>
                     </span>
-                    <span className="inline-flex items-center gap-1 text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-status-success">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>资质有效</span>
                     </span>

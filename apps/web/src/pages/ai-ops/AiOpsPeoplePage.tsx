@@ -32,12 +32,12 @@ export function AiOpsPeoplePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 4 · 人效看板
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">HRBP / 运营 / 超管可见</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             人效与单场净利贡献看板
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
@@ -49,11 +49,11 @@ export function AiOpsPeoplePage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
           <p className="text-xs text-[var(--text-muted)]">平均在播时长 (周均)</p>
-          <p className="text-2xl font-bold font-mono text-cyan-400 mt-1">{avgHours} 小时</p>
+          <p className="text-2xl font-bold font-mono text-status-ai mt-1">{avgHours} 小时</p>
         </div>
         <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
           <p className="text-xs text-[var(--text-muted)]">主播人均贡献净利</p>
-          <p className="text-2xl font-bold font-mono text-emerald-400 mt-1">{avgProfit === '—' ? '—' : `¥${avgProfit} 万元`}</p>
+          <p className="text-2xl font-bold font-mono text-status-success mt-1">{avgProfit === '—' ? '—' : `¥${avgProfit} 万元`}</p>
         </div>
         <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
           <p className="text-xs text-[var(--text-muted)]">团队综合 GPM 中位数</p>
@@ -61,22 +61,22 @@ export function AiOpsPeoplePage() {
         </div>
         <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
           <p className="text-xs text-[var(--text-muted)]">在册主播人数</p>
-          <p className="text-2xl font-bold font-mono text-emerald-400 mt-1">{anchors.length} 位</p>
+          <p className="text-2xl font-bold font-mono text-status-success mt-1">{anchors.length} 位</p>
         </div>
       </div>
 
       <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Award className="w-4 h-4 text-cyan-400" />
+            <Award className="w-4 h-4 text-status-ai" />
             <h3 className="text-sm font-bold text-white">主播人效与净利润贡献排行</h3>
           </div>
           <span className="text-xs text-[var(--text-muted)] font-mono">共 {anchors.length} 位主播带货档案</span>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center p-12 text-cyan-400">
-            <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+          <div className="flex items-center justify-center p-12 text-status-ai">
+            <div className="w-8 h-8 border-2 border-orbit-success border-t-transparent rounded-full animate-spin" />
           </div>
         ) : anchors.length === 0 ? (
           <div className="p-12 text-center text-sm text-[var(--text-muted)]">暂无主播人效数据</div>
@@ -85,7 +85,7 @@ export function AiOpsPeoplePage() {
             {anchors.map((anchor, i) => (
               <div key={anchor.id || anchor.name} className="p-5 flex items-center justify-between gap-4 hover:bg-orbit-ink/20 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-orbit-primary flex items-center justify-center font-bold text-xs text-white">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orbit-success to-orbit-primary flex items-center justify-center font-bold text-xs text-white">
                     {i + 1}
                   </div>
                   <div>
@@ -95,15 +95,15 @@ export function AiOpsPeoplePage() {
                     </div>
                     <p className="text-xs text-[var(--text-muted)] mt-0.5">
                       月度直播时长: <span className="font-mono text-[var(--text-secondary)]">{anchor.liveHours != null ? `${anchor.liveHours}h` : '—'}</span> ·
-                      千次千川 GPM: <span className="font-mono text-cyan-400">{anchor.gpm != null ? `¥${anchor.gpm}` : '—'}</span> ·
-                      综合画像评分: <span className="font-mono text-emerald-400">{anchor.score != null ? `${anchor.score}分` : '—'}</span>
+                      千次千川 GPM: <span className="font-mono text-status-ai">{anchor.gpm != null ? `¥${anchor.gpm}` : '—'}</span> ·
+                      综合画像评分: <span className="font-mono text-status-success">{anchor.score != null ? `${anchor.score}分` : '—'}</span>
                     </p>
                   </div>
                 </div>
 
                 <div className="text-right">
                   <span className="text-xs text-[var(--text-muted)] block">贡献经营净利</span>
-                  <span className="text-base font-extrabold font-mono text-emerald-400">{anchor.netProfitContribution != null ? `+¥${anchor.netProfitContribution.toLocaleString()}` : '—'}</span>
+                  <span className="text-base font-extrabold font-mono text-status-success">{anchor.netProfitContribution != null ? `+¥${anchor.netProfitContribution.toLocaleString()}` : '—'}</span>
                 </div>
               </div>
             ))}

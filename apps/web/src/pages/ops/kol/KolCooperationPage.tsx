@@ -217,7 +217,7 @@ export function KolCooperationPage() {
       </div>
 
       {errorMsg && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-4 py-2.5 text-sm text-status-danger">
           {errorMsg}
         </div>
       )}
@@ -233,7 +233,7 @@ export function KolCooperationPage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">带货净 GMV（剔退）</p>
-              <p className="mt-1 text-2xl font-bold text-emerald-400">¥{overview.totalNetGmv.toLocaleString()}</p>
+              <p className="mt-1 text-2xl font-bold text-status-success">¥{overview.totalNetGmv.toLocaleString()}</p>
             </CardBody>
           </Card>
           <Card>
@@ -245,15 +245,15 @@ export function KolCooperationPage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">应付佣金 / 待结</p>
-              <p className="mt-1 text-xl font-bold text-amber-400">
-                ¥{overview.totalCommission.toLocaleString()} / <span className="text-red-400">¥{overview.unpaidCommission.toLocaleString()}</span>
+              <p className="mt-1 text-xl font-bold text-status-warning">
+                ¥{overview.totalCommission.toLocaleString()} / <span className="text-status-danger">¥{overview.unpaidCommission.toLocaleString()}</span>
               </p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">综合投产比 (Net ROI)</p>
-              <p className="mt-1 text-2xl font-bold text-cyan-400">{overview.overallRoi ?? '—'}</p>
+              <p className="mt-1 text-2xl font-bold text-status-ai">{overview.overallRoi ?? '—'}</p>
             </CardBody>
           </Card>
         </div>
@@ -300,13 +300,13 @@ export function KolCooperationPage() {
                       <td className="px-4 py-3 text-right tabular-nums text-[var(--text-secondary)]">¥{Number(c.pit_fee).toLocaleString()}</td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         <span className="text-[var(--text-muted)] text-xs">¥{Number(c.gmv).toLocaleString()} / </span>
-                        <span className="text-emerald-400 font-semibold">¥{Number(c.net_gmv).toLocaleString()}</span>
+                        <span className="text-status-success font-semibold">¥{Number(c.net_gmv).toLocaleString()}</span>
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         <span className="text-xs text-[var(--text-muted)]">{(Number(c.commission_rate) * 100).toFixed(0)}% · </span>
-                        <span className="text-amber-400 font-semibold">¥{Number(c.commission_amount).toLocaleString()}</span>
+                        <span className="text-status-warning font-semibold">¥{Number(c.commission_amount).toLocaleString()}</span>
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold text-cyan-400 tabular-nums">{c.roi ?? '—'}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-status-ai tabular-nums">{c.roi ?? '—'}</td>
                       <td className="px-4 py-3"><Badge variant={st.variant} dot>{st.label}</Badge></td>
                       <td className="px-4 py-3 text-right">
                         {c.settlement_status === 'pending' && (
@@ -354,8 +354,8 @@ export function KolCooperationPage() {
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">{TIER_MAP[p.tier] || p.tier} · {p.category}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-[var(--text-secondary)]">{(p.fans_count / 10000).toFixed(1)} 万</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-amber-400">{(Number(p.default_commission_rate) * 100).toFixed(0)}%</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-emerald-400">
+                    <td className="px-4 py-3 text-right tabular-nums text-status-warning">{(Number(p.default_commission_rate) * 100).toFixed(0)}%</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-status-success">
                       {p.coop_count} 次 · ¥{Number(p.cumulative_net_gmv).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--text-muted)]">{p.contact_info || '—'}</td>

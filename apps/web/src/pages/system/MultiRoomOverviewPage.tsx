@@ -167,7 +167,7 @@ export function MultiRoomOverviewPage() {
                     <p className="text-[10px] text-[var(--text-muted)]">在线</p>
                   </div>
                   <div className="text-center p-2 rounded-lg bg-orbit-surface2 border border-orbit-border">
-                    <DollarSign className="w-3.5 h-3.5 text-emerald-400 mx-auto mb-0.5" />
+                    <DollarSign className="w-3.5 h-3.5 text-status-success mx-auto mb-0.5" />
                     <p className="text-xs font-semibold text-[var(--text-secondary)]">{formatGmv(room.realtimeGmv)}</p>
                     <p className="text-[10px] text-[var(--text-muted)]">实时GMV</p>
                   </div>
@@ -241,7 +241,7 @@ export function MultiRoomOverviewPage() {
                   {summaryTable.map((row) => (
                     <tr
                       key={row.name}
-                      className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
@@ -251,7 +251,7 @@ export function MultiRoomOverviewPage() {
                       </td>
                       <td className="px-5 py-3.5 text-[var(--text-muted)]">{row.anchor}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{formatNumber(row.online)}</td>
-                      <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{row.gmv}</td>
+                      <td className="px-5 py-3.5 text-right text-status-success font-medium">{row.gmv}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{formatNumber(row.views)}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.conversion}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.avgOrder}</td>

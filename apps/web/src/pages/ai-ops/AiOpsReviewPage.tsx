@@ -38,8 +38,8 @@ export function AiOpsReviewPage() {
 
   if (loading || !report) {
     return (
-      <div className="flex-1 flex items-center justify-center p-12 bg-orbit-bg min-h-screen text-cyan-400">
-        <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+      <div className="flex-1 flex items-center justify-center p-12 bg-orbit-bg min-h-screen text-status-ai">
+        <div className="w-8 h-8 border-2 border-orbit-success border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -54,14 +54,14 @@ export function AiOpsReviewPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orbit-success/20 text-status-ai border border-orbit-success/30">
               工作面 2 · 场次台
             </span>
             <span className="text-xs text-[var(--text-muted)] font-mono">场次复盘 · 下播30分钟自动出稿</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
             单场五段复盘归因报告
-            <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">
+            <span className="text-xs px-2 py-0.5 rounded bg-orbit-success/10 text-status-success border border-orbit-success/20 font-normal">
               闭环数学检验 verified
             </span>
           </h1>
@@ -72,14 +72,14 @@ export function AiOpsReviewPage() {
 
         <div className="flex items-center gap-3">
           {actionSynced && (
-            <span className="text-xs text-emerald-400 flex items-center gap-1 font-medium animate-fade-in">
+            <span className="text-xs text-status-success flex items-center gap-1 font-medium animate-fade-in">
               <CheckCircle2 className="w-4 h-4" />
               3条行动项已推送到今晚排品候选池！
             </span>
           )}
           <button
             onClick={handleSyncActions}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white text-xs font-bold shadow-lg shadow-cyan-900/40 transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orbit-success to-orbit-success hover:from-orbit-success hover:to-orbit-success text-white text-xs font-bold shadow-lg shadow-cyan-900/40 transition-all"
           >
             <Send className="w-3.5 h-3.5" />
             <span>行动项回流下一场排品 (闭环)</span>
@@ -97,28 +97,28 @@ export function AiOpsReviewPage() {
           <p className="text-xl font-bold font-mono text-[var(--text-secondary)] mt-1">¥{(report.orderGmv / 10000).toFixed(2)}w</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-cyan-500/30 backdrop-blur-xl shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-          <p className="text-xs text-cyan-300 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-orbit-success/30 backdrop-blur-xl shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+          <p className="text-xs text-status-ai flex items-center justify-between">
             <span>支付 GMV (amount_paid)</span>
-            <span className="text-[10px] text-cyan-500 font-mono">核心基准</span>
+            <span className="text-[10px] text-status-ai font-mono">核心基准</span>
           </p>
-          <p className="text-2xl font-extrabold font-mono text-cyan-400 mt-1">¥{(report.payGmv / 10000).toFixed(2)}w</p>
+          <p className="text-2xl font-extrabold font-mono text-status-ai mt-1">¥{(report.payGmv / 10000).toFixed(2)}w</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-[var(--border)] backdrop-blur-xl">
           <p className="text-xs text-[var(--text-muted)] flex items-center justify-between">
             <span>预估结算 GMV (amount_settle)</span>
-            <span className="text-[10px] text-amber-500 font-mono">T+15 成熟中</span>
+            <span className="text-[10px] text-status-warning font-mono">T+15 成熟中</span>
           </p>
           <p className="text-xl font-bold font-mono text-[var(--text-secondary)] mt-1">¥{(report.settleGmv / 10000).toFixed(2)}w</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-rose-500/30 backdrop-blur-xl">
-          <p className="text-xs text-rose-300 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-orbit-ink/60 border border-orbit-danger/30 backdrop-blur-xl">
+          <p className="text-xs text-status-danger flex items-center justify-between">
             <span>目标达成差距 (Delta GMV)</span>
-            <span className="text-[10px] text-rose-400 font-mono">目标 20.0w</span>
+            <span className="text-[10px] text-status-danger font-mono">目标 20.0w</span>
           </p>
-          <p className="text-xl font-bold font-mono text-rose-400 mt-1">
+          <p className="text-xl font-bold font-mono text-status-danger mt-1">
             -¥{(Math.abs(report.deltaGmv) / 10000).toFixed(2)}w ({( (report.payGmv / report.targetGmv) * 100).toFixed(1)}%)
           </p>
         </div>
@@ -129,7 +129,7 @@ export function AiOpsReviewPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <Sparkles className="w-4 h-4 text-status-ai" />
               <span>五段归因全景分解瀑布（流量结构 → 转化漏斗 → 货盘 → 主播 → 售后退款）</span>
             </h3>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
@@ -139,7 +139,7 @@ export function AiOpsReviewPage() {
           <div className="flex items-center gap-2">
             <span className={cn(
               "px-2.5 py-1 rounded-full text-xs font-mono font-semibold flex items-center gap-1 border",
-              isMathClosed ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : "bg-rose-500/10 text-rose-400 border-rose-500/30"
+              isMathClosed ? "bg-orbit-success/10 text-status-success border-orbit-success/30" : "bg-orbit-danger/10 text-status-danger border-orbit-danger/30"
             )}>
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>归因和: ¥{sumAttributions} (误差 0.0%)</span>
@@ -155,7 +155,7 @@ export function AiOpsReviewPage() {
                 key={attr.stage}
                 className={cn(
                   "p-4 rounded-xl border flex flex-col justify-between gap-3 backdrop-blur-md",
-                  isNegative ? "border-[var(--border)] bg-orbit-ink/60" : "border-emerald-500/20 bg-emerald-950/10"
+                  isNegative ? "border-[var(--border)] bg-orbit-ink/60" : "border-orbit-success/20 bg-orbit-success/15"
                 )}
               >
                 <div>
@@ -163,7 +163,7 @@ export function AiOpsReviewPage() {
                     <span className="text-xs font-bold text-white">{attr.stageName}</span>
                     <span className={cn(
                       "text-xs font-mono font-bold",
-                      isNegative ? "text-rose-400" : "text-emerald-400"
+                      isNegative ? "text-status-danger" : "text-status-success"
                     )}>
                       {isNegative ? '-' : '+'}¥{Math.abs(attr.delta)}
                     </span>
@@ -178,7 +178,7 @@ export function AiOpsReviewPage() {
                 </div>
 
                 <div className="text-[10px] font-mono bg-orbit-ink p-2 rounded border border-[var(--border)] text-orbit-snow/70">
-                  <span className="text-cyan-400 font-semibold block mb-0.5">证据来源：</span>
+                  <span className="text-status-ai font-semibold block mb-0.5">证据来源：</span>
                   {attr.evidence}
                 </div>
               </div>
@@ -191,7 +191,7 @@ export function AiOpsReviewPage() {
       <div className="rounded-2xl border border-[var(--border)] bg-orbit-ink/60 backdrop-blur-xl p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-status-success" />
             <span>明日可执行行动项 (Action Items · 产出可执行物)</span>
           </h3>
           <span className="text-xs text-[var(--text-muted)]">已自动分配责任岗位与验收指标</span>
@@ -205,7 +205,7 @@ export function AiOpsReviewPage() {
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orbit-ink text-orbit-snow/80">
                     {act.id}
                   </span>
-                  <span className="text-xs font-bold text-cyan-300">{act.who}</span>
+                  <span className="text-xs font-bold text-status-ai">{act.who}</span>
                   <span className="text-xs text-[var(--text-muted)] font-mono">截止：{act.when}</span>
                 </div>
                 <p className="text-sm font-medium text-[var(--text-secondary)]">{act.what}</p>
@@ -214,9 +214,9 @@ export function AiOpsReviewPage() {
               <div className="flex items-center gap-3">
                 <div className="text-right text-xs">
                   <span className="text-[var(--text-muted)] block">验收目标</span>
-                  <span className="text-emerald-400 font-mono font-medium">{act.targetMetric}</span>
+                  <span className="text-status-success font-mono font-medium">{act.targetMetric}</span>
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orbit-success/10 text-status-ai border border-orbit-success/30">
                   下场自动验证
                 </span>
               </div>

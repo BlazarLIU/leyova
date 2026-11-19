@@ -64,21 +64,21 @@ export function KsFansTeamPage() {
             {[7, 30, 90].map((d) => (
               <button key={d} onClick={() => setDays(d)}
                 className={`rounded px-3 py-1.5 text-xs transition ${
-                  days === d ? 'bg-cyan-500/20 text-cyan-300' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  days === d ? 'bg-orbit-success/20 text-status-ai' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}>近 {d} 天</button>
             ))}
           </div>
         </div>
       </motion.div>
 
-      <div className="flex items-start gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/5 p-3 text-xs text-cyan-300/90">
+      <div className="flex items-start gap-2 rounded-lg border border-orbit-success/25 bg-orbit-success/5 p-3 text-xs text-status-ai/90">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <div>
           <span className="font-medium">什么是粉丝团/购物团？</span>
-          <p className="mt-1 text-cyan-400/70">
-            关注主播后可加入「购物团」，随购物、点赞、分享累积<strong className="text-cyan-300">亲密度</strong>并升级，
+          <p className="mt-1 text-status-ai/70">
+            关注主播后可加入「购物团」，随购物、点赞、分享累积<strong className="text-status-ai">亲密度</strong>并升级，
             享受梯度权益（专属优惠券、红包、福利品）。主播可在购买前/中/后三段精准触达。
-            <strong className="text-cyan-300">这是快手把粉丝关系变成可运营资产的核心机制。</strong>
+            <strong className="text-status-ai">这是快手把粉丝关系变成可运营资产的核心机制。</strong>
           </p>
         </div>
       </div>
@@ -108,9 +108,9 @@ export function KsFansTeamPage() {
               <CardBody>
                 <div className="flex flex-wrap items-center gap-4">
                   <div className={`shrink-0 rounded-lg px-4 py-3 text-center ${
-                    joinRate >= 40 ? 'bg-emerald-500/15 text-emerald-400'
-                    : joinRate >= 20 ? 'bg-amber-500/15 text-amber-400'
-                    : 'bg-rose-500/15 text-rose-400'
+                    joinRate >= 40 ? 'bg-orbit-success/15 text-status-success'
+                    : joinRate >= 20 ? 'bg-orbit-warning/15 text-status-warning'
+                    : 'bg-orbit-danger/15 text-status-danger'
                   }`}>
                     <div className="text-2xl font-semibold">{fmtPct(data!.fansTeam.joinRate)}</div>
                     <div className="text-[10px]">新增粉丝中入团</div>
@@ -127,7 +127,7 @@ export function KsFansTeamPage() {
                     <p className="text-sm text-[var(--text-secondary)]">{data!.assessment}</p>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-orbit-ink">
                       <div
-                        className={`h-full rounded-full ${joinRate >= 40 ? 'bg-emerald-500' : joinRate >= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                        className={`h-full rounded-full ${joinRate >= 40 ? 'bg-orbit-success' : joinRate >= 20 ? 'bg-orbit-warning' : 'bg-orbit-danger'}`}
                         style={{ width: `${Math.min(joinRate, 100)}%` }}
                       />
                     </div>

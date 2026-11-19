@@ -510,7 +510,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(1)}
                 disabled={page <= 1 || loading}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="首页"
               >
                 <ChevronsLeft className="w-4 h-4" />
@@ -520,7 +520,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(page - 1)}
                 disabled={page <= 1 || loading}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="上一页"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -538,7 +538,7 @@ export function DataPage<T>({
                         'min-w-[28px] h-7 px-1.5 rounded text-xs font-medium transition-colors',
                         page === p
                           ? 'bg-orbit-primary text-white shadow-sm'
-                          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
                       )}
                     >
                       {p}
@@ -555,7 +555,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= totalPages || loading}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="下一页"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -565,7 +565,7 @@ export function DataPage<T>({
               <button
                 onClick={() => setPage(totalPages)}
                 disabled={page >= totalPages || loading}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 title="末页"
               >
                 <ChevronsRight className="w-4 h-4" />

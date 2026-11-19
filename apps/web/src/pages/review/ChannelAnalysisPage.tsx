@@ -65,10 +65,10 @@ const CHANNEL_COLORS = CHART_SERIES
 
 const funnelStages = [
   { key: 'impressions', label: '曝光', color: 'from-orbit-primary/40 to-orbit-primary-dark/20' },
-  { key: 'views', label: '观看', color: 'from-cyan-500/40 to-cyan-500/20' },
-  { key: 'interactions', label: '互动', color: 'from-amber-500/40 to-amber-500/20' },
-  { key: 'product_clicks', label: '商品点击', color: 'from-emerald-500/40 to-emerald-500/20' },
-  { key: 'orders', label: '成交', color: 'from-emerald-600/40 to-emerald-600/20' },
+  { key: 'views', label: '观看', color: 'from-orbit-success/40 to-orbit-success/20' },
+  { key: 'interactions', label: '互动', color: 'from-orbit-warning/40 to-orbit-warning/20' },
+  { key: 'product_clicks', label: '商品点击', color: 'from-orbit-success/40 to-orbit-success/20' },
+  { key: 'orders', label: '成交', color: 'from-orbit-success/40 to-orbit-success/20' },
 ]
 
 const fadeIn = {
@@ -418,7 +418,7 @@ export function ChannelAnalysisPage() {
                   <span className="text-[var(--text-muted)]">曝光</span>
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-cyan-500/60" />
+                  <span className="w-2.5 h-2.5 rounded-sm bg-orbit-success/60" />
                   <span className="text-[var(--text-muted)]">观看</span>
                 </span>
               </div>
@@ -732,7 +732,7 @@ export function ChannelAnalysisPage() {
                 </div>
                 <button
                   onClick={() => setSelectedChannel(null)}
-                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5 transition-colors"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
                 >
                   <X className="w-4.5 h-4.5" />
                 </button>
@@ -745,13 +745,13 @@ export function ChannelAnalysisPage() {
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { label: '曝光', value: formatNumber(selectedChannel.impressions), icon: Eye, color: 'text-orbit-primary' },
-                      { label: '观看', value: formatNumber(selectedChannel.views), icon: Eye, color: 'text-cyan-400' },
-                      { label: 'GMV', value: formatCurrency(selectedChannel.gmv), icon: DollarSign, color: 'text-emerald-400' },
-                      { label: 'GPM', value: formatCurrency(selectedChannel.gpm), icon: TrendingUp, color: 'text-amber-400' },
+                      { label: '观看', value: formatNumber(selectedChannel.views), icon: Eye, color: 'text-status-ai' },
+                      { label: 'GMV', value: formatCurrency(selectedChannel.gmv), icon: DollarSign, color: 'text-status-success' },
+                      { label: 'GPM', value: formatCurrency(selectedChannel.gpm), icon: TrendingUp, color: 'text-status-warning' },
                       { label: '订单数', value: formatNumber(selectedChannel.orders), icon: ShoppingBag, color: 'text-orbit-info' },
-                      { label: '客单价', value: formatCurrency(selectedChannel.avg_order_value), icon: Gem, color: 'text-pink-400' },
-                      { label: 'ROI', value: roiFromData(selectedChannel).toFixed(2), icon: Activity, color: 'text-orange-400' },
-                      { label: '广告花费', value: formatCurrency(selectedChannel.ad_spend), icon: DollarSign, color: 'text-red-400' },
+                      { label: '客单价', value: formatCurrency(selectedChannel.avg_order_value), icon: Gem, color: 'text-status-danger' },
+                      { label: 'ROI', value: roiFromData(selectedChannel).toFixed(2), icon: Activity, color: 'text-status-warning' },
+                      { label: '广告花费', value: formatCurrency(selectedChannel.ad_spend), icon: DollarSign, color: 'text-status-danger' },
                     ].map(kpi => (
                       <div
                         key={kpi.label}

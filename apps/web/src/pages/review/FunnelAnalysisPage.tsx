@@ -95,31 +95,31 @@ function getAnomalyInfo(level: FunnelLevel, index: number): {
   if (index === 0) {
     return {
       label: '正常',
-      color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/10',
+      color: 'text-status-success',
+      bgColor: 'bg-orbit-success/10',
       borderColor: 'border-l-emerald-500',
     }
   }
   if (level.count === 0 || level.conversion_rate === 0) {
     return {
       label: '严重',
-      color: 'text-red-400',
-      bgColor: 'bg-red-500/10',
+      color: 'text-status-danger',
+      bgColor: 'bg-orbit-danger/10',
       borderColor: 'border-l-red-500',
     }
   }
   if (level.conversion_rate !== null && level.conversion_rate < 5) {
     return {
       label: '预警',
-      color: 'text-yellow-400',
-      bgColor: 'bg-yellow-500/10',
+      color: 'text-status-warning',
+      bgColor: 'bg-orbit-warning/10',
       borderColor: 'border-l-yellow-500',
     }
   }
   return {
     label: '正常',
-    color: 'text-emerald-400',
-    bgColor: 'bg-emerald-500/10',
+    color: 'text-status-success',
+    bgColor: 'bg-orbit-success/10',
     borderColor: 'border-l-emerald-500',
   }
 }
@@ -251,13 +251,13 @@ function FunnelSummary({ levels }: { levels: FunnelLevel[] }) {
             {/* Biggest drop-off */}
             {biggestDrop && (
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-red-500/15 flex items-center justify-center shrink-0">
-                  <TrendingDown className="w-5 h-5 text-red-400" />
+                <div className="w-12 h-12 rounded-lg bg-orbit-danger/15 flex items-center justify-center shrink-0">
+                  <TrendingDown className="w-5 h-5 text-status-danger" />
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-muted)] mb-0.5">最大流失环节</p>
                   <p className="text-lg font-semibold text-[var(--text-primary)]">{biggestDrop.name}</p>
-                  <p className="text-sm text-red-400">
+                  <p className="text-sm text-status-danger">
                     流失 {biggestDrop.drop_off.toLocaleString()}（{biggestDrop.pct.toFixed(1)}%）
                   </p>
                 </div>
@@ -434,7 +434,7 @@ function PeriodComparisonTable({ levels }: { levels: FunnelLevel[] }) {
                       <td
                         className={cn(
                           'py-3 px-4 text-right font-medium tabular-nums',
-                          isPositive ? 'text-green-400' : 'text-red-400',
+                          isPositive ? 'text-status-success' : 'text-status-danger',
                         )}
                       >
                         {isPositive ? '+' : ''}
@@ -444,7 +444,7 @@ function PeriodComparisonTable({ levels }: { levels: FunnelLevel[] }) {
                         <span
                           className={cn(
                             'inline-flex items-center justify-end gap-1 font-medium tabular-nums',
-                            isPositive ? 'text-green-400' : 'text-red-400',
+                            isPositive ? 'text-status-success' : 'text-status-danger',
                           )}
                         >
                           {isPositive ? (
@@ -523,7 +523,7 @@ function StageDiagnosisSection({ levels }: { levels: FunnelLevel[] }) {
                           className={cn(
                             'font-medium',
                             level.conversion_rate !== null && level.conversion_rate > 0
-                              ? 'text-emerald-400'
+                              ? 'text-status-success'
                               : 'text-[var(--text-muted)]',
                           )}
                         >
@@ -763,7 +763,7 @@ export function FunnelAnalysisPage() {
               loading={loading}
             />
             {hasImportedData && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orbit-success/15 text-status-success border border-orbit-success/30 shrink-0">
                 已导入漏斗数据
               </span>
             )}

@@ -40,12 +40,12 @@ const statusConfig: Record<string, { variant: 'success' | 'primary' | 'danger'; 
 
 const categoryColors: Record<string, string> = {
   '营收': 'bg-orbit-primary/15 text-orbit-primary-light',
-  '效率': 'bg-orbit-warning/15 text-amber-400',
-  '增长': 'bg-orbit-success/15 text-emerald-400',
-  '流量': 'bg-orbit-accent/15 text-cyan-400',
+  '效率': 'bg-orbit-warning/15 text-status-warning',
+  '增长': 'bg-orbit-success/15 text-status-success',
+  '流量': 'bg-orbit-accent/15 text-status-ai',
   '服务': 'bg-orbit-info/15 text-orbit-info',
   '团队': 'bg-orbit-primary/15 text-orbit-primary',
-  '运营': 'bg-orange-500/15 text-orange-400',
+  '运营': 'bg-orbit-warning/15 text-status-warning',
 }
 
 export function GoalTrackingPage() {
@@ -119,9 +119,9 @@ export function GoalTrackingPage() {
               </div>
               <div className={cn(
                 'px-3 py-1.5 rounded-lg text-xs font-medium',
-                overallProgress >= 80 ? 'bg-emerald-500/10 text-emerald-400' :
-                overallProgress >= 50 ? 'bg-amber-500/10 text-amber-400' :
-                'bg-red-500/10 text-red-400'
+                overallProgress >= 80 ? 'bg-orbit-success/10 text-status-success' :
+                overallProgress >= 50 ? 'bg-orbit-warning/10 text-status-warning' :
+                'bg-orbit-danger/10 text-status-danger'
               )}>
                 {overallProgress >= 80 ? '进度正常' : overallProgress >= 50 ? '需要关注' : '严重滞后'}
               </div>
@@ -208,17 +208,17 @@ export function GoalTrackingPage() {
                   <div className="flex items-center justify-between">
                     <span className={cn(
                       'text-xs font-medium',
-                      goal.status === 'achieved' ? 'text-emerald-400' :
+                      goal.status === 'achieved' ? 'text-status-success' :
                       goal.status === 'ongoing' ? 'text-orbit-primary' :
-                      'text-red-400'
+                      'text-status-danger'
                     )}>
                       {progress}%
                     </span>
                     {goal.status === 'achieved' && (
-                      <span className="text-xs text-emerald-400/70">已超额完成目标</span>
+                      <span className="text-xs text-status-success/70">已超额完成目标</span>
                     )}
                     {goal.status === 'behind' && (
-                      <span className="text-xs text-red-400/70">落后 {100 - progress}%</span>
+                      <span className="text-xs text-status-danger/70">落后 {100 - progress}%</span>
                     )}
                   </div>
                 </CardBody>
@@ -292,9 +292,9 @@ export function GoalTrackingPage() {
                             </div>
                             <span className={cn(
                               'text-xs font-medium w-8 text-right',
-                              goal.status === 'achieved' ? 'text-emerald-400' :
+                              goal.status === 'achieved' ? 'text-status-success' :
                               goal.status === 'ongoing' ? 'text-orbit-primary' :
-                              'text-red-400'
+                              'text-status-danger'
                             )}>
                               {progress}%
                             </span>

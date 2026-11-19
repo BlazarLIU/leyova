@@ -180,7 +180,7 @@ export function BiDashboardPage() {
                 const colorClass =
                   item.platform === '抖音'
                     ? 'from-orbit-primary to-orbit-primary-dark'
-                    : 'from-amber-500 to-amber-400'
+                    : 'from-orbit-warning to-orbit-warning'
                 const heightPct = (item.gmv / platformMaxGmv) * 100
                 return (
                   <div key={item.platform} className="flex-1 flex flex-col items-center gap-3 h-full justify-end max-w-[120px]">
@@ -315,18 +315,18 @@ export function BiDashboardPage() {
                   {platformStats.map((row) => (
                     <tr
                       key={row.platform}
-                      className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{row.platform}</td>
-                      <td className="px-5 py-3.5 text-right text-emerald-400 font-medium tabular-nums">¥{row.gmv}万</td>
+                      <td className="px-5 py-3.5 text-right text-status-success font-medium tabular-nums">¥{row.gmv}万</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.orders.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.refundRate}%</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.roi}</td>
                       <td className="px-5 py-3.5 text-right">
                         {row.trend === 'up' ? (
-                          <TrendingUp className="w-4 h-4 text-emerald-400 inline-block" />
+                          <TrendingUp className="w-4 h-4 text-status-success inline-block" />
                         ) : (
-                          <TrendingDown className="w-4 h-4 text-red-400 inline-block" />
+                          <TrendingDown className="w-4 h-4 text-status-danger inline-block" />
                         )}
                       </td>
                     </tr>

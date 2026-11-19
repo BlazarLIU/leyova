@@ -46,9 +46,9 @@ const fmtNum = (n: number | null | undefined) => (n == null ? '—' : Number(n).
 const fmtPct = (n: number | null | undefined) => (n == null ? '—' : `${(Number(n) * 100).toFixed(2)}%`)
 const ROLE_LABEL: Record<string, string> = { T: '引流款', B: '福利款', P: '利润款' }
 const ROLE_COLOR: Record<string, string> = {
-  T: 'text-sky-300 border-sky-500/40 bg-sky-500/10',
-  B: 'text-amber-300 border-amber-500/40 bg-amber-500/10',
-  P: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10',
+  T: 'text-status-info border-orbit-info/40 bg-orbit-info/10',
+  B: 'text-status-warning border-orbit-warning/40 bg-orbit-warning/10',
+  P: 'text-status-success border-orbit-success/40 bg-orbit-success/10',
 }
 
 /**
@@ -123,7 +123,7 @@ export function AssortmentRecommendPage() {
       </motion.div>
 
       {err && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-3 py-2 text-xs text-status-danger flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" /> {err}
         </div>
       )}
@@ -171,7 +171,7 @@ export function AssortmentRecommendPage() {
                 </thead>
                 <tbody>
                   {(result?.candidates || []).map((c) => (
-                    <tr key={c.productId} className="border-b border-orbit-border/40 hover:bg-white/5">
+                    <tr key={c.productId} className="border-b border-orbit-border/40 hover:bg-[var(--hover-bg)]">
                       <td className="px-4 py-1.5 text-[var(--text-secondary)]">{c.productName}</td>
                       <td className="px-3 py-1.5">
                         <span className={`px-1.5 py-0.5 rounded text-[10px] border ${ROLE_COLOR[c.suggestedRole]}`}>
@@ -183,7 +183,7 @@ export function AssortmentRecommendPage() {
                       <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">{fmtNum(c.metrics.recentSoldCount)}</td>
                       <td className="px-3 py-1.5 text-right text-[var(--text-muted)]">{fmtNum(c.metrics.recentPayment)}</td>
                       <td className="px-3 py-1.5 text-right">
-                        <span className={c.metrics.availableQty <= 0 ? 'text-rose-400' : 'text-[var(--text-secondary)]'}>
+                        <span className={c.metrics.availableQty <= 0 ? 'text-status-danger' : 'text-[var(--text-secondary)]'}>
                           {fmtNum(c.metrics.availableQty)}
                         </span>
                       </td>
@@ -207,7 +207,7 @@ export function AssortmentRecommendPage() {
             <p>综合分 = GMV销量 × 30% + 点击转化 × 25% + 库存健康 × 20% + 短视频引流 × 15% + 毛利 × 10%</p>
             <p>· <b className="text-[var(--text-secondary)]">GMV 销量</b>：近 {days} 天该商品在历史场次排品中的销量与成交额（归一化）</p>
             <p>· <b className="text-[var(--text-secondary)]">点击转化</b>：历史曝光→点击率，行业基准按 12% 记满分</p>
-            <p>· <b className="text-[var(--text-secondary)]">库存健康</b>：可用库存 /（安全库存 × 3）；<b className="text-rose-300">无库存档案记 0 分，不可排（防超卖）</b></p>
+            <p>· <b className="text-[var(--text-secondary)]">库存健康</b>：可用库存 /（安全库存 × 3）；<b className="text-status-danger">无库存档案记 0 分，不可排（防超卖）</b></p>
             <p>· <b className="text-[var(--text-secondary)]">短视频引流</b>：同期预热短视频进房流量强度</p>
             <p>· <b className="text-[var(--text-secondary)]">毛利</b>：（售价 − 成本）/ 售价，50% 记满分</p>
             <p className="text-[var(--text-muted)]">· 引流款限定售价 ≤ ¥129（低价是引流角色的定义）；任一口径缺数据时降级为 0 分并标注，不伪造。</p>
@@ -220,11 +220,11 @@ export function AssortmentRecommendPage() {
 
 function Sufficiency({ icon: Icon, label, ok, hint }: { icon: any; label: string; ok: boolean; hint: string }) {
   return (
-    <div className={`rounded-lg border p-3 ${ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-amber-500/40 bg-amber-500/5'}`}>
+    <div className={`rounded-lg border p-3 ${ok ? 'border-orbit-success/40 bg-orbit-success/5' : 'border-orbit-warning/40 bg-orbit-warning/5'}`}>
       <div className="flex items-center gap-2">
-        <Icon className={`w-4 h-4 ${ok ? 'text-emerald-400' : 'text-amber-400'}`} />
+        <Icon className={`w-4 h-4 ${ok ? 'text-status-success' : 'text-status-warning'}`} />
         <span className="text-xs text-[var(--text-secondary)]">{label}</span>
-        <span className={`ml-auto text-[10px] ${ok ? 'text-emerald-400' : 'text-amber-400'}`}>
+        <span className={`ml-auto text-[10px] ${ok ? 'text-status-success' : 'text-status-warning'}`}>
           {ok ? '充足' : '不足'}
         </span>
       </div>
@@ -253,16 +253,16 @@ function RoleGroup({ title, desc, items }: { title: string; desc: string; items:
                 <span className="text-xs text-orbit-primary font-semibold">{c.totalScore} 分</span>
               </div>
               <div className="flex flex-wrap gap-1.5 mb-1.5">
-                <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-[var(--text-secondary)]">
+                <span className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--hover-bg3)] border border-orbit-border/60 text-[var(--text-secondary)]">
                   ¥{fmtNum(c.retailPrice)}
                 </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-[var(--text-secondary)]">
+                <span className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--hover-bg3)] border border-orbit-border/60 text-[var(--text-secondary)]">
                   售出 {fmtNum(c.metrics.recentSoldCount)}
                 </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-[var(--text-secondary)]">
+                <span className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--hover-bg3)] border border-orbit-border/60 text-[var(--text-secondary)]">
                   点击 {fmtPct(c.metrics.historicalClickRate)}
                 </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 border border-orbit-border/60 text-[var(--text-secondary)]">
+                <span className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--hover-bg3)] border border-orbit-border/60 text-[var(--text-secondary)]">
                   库存 {fmtNum(c.metrics.availableQty)}
                 </span>
               </div>

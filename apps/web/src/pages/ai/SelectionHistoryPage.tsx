@@ -112,7 +112,7 @@ export const SelectionHistoryPage: React.FC = () => {
       </div>
 
       {/* 历史记录表格 */}
-      <div className="bg-white dark:bg-orbit-ink rounded-xl border border-orbit-border dark:border-[var(--border)] shadow-sm overflow-hidden">
+      <div className="bg-orbit-surface rounded-xl border border-orbit-border dark:border-[var(--border)] shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-sm text-[var(--text-muted)]">正在加载选品历史记录...</div>
         ) : list.length === 0 ? (
@@ -144,7 +144,7 @@ export const SelectionHistoryPage: React.FC = () => {
                       <span
                         className={`px-2 py-0.5 rounded text-[11px] font-medium ${
                           row.strategy === 'weather_led'
-                            ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                            ? 'bg-orbit-danger/10 text-status-danger dark:bg-orbit-danger/15 dark:text-status-danger'
                             : 'bg-orbit-info text-orbit-info dark:bg-orbit-info/60 dark:text-orbit-info'
                         }`}
                       >
@@ -156,7 +156,7 @@ export const SelectionHistoryPage: React.FC = () => {
                       <span
                         className={`px-2 py-0.5 rounded text-[11px] font-medium ${
                           row.status === 'adopted'
-                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            ? 'bg-orbit-success/10 text-status-success dark:bg-orbit-success/15 dark:text-status-success'
                             : 'bg-[var(--surface2)] text-[var(--text-primary)] dark:bg-orbit-ink dark:text-[var(--text-muted)]'
                         }`}
                       >
@@ -191,7 +191,7 @@ export const SelectionHistoryPage: React.FC = () => {
       {/* 明细弹窗 */}
       {activeDetail && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-orbit-ink rounded-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl border border-orbit-border dark:border-[var(--border)] space-y-4">
+          <div className="bg-orbit-surface rounded-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl border border-orbit-border dark:border-[var(--border)] space-y-4">
             <div className="flex items-center justify-between border-b border-orbit-border dark:border-[var(--border)] pb-3">
               <div>
                 <h3 className="font-bold text-[var(--text-primary)] dark:text-white flex items-center gap-2">
@@ -231,10 +231,10 @@ export const SelectionHistoryPage: React.FC = () => {
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="font-bold text-rose-600 dark:text-rose-400">
+                      <div className="font-bold text-status-danger dark:text-status-danger">
                         ¥{parseFloat(it.suggested_price).toFixed(2)}
                       </div>
-                      <div className="text-[11px] text-emerald-600 font-semibold">
+                      <div className="text-[11px] text-status-success font-semibold">
                         评分: {it.match_score}
                       </div>
                     </div>

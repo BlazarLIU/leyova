@@ -60,17 +60,17 @@ const statusBadgeVariantMap: Record<string, 'success' | 'neutral' | 'warning'> =
 
 function getScoreColor(score: number | null): string {
   if (score == null) return 'text-[var(--text-muted)]'
-  if (score >= 80) return 'text-emerald-400'
-  if (score >= 65) return 'text-amber-400'
-  return 'text-red-400'
+  if (score >= 80) return 'text-status-success'
+  if (score >= 65) return 'text-status-warning'
+  return 'text-status-danger'
 }
 
 function getWeaknessColor(weakness: string): string {
   if (!weakness) return 'bg-[var(--surface3)] text-[var(--text-muted)]'
   if (weakness === '引流') return 'bg-orbit-primary/15 text-orbit-primary'
-  if (weakness === '互动') return 'bg-cyan-500/15 text-cyan-300'
-  if (weakness === '转化') return 'bg-emerald-500/15 text-emerald-300'
-  return 'bg-amber-500/15 text-amber-300'
+  if (weakness === '互动') return 'bg-orbit-success/15 text-status-ai'
+  if (weakness === '转化') return 'bg-orbit-success/15 text-status-success'
+  return 'bg-orbit-warning/15 text-status-warning'
 }
 
 export function AnchorListPage() {
@@ -232,7 +232,7 @@ export function AnchorListPage() {
                           <DollarSign className="w-3.5 h-3.5" />
                           场均GMV
                         </span>
-                        <span className="text-emerald-400 font-medium tabular-nums text-xs">
+                        <span className="text-status-success font-medium tabular-nums text-xs">
                           ¥{(anchor.avgGMV / 10000).toFixed(1)}万
                         </span>
                       </div>
@@ -250,7 +250,7 @@ export function AnchorListPage() {
                           <Target className="w-3.5 h-3.5" />
                           UV价值
                         </span>
-                        <span className="text-cyan-400 font-medium tabular-nums text-xs">
+                        <span className="text-status-ai font-medium tabular-nums text-xs">
                           {anchor.avgUvValue.toFixed(2)}
                         </span>
                       </div>
@@ -277,7 +277,7 @@ export function AnchorListPage() {
                           <DollarSign className="w-3.5 h-3.5" />
                           GPM
                         </span>
-                        <span className="text-amber-400 font-medium tabular-nums text-xs">
+                        <span className="text-status-warning font-medium tabular-nums text-xs">
                           {anchor.avgGpm > 0 ? `¥${anchor.avgGpm.toFixed(0)}` : '-'}
                         </span>
                       </div>

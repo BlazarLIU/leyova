@@ -79,13 +79,13 @@ export const ScheduleRecommendPage: React.FC = () => {
           onClick={handleApply}
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-orbit-primary hover:bg-orbit-primary-dark text-white rounded-lg text-xs font-medium shadow-xs transition-colors"
         >
-          {applied ? <Check className="w-4 h-4 text-emerald-300" /> : <Sparkles className="w-4 h-4" />}
+          {applied ? <Check className="w-4 h-4 text-status-success" /> : <Sparkles className="w-4 h-4" />}
           {applied ? '排班矩阵已应用至考勤中心' : '一键应用本周推荐排班'}
         </button>
       </div>
 
       {/* 顶部策略概览卡片 */}
-      <div className="bg-white rounded-2xl border border-orbit-border shadow-xs p-6 space-y-4">
+      <div className="bg-orbit-surface rounded-2xl border border-orbit-border shadow-xs p-6 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-orbit-border">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-orbit-primary bg-orbit-primary/[0.08] px-2.5 py-0.5 rounded-full border border-orbit-primary/25">
@@ -113,7 +113,7 @@ export const ScheduleRecommendPage: React.FC = () => {
           {data?.schedule?.map((item) => (
             <div
               key={item.slotKey}
-              className="p-5 rounded-xl border border-orbit-border bg-white shadow-xs hover:border-orbit-info/40 transition-all space-y-3"
+              className="p-5 rounded-xl border border-orbit-border bg-orbit-surface shadow-xs hover:border-orbit-info/40 transition-all space-y-3"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -149,8 +149,8 @@ export const ScheduleRecommendPage: React.FC = () => {
               </div>
 
               {/* AI 推荐归因理由 */}
-              <div className="text-[11px] text-[var(--text-primary)] leading-relaxed bg-amber-50/40 p-2.5 rounded-lg border border-amber-100/60">
-                💡 <strong className="text-amber-800">推荐逻辑：</strong>{item.aiReason}
+              <div className="text-[11px] text-[var(--text-primary)] leading-relaxed bg-orbit-warning/10 p-2.5 rounded-lg border border-orbit-warning/60">
+                💡 <strong className="text-status-warning">推荐逻辑：</strong>{item.aiReason}
               </div>
             </div>
           ))}

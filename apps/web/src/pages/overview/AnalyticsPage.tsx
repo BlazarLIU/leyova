@@ -196,7 +196,7 @@ export function AnalyticsPage() {
                     {formatValue(item.value)}
                   </span>
                   <div
-                    className="w-full max-w-[48px] bg-gradient-to-t from-orbit-accent to-cyan-400 rounded-t-md transition-all duration-300 hover:to-cyan-300"
+                    className="w-full max-w-[48px] bg-gradient-to-t from-orbit-accent to-orbit-success rounded-t-md transition-all duration-300 hover:to-orbit-success"
                     style={{ height: `${(item.value / maxValue) * 100}%` }}
                   />
                   <span className="text-[11px] text-[var(--text-primary)]">{item.date}</span>
@@ -232,10 +232,10 @@ export function AnalyticsPage() {
                   {detailData.map((row) => (
                     <tr
                       key={row.date}
-                      className="border-b border-orbit-border hover:bg-white/5 transition-colors"
+                      className="border-b border-orbit-border hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <td className="px-5 py-3.5 text-[var(--text-secondary)] font-medium">{row.date}</td>
-                      <td className="px-5 py-3.5 text-right text-emerald-400 font-medium">{row.gmv}</td>
+                      <td className="px-5 py-3.5 text-right text-status-success font-medium">{row.gmv}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.orders.toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)]">{row.avgOrder}</td>
                       <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] tabular-nums">{row.viewers.toLocaleString()}</td>
@@ -247,7 +247,7 @@ export function AnalyticsPage() {
                 <tfoot>
                   <tr className="bg-orbit-surface2 border-t-2 border-orbit-border">
                     <td className="px-5 py-3.5 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">合计</td>
-                    <td className="px-5 py-3.5 text-right text-emerald-400 font-bold">{totals.gmv}</td>
+                    <td className="px-5 py-3.5 text-right text-status-success font-bold">{totals.gmv}</td>
                     <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-bold tabular-nums">{totals.orders.toLocaleString()}</td>
                     <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-bold">{totals.avgOrder}</td>
                     <td className="px-5 py-3.5 text-right text-[var(--text-secondary)] font-bold tabular-nums">{totals.viewers.toLocaleString()}</td>

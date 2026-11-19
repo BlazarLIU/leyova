@@ -166,7 +166,7 @@ export function SearchKeywordsPage() {
             <div className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
               <span>{r.keyword}</span>
               {r.note_id && (
-                <span className="text-[10px] text-cyan-400 bg-cyan-950/60 px-1.5 py-0.2 rounded border border-cyan-800">
+                <span className="text-[10px] text-status-ai bg-orbit-success/15 px-1.5 py-0.2 rounded border border-orbit-success">
                   小红书挂载
                 </span>
               )}
@@ -193,7 +193,7 @@ export function SearchKeywordsPage() {
         render: (v) => (
           <span
             className={`font-bold tabular-nums ${
-              v <= 3 ? 'text-amber-400' : v <= 10 ? 'text-emerald-400' : 'text-[var(--text-muted)]'
+              v <= 3 ? 'text-status-warning' : v <= 10 ? 'text-status-success' : 'text-[var(--text-muted)]'
             }`}
           >
             #{v}
@@ -227,7 +227,7 @@ export function SearchKeywordsPage() {
         key: 'cvr',
         header: 'CVR',
         align: 'right',
-        render: (v) => <span className="tabular-nums font-mono text-cyan-400">{v}%</span>,
+        render: (v) => <span className="tabular-nums font-mono text-status-ai">{v}%</span>,
       },
       {
         key: 'search_gmv',
@@ -235,7 +235,7 @@ export function SearchKeywordsPage() {
         align: 'right',
         sortable: true,
         render: (v) => (
-          <span className="font-semibold text-emerald-400 tabular-nums">
+          <span className="font-semibold text-status-success tabular-nums">
             ¥{Number(v || 0).toLocaleString()}
           </span>
         ),
@@ -247,7 +247,7 @@ export function SearchKeywordsPage() {
   return (
     <div className="space-y-6">
       {errorMsg && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs text-rose-300 flex items-center justify-between">
+        <div className="rounded-xl border border-orbit-danger/40 bg-orbit-danger/10 px-4 py-3 text-xs text-status-danger flex items-center justify-between">
           <span className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
             {errorMsg}
@@ -397,7 +397,7 @@ export function SearchKeywordsPage() {
           <Card>
             <CardBody>
               <div className="text-xs text-[var(--text-muted)]">Top 5 卡位词</div>
-              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">
+              <div className="text-xl font-bold text-status-success mt-1 tabular-nums">
                 {summary.top_rank_count}
               </div>
               <div className="text-[11px] text-[var(--text-muted)] mt-0.5">平均排名 #{summary.avg_rank}</div>
@@ -406,7 +406,7 @@ export function SearchKeywordsPage() {
           <Card>
             <CardBody>
               <div className="text-xs text-[var(--text-muted)]">搜索总曝光</div>
-              <div className="text-xl font-bold text-cyan-400 mt-1 tabular-nums">
+              <div className="text-xl font-bold text-status-ai mt-1 tabular-nums">
                 {summary.total_impressions.toLocaleString()}
               </div>
             </CardBody>
@@ -422,7 +422,7 @@ export function SearchKeywordsPage() {
           <Card>
             <CardBody>
               <div className="text-xs text-[var(--text-muted)]">搜索贡献 GMV</div>
-              <div className="text-xl font-bold text-emerald-400 mt-1 tabular-nums">
+              <div className="text-xl font-bold text-status-success mt-1 tabular-nums">
                 ¥{summary.total_search_gmv.toLocaleString()}
               </div>
             </CardBody>
@@ -434,7 +434,7 @@ export function SearchKeywordsPage() {
       <DataPage<KeywordRow>
         title={
           <span className="flex items-center gap-2">
-            <Search className="w-5 h-5 text-cyan-400" />
+            <Search className="w-5 h-5 text-status-ai" />
             <span>搜索词卡位排名与小红书 SEO 词包联动</span>
           </span>
         }
@@ -518,10 +518,10 @@ export function SearchKeywordsPage() {
                       <td className="px-4 py-3 text-right tabular-nums text-[var(--text-secondary)]">
                         {Number(n.search_impressions || 0).toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-cyan-400 font-medium">
+                      <td className="px-4 py-3 text-right tabular-nums text-status-ai font-medium">
                         ¥{Number(n.onsite_gmv || 0).toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-emerald-400 font-medium">
+                      <td className="px-4 py-3 text-right tabular-nums text-status-success font-medium">
                         ¥{Number(n.offsite_gmv || 0).toLocaleString()}
                       </td>
                     </tr>

@@ -214,7 +214,7 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
             </button>
             <button
               onClick={() => setDeletingId(r.id)}
-              className="text-xs text-[var(--text-muted)] hover:text-rose-400 transition-colors inline-flex items-center gap-1"
+              className="text-xs text-[var(--text-muted)] hover:text-status-danger transition-colors inline-flex items-center gap-1"
             >
               <Trash2 className="w-3.5 h-3.5" />
               删除
@@ -244,9 +244,9 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">启用开播中</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-status-success" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.active}</p>
+            <p className="mt-1 text-2xl font-bold text-status-success">{stats.active}</p>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">正参与排班与数据统计</p>
           </CardBody>
         </Card>
@@ -264,9 +264,9 @@ export function RoomsSection({ rooms, onRoomsChange }: Props) {
           <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-[var(--text-muted)]">覆盖电商平台</span>
-              <Layers className="w-4 h-4 text-sky-400" />
+              <Layers className="w-4 h-4 text-status-info" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-sky-400">{stats.platforms} 个</p>
+            <p className="mt-1 text-2xl font-bold text-status-info">{stats.platforms} 个</p>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">多平台阵列协同布局</p>
           </CardBody>
         </Card>

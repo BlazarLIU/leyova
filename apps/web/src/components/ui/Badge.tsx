@@ -9,9 +9,9 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        success: 'border-orbit-success/25 bg-orbit-success/10 text-orbit-success dark:text-emerald-400',
-        warning: 'border-orbit-warning/30 bg-orbit-warning/12 text-orbit-warning dark:text-amber-400',
-        danger:  'border-orbit-danger/25 bg-orbit-danger/10 text-orbit-danger dark:text-red-400',
+        success: 'border-orbit-success/25 bg-orbit-success/10 text-orbit-success dark:text-status-success',
+        warning: 'border-orbit-warning/30 bg-orbit-warning/12 text-orbit-warning dark:text-status-warning',
+        danger:  'border-orbit-danger/25 bg-orbit-danger/10 text-orbit-danger dark:text-status-danger',
         info:    'border-orbit-info/25 bg-orbit-info/10 text-orbit-info dark:text-orbit-info',
         primary: 'border-orbit-primary/25 bg-orbit-primary/10 text-orbit-primary dark:text-orbit-primary-light',
         accent:  'border-orbit-accent-deep/40 bg-orbit-accent/35 text-orbit-ink dark:bg-orbit-accent/18 dark:text-orbit-accent',

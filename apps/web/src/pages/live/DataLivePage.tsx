@@ -141,7 +141,7 @@ export function DataLivePage() {
       case 'operatorName': return <span className="text-[var(--text-secondary)]">{r.operatorName}</span>
       case 'startTime': return <span className="text-[var(--text-secondary)]">{r.startTime}-{r.endTime}</span>
       case 'duration': return <span className="text-[var(--text-secondary)]">{r.duration}</span>
-      case 'gmv': return <span className="text-emerald-400 font-medium">{formatMoney(r.gmv)}</span>
+      case 'gmv': return <span className="text-status-success font-medium">{formatMoney(r.gmv)}</span>
       case 'gsv': return <span className="text-[var(--text-secondary)]">{formatMoney(r.gsv)}</span>
       case 'status': return <Badge variant={statusVariant[r.status] || 'info'}>{r.status}</Badge>
       case 'actions': return (
@@ -149,7 +149,7 @@ export function DataLivePage() {
           <button onClick={() => handleEdit(r.id)} className="text-[var(--text-muted)] hover:text-orbit-primary-light transition-colors" title="编辑">
             <Edit3 className="w-4 h-4" />
           </button>
-          <button onClick={() => setDeletingId(r.id)} className="text-[var(--text-muted)] hover:text-red-400 transition-colors" title="删除">
+          <button onClick={() => setDeletingId(r.id)} className="text-[var(--text-muted)] hover:text-status-danger transition-colors" title="删除">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -216,7 +216,7 @@ export function DataLivePage() {
                   </thead>
                   <tbody>
                     {filtered.map((r) => (
-                      <tr key={r.id} className="border-b border-orbit-border/50 hover:bg-white/5 transition-colors">
+                      <tr key={r.id} className="border-b border-orbit-border/50 hover:bg-[var(--hover-bg)] transition-colors">
                         {columns.map(col => (
                           <td key={col.key} className={`py-3 px-3 text-${col.align}`}>
                             {renderCell(r, col.key)}

@@ -228,7 +228,7 @@ export function CustomerServicePage() {
         render: (_, s) => (
           <span className="font-mono tabular-nums text-[var(--text-secondary)]">
             {s.total_sessions} / {s.responded_sessions} /{' '}
-            <span className="text-red-400">{s.timeout_sessions}</span>
+            <span className="text-status-danger">{s.timeout_sessions}</span>
           </span>
         ),
       },
@@ -238,7 +238,7 @@ export function CustomerServicePage() {
         align: 'right',
         sortable: true,
         render: (_, s) => (
-          <span className="font-mono tabular-nums text-cyan-400 font-semibold">
+          <span className="font-mono tabular-nums text-status-ai font-semibold">
             {s.avg_first_response_sec}s
           </span>
         ),
@@ -260,7 +260,7 @@ export function CustomerServicePage() {
         align: 'right',
         sortable: true,
         render: (_, s) => (
-          <span className="font-mono tabular-nums text-emerald-400 font-semibold">
+          <span className="font-mono tabular-nums text-status-success font-semibold">
             ¥{Number(s.converted_gmv).toLocaleString()} ({s.satisfaction_rate}%)
           </span>
         ),
@@ -301,7 +301,7 @@ export function CustomerServicePage() {
         sortable: true,
         render: (_, a) => (
           <span className="font-mono tabular-nums text-[var(--text-secondary)]">
-            {a.total_sessions} / <span className="text-red-400">{a.timeout_sessions}</span>
+            {a.total_sessions} / <span className="text-status-danger">{a.timeout_sessions}</span>
           </span>
         ),
       },
@@ -311,7 +311,7 @@ export function CustomerServicePage() {
         align: 'right',
         sortable: true,
         render: (_, a) => (
-          <span className="font-mono tabular-nums text-cyan-400 font-semibold">
+          <span className="font-mono tabular-nums text-status-ai font-semibold">
             {a.avg_first_response_sec}s
           </span>
         ),
@@ -322,7 +322,7 @@ export function CustomerServicePage() {
         align: 'right',
         sortable: true,
         render: (_, a) => (
-          <span className="font-mono tabular-nums text-emerald-400 font-bold">
+          <span className="font-mono tabular-nums text-status-success font-bold">
             ¥{Number(a.converted_gmv).toLocaleString()}
           </span>
         ),
@@ -334,7 +334,7 @@ export function CustomerServicePage() {
   return (
     <div className="space-y-6">
       {errorMsg && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+        <div className="rounded-lg border border-orbit-danger/30 bg-orbit-danger/10 px-4 py-2.5 text-sm text-status-danger">
           {errorMsg}
         </div>
       )}
@@ -354,7 +354,7 @@ export function CustomerServicePage() {
               <p className="text-xs text-[var(--text-muted)]">平均首响时长</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
-                  overview.avgFirstResponseSec > 25 ? 'text-amber-400' : 'text-emerald-400'
+                  overview.avgFirstResponseSec > 25 ? 'text-status-warning' : 'text-status-success'
                 }`}
               >
                 {overview.avgFirstResponseSec}s
@@ -366,7 +366,7 @@ export function CustomerServicePage() {
               <p className="text-xs text-[var(--text-muted)]">超时率 (&gt;30s)</p>
               <p
                 className={`mt-1 text-2xl font-bold ${
-                  overview.timeoutRate > 5 ? 'text-red-400' : 'text-[var(--text-primary)]'
+                  overview.timeoutRate > 5 ? 'text-status-danger' : 'text-[var(--text-primary)]'
                 }`}
               >
                 {overview.timeoutRate}%
@@ -376,7 +376,7 @@ export function CustomerServicePage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">询单下单转化率</p>
-              <p className="mt-1 text-2xl font-bold text-cyan-400">
+              <p className="mt-1 text-2xl font-bold text-status-ai">
                 {overview.inquiryConversionRate}%
               </p>
             </CardBody>
@@ -384,7 +384,7 @@ export function CustomerServicePage() {
           <Card>
             <CardBody className="p-4">
               <p className="text-xs text-[var(--text-muted)]">询单转化 GMV / 满意度</p>
-              <p className="mt-1 text-xl font-bold text-emerald-400">
+              <p className="mt-1 text-xl font-bold text-status-success">
                 ¥{overview.convertedGmv.toLocaleString()} · {overview.avgSatisfactionRate}%
               </p>
             </CardBody>
@@ -453,7 +453,7 @@ export function CustomerServicePage() {
           title="客服咨询会话流水明细"
           subtitle="覆盖京东 9:00–23:00 咚咚响应考核时段与全平台首响时长、超时率及询单转化 GMV 归因"
           badge={
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-emerald-400 border border-orbit-border">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-success border border-orbit-border">
               DataPage + useTable
             </span>
           }
@@ -504,7 +504,7 @@ export function CustomerServicePage() {
           title="客服坐席效能排行榜"
           subtitle="全平台坐席累计接待人次、加权平均首响秒数、超时次数与转化 GMV 总榜"
           badge={
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-cyan-400 border border-orbit-border">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orbit-surface2 text-status-ai border border-orbit-border">
               坐席效能榜
             </span>
           }
