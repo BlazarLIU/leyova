@@ -4,8 +4,8 @@ import { cn } from '@/utils/cn'
  * Leyova 品牌标识
  *
  * 素材全部来自官方 Logo 文件，仅在深/浅色主题间切换不同官方版本：
- *  - 浅色：官方字标（墨黑文字 + 橙/绿图形）/ 官方透明图形
- *  - 深色：官方 BLACK 应用图标 + 白色字标文本（不重绘、不拉伸、不改色）
+ *  - 浅色：官方字标（墨黑文字 + 橙/绿图形）
+ *  - 深色：官方反白字标（同一图形，文字转雪白）
  *
  * 通过纯 CSS（dark:hidden / hidden dark:block）做切换，避免 JS 测量与首屏闪烁。
  */
@@ -70,29 +70,18 @@ export function BrandLogo({ variant = 'full', size = 28, inverted = false, class
     <span className={cn('inline-flex items-center', className)}>
       {/* 浅色：官方完整字标 */}
       <img
-        src="/brand/logo-full.png"
+        src="/brand/leyova-primary-logo.png"
         alt="Leyova"
         className="w-auto object-contain dark:hidden"
         style={{ height: size }}
       />
-      {/* 深色：官方 BLACK 图标 + 白色 Leyova 文字 */}
-      <span
-        className="hidden items-center dark:inline-flex"
-        style={{ gap: Math.round(size * 0.3) }}
-      >
-        <img
-          src="/brand/mark-dark.png"
-          alt="Leyova"
-          className="object-contain"
-          style={{ height: size, width: size }}
-        />
-        <span
-          className="font-extrabold leading-none tracking-[-0.04em] text-white"
-          style={{ fontSize: Math.round(size * 0.78) }}
-        >
-          Leyova
-        </span>
-      </span>
+      {/* 深色：官方反白字标 */}
+      <img
+        src="/brand/leyova-primary-logo-dark.png"
+        alt="Leyova"
+        className="hidden w-auto object-contain dark:block"
+        style={{ height: size }}
+      />
     </span>
   )
 }
