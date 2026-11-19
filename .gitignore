@@ -38,8 +38,5 @@ sessions/
 .DS_Store
 
 # 本地审计与调研过程文档（不入库，仅本地留档）
-docs/audit-2026-11-11/
-docs/audit-2026-11-15/
-docs/research/
-docs/SYSTEM_AUDIT_AND_LEAN_ARCHITECTURE_DESIGN.md
+docs/
 database/*.bak*
