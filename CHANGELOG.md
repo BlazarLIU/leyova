@@ -1,0 +1,136 @@
+# Changelog
+
+All notable changes to **Leyova** are documented in this file.
+
+## [2026-11-23 — V2.1 Strategic Implementation & Unified Decision Loop Baseline]
+
+### Major Architectural Upgrades & Strategic Convergence
+- **战略方案与工程基线统一合并 (WP-00)**：
+  - 基于《Leyova战略方案V2.1》、《Leyova_V1.3_产品收敛与主播运营合规能力完整实施方案》与《系统冗余功能下线与清理计划_20261123》三份核心文档比对与裁决，确立技术基线。
+  - 在 `main` 分支建立 `backup-main-pre-v21-20261123` 历史基线 Tag，并无快进合并 `feature/decision-loop-v1`。
+- **严格分层 Gate 1 一票否决机制 (WP-04 & WP-06)**：
+  - 增量迁移 `214_decision_gate_and_learned.sql`：新增 `decision_data_gates` 表与 `LEARNED` 状态机。
+  - 彻底废弃 5/7 粗暴及格分逻辑，推行严格 Gate 1 硬性前置门禁（广告消耗 `ad_spend`、订单归因 `order_attribution`、生效成本 `unit_cost` 必须 100% 具备，缺少任一项立即 Fail-Closed 阻断量化预测）。
+  - 新增 `GET /api/v1/decision-cases/:id/gates` 与 `POST /api/v1/decision-cases/:id/eval-gates`。
+- **决策终态跃迁与复盘记忆沉淀 (WP-04B)**：
+  - 支持 `REVIEWED -> LEARNED` 核心生命周期跃迁，记录 `learned_at` 并持久化 `learning_summary` 经验总结，固化为企业数字资产。
+- **主播轻量画像与词级受控合规中心 (WP-07)**：
+  - 增量迁移 `215_anchor_profiles_and_compliance.sql`：新增 `anchor_competency_profiles`（主播品类标签与风格画像）、`compliance_learning_tasks`（合规新规学习整改任务流）与 `compliance_sensitive_replacements`（敏感词/极限词映射字典）。
+  - 引入词级受控合规检查服务（`POST /api/v1/compliance/check-script`），杜绝大模型自由发挥带来的违规与幻觉风险，精准推荐官方安全替换短语。
+- **排品测算推荐与直播清单导出 (WP-07B)**：
+  - 新增 `apps/api/src/services/assortment-sequencing.ts`，支持基于毛利优先、GMV 优先或清库存目标加权推荐出场顺序并分配讲解时长。
+  - 新增 `POST /api/v1/assortment/recommend-sequence` 与 `POST /api/v1/assortment/export-checklist`，支持一键导出标准直播执行清单 CSV。
+- **三前台导航交互收敛 (WP-05)**：
+  - 前台入口收敛为三核心入口：今天的变化 (`/ai-ops/cockpit`)、调查与决策 (`/ai-ops/governance/cases`)、决策追踪 (`/ai-ops/session/actions`)。
+  - 决策案详情内嵌 Gate 1/Gate 2 诊断卡片、LEARNED 经验记忆卡片与 Evidence 证据抽屉。
+- **开箱即用物料与客户交付包 (WP-08 & WP-09)**：
+  - 编制《首期数据接入标准规范》( `DATA_INGESTION_SPECIFICATION.md`) 与《试点品牌客户快速接入白皮书》( `PILOT_CLIENT_ONBOARDING_GUIDE.md`)。
+  - 产出广告消耗、订单事实、成本版本、结算退款 4 张标准样例 CSV，并交付全链路端到端演练套件 (`scripts/simulate-data-ingestion-and-decision-loop.mjs`)。
+- **冗余功能下线与归档深度审计 (WP-00A)**：
+  - 落实 `FEATURE_SCOPE=core` 运行时范围隔离，非核心货架电商与冗余 ERP 模块在 core 模式下不予暴露；
+  - 严格遵守数据库“只归档、绝不 DROP TABLE”的资产留存铁律，产出 `REDUNDANCY_CLEANUP_AND_ARCHIVE_AUDIT.md`。
+
+---
+
+## [2026-11-12 — SKU Order Facts, Endpoint Parity Guardrail & P3 Closure]
+
+### Added & Hardened
+- **SKU 级订单明细闭环与 RLS 补全 (`database/migrations/121_sku_order_facts_and_p3_polish.sql`)**：
+  - 为 `canonical_order_items` 启用 PostgreSQL `FORCE ROW LEVEL SECURITY`（新增 `p_canonical_order_items_select` / `_write` 策略与 `(store_id, biz_date, internal_sku_id)` 索引），与 `canonical_orders`、`canonical_refund_events` 对齐，全库 RLS 表增至 30 张。
+  - 补全天猫/京东等 7 平台 8 店铺 `dim_sku_mapping` 关联，并生成 `canonical_order_items` 近期 SKU 子订单明细样本（8 店铺 90 条明细行）。
+  - `apps/api/src/routes/omnichannel.ts` 新增 `GET /api/v1/omnichannel/shop/:id/products`，真实聚合店铺 SKU 销量、订单数、实付金额、优惠分摊与成交均价，并按 `canAccessCost` 对估算成本/毛利/毛利率自动脱敏；`ShopProductsPage.tsx` 同步渲染「商品 SKU 销量与盈利排行」卡片并修正跳转路径 `/ops/inventory`。
+- **前后端端点一致性静态护栏 & 4 处真实孤儿调用闭环**：
+  - `scripts/check-guardrails.mjs` 新增 Guardrail 3 (`ENDPOINT-PARITY`)，静态扫描全部前端 `api.{get,post,put,patch,delete}` 路径并与 Fastify 注册路由逐一对齐（236 处前端调用 100% 匹配）。
+  - 依据护栏排查并补齐 4 处前端真实调用但后端缺失的闭环路由：`GET /api/v1/overview/sessions` (`overview.ts`)、`GET /api/v1/review/related-issues` (`review.ts`)、`POST /api/v1/system/competitors` 与 `POST /api/v1/system/tasks` (`system.ts`)，同时修复 `CompetitorWatchPage.tsx` 对后端数组返回格式的兼容。
+- **P3 导航语义、独立模块与工程全面收口**：
+  - `platform-navigation.ts`、`App.tsx` 与 `Topbar.tsx` 同步对齐权限模块映射（`/shop/pdd/caliber-compare` → `bi`、`/shop/jd/store-rating` → `fulfillment`、`/shop/xiaohongshu/notes` → `content`），补齐 `Topbar` 店铺专页标签与模块准入清单并清理死路由 `/content/config` 与 `AccountsSection.tsx` 残留 `system_inventory` 映射。
+  - 新增 `/system/personnel`（`PersonnelPage.tsx`，`module="system_personnel_ops"`）与 `/system/rooms`（`RoomsPage.tsx`，`module="system_rooms"`）独立页面与侧栏入口，打通 HRBP 与运营总监准入。
+  - 下线兼容页 `RoiDashboardPage`（`/bi/roi` 重定向至 `/ops/net-roi`）及后端兼容/冗余别名路由（`GET /api/v1/bi/roi`、`GET /api/v1/system/inventory`、`/api/v1/ops/{goals,scripts,issues}` 及 `/api/v1/anchors` 重复别名），并将 `/api/v1/anchors/:id` 收口为纯数字主键校验（防非法字符触发 500）。
+  - `apps/web/src/pages/ops/` 按 9 个独立业务域拆分为子目录，修复 `GlobalSearch.tsx` 失效跳转并新增 `@leyova/web` 前端架构与权限契约测试套件（`apps/web/test/frontend-integrity.test.mjs`，接入 `pnpm test` 与 `.github/workflows/ci.yml`）；全仓 `@leyova/api`（62 项）与 `@leyova/web`（7 项）测试全部通过。
+
+---
+
+## [2026-11-12 — Mid-Term Architecture Optimization]
+
+### Added & Unified
+- **僵尸/备份表清理与数据库收敛 (`database/migrations/120_midterm_architecture_optimization.sql`)**：
+  - 删除 8 张确认 0 行、0 业务引用的空表/历史备份表：`product_template_items`、`product_templates`、`ad_channel_metrics`、`ad_plans`、`agency_client_tokens`、`attendance_records`、`dim_channel`、`live_registrations_backup_20261108`。
+  - 新增 `fact_jd_settlement_fees`（启用 `FORCE ROW LEVEL SECURITY` 与成本权限 SELECT/WRITE 策略，预置京东自营毛保/返点/TC运费/贴码费/质保金与 POP 佣金/仓配履约费样本）并补全 `platform_sla_config`（拼多多预售 120h、各平台仅退款/退货退款审单时效、发货延期默认赔付 `3.00`）、`system_config.refund_rate_warning_pct` (`10`) 及 `metric_definition.refund_rate` 配置。
+- **统一指标口径服务 & 语义层持久化联动**：
+  - 新增 `apps/api/src/services/metrics-caliber.ts`，集中提供 `computeRefundRatePct`、`computeOrderRefundRatePct`、`listMetricDefinitions` 与 `getRefundRateWarningPct`；统一收敛 `bi.ts`、`overview.ts`、`omnichannel.ts`、`review.ts`、`taobao-analytics.ts`、`pdd-analytics.ts` 与 `ai/register-insight-tools.ts` 中分散的退款率计算逻辑。
+  - `routes/caliber.ts` 接入 `requireAuth` + `withRlsContext` 并新增 `GET /api/v1/caliber/metrics`；`ai/semantic-layer.ts` 新增 `listMetricsFromCatalog` 联动 `metric_definition` 表，供 `GET /api/v1/analysis/metrics` 使用；`ai/orchestrator.ts` 改为读取 `system_config.refund_rate_warning_pct` 替代硬编码 `10%` 水位。
+- **配置驱动 SLA 与京东精细化费用对账**：
+  - 移除 `routes/after-sales.ts` 与 `routes/fulfillment.ts` 中的平台硬编码审单/预售/赔付兜底分支，统一从 `platform_sla_config` 读取规则。
+  - `platform/jd-analytics.ts` 与 `routes/jd.ts` 新增 `getJdSettlementFees` 与 `GET /api/v1/jd/settlement-fees`，并将 `feeSummary` 合入 `/api/v1/jd/mode-breakdown`；非 `canAccessCost` 角色自动脱敏 `feeSummary` 与 `grossMargin`。
+- **前端真实关联升级**：
+  - `JdBusinessBoardPage.tsx` 展示自营/POP 费用汇总及精细化结算对账明细（支持脱敏提示）。
+  - `ShopProductsPage.tsx` 对接 `GET /api/v1/inventory/products?platformCode=...` 呈现主商品与平台 SKU 映射库存；`ShopOverviewPage.tsx` 恢复「店铺经营看板」清晰定位并提供小红书「笔记内容看板」直达入口。
+
+---
+
+## [2026-11-12 — Round 2 Overlap & Redundancy Consolidation]
+
+### Added & Consolidated
+- **全路由 PostgreSQL RLS 全覆盖 & 服务签名统一**：
+  - 将全部 37 个业务路由文件统一迁入 `withRlsContext` / `withRlsPool`（仅登录/登出与健康检查 `auth.ts`、`health.ts` 保留直连 `getPool`）；修复 `bi.ts` 使用不存在列名 `sp.display_name` 为 `sp.platform_name`，使 `/api/v1/bi/roi` 与 `/api/v1/bi/refund` 对接真实 `fact_ad_spend_daily`、`ad_tool_dict`、`v_fact_trade_default` 与 `fact_after_sale_tickets` 稳定返回真实指标。
+  - `platform/*`、`ai/*`、`services/anchor-ranking.ts`、`ingest/{sync-job,manual-mapper,douyin-bridge}.ts`、`cron/aggregate-facts.ts`、`lib/{audit,partitions}.ts` 统一接收可选 `DbExecutor = Pool | PoolClient`（兼容传透 RLS 事务连接与 Savepoint）。
+- **数据库结构收敛与去重 (`database/migrations/119_round2_consolidation_and_differentiation.sql`)**：
+  - 收敛 `ad_tool_dict`（新增 `impression_window_hours` / `supported_windows` 与真实种子数据）与 `pricing_rules`；移除重叠表 `promotion_rules`、`sync_jobs`、`sync_logs`、`ad_campaigns` 并对齐权限模块 (`audit_logs` 独立权限模块、10 角色 / 41 模块)。
+  - 保留 `live_registrations`（人工考勤/业绩录入闭环）与 `live_sessions` 职责边界，保留 `/api/v1/bi/roi` 与 `/api/v1/net-roi/overview` 并提供归因窗口 (`byAttributionWindow`) 与经营模式 (`byBusinessMode`) 拆分维度。
+- **前端路由收口、动态店铺 Hook、角色模块权限矩阵与 CI 门禁**：
+  - 清理死代码 `ContentConfigPage.tsx` 与 `data/navigation.ts`；将 `/content/config` 重定向至 `/content/center-config`，移除重复 `/ops/sessions` 路由及重复 `/shop/products` 导航项；统一 `Topbar.tsx`、`platform-navigation.ts`、`App.tsx` 与 `audit_logs` 模块权限及「合规风控」命名。
+  - 新增 `apps/web/src/hooks/useShops.ts` 从 `/api/v1/platforms` 动态获取活跃店铺并移除 `AfterSalesPage` / `FulfillmentSlaPage` / `KolCooperationPage` 中的硬编码 `mapShop`。
+  - 在 `AccountsSection.tsx` 补齐全部模块中文映射并新增「角色模块权限矩阵」配置卡片对接 `PUT /api/v1/system/roles/modules`；`UsersPage.tsx` 补全全部 10 个角色选项与标签。
+  - 新增 `scripts/check-guardrails.mjs`（`pnpm check:guardrails`）并接入 `.github/workflows/ci.yml`，静态阻断业务路由新增 `getPool()` 绕过 RLS 及未带口径过滤的 `fact_trade_daily` `SUM(gmv)` 查询；扩展 `rbac-and-domains.test.ts` 至 59 项全通过。
+
+---
+
+## [2026-11-12 — Release Hardening, Real OpenAPI/OAuth & CI]
+
+### Added
+- **开放平台真实 HTTP/OAuth 传输与加密凭据绑定**:
+  - `apps/api/src/modules/data-governance/adapters/base-adapter.ts` & `platform-adapters.ts`：实现 7 大电商平台（抖音/快手/淘宝/天猫/京东/拼多多/小红书）真实 `fetch()`（含超时控制、429/5xx 退避重试、TOP MD5 / 抖店 v2 HMAC-SHA256 / 快手 / 京东 / 拼多多 / 小红书 Ark 签名）的 OAuth 换码、Token 刷新、订单与退款拉取，彻底移除硬编码伪造 Token 与 `sampleOrders`。
+  - `apps/api/src/platform/adapters/base.ts` 及四类适配器与 `apps/api/src/ingest/sync-job.ts` 收敛统一，接入 `decryptCredential` 解密持久化店铺凭证并保持 `manual_only` / 占位凭证 fail-closed。
+  - `apps/api/src/routes/platforms.ts` & `openapi.ts`：新增管理员专属 `GET /api/v1/platforms/:code/oauth/url`、`POST /api/v1/platforms/:code/oauth/callback` 与 `POST /api/v1/platforms/:code/shops/:shopId/credentials`（AES-256-GCM 密文落库 + 脱敏返回 + 审计记录），并在 `GET /api/v1/platforms` 返回脱敏凭证状态。
+  - `apps/web/src/pages/system/PlatformManagementPage.tsx`：新增店铺「配置 OAuth / 凭证」双标签弹窗与「立即同步」触发入口，完成管理员闭环。
+  - `apps/api/src/config/env.ts` & `security.ts`：在 `NODE_ENV=production` 下强制校验强随机 `API_ENCRYPTION_KEY`（>= 32 字符，禁止默认密钥）。
+  - 新增 `apps/api/test/platform-adapters.test.ts`（本地 `node:http` 测试服务覆盖 7 平台 OAuth、拉数、错误透传、fail-closed、脱敏响应及 `runSyncJob` 端到端闭环）。
+- **前端路由按需懒加载、Vite 分包与生产静态托管**: `apps/web/src/App.tsx` 93 个页面路由统一改造为 `React.lazy` + `<Suspense>`；`apps/web/vite.config.ts` 配置 `manualChunks` 与 `preview` 代理，并通过 `ecosystem.config.cjs` 切换 `leyova-web` 以 `vite preview` 托管 `dist/` 生产静态资源（主入口 `120.52 kB`）。
+- **CI 流水线**: 新增 `.github/workflows/ci.yml`，在全新 PostgreSQL 16 服务上自动执行空库初始化 + 迁移幂等校验、全工作区构建、测试类型检查与全量自动化测试。
+
+### Changed & Fixed
+- **空库冷启动引导修复 (`database/migrate.js`)**: 修复 `01_schema.sql` 设置 `search_path=''` 导致同一会话后续执行 `02_seed.sql` 报 `relation "roles" does not exist` 的问题，并在全新空库上验证 `01~03` + 19 个增量迁移（`100~118`）一次性通过。
+- **MCP 严格 HMAC 验签与告警通道清理**: 本地运行态与 `.env.example` 默认启用 `LEYOVA_MCP_REQUIRE_SIG=true`，补充 `/mcp` 正向 HMAC 放行回归用例；清空 `alert_rules` id=6 占位示例 Webhook。
+
+---
+
+## [2026-11-12] — 全面审计整改闭环、架构加固与回归测试
+
+### Added
+- **抖音专属分析模块** (`apps/api/src/routes/douyin.ts`): 新增 `/api/v1/douyin/shop/:id/{metrics,channels,anchors}` 端点，纳入统一跨平台店铺守卫 (`assertShopPlatform`) 与 `canAccessAdSpend` 脱敏控制。
+- **Fastify 可注入应用工厂与全量集成测试**:
+  - 拆分 `apps/api/src/app.ts` (`buildApp`) 与薄入口 `src/index.ts`；
+  - 新增 `apps/api/tsconfig.test.json` 及 `apps/api/test/rbac-and-domains.test.ts`（覆盖健康/就绪探针、防爆破 429 锁定、4 种角色二维越权矩阵、大促 5 层试算脱敏、跨平台店铺越权 400、MCP fail-closed 鉴权与语义层隔离）。
+- **新增共享与运维能力**:
+  - `apps/api/src/lib/mcp-auth.ts`: 共享等时比对 `timingSafeTokenEqual` 与 `signMcpUserId` / `verifyMcpUserSig` HMAC 工具；
+  - `docs/data-dictionary/README.md`、`docs/operations.md`、`CHANGELOG.md` 完整运维及数据字典文档，同步更新 `apps/api/src/openapi.ts`、`README.md`、`docs/architecture.md`、`database/README.md`。
+
+### Changed & Fixed
+- **鉴权与防爆破缺陷修复**:
+  - 修复 `apps/api/src/routes/auth.ts` 连续失败计数器在 `lockedUntil === 0` 时被错误归零的漏洞，使 5 次错密锁定稳定触发 `429`；
+  - 修复 `apps/api/src/routes/search-keywords.ts` 引用不存在列名 `dp.title` 导致的 SQL 500 错误，修正为 `dp.product_name AS product_title`。
+- **BI 与平台端点收口**: 为 `/api/v1/bi/{dashboard,roi,refund,anomalies}` 与 `/api/v1/ops/goal-tracking` 补充 `requireAuth`、平台权限校验及 `canAccessAdSpend` / `brand_viewer_permissions.can_view_cost` 门禁；重写 `/bi/roi` 与 `/bi/refund` 对接真实事实/售后表并绑定 `fact_trade_daily.upload_id` → `data_uploads` 血缘。
+- **AI 语义层 & MCP 安全加固**:
+  - 语义层 (`semantic-layer.ts`、`platform-metrics.ts`、`orchestrator.ts`) 与 AI 工具集按角色封堵未授权投流/毛利查询；修复 `platform-metrics.ts` SQL 参数缺失 `$` 漏洞；
+  - 前后端与独立 `mcp-server` 移除弱默认秘钥与默认管理员回退 (`LEYOVA_MCP_DEFAULT_USER_ID=1`)，改为 DB 实时校验用户角色、HMAC-SHA256 签名验证及等时 Bearer 检查；
+  - 去除 `AttendancePage.tsx` 假数据回退兜底，改用真实 loading/错误重试视图。
+- **分区、Cron、日志与备份加固**: `manage-partitions.ts` 扩展至全部 7 张分区表并自动兜底 `DEFAULT` 分区；`cron/index.ts` 全量接入 `system_jobs` 运行状态记录；`cleanup-logs.ts` 对齐 PM2 真实日志路径并采用 `copyFileSync + truncateSync`；`backup.ts` 接入输出校验与 `--retain=N` 保留清理。
+
+---
+
+## Earlier Milestones (`main`)
+
+- **`f750e89`** — `feat(security)`: 落库二维权限矩阵、PostgreSQL RLS (`leyova_app` 与 29 张物理行级策略表)、统一审计日志与前端路由守卫。
+- **`4fc1ab3`** — `feat(business-chains)`: 补齐商品主数据与库存、48h 履约 SLA、售后退货工单、达人佣金台账、客服绩效及迁移 `116`/`118` 业务闭环。
+- **`136b016`** — `fix(caliber)`: 全链路对齐 `platform_caliber_config` 默认口径 (`amount_type`)，修复多平台数据统计口径漂移。
+- **`a8e219e` / `6b8624b` / `fdbb755`** — 修复数据治理发布闸门与反向冲正回滚、告警规则评测闭环、垂直越权与前端侧栏 fail-closed 拦截。

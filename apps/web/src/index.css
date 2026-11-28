@@ -1,0 +1,342 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode (.dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===========================================================================
+   LEYOVA BRAND DESIGN SYSTEM
+   潮流科技 × AI SaaS × 电商经营工具
+   70% Snow White / 20% Ink Black / 7% Orange Red / 3% Yellow Punk
+   =========================================================================== */
+
+/* ─── Runtime surface tokens (light is the brand default) ─────────────────── */
+:root {
+  --bg:       #F6F6F3;
+  --surface:  #FFFFFF;
+  --surface2: #F1F1EE;
+  --surface3: #EAEAE6;
+  --border:   #E8E8E5;
+  --border2:  #D9D9D4;
+
+  --text-primary:   #171717;
+  --text-secondary: #3D3D3A;
+  --text-muted:     #747474;
+  --text-subtle:    #9B9B96;
+
+  --hover-bg:   rgba(23, 23, 23, 0.045);
+  --hover-bg2:  rgba(23, 23, 23, 0.07);
+  --hover-bg3:  rgba(23, 23, 23, 0.025);
+  --glass-bg:   rgba(253, 253, 253, 0.72);
+  --glass-border: #E8E8E5;
+
+  /* Navigation rail — light theme is white, dark theme is ink */
+  --sidebar-bg: #FFFFFF;
+
+  /* Status text tokens — 浅色下用深一档保证正文对比度 */
+  --status-brand:   #C81F00;
+  --status-success: #15803D;
+  --status-warning: #A16207;
+  --status-danger:  #B91C1C;
+  --status-info:    #1D4ED8;
+  --status-ai:      #15803D;
+}
+
+/* ─── Dark theme: ink black canvas, never pure violet/blue ────────────────── */
+.dark {
+  --bg:       #101010;
+  --surface:  #171717;
+  --surface2: #1D1D1C;
+  --surface3: #242422;
+  --border:   #2C2C2A;
+  --border2:  #3A3A37;
+
+  --text-primary:   #F5F5F1;
+  --text-secondary: #D3D3CD;
+  --text-muted:     #9B9B96;
+  --text-subtle:    #747474;
+
+  --hover-bg:   rgba(255, 255, 255, 0.05);
+  --hover-bg2:  rgba(255, 255, 255, 0.08);
+  --hover-bg3:  rgba(255, 255, 255, 0.025);
+  --glass-bg:   rgba(23, 23, 23, 0.75);
+  --glass-border: #2C2C2A;
+
+  --sidebar-bg: #0C0C0C;
+
+  --status-brand:   #FF5A33;
+  --status-success: #4ADE80;
+  --status-warning: #FBBF24;
+  --status-danger:  #F87171;
+  --status-info:    #93C5FD;
+  --status-ai:      #83FD80;
+}
+
+/* ─── Map runtime vars to Tailwind tokens ─────────────────────────────────── */
+@theme inline {
+  --color-orbit-bg:       var(--bg);
+  --color-orbit-surface:  var(--surface);
+  --color-orbit-surface2: var(--surface2);
+  --color-orbit-surface3: var(--surface3);
+  --color-orbit-border:   var(--border);
+  --color-orbit-border2:  var(--border2);
+
+  --color-status-brand:   var(--status-brand);
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-danger:  var(--status-danger);
+  --color-status-info:    var(--status-info);
+  --color-status-ai:      var(--status-ai);
+}
+
+/* ─── Fixed brand + semantic tokens ───────────────────────────────────────── */
+@theme {
+  --font-family-sans: 'Manrope', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-family-display: 'Manrope', 'Noto Sans SC', 'PingFang SC', sans-serif;
+
+  /* Brand — Orange Red */
+  --color-orbit-primary:       #F42902;
+  --color-orbit-primary-light: #FF5A33;
+  --color-orbit-primary-dark:  #C81F00;
+  --color-orbit-primary-glow:  rgba(244, 41, 2, 0.22);
+
+  /* Brand — Yellow Punk (AI / growth only) */
+  --color-orbit-accent:       #83FD80;
+  --color-orbit-accent-light: #A6FFA4;
+  --color-orbit-accent-deep:  #4FD64B;
+  --color-orbit-accent-glow:  rgba(131, 253, 128, 0.35);
+
+  /* Ink neutral scale */
+  --color-orbit-ink:    #171717;
+  --color-orbit-snow:   #FDFDFD;
+  --color-orbit-stone:  #F1F1EF;
+  --color-orbit-line:   #E8E8E5;
+
+  /* Semantic — keep clear, never decorative */
+  --color-orbit-success: #16A34A;
+  --color-orbit-warning: #E0A008;
+  --color-orbit-danger:  #DC2626;
+  --color-orbit-info:    #2563EB;
+
+  /* Radius scale — 把 Tailwind 默认圆角收敛到品牌阶梯（8/10/14/18/22） */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-3xl: 22px;
+
+  --radius-orbit-sm: 8px;
+  --radius-orbit-md: 10px;
+  --radius-orbit-lg: 14px;
+  --radius-orbit-xl: 18px;
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  background-color: var(--bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-family-display);
+  letter-spacing: -0.022em;
+  font-weight: 700;
+}
+
+/* Editorial display type — used on hero bands and auth screens */
+.display-xl {
+  font-family: var(--font-family-display);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+.display-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+/* Big data numerals — tabular, tight */
+.metric-num {
+  font-family: var(--font-family-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Brand textures & blocks ─────────────────────────────────────────────── */
+/* Subtle Swiss grid — sits under hero/band sections */
+.brand-grid {
+  background-image:
+    linear-gradient(to right, rgba(23, 23, 23, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 23, 23, 0.055) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.dark .brand-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+/* Halftone / grain overlay for hero blocks */
+.brand-grain { position: relative; }
+.brand-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+.dark .brand-grain::after { mix-blend-mode: screen; opacity: 0.1; }
+
+/* Brand surfaces */
+.brand-ink { background-color: #171717; color: #FDFDFD; }
+.brand-orange { background-color: #F42902; color: #FDFDFD; }
+.brand-punk { background-color: #83FD80; color: #171717; }
+
+/* Accent underline used in headings (editorial detail) */
+.brand-rule {
+  position: relative;
+}
+.brand-rule::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 34px;
+  height: 3px;
+  background: #F42902;
+}
+
+/* ─── Legacy decorative utilities re-pointed to brand ─────────────────────── */
+.glow-primary { box-shadow: 0 0 0 1px rgba(244, 41, 2, 0.14), 0 6px 20px -8px rgba(244, 41, 2, 0.35); }
+.glow-accent  { box-shadow: 0 0 0 1px rgba(131, 253, 128, 0.5), 0 6px 20px -8px rgba(131, 253, 128, 0.55); }
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+}
+
+/* No more violet→cyan gradient text */
+.text-gradient {
+  color: var(--text-primary);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.text-gradient-brand {
+  background: linear-gradient(100deg, #F42902 10%, #FF7A3D 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-border { position: relative; }
+
+/* Ambient page glow — warm ember + hint of punk, no blue/violet */
+.orbit-glow-bg {
+  position: fixed;
+  top: -240px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 560px;
+  background:
+    radial-gradient(ellipse at 35% 40%, rgba(244, 41, 2, 0.07) 0%, transparent 62%),
+    radial-gradient(ellipse at 68% 55%, rgba(131, 253, 128, 0.08) 0%, transparent 62%);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* ─── Scrollbars ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #B8B8B8; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #4A4A46; }
+
+/* ===========================================================================
+   BASE CONTROLS & CHART CHROME
+   旧色族 / 硬编码色值已完成迁移，兼容层不再参与渲染。
+   这里只保留跨页面共用的基础控件与图表默认样式。
+   =========================================================================== */
+
+/* 浅色主题下表单控件统一使用主题表面 */
+html:not(.dark) :is(main, [role="dialog"], [role="alertdialog"])
+  :is(input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent), select, textarea) {
+  color: var(--text-primary);
+  background-color: var(--surface);
+  border-color: var(--border);
+}
+
+::placeholder { color: var(--text-subtle); opacity: 1; }
+
+/* Recharts 默认 tooltip */
+html:not(.dark) .recharts-default-tooltip {
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 8px 24px -12px rgba(23, 23, 23, 0.24);
+}
+html:not(.dark) .recharts-tooltip-item { color: var(--text-secondary) !important; }
+
+/* 深色主题下打印凭单必须保持纸面白底黑字 */
+@media print {
+  html.dark #print-sheet,
+  html.dark #print-sheet * {
+    background-color: #FFFFFF !important;
+    color: #171717 !important;
+  }
+}
+
+/* ─── Component-level brand polish ───────────────────────────────────────── */
+/* Tables default to the flat, line-led Swiss look */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface3);
+}
+.data-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.data-table tbody tr:hover { background: var(--hover-bg3); }
+
+/* Focus ring — single brand treatment everywhere */
+:focus-visible {
+  outline: 2px solid rgba(244, 41, 2, 0.55);
+  outline-offset: 2px;
+}
+
+/* Motion: respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

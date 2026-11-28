@@ -1,0 +1,88 @@
+name: Leyova CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Bootstrap DB, Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres_password
+          POSTGRES_DB: leyova
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:ci_postgres_password@127.0.0.1:5432/leyova
+      TEST_DATABASE_URL: postgresql://postgres:ci_postgres_password@127.0.0.1:5432/leyova_test
+      SESSION_SECRET: ci-session-secret-key-minimum-32-chars-for-leyova-api
+      API_ENCRYPTION_KEY: ci-api-encryption-key-minimum-32-chars-for-aes-256-gcm
+      LEYOVA_MCP_TOKEN: ci-mcp-bearer-token-32chars-minimum
+      LEYOVA_MCP_SIGNING_SECRET: ci-mcp-signing-secret-32chars-minimum
+      LEYOVA_MCP_REQUIRE_SIG: 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bootstrap empty PostgreSQL & apply all migrations
+        run: node database/migrate.js
+
+      - name: Verify idempotent re-run of database/migrate.js
+        run: node database/migrate.js
+
+      - name: Verify 01_schema.sql matches database (schema drift check)
+        run: node database/generate-schema.js --check
+
+      - name: Run static security & caliber guardrails
+        run: pnpm check:guardrails
+
+      - name: Verify OpenAPI spec matches registered routes (P2-4)
+        run: pnpm openapi:check
+
+      - name: Build all workspace packages
+        run: pnpm build
+
+      - name: Type-check API, Web & MCP packages
+        run: |
+          pnpm --filter @leyova/api exec tsc -p tsconfig.test.json --noEmit
+          pnpm --filter @leyova/web exec tsc -b
+          pnpm --filter @leyova/mcp-server exec tsc --noEmit
+
+      - name: Bootstrap dedicated _test database & run API tests
+        run: |
+          pnpm --filter @leyova/api exec node -e "import('pg').then(async ({default:pg})=>{const p=new pg.Pool({connectionString:process.env.DATABASE_URL});await p.query('CREATE DATABASE leyova_test');await p.end();})"
+          DATABASE_URL="$TEST_DATABASE_URL" node database/migrate.js
+          pnpm --filter @leyova/api test
+
+      - name: Run Web structural & permission integrity tests
+        run: pnpm --filter @leyova/web test

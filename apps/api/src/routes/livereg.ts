@@ -1,0 +1,127 @@
+import type { FastifyInstance } from 'fastify'
+import { sendOk, sendError } from '../lib/http.js'
+import { withRlsContext } from '../lib/db.js'
+import { requireAuth, requireRole } from '../lib/guard.js'
+
+export async function liveregRoutes(app: FastifyInstance) {
+  // ── GET /api/v1/livereg/form-data ──
+  app.get('/api/v1/livereg/form-data', async (request, reply) => {
+    const user = await requireAuth(request, reply)
+    if (!user) return
+    try {
+      const [anchorsRes, roomsRes, usersRes] = await withRlsContext(request, (client) =>
+        Promise.all([
+          client.query('SELECT id, name FROM anchors WHERE status = 1 ORDER BY name'),
+          client.query("SELECT id, name FROM live_rooms WHERE status = 'active' ORDER BY name"),
+          client.query('SELECT id, name FROM operators WHERE status = 1 ORDER BY name'),
+        ]),
+      )
+      const userRoomIds = user.role === 'room_specific' ? [1] : []
+      return sendOk(reply, {
+        anchors: anchorsRes.rows,
+        rooms: roomsRes.rows,
+        operators: usersRes.rows,
+        userRole: user.role,
+        userRoomIds,
+      })
+    } catch (err) {
+      request.log.warn({ err }, 'livereg/form-data query failed')
+      return sendOk(reply, { anchors: [], rooms: [], operators: [], userRole: user.role, userRoomIds: [] })
+    }
+  })
+
+  // ── POST /api/v1/livereg/submit ──
+  app.post(
+    '/api/v1/livereg/submit',
+    { preHandler: [requireRole(['super_admin', 'ops_director', 'ops_staff', 'controller'])] },
+    async (request, reply) => {
+      const user = (request as any).user
+      try {
+        const body = request.body as {
+          roomId?: number
+          anchorId?: number
+          operatorId?: number
+          date?: string
+          startTime?: string
+          endTime?: string
+          duration?: number
+          title?: string
+          gmv?: number
+          returnAmount?: number
+          gsv?: number
+          remark?: string
+          adPlatform?: string
+          adType?: string
+          adCost?: number
+          adGsv?: number
+          adStatus?: number
+        }
+
+        const outcome = await withRlsContext(request, async (client) => {
+          // 去重校验：同主播、同直播间、同一天、且开始时间相同，视为重复登记。
+          if (body.date && body.startTime) {
+            const dupRes = await client.query(
+              `SELECT id FROM live_registrations
+                WHERE biz_date = $1::date
+                  AND COALESCE(anchor_id, 0) = COALESCE($2, 0)
+                  AND COALESCE(room_id, 0) = COALESCE($3, 0)
+                  AND start_time = $4::time
+                  AND status <> 'cancelled'
+                LIMIT 1`,
+              [body.date, body.anchorId ?? null, body.roomId ?? null, body.startTime],
+            )
+            if (dupRes.rows.length > 0) {
+              return { dupId: dupRes.rows[0].id as number }
+            }
+          }
+
+          // 人工登记写入独立表 live_registrations
+          const result = await client.query(
+            `INSERT INTO live_registrations
+               (biz_date, anchor_id, room_id, operator_id,
+                title, start_time, end_time, duration_min, status,
+                gmv, orders, buyer_count, return_amount, remark,
+                registered_by, entry_source)
+             VALUES ($1::date, $2, $3, $4,
+                     $5, $6::time, $7::time, $8, $9,
+                     $10, $11, $12, $13, $14,
+                     $15, 'manual_entry')
+             RETURNING id`,
+            [
+              body.date,
+              body.anchorId ?? null,
+              body.roomId ?? null,
+              body.operatorId || null,
+              body.title || '',
+              body.startTime || null,
+              body.endTime || null,
+              body.duration || 0,
+              'scheduled',
+              body.gmv || 0,
+              0,
+              0,
+              body.returnAmount || 0,
+              body.remark || '',
+              user.id,
+            ],
+          )
+          return { id: result.rows[0].id as number }
+        })
+
+        if ('dupId' in outcome && outcome.dupId) {
+          return sendError(reply, 409, `该主播在 ${body.date} ${body.startTime} 已有登记记录（ID: ${outcome.dupId}）`)
+        }
+
+        return sendOk(reply, {
+          saved: true,
+          id: outcome.id,
+          submittedBy: user.username,
+          note: '已保存到人工登记表，不影响分析数据',
+        }, '保存成功')
+      } catch (err) {
+        request.log.warn({ err }, 'livereg/submit failed')
+        return sendOk(reply, { saved: false }, '保存失败')
+      }
+    },
+  )
+}

@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ──────────────────────────────────────
+// 用户与认证
+// ──────────────────────────────────────
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique @db.VarChar(50)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  realName      String    @default("") @map("real_name") @db.VarChar(100)
+  role          String    @default("employee") @db.VarChar(20)
+  status        Int       @default(1) @db.SmallInt
+  lastLoginAt   DateTime? @map("last_login_at") @db.Timestamptz()
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+
+  sessions    UserSession[]
+  auditLogs   AuditLog[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id            String   @id @db.VarChar(128)
+  userId        Int      @map("user_id")
+  expiresAt     DateTime @map("expires_at") @db.Timestamptz()
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  lastActiveAt  DateTime @default(now()) @map("last_active_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_sessions_user")
+  @@index([expiresAt], map: "idx_user_sessions_expires")
+  @@map("user_sessions")
+}
+
+// ──────────────────────────────────────
+// 角色与权限
+// ──────────────────────────────────────
+model Role {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String   @default("") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique @db.VarChar(100)
+  name      String   @db.VarChar(200)
+  module    String   @default("") @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  rolePermissions RolePermission[]
+
+  @@index([module], map: "idx_permissions_module")
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ──────────────────────────────────────
+// 审计日志
+// ──────────────────────────────────────
+model AuditLog {
+  id           BigInt   @id @default(autoincrement())
+  actorUserId  Int?     @map("actor_user_id")
+  action       String   @db.VarChar(100)
+  resourceType String   @default("") @map("resource_type") @db.VarChar(50)
+  resourceId   String   @default("") @map("resource_id") @db.VarChar(100)
+  beforeData   Json     @default("{}") @map("before_data") @db.JsonB
+  afterData    Json     @default("{}") @map("after_data") @db.JsonB
+  ipAddress    String   @default("") @map("ip_address") @db.VarChar(45)
+  userAgent    String   @default("") @map("user_agent") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  actor User? @relation(fields: [actorUserId], references: [id])
+
+  @@index([actorUserId], map: "idx_audit_logs_actor")
+  @@index([action], map: "idx_audit_logs_action")
+  @@index([resourceType, resourceId], map: "idx_audit_logs_resource")
+  @@index([createdAt], map: "idx_audit_logs_created")
+  @@map("audit_logs")
+}
+
+// ──────────────────────────────────────
+// 系统任务
+// ──────────────────────────────────────
+model SystemJob {
+  id            BigInt    @id @default(autoincrement())
+  jobType       String    @map("job_type") @db.VarChar(50)
+  jobName       String    @default("") @map("job_name") @db.VarChar(200)
+  status        String    @default("pending") @db.VarChar(20)
+  inputPayload  Json      @default("{}") @map("input_payload") @db.JsonB
+  resultPayload Json      @default("{}") @map("result_payload") @db.JsonB
+  errorMessage  String    @default("") @map("error_message") @db.Text
+  runAt         DateTime? @map("run_at") @db.Timestamptz()
+  startedAt     DateTime? @map("started_at") @db.Timestamptz()
+  finishedAt    DateTime? @map("finished_at") @db.Timestamptz()
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+
+  @@index([status], map: "idx_system_jobs_status")
+  @@index([runAt], map: "idx_system_jobs_run_at")
+  @@index([jobType], map: "idx_system_jobs_type")
+  @@map("system_jobs")
+}

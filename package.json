@@ -1,0 +1,34 @@
+{
+  "name": "leyova",
+  "version": "0.1.0",
+  "description": "leyova — 全渠道电商数字化运营中枢（后端 API + Web 控制台 + MCP Server）",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter './apps/*' --parallel dev",
+    "dev:api": "pnpm -F @leyova/api dev",
+    "dev:web": "pnpm -F @leyova/web dev",
+    "dev:mcp": "pnpm -F @leyova/mcp-server dev",
+    "db:migrate": "node database/migrate.js",
+    "db:setup": "node database/migrate.js",
+    "build": "pnpm -F @leyova/api build && pnpm -F @leyova/web build && pnpm -F @leyova/mcp-server build",
+    "start:api": "pnpm -F @leyova/api start",
+    "start:mcp": "pnpm -F @leyova/mcp-server start",
+    "check:guardrails": "node scripts/check-guardrails.mjs",
+    "schema:check": "node database/generate-schema.js --check",
+    "ops:probe": "node scripts/ops-health-probe.mjs",
+    "ops:bench": "node scripts/benchmark-aggregations.mjs",
+    "ops:smoke": "node scripts/e2e-smoke-flow.mjs",
+    "worker": "pnpm -F @leyova/api worker",
+    "openapi:gen": "pnpm -F @leyova/api openapi:gen -- --write",
+    "openapi:check": "pnpm -F @leyova/api openapi:check",
+    "test": "pnpm -F @leyova/api test && pnpm -F @leyova/web test"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}
